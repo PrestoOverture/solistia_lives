@@ -1,0 +1,21 @@
+[project]
+name = "story-engine"
+version = "0.1.0"
+description = "Octopath Traveler II story generation CLI"
+requires-python = ">=3.12"
+dependencies = ["typer", "pydantic", "pyyaml"]
+
+[project.scripts]
+story-engine = "story_engine.cli:app"
+
+[dependency-groups]
+dev = ["pytest"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m 'not e2e'"
+markers = ["e2e: tests that call live models"]
