@@ -1,0 +1,11 @@
+docs/
+misc/
+runs/
+kb_raw/
+eval/blind/
+.venv/
+__pycache__/
+.pytest_cache/
+.DS_Store
+CLAUDE.md
+AGENTS.md
