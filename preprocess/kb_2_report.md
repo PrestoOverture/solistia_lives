@@ -1,0 +1,97 @@
+# KB Stage 2 Polish Report
+
+## Skipped Pages
+- `bandelam_the_reaper` (Bandelam the Reaper): Purely enemy battle stats and gameplay mechanics with no character lore (covered under Bandelam).
+- `tyran_the_seeker` (Tyran the Seeker): Pure gameplay boss encounter stats for the Five-Tiered Tower with no character lore.
+- `ichchadhari_the_snake_charmer` (Ichchadhari the Snake Charmer): Purely enemy battle stats and encounter mechanics with no character lore.
+- `reggie` (Reggie): Purely Octopath Traveler (OT1) character and story content with zero OT2 lore.
+- `gken` (Gken): Purely enemy battle stats and gameplay mechanics with no character lore (boss of the first floor in Five-Tiered Tower / A Tower of Trials).
+- `dreadborn` (Dreadborn): Purely Champions of the Continent (CotC) story and gameplay concept with zero OT2 lore.
+- `ouma` (Ouma): Purely Champions of the Continent (Side Solistia) content with zero Octopath Traveler II lore.
+- `brigand_octopath_traveler_ii` (Brigand (Octopath Traveler II)): Purely enemy battle stats and encounter mechanics for the side story "The Traveler's Bag" with no lore.
+- `delsta_devil` (Delsta Devil): Purely enemy boss battle stats for the Sunken Maw encounter in "A Devilishly Delicious Dish" with no unique story lore (covered under A Devilishly Delicious Dish).
+- `capture_octopath_traveler_ii` (Capture (Octopath Traveler II)): Purely gameplay mechanics and formulas for Ochette's battle talent with zero world lore.
+- `fire_sentinel` (Fire Sentinel): Purely enemy battle stats and gameplay mechanics with no narrative lore.
+- `fire_sentinel_mkii` (Fire Sentinel Mk.II): Purely enemy battle stats and gameplay mechanics with no narrative lore.
+- `flame_curator_mkii` (Flame Curator Mk.II): Purely enemy battle stats and gameplay mechanics with no narrative lore.
+- `flame_guardian` (Flame Guardian): Purely enemy battle stats and gameplay mechanics across games with no narrative lore.
+- `flame_guardian_mkii` (Flame Guardian Mk.II): Purely enemy battle stats and gameplay mechanics with no narrative lore.
+- `abyssal_maw_octopath_traveler_ii` (Abyssal Maw (Octopath Traveler II)): Purely superboss encounter stats and skill formulas for a Galdera body part with no narrative lore.
+- `alfyn_greengrass_octopath_traveler_ii` (Alfyn Greengrass (Octopath Traveler II)): Purely Extra Battle arena encounter stats for an Octopath Traveler (OT1) crossover fight with zero OT2 story lore.
+- `aunvarg` (Auðnvarg): Pure gameplay boss encounter stats for the Five-Tiered Tower with no character or world lore.
+- `bandelam_the_reaper_duel` (Bandelam the Reaper (Duel)): Purely 1v1 arena duel combat stats and gameplay mechanics with no character lore (covered under Bandelam).
+- `blade_of_the_fallen_octopath_traveler_ii` (Blade of the Fallen (Octopath Traveler II)): Purely superboss encounter stats and skill formulas for a Galdera body part with no narrative lore.
+- `cactus_roller` (Cactus Roller): Purely wild enemy encounter stats and gameplay mechanics in Northern Ryu Sands with no OT2 narrative lore.
+- `captain_kaldena` (Captain Kaldena): Purely enemy boss battle encounter stats and combat mechanics with no character lore (covered under Kaldena).
+- `captain_stenvar` (Captain Stenvar): Purely enemy boss battle encounter stats and combat mechanics with no character lore (covered under Stenvar).
+- `elite_ku_soldier` (Elite Ku Soldier): Purely enemy battle stats and missable random encounter data for Hikari Chapter 5 with no narrative lore.
+- `enshrouded_king` (Enshrouded King): Purely boss battle mechanics and stats for the second phase of Mugen's final battle with no narrative lore (covered under Mugen).
+- `carnivorous_plant` (Carnivorous Plant): Purely optional boss battle stats and encounter mechanics in the Abandoned Waterway with no story lore (species covered under Plants).
+- `creeping_tentacle` (Creeping Tentacle): Purely boss minion battle stats summoned by Vide during the final battle with no standalone lore (covered under Vide).
+- `cyrus_albright_octopath_traveler_ii` (Cyrus Albright (Octopath Traveler II)): Purely Extra Battle arena boss encounter stats with no in-world Solistia lore.
+- `dark_guardian` (Dark Guardian): Purely random enemy encounter stats and gameplay mechanics across games with no world lore.
+- `deep_one` (Deep One): Purely side quest boss battle encounter stats for "The Missing Girl" with no unique story lore (species covered under Aquatics).
+- `deputy_cubaryi` (Deputy Cubaryi): Purely boss battle stats and encounter mechanics with no unique character lore (covered under Cubaryi).
+- `desert_ape_i` (Desert Ape I): Purely random enemy encounter stats and gameplay mechanics with no world lore (species covered under Apes).
+- `devourer_of_dreams` (Devourer of Dreams): Purely optional boss battle stats and encounter mechanics in the Forsaken Graveyard with no story lore (species covered under Ungulates).
+- `dolcinaea_the_star` (Dolcinaea the Star): Purely boss battle mechanics and stats for the second phase of Dolcinaea's final battle with no narrative lore (covered under Dolcinaea Luciel).
+- `dreadwolf` (Dreadwolf): Purely optional boss battle stats and encounter mechanics in the Infernal Castle with no story lore (species covered under Direwolves).
+- `galdera_the_fallen_octopath_traveler_ii` (Galdera, the Fallen (Octopath Traveler II)): Purely superboss encounter stats and skill formulas for the second phase of Galdera with no narrative lore (covered under Galdera).
+- `gargantuan_boar` (Gargantuan Boar): Purely wild enemy battle stats and encounter mechanics across regions with no narrative lore.
+- `general_ritsu` (General Ritsu): Purely boss battle encounter stats and combat mechanics with no character lore (covered under Ritsu Mishuyo).
+- `general_rou` (General Rou): Purely duel encounter stats and combat mechanics with no character lore (covered under Rou).
+- `haanit_octopath_traveler_ii` (H'aanit (Octopath Traveler II)): Purely Extra Battle arena encounter stats for an Octopath Traveler (OT1) crossover fight with zero OT2 story lore.
+- `monarch` (Monarch): Purely optional boss battle stats and encounter mechanics in Starfall Spring with no unique story lore (species covered under Arthropods).
+- `lithe_tentacle` (Lithe Tentacle): Purely boss minion battle stats summoned by Vide during the final battle with no standalone lore (covered under Vide).
+- `lord_of_the_sands` (Lord of the Sands): Purely optional boss battle stats and encounter mechanics in the Quicksand Gaol with no story lore (species covered under Sandworms).
+- `malamaowl_of_the_sorrowful_moon` (Malamaowl of the Sorrowful Moon): Purely boss battle stats and encounter mechanics for Ochette's Chapter 3 with no standalone narrative lore (covered under Darkling of the Sorrowful Moon).
+- `manymaws` (Manymaws): Purely optional side story boss encounter stats and combat mechanics in the Unfinished Tunnel with no narrative lore (species covered under Plants).
+- `materials_octopath_traveler_ii` (Materials (Octopath Traveler II)): Pure list of concoct item gameplay effects and placeholder headers with zero world lore.
+- `meep` (Meep): Purely random wild enemy encounter stats and gameplay mechanics across games with no narrative lore.
+- `insurgent` (Insurgent): Purely tutorial enemy combat stats and mechanics in Flamechurch before recruiting Temenos with no narrative lore.
+- `king_mugen` (King Mugen): Purely boss battle combat mechanics and stats for the first phase of Mugen's encounter with no narrative lore (covered under Mugen).
+- `ku_bowman` (Ku Bowman): Purely missable random enemy combat stats and actions during Hikari Chapter 5 with no narrative lore.
+- `ku_soldier` (Ku Soldier): Purely missable random enemy combat stats and actions during Hikari Chapter 3 & 5 with no narrative lore.
+- `lady_clarissa` (Lady Clarissa): Purely mid-boss battle combat stats and skills in Conning Creek Outskirts with no unique narrative lore (covered under Clarissa).
+- `lajackal_of_the_sorrowful_moon` (Lājackal of the Sorrowful Moon): Purely boss battle combat stats and encounter mechanics for Akalā's darkling form with no unique narrative lore (covered under Darkling of the Sorrowful Moon / Akalā).
+- `ruffian_soldier_ii` (Ruffian Soldier II): Purely enemy battle stats and encounter mechanics for recruiting Hikari in Ryu with no character lore.
+- `olberic_eisenberg_octopath_traveler_ii` (Olberic Eisenberg (Octopath Traveler II)): Purely Extra Battle arena encounter stats for an Octopath Traveler (OT1) crossover fight with zero OT2 story lore.
+- `omniscient_eye_octopath_traveler_ii` (Omniscient Eye (Octopath Traveler II)): Purely superboss encounter stats and combat mechanics for the first phase of Galdera with no narrative lore (covered under Galdera).
+- `ophilia_clement_octopath_traveler_ii` (Ophilia Clement (Octopath Traveler II)): Purely Extra Battle arena boss encounter stats for an Octopath Traveler (OT1) crossover fight with zero OT2 story lore.
+- `primrose_azelhart_octopath_traveler_ii` (Primrose Azelhart (Octopath Traveler II)): Purely Extra Battle arena boss encounter stats for an Octopath Traveler (OT1) crossover fight with zero OT2 story lore.
+- `professor_harvey` (Professor Harvey): Pure boss battle combat mechanics and stats in Duskruin Shrine Depths; character lore covered under Harvey.
+- `pursuer` (Pursuer): Purely introductory enemy battle stats and mechanics in the Underground Waterway during Throné Chapter 1 with no narrative lore.
+- `pursuer_leader` (Pursuer Leader): Purely introductory enemy battle stats and mechanics in the Underground Waterway during Throné Chapter 1 with no narrative lore.
+- `raging_soul_octopath_traveler_ii` (Raging Soul (Octopath Traveler II)): Purely superboss encounter stats for Galdera's summoned minions with no narrative lore (covered under Galdera).
+- `red_fox` (Red Fox): Purely random wild enemy combat stats and mechanics across games with no narrative lore (species covered under Canines).
+- `reinforcement_guard_i` (Reinforcement Guard I): Purely story minion battle stats during Osvald Chapter 2 with no narrative lore.
+- `ruby_betta` (Ruby Betta): Purely wild fish enemy encounter stats and combat mechanics across games with no narrative lore.
+- `ruffian_soldier_i` (Ruffian Soldier I): Purely enemy battle stats and encounter mechanics for recruiting Hikari in Ryu with no character lore.
+- `screaming_soul_octopath_traveler_ii` (Screaming Soul (Octopath Traveler II)): Purely superboss encounter stats for Galdera's summoned minions with no narrative lore (covered under Galdera).
+- `small_golem` (Small Golem): Purely mini-boss battle combat stats and mechanics fought before Professor Harvey in Duskruin Shrine Depths with no narrative lore.
+- `snow_marmot` (Snow Marmot): Purely random wild enemy combat stats and mechanics across games with no narrative lore.
+- `snow_yak` (Snow Yak): Purely random wild enemy combat stats and mechanics across games with no narrative lore.
+- `southern_general` (Southern General): Purely tutorial enemy boss combat stats and mechanics during Hikari Chapter 1 with no narrative lore.
+- `vide_the_wicked` (Vide, the Wicked): Pure boss battle combat mechanics and stats for the second phase of Vide's final battle with no standalone lore (covered under Vide).
+- `wailing_soul_octopath_traveler_ii` (Wailing Soul (Octopath Traveler II)): Purely superboss encounter stats for Galdera's summoned minions with no narrative lore (covered under Galdera).
+- `warden_davids` (Warden Davids): Pure boss battle combat stats and mechanics in Prison: Underground Passage; character lore covered under Davids.
+- `summon_octopath_traveler_ii_list` (Summon (Octopath Traveler II)/List): Pure gameplay table of NPC summons, dance session effects, and path action summon parameters with zero world lore.
+- `sundering_arm` (Sundering Arm): Purely superboss encounter stats and combat formulas for a Galdera body part with no standalone lore (covered under Galdera).
+- `suspicious_man_i` (Suspicious Man I): Story encounter minion combat stats in New Delsta prior to recruiting Throné with zero standalone lore.
+- `suspicious_man_ii` (Suspicious Man II): Story encounter minion combat stats in New Delsta prior to recruiting Throné with zero standalone lore.
+- `southern_soldier_i` (Southern Soldier I): Purely tutorial enemy combat stats and mechanics during Hikari Chapter 1 with no narrative lore.
+- `southern_soldier_ii` (Southern Soldier II): Purely tutorial enemy combat stats and mechanics during Hikari Chapter 1 with no narrative lore.
+- `spiked_skink` (Spiked Skink): Purely random wild enemy combat stats and mechanics across games with no narrative lore.
+- `thwarting_tentacle` (Thwarting Tentacle): Purely boss minion battle stats summoned by Vide during the final battle with no standalone lore (covered under Vide).
+- `therion_octopath_traveler_ii` (Therion (Octopath Traveler II)): Purely Extra Battle arena boss encounter stats for an Octopath Traveler (OT1) crossover fight with zero OT2 story lore.
+- `tressa_colzione_octopath_traveler_ii` (Tressa Colzione (Octopath Traveler II)): Purely Extra Battle arena boss encounter stats for an Octopath Traveler (OT1) crossover fight with zero OT2 story lore.
+- `true_vide` (True Vide): Purely Extra Battle post-game boss phase combat stats and formulas with no narrative lore (covered under Vide).
+- `true_vide_the_wicked` (True Vide, the Wicked): Purely Extra Battle post-game boss encounter combat stats and formulas with no narrative lore (covered under Vide).
+- `vados_the_architect` (Vados the Architect): Boss battle encounter subpage with pure combat stats and summon mechanics; character lore covered under Vados.
+- `wriggling_tentacle` (Wriggling Tentacle): Purely boss minion battle stats summoned by Vide during the final battle with no standalone lore (covered under Vide).
+- `yomi_the_lutist` (Yomi the Lutist): Purely boss battle combat stats and skills in Tranquil Grotto with no character lore (covered under Yomi).
+- `zeto_the_butcher` (Zeto the Butcher): Purely duel combat stats and mechanics in Montwise Underground Arena with no character lore (covered under Zeto).
+- `wicked_left_arm` (Wicked Left Arm): Pure boss combat stats and skills for Vide the Wicked boss part with zero standalone narrative lore (covered under Vide).
+- `wicked_right_arm` (Wicked Right Arm): Pure boss combat stats and skills for Vide the Wicked boss part with zero standalone narrative lore (covered under Vide).
+- `wind_curator` (Wind Curator): Purely enemy encounter combat stats, drops, and skills across OT1/OT2 without narrative lore.
+- `wind_wisp` (Wind Wisp): Purely random enemy encounter combat stats, drops, and skills across OT1/OT2 without narrative lore.
