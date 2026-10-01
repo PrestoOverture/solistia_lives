@@ -1,1 +1,0 @@
-jigo_ku.md
