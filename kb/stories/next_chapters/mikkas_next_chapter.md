@@ -8,7 +8,7 @@ source: ["Mikka's Next Chapter"]
 "*Really, there's nothing to worry about. Please, let me continue working.*"
 —*[Mikka Mishuyo](../../characters/hikari/mikka_mishuyo.md)*
 
-**Mikka's Next Chapter** is a tale set in [Ku: Castle Town](../../locations/hinoeuma/towns/ku_castle_town.md) in [Hinoeuma](../../locations/hinoeuma/hinoeuma.md), occurring after the completion of [Hikari](../../characters/travelers/hikari.md) and [Agnea](../../characters/travelers/agnea.md)'s Crossed Paths.
+**Mikka's Next Chapter** is a tale set in [Ku: Castle Town](../../locations/hinoeuma/towns/ku_castle_town.md) in [Hinoeuma](../../locations/hinoeuma/hinoeuma.md), occurring after the completion of [Hikari](../../characters/hikari/hikari.md) and [Agnea](../../characters/agnea/agnea.md)'s Crossed Paths.
 
 ## A Solitary Burden
 

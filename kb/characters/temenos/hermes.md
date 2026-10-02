@@ -22,9 +22,9 @@ Though her immense fame and theatrical moniker might suggest arrogance, Hermes i
 
 Hermes honed her dancing craft at the Dancers' Guild in [Wellgrove](../../locations/leaflands/towns/wellgrove.md) before rising to continental stardom.
 
-One evening, while performing at the tavern in Canalbrine, Hermes was ambushed by [Vados the Architect](vados.md), an agent of the [Moonshade Order](../../world/factions/moonshade_order.md) seeking to murder her as part of a blood ritual. She was saved when Sanctum Knight [Crick Wellsley](crick_wellsley.md) and Inquisitor [Temenos Mistral](../travelers/temenos.md) intervened, subduing the assassin and exposing the conspiracy.
+One evening, while performing at the tavern in Canalbrine, Hermes was ambushed by [Vados the Architect](vados.md), an agent of the [Moonshade Order](../../world/factions/moonshade_order.md) seeking to murder her as part of a blood ritual. She was saved when Sanctum Knight [Crick Wellsley](crick_wellsley.md) and Inquisitor [Temenos Mistral](temenos.md) intervened, subduing the assassin and exposing the conspiracy.
 
-Later, Hermes was invited to perform at the [Stage of the Moon and Sun](../../locations/crestlands/dungeons/stage_of_the_moon_and_sun.md) during the [Grand Gala](../../world/lore/grand_gala.md), serving as the featured opening act preceding the climactic dance between [Agnea Bristarni](../travelers/agnea.md) and [Dolcinaea Luciel](../agnea/dolcinaea_luciel.md).
+Later, Hermes was invited to perform at the [Stage of the Moon and Sun](../../locations/crestlands/dungeons/stage_of_the_moon_and_sun.md) during the [Grand Gala](../../world/lore/grand_gala.md), serving as the featured opening act preceding the climactic dance between [Agnea Bristarni](../agnea/agnea.md) and [Dolcinaea Luciel](../agnea/dolcinaea_luciel.md).
 
 Subsequently, Hermes entered a prestigious dancing competition in [Merry Hills](../../locations/crestlands/towns/merry_hills.md). During the event, a promising young dancer named [Laila](../agnea/laila.md) took the stage but suffered multiple humiliating falls due to uncontrollable slipping. Troubled by the spectacle, Hermes sought out Laila on the bridge overlooking the town to check on her well-being. Examining Laila's footwear, Hermes discovered that the slippers had been rigged to secrete slick oil. 
 

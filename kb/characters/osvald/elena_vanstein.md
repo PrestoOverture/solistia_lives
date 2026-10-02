@@ -9,7 +9,7 @@ source: ["Elena Vanstein"]
 > "*Welcome home, Papa!*"
 > — Elena, welcoming Osvald home
 
-**Elena Vanstein** is the daughter of the scholar [Osvald V. Vanstein](../travelers/osvald.md) and [Rita Lumina](rita_lumina.md). Through her maternal lineage, she is a descendant of the [Lumina Clan](../../world/factions/lumina_clan.md) and possesses the clan's sacred magical bloodline.
+**Elena Vanstein** is the daughter of the scholar [Osvald V. Vanstein](osvald.md) and [Rita Lumina](rita_lumina.md). Through her maternal lineage, she is a descendant of the [Lumina Clan](../../world/factions/lumina_clan.md) and possesses the clan's sacred magical bloodline.
 
 ## Profile
 
@@ -45,7 +45,7 @@ Living peacefully with Clarissa, Elena studied magic rigorously and gradually pi
 
 ### Epilogue
 
-During the epilogue, Elena journeys to [New Delsta](../../locations/brightlands/towns/new_delsta.md) to attend [Agnea Bristarni](../travelers/agnea.md)'s grand theatrical performance. While exploring the city, she searches for a present to bring back for her father, living proof that their family's bond has finally endured and healed.
+During the epilogue, Elena journeys to [New Delsta](../../locations/brightlands/towns/new_delsta.md) to attend [Agnea Bristarni](../agnea/agnea.md)'s grand theatrical performance. While exploring the city, she searches for a present to bring back for her father, living proof that their family's bond has finally endured and healed.
 
 ## Dialogue Quotes
 

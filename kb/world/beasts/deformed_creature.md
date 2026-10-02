@@ -5,7 +5,7 @@ source: ["Deformed Creature"]
 ---
 # Deformed Creature
 
-The **Deformed Creature** is an artificial chimera created by [Harvey](../../characters/osvald/harvey.md). Confined within his [Underground Laboratory](../../locations/crestlands/dungeons/underground_laboratory.md), it broke loose alongside the [Cobbled Creature](cobbled_creature.md) and the [Synthesized Creature](synthesized_creature.md) during Chapter 4 of [Osvald](../../characters/travelers/osvald.md)'s story to battle Osvald and his allies.
+The **Deformed Creature** is an artificial chimera created by [Harvey](../../characters/osvald/harvey.md). Confined within his [Underground Laboratory](../../locations/crestlands/dungeons/underground_laboratory.md), it broke loose alongside the [Cobbled Creature](cobbled_creature.md) and the [Synthesized Creature](synthesized_creature.md) during Chapter 4 of [Osvald](../../characters/osvald/osvald.md)'s story to battle Osvald and his allies.
 
 ## Overview
 

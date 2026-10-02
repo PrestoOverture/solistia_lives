@@ -19,5 +19,5 @@ Deep within the cavernous halls stands an ancient painted mural illustrating the
 
 ## Story Events
 
-- **[Ochette](../../../characters/travelers/ochette.md)'s Tale**: In Chapter 1, Ochette ventures into the depths of the tombs after a human girl wanders inside. In the deepest sanctum beside the sacred mural, she finds two orphaned beast cubs—the malamaowl [Mahina](../../../characters/ochette/mahina.md) and the lajackal [Akalā](../../../characters/ochette/akala.md)—and chooses one to become her lifelong companion and partner.
+- **[Ochette](../../../characters/ochette/ochette.md)'s Tale**: In Chapter 1, Ochette ventures into the depths of the tombs after a human girl wanders inside. In the deepest sanctum beside the sacred mural, she finds two orphaned beast cubs—the malamaowl [Mahina](../../../characters/ochette/mahina.md) and the lajackal [Akalā](../../../characters/ochette/akala.md)—and chooses one to become her lifelong companion and partner.
 - **The Journey for the Dawn**: During the climax of [The Journey for the Dawn](../../../stories/main/the_journey_for_the_dawn.md), a shadow-spawned [Grotesque Monster](../../../world/beasts/grotesque_monster.md) guards the tomb's sacred brazier, requiring the travelers to vanquish it to rekindle the island's Sacred Flame against Vide's perpetual night.

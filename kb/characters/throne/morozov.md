@@ -6,7 +6,7 @@ source: ["Morozov"]
 
 # Morozov
 
-**Morozov** is an assistant to [Mother](mother.md) at the [Mother's Garden: Orphanage](../../locations/leaflands/wilds/mothers_garden_orphanage.md) who appears during [Throné](../travelers/throne.md)'s Chapter 3: Mother's Route in *Octopath Traveler II*.
+**Morozov** is an assistant to [Mother](mother.md) at the [Mother's Garden: Orphanage](../../locations/leaflands/wilds/mothers_garden_orphanage.md) who appears during [Throné](throne.md)'s Chapter 3: Mother's Route in *Octopath Traveler II*.
 
 ## Profile
 

@@ -6,7 +6,7 @@ source: ["Masked Boy"]
 
 # Masked Boy
 
-The **Masked Boy** is a mysterious child encountered in [Oresrush](../../locations/wildlands/towns/oresrush.md) during [Throné Anguis](../travelers/throne.md)'s pursuit of [Mother](mother.md). Unbeknownst to both himself and Throné at the time, he is one of the numerous offspring fathered by [Claude](claude_blacksnakes.md), making him Throné and [Pirro](pirro.md)'s half-brother.
+The **Masked Boy** is a mysterious child encountered in [Oresrush](../../locations/wildlands/towns/oresrush.md) during [Throné Anguis](throne.md)'s pursuit of [Mother](mother.md). Unbeknownst to both himself and Throné at the time, he is one of the numerous offspring fathered by [Claude](claude_blacksnakes.md), making him Throné and [Pirro](pirro.md)'s half-brother.
 
 ## Profile
 

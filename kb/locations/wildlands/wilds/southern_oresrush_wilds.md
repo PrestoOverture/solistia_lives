@@ -17,4 +17,4 @@ The arid wildland route forms an overland crossroads between several regions:
 
 ## Notable Events
 
-For travelers setting out from Oresrush—specifically [Partitio Yellowil](../../../characters/travelers/partitio.md) when chosen as the initial protagonist—the road south serves as the setting for the side story [The Traveler's Bag](../../../stories/side_stories/the_travelers_bag.md), where a wandering traveler is ambushed by bandits upon entering the wilds.
+For travelers setting out from Oresrush—specifically [Partitio Yellowil](../../../characters/partitio/partitio.md) when chosen as the initial protagonist—the road south serves as the setting for the side story [The Traveler's Bag](../../../stories/side_stories/the_travelers_bag.md), where a wandering traveler is ambushed by bandits upon entering the wilds.

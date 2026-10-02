@@ -12,7 +12,7 @@ source: ["Bandit Chief"]
 - **Status**: Deceased
 - **Occupation**: Bandit leader, hired assassin
 
-The **Bandit Chief** was the leader of a band of cutthroats hired by [Jin Mei](jin_mei.md) on the secret orders of [Mugen](mugen.md) to assassinate Lady [Kura](kura.md) and the young prince [Hikari Ku](../travelers/hikari.md).
+The **Bandit Chief** was the leader of a band of cutthroats hired by [Jin Mei](jin_mei.md) on the secret orders of [Mugen](mugen.md) to assassinate Lady [Kura](kura.md) and the young prince [Hikari Ku](hikari.md).
 
 ## Appearance
 

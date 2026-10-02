@@ -9,7 +9,7 @@ source: ["Laila's Next Chapter"]
 > *"I won't let that judge ruin the show with his dirty tricks! Let's go teach that guy a lesson."*
 > — Laila
 
-**Laila's Next Chapter** is a side story in *Octopath Traveler II* taking place in [Merry Hills](../../locations/crestlands/towns/merry_hills.md) within the [Crestlands](../../locations/crestlands/crestlands.md), following the completion of [Agnea Bristarni](../../characters/travelers/agnea.md)'s journey.
+**Laila's Next Chapter** is a side story in *Octopath Traveler II* taking place in [Merry Hills](../../locations/crestlands/towns/merry_hills.md) within the [Crestlands](../../locations/crestlands/crestlands.md), following the completion of [Agnea Bristarni](../../characters/agnea/agnea.md)'s journey.
 
 ## Overview
 

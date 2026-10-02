@@ -12,7 +12,7 @@ The **Snowhares** are a gang of thieves based out of [Winterbloom: Thieves Quart
 
 ## History
 
-Under the ruthless leadership of [Bergomi](../../characters/throne/bergomi.md), the Snowhares dealt heavily in burglary, narcotics, and human trafficking. Recognizing the rising threat to their supremacy, [Father](../../characters/throne/father.md), one of the heads of the Blacksnakes, dispatched [Throné Anguis](../../characters/travelers/throne.md) to the [Snowhares' Den](../../locations/winterlands/dungeons/snowhares_den.md) to eliminate Bergomi. Throné bested Bergomi in combat, and Father delivered the finishing blow, though surviving gang members fled with a captive woman held near the entrance of their hideout.
+Under the ruthless leadership of [Bergomi](../../characters/throne/bergomi.md), the Snowhares dealt heavily in burglary, narcotics, and human trafficking. Recognizing the rising threat to their supremacy, [Father](../../characters/throne/father.md), one of the heads of the Blacksnakes, dispatched [Throné Anguis](../../characters/throne/throne.md) to the [Snowhares' Den](../../locations/winterlands/dungeons/snowhares_den.md) to eliminate Bergomi. Throné bested Bergomi in combat, and Father delivered the finishing blow, though surviving gang members fled with a captive woman held near the entrance of their hideout.
 
 Following Bergomi's death, [Plukk](../../characters/castti/plukk.md) took command of the remnant Snowhares alongside her companions, [Mikk](../../characters/castti/mikk_octopath_traveler_ii.md) and [Makk](../../characters/castti/makk_octopath_traveler_ii.md). Plukk abolished the gang's human trafficking trade, redirecting their efforts toward local burglaries in [Winterbloom](../../locations/winterlands/towns/winterbloom.md). 
 

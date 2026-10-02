@@ -9,7 +9,7 @@ source: ["Vidania"]
 **Vidania**, known in myth as the **Isle of Illusions** and **World's End**, is a legendary lost island located in [The Sundering Sea](../the_sundering_sea.md). It serves as the ancient prison of the wicked god [Vide](../../../world/gods/vide.md).
 
 > *"That's... The battlefield of the [gods](../../../world/gods/gods.md)... Vidania. The isle of illusions - a legend passed down by the [Order of the Sacred Flame](../../../world/factions/order_of_the_sacred_flame_octopath_traveler_ii.md). To think it actually exists..."*
-> — [Temenos Mistral](../../../characters/travelers/temenos.md)
+> — [Temenos Mistral](../../../characters/temenos/temenos.md)
 
 ## History
 

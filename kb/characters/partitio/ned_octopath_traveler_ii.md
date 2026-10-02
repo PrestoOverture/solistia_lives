@@ -8,7 +8,7 @@ source: ["Ned (Octopath Traveler II)"]
 
 "*Hey, Boss? Got a job for me? Any job?*" —Ned, during hard times in Oresrush
 
-**Ned** is a resident of [Oresrush](../../locations/wildlands/towns/oresrush.md) and a loyal member of [Partitio](../travelers/partitio.md)'s posse, alongside [Joe](joe.md), [Harry](harry_octopath_traveler_ii.md), and [Nikki](nikki.md).
+**Ned** is a resident of [Oresrush](../../locations/wildlands/towns/oresrush.md) and a loyal member of [Partitio](partitio.md)'s posse, alongside [Joe](joe.md), [Harry](harry_octopath_traveler_ii.md), and [Nikki](nikki.md).
 
 ## Profile
 

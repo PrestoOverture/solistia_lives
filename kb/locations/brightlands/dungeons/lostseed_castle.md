@@ -8,7 +8,7 @@ source: ["Lostseed Castle"]
 
 **Lostseed Castle** is an ancient fortress situated at the rear of the ruined city of [Lostseed](../towns/lostseed.md) in the [Brightlands](../brightlands.md). It serves as the stronghold of [Claude](../../../characters/throne/claude_blacksnakes.md), progenitor and founder of the [Blacksnakes](../../../world/factions/blacksnakes.md). The lower floors connect the city of Lostseed to [Lostseed Castle: Upper Level](lostseed_castle_upper_level.md).
 
-During Chapter 4 of [Throné Anguis](../../../characters/travelers/throne.md)'s journey, she infiltrates the castle to confront Claude and obtain the final key to unlock the collar around her neck.
+During Chapter 4 of [Throné Anguis](../../../characters/throne/throne.md)'s journey, she infiltrates the castle to confront Claude and obtain the final key to unlock the collar around her neck.
 
 ## Architecture and Atmosphere
 

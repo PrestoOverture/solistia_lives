@@ -9,7 +9,7 @@ source: ["Benkei"]
 > "*For the true king! Your Majesty, leave these curs to me! You hold the future of [Ku](../../world/nations/ku.md) in your hands. Your father chose to put his faith in you, and so shall I!*"
 > — Benkei, defending Hikari from Mugen's troops
 
-**Benkei** is the staunch retainer and personal bodyguard to King [Jigo Ku](jigo_ku.md) and later to Prince [Hikari Ku](../travelers/hikari.md) in *Octopath Traveler II*. Regarded by Hikari as the strongest person in all of [Ku](../../world/nations/ku.md), he serves the royal court with unwavering fidelity.
+**Benkei** is the staunch retainer and personal bodyguard to King [Jigo Ku](jigo_ku.md) and later to Prince [Hikari Ku](hikari.md) in *Octopath Traveler II*. Regarded by Hikari as the strongest person in all of [Ku](../../world/nations/ku.md), he serves the royal court with unwavering fidelity.
 
 ## Profile
 

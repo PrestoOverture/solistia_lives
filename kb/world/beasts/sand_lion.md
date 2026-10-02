@@ -18,4 +18,4 @@ In combat, a sand lion can harden its armored carapace and assault prey with its
 
 ## Story
 
-During [Castti Florenz](../../characters/travelers/castti.md)'s travels through [Sai](../../locations/hinoeuma/towns/sai.md), the brutal civil war in the region agitated a local sand lion. Driven into a frenzy by the surrounding conflict, the beast began prowling near the fighting, dragging wounded soldiers into quicksand pits. Castti ventured into the [Sand Lion's Den](../../locations/hinoeuma/dungeons/sand_lions_den.md) and fended off the monster to protect the surviving troops and townsfolk.
+During [Castti Florenz](../../characters/castti/castti.md)'s travels through [Sai](../../locations/hinoeuma/towns/sai.md), the brutal civil war in the region agitated a local sand lion. Driven into a frenzy by the surrounding conflict, the beast began prowling near the fighting, dragging wounded soldiers into quicksand pits. Castti ventured into the [Sand Lion's Den](../../locations/hinoeuma/dungeons/sand_lions_den.md) and fended off the monster to protect the surviving troops and townsfolk.

@@ -24,7 +24,7 @@ Sesque is an honest, hardworking sailor whose fierce devotion to his brother occ
 ## History
 
 ### The Water Contamination in Canalbrine
-When Canalbrine's water supply becomes poisoned, Sesque's younger brother Senah collapses in the town streets. [Castti Florenz](../travelers/castti.md) and [Malaya](malaya.md) bring the unconscious boy home, where Castti correctly identifies the illness as poisoning rather than sun fever and administers a dose of lycanthe antipyretic.
+When Canalbrine's water supply becomes poisoned, Sesque's younger brother Senah collapses in the town streets. [Castti Florenz](castti.md) and [Malaya](malaya.md) bring the unconscious boy home, where Castti correctly identifies the illness as poisoning rather than sun fever and administers a dose of lycanthe antipyretic.
 
 Just as the medicine begins to take effect, Sesque returns home. Seeing an unknown apothecary leaning over his stricken brother, Sesque panics, accuses Castti of poisoning Senah, and drives her from the house in a fury.
 

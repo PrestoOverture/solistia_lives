@@ -6,7 +6,7 @@ source: ["Oboro"]
 
 # Oboro
 
-**Oboro**, widely known across [Hinoeuma](../../locations/hinoeuma/hinoeuma.md) under the guise of **Kazan**, the "Eagle of Ku," was a brilliant military strategist for the realm of [Ku](../../world/nations/ku.md). Secretly an elite agent of the [Moonshade Order](../../world/factions/moonshade_order.md), he served as the overarching antagonist of [Hikari Ku](../travelers/hikari.md)'s journey and a chief instigator behind the awakening of [Vide the Wicked](../../world/gods/vide.md) during [The Journey for the Dawn](../../stories/main/the_journey_for_the_dawn.md).
+**Oboro**, widely known across [Hinoeuma](../../locations/hinoeuma/hinoeuma.md) under the guise of **Kazan**, the "Eagle of Ku," was a brilliant military strategist for the realm of [Ku](../../world/nations/ku.md). Secretly an elite agent of the [Moonshade Order](../../world/factions/moonshade_order.md), he served as the overarching antagonist of [Hikari Ku](hikari.md)'s journey and a chief instigator behind the awakening of [Vide the Wicked](../../world/gods/vide.md) during [The Journey for the Dawn](../../stories/main/the_journey_for_the_dawn.md).
 
 ## Overview
 

@@ -21,7 +21,7 @@ The highroad acts as a vital overland route in the Brightlands:
 
 ## Story and Quests
 
-- **The Traveler's Bag**: If the thief [Throné Anguis](../../../characters/travelers/throne.md) is chosen as the starting traveler, she encounters the side story [The Traveler's Bag](../../../stories/side_stories/the_travelers_bag.md) along this road shortly after departing New Delsta.
+- **The Traveler's Bag**: If the thief [Throné Anguis](../../../characters/throne/throne.md) is chosen as the starting traveler, she encounters the side story [The Traveler's Bag](../../../stories/side_stories/the_travelers_bag.md) along this road shortly after departing New Delsta.
 - **A Genius Inventor**: Travelers who discover Arkar's dwelling can undertake the side story [A Genius Inventor](../../../stories/side_stories/brightlands/a_genius_inventor.md), helping him craft new contraptions.
 
 ## Wildlife

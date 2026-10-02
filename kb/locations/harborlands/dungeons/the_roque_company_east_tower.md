@@ -9,7 +9,7 @@ source: ["The Roque Company: East Tower"]
 The **Roque Company: East Tower** is one of the main administrative and corporate wings of the [Roque Company](../../../world/factions/roque_company.md) headquarters, situated on [Roque Island](../towns/roque_island.md) in the [Harborlands](../harborlands.md).
 
 > *"This is Mister Roque's base of operations, huh..."*
-> — [Partitio Yellowil](../../../characters/travelers/partitio.md)
+> — [Partitio Yellowil](../../../characters/partitio/partitio.md)
 
 ## Overview and Story
 

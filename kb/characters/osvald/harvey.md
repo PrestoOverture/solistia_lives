@@ -6,7 +6,7 @@ source: ["Harvey"]
 
 # Harvey
 
-**Harvey**, also known as **Professor Harvey**, is a scholar of magic and the primary antagonist of [Osvald V. Vanstein](../travelers/osvald.md)'s story. Operating as a professor in [Montwise](../../locations/crestlands/towns/montwise.md), Harvey pursued research into the [One True Magic](../../world/lore/one_true_magic.md), seeking a "seventh source" distinct from the six known elements of fire, ice, lightning, wind, light, and darkness. Driven by a deep inferiority complex toward Osvald, Harvey betrayed him, stole his research, and murdered his family to advance his own arcane ambitions.
+**Harvey**, also known as **Professor Harvey**, is a scholar of magic and the primary antagonist of [Osvald V. Vanstein](osvald.md)'s story. Operating as a professor in [Montwise](../../locations/crestlands/towns/montwise.md), Harvey pursued research into the [One True Magic](../../world/lore/one_true_magic.md), seeking a "seventh source" distinct from the six known elements of fire, ice, lightning, wind, light, and darkness. Driven by a deep inferiority complex toward Osvald, Harvey betrayed him, stole his research, and murdered his family to advance his own arcane ambitions.
 
 ## Profile
 
@@ -23,7 +23,7 @@ Harvey's defining motivation is a bitter, obsessive inferiority complex toward O
 ### Background
 In [Montwise](../../locations/crestlands/towns/montwise.md), Harvey studied Gratton's Hypothesis to discover the One True Magic, experimenting on monsters to understand their innate magical capabilities. He deduced that monsters' magic is derived from their blood and began breeding chimeras in secret—crossbreeding beasts such as Frost Bears, Salamanders, Manticores, and Kingfishers. He kept a dark crystal in his laboratory, which he utilized to control his creations.
 
-At some point, Harvey was commissioned by [Oboro](../hikari/oboro.md) of the [Moonshade Order](../../world/factions/moonshade_order.md) to recreate the *Book of Demons*. On their instructions, he experimented on a captured beast from [Toto'haha](../../locations/totohaha/totohaha.md) (the companion animal that [Ochette](../travelers/ochette.md) did not choose), mutating it into the [Darkling of the Sorrowful Moon](../../world/beasts/darkling_of_the_sorrowful_moon.md).
+At some point, Harvey was commissioned by [Oboro](../hikari/oboro.md) of the [Moonshade Order](../../world/factions/moonshade_order.md) to recreate the *Book of Demons*. On their instructions, he experimented on a captured beast from [Toto'haha](../../locations/totohaha/totohaha.md) (the companion animal that [Ochette](../ochette/ochette.md) did not choose), mutating it into the [Darkling of the Sorrowful Moon](../../world/beasts/darkling_of_the_sorrowful_moon.md).
 
 Five years prior to the main events, Harvey attended a lecture in Montwise where he met Osvald. Recognizing Osvald's brilliant research into the One True Magic, Harvey proposed a partnership. However, this alliance was a pretext: Harvey had discovered that Osvald's wife, [Rita Lumina](rita_lumina.md), belonged to the ancient [Lumina](../../world/factions/lumina_clan.md) bloodline, whose blood held the key to unlocking the seventh source—[Shadow](../../world/lore/shadow.md) magic. Harvey murdered two strangers resembling Rita and her young daughter [Elena](elena_vanstein.md), set Osvald's home ablaze, and abducted Rita and Elena. He framed Osvald for the crime, bribed the guards and the judge to send Osvald to Frigit Isle, and claimed Osvald's research notes for himself.
 
@@ -41,5 +41,5 @@ While Osvald's quest records note that Harvey was consumed by his own out-of-con
 
 ## Quotes
 
-- "*What good fortune you have, to be present for this moment in history! Now feast your eyes upon the [One True Magic](../../world/lore/one_true_magic.md)!*" — To [Osvald](../travelers/osvald.md)
+- "*What good fortune you have, to be present for this moment in history! Now feast your eyes upon the [One True Magic](../../world/lore/one_true_magic.md)!*" — To [Osvald](osvald.md)
 - "*O great ancestor... My covenant with him shall be fulfilled.*" — At the tomb of [D'arqest](../others/darqest.md)

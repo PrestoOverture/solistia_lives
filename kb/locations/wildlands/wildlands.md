@@ -48,4 +48,4 @@ The volcanic soil conceals a wealth of valuable minerals, prompting the establis
 
 ## History and Lore
 
-- Silver from Oresrush has long supplied fine crafts throughout Solistia; eight years prior to the present era, [Partitio](../../characters/travelers/partitio.md) referred to a "King Dudley" whose crown was fashioned from Oresrush silver, though the king's broader history remains obscure.
+- Silver from Oresrush has long supplied fine crafts throughout Solistia; eight years prior to the present era, [Partitio](../../characters/partitio/partitio.md) referred to a "King Dudley" whose crown was fashioned from Oresrush silver, though the king's broader history remains obscure.

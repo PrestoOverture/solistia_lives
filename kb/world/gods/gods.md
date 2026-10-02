@@ -25,7 +25,7 @@ According to legend, each of the eight deities bestowed a distinct gift upon hum
 - **[Aeber, the Prince of Thieves](aeber.md)**: Brought travel.
 - **[Sealticge, the Lady of Grace](sealticge.md)**: Brought dance.
 
-To help memorize the names of the eight deities, the cleric [Temenos](../../characters/travelers/temenos.md) teaches [Agnea](../../characters/travelers/agnea.md) a mnemonic:
+To help memorize the names of the eight deities, the cleric [Temenos](../../characters/temenos/temenos.md) teaches [Agnea](../../characters/agnea/agnea.md) a mnemonic:
 > *"Warriors **brand**ish their blades. Scholars **ale**ways forget things. Fortune **bifel**s traders. Apothecaries **doht** upon all. Thieves steal **a burr**. Hunters **drae** their quarry away. Dancers **seal** with a kiss. Clerics heal what **aels** you."*
 
 ### Faded Deities

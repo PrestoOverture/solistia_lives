@@ -6,7 +6,7 @@ source: ["Trousseau"]
 
 # Trousseau
 
-**Trousseau** is an apothecary and former member of [Eir's Apothecaries](../../world/factions/eirs_apothecaries.md) who serves as the primary antagonist of [Castti Florenz](../travelers/castti.md)'s story.
+**Trousseau** is an apothecary and former member of [Eir's Apothecaries](../../world/factions/eirs_apothecaries.md) who serves as the primary antagonist of [Castti Florenz](castti.md)'s story.
 
 ## Overview
 
@@ -33,7 +33,7 @@ His encounter with [Claude](../throne/claude_blacksnakes.md) in [Lostseed](../..
 
 Before joining [Eir's Apothecaries](../../world/factions/eirs_apothecaries.md), Trousseau lived with his younger sister, [Yorna](yorna.md), who suffered from an incurable disease. Desperate to heal her, Trousseau took up the study of medicine, but failed to find a cure before she passed away. On her deathbed, Yorna told him: *"Though my life could not be saved, your hands are those of a healer. Help those in need."* Bound by this promise, Trousseau dedicated himself to the healing arts.
 
-He later met [Castti Florenz](../travelers/castti.md) and [Malaya](malaya.md) in [Winterbloom](../../locations/winterlands/towns/winterbloom.md) while treating Lady [Rosa](rosa.md). Finding that they shared an identical dedication to helping others, Trousseau joined their traveling association and moved to their base in [Healeaks](../../locations/brightlands/towns/abandoned_village.md). He became widely respected for his reliability, kindness, and devotion, especially toward the local children.
+He later met [Castti Florenz](castti.md) and [Malaya](malaya.md) in [Winterbloom](../../locations/winterlands/towns/winterbloom.md) while treating Lady [Rosa](rosa.md). Finding that they shared an identical dedication to helping others, Trousseau joined their traveling association and moved to their base in [Healeaks](../../locations/brightlands/towns/abandoned_village.md). He became widely respected for his reliability, kindness, and devotion, especially toward the local children.
 
 ### Corruption and the Fall of Healeaks
 

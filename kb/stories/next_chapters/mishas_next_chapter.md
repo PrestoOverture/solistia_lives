@@ -8,7 +8,7 @@ source: ["Misha's Next Chapter"]
 "*Could you investigate Master Alrond's nighttime activities for me? Night after night, it appears he's sneaking out...*"
 —*[Misha](../../characters/partitio/misha.md)*
 
-**Misha's Next Chapter** is a tale in [Wellgrove](../../locations/leaflands/towns/wellgrove.md) in the [Leaflands](../../locations/leaflands/leaflands.md), taking place following the conclusion of [Partitio](../../characters/travelers/partitio.md)'s journey.
+**Misha's Next Chapter** is a tale in [Wellgrove](../../locations/leaflands/towns/wellgrove.md) in the [Leaflands](../../locations/leaflands/leaflands.md), taking place following the conclusion of [Partitio](../../characters/partitio/partitio.md)'s journey.
 
 ## The Aristocrat's Nightly Outings
 

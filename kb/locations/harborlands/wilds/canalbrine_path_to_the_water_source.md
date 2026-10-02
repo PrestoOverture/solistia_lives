@@ -15,4 +15,4 @@ The path connects the port town of Canalbrine with its vital freshwater supply a
 
 ## Story Significance
 
-During [Castti](../../../characters/travelers/castti.md)'s arrival in Canalbrine, an outbreak of sudden sickness grips the townspeople. Suspecting contamination of the municipal reservoir, Castti traverses this path to reach the cavern springs and uncover the source of the poison.
+During [Castti](../../../characters/castti/castti.md)'s arrival in Canalbrine, an outbreak of sudden sickness grips the townspeople. Suspecting contamination of the municipal reservoir, Castti traverses this path to reach the cavern springs and uncover the source of the poison.

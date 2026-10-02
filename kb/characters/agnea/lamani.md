@@ -9,7 +9,7 @@ source: ["La'mani"]
 > *"Welcome to the Delsta Theater, where our guests want for nothing!"*  
 > — La'mani, at the [New Delsta: Theater](../../locations/brightlands/dungeons/new_delsta_theater.md)
 
-**La'mani** is the flamboyant and egotistical manager of the [Delsta Theater](../../locations/brightlands/dungeons/new_delsta_theater.md) in *Octopath Traveler II*. He serves as an early antagonist and recurring foil in [Agnea Bristarni](../travelers/agnea.md)'s storyline.
+**La'mani** is the flamboyant and egotistical manager of the [Delsta Theater](../../locations/brightlands/dungeons/new_delsta_theater.md) in *Octopath Traveler II*. He serves as an early antagonist and recurring foil in [Agnea Bristarni](agnea.md)'s storyline.
 
 ## Profile
 

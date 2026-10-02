@@ -13,9 +13,9 @@ source: ["Winterbloom"]
 
 ## Governance and History
 
-Winterbloom was ruled by Lady [Rosa](../../../characters/castti/rosa.md) until her illness and subsequent events during [Castti Florenz](../../../characters/travelers/castti.md)'s travels in the region. Following these events, [Melia](../../../characters/castti/melia.md) and [Greg](../../../characters/castti/greg.md) assumed leadership to govern Winterbloom together as co-rulers.
+Winterbloom was ruled by Lady [Rosa](../../../characters/castti/rosa.md) until her illness and subsequent events during [Castti Florenz](../../../characters/castti/castti.md)'s travels in the region. Following these events, [Melia](../../../characters/castti/melia.md) and [Greg](../../../characters/castti/greg.md) assumed leadership to govern Winterbloom together as co-rulers.
 
-The town serves as a crucial crossroads for several travelers, including Castti's search for her past remedies, [Throné Anguis](../../../characters/travelers/throne.md)'s hunt along [Father](../../../characters/throne/father.md)'s trail, and [Partitio Yellowil](../../../characters/travelers/partitio.md)'s commercial ventures during "The Scent of Commerce."
+The town serves as a crucial crossroads for several travelers, including Castti's search for her past remedies, [Throné Anguis](../../../characters/throne/throne.md)'s hunt along [Father](../../../characters/throne/father.md)'s trail, and [Partitio Yellowil](../../../characters/partitio/partitio.md)'s commercial ventures during "The Scent of Commerce."
 
 ## Culture and Daily Life
 

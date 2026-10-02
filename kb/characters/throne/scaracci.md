@@ -8,7 +8,7 @@ source: ["Scaracci"]
 > *"Take that, ya lousy vermin!"*
 > — Scaracci, after defeating enemy thugs
 
-**Scaracci** was a member of the [Blacksnakes](../../world/factions/blacksnakes.md) thieving syndicate in [New Delsta](../../locations/brightlands/towns/new_delsta.md). Unbeknownst to him in life, he was one of the many children sired by [Claude](claude_blacksnakes.md), making him a half-brother to [Throné Anguis](../travelers/throne.md), [Pirro](pirro.md), [Donnie](donnie.md), [Father](father.md), and [Mother](mother.md). Though he affected a belligerent and reckless demeanor, he harbored a deep fear of the guild's discipline.
+**Scaracci** was a member of the [Blacksnakes](../../world/factions/blacksnakes.md) thieving syndicate in [New Delsta](../../locations/brightlands/towns/new_delsta.md). Unbeknownst to him in life, he was one of the many children sired by [Claude](claude_blacksnakes.md), making him a half-brother to [Throné Anguis](throne.md), [Pirro](pirro.md), [Donnie](donnie.md), [Father](father.md), and [Mother](mother.md). Though he affected a belligerent and reckless demeanor, he harbored a deep fear of the guild's discipline.
 
 ## Profile
 

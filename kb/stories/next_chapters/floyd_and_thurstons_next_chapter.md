@@ -8,7 +8,7 @@ source: ["Floyd and Thurston's Next Chapter"]
 > "*Floyd has worked for days on end without sleep. I'd like him to rest, even if I must resort to...drastic measures.*"
 > — *[Thurston](../../characters/partitio/thurston.md)*
 
-**Floyd and Thurston's Next Chapter** is a side story set on [Roque Island](../../locations/harborlands/towns/roque_island.md) within the [Harborlands](../../locations/harborlands/harborlands.md), taking place after the conclusion of [Partitio Yellowil](../../characters/travelers/partitio.md)'s journey.
+**Floyd and Thurston's Next Chapter** is a side story set on [Roque Island](../../locations/harborlands/towns/roque_island.md) within the [Harborlands](../../locations/harborlands/harborlands.md), taking place after the conclusion of [Partitio Yellowil](../../characters/partitio/partitio.md)'s journey.
 
 ## Overview
 

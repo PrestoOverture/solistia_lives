@@ -6,9 +6,9 @@ source: ["Giff's Manse"]
 # Giff's Manse
 
 > *"I've been holdin' back ever since they took our deed away from us. We've all suffered in silence. Now, well...I've finally understood. That dastard landowner, well, only thing on their mind is how to grow rich and fat off our toils. They don't care a white 'bout what happens to us or our town. That's why we gotta take it back - and our lives with it. Now that that's settled, let's hustle on over to that snake [Giff](../../../characters/partitio/giff.md)'s place!"*  
-> —*[Partitio](../../../characters/travelers/partitio.md), rousing his posse*
+> —*[Partitio](../../../characters/partitio/partitio.md), rousing his posse*
 
-**Giff's Manse** is an opulent estate located in the [Wildlands](../wildlands.md), connected via the [Abandoned Silver Mine](../wilds/abandoned_silver_mine.md). It serves as the stronghold of the corrupt landlord [Giff](../../../characters/partitio/giff.md) and is the climactic location of [Partitio Yellowil](../../../characters/travelers/partitio.md)'s opening journey.
+**Giff's Manse** is an opulent estate located in the [Wildlands](../wildlands.md), connected via the [Abandoned Silver Mine](../wilds/abandoned_silver_mine.md). It serves as the stronghold of the corrupt landlord [Giff](../../../characters/partitio/giff.md) and is the climactic location of [Partitio Yellowil](../../../characters/partitio/partitio.md)'s opening journey.
 
 ## Overview & Architecture
 

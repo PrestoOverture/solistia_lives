@@ -9,7 +9,7 @@ source: ["Clockbank"]
 > *"Hoho, welcome to Clockbank. Lovely weather we're having today, isn't it?"*
 > — Clockbank Townsperson
 
-**Clockbank** is a bustling industrial river town located in the eastern [Brightlands](../brightlands.md). Built along the riverbanks, it serves as the administrative headquarters of the [Roque Company](../../../world/factions/roque_company.md) and the focal setting for [Partitio Yellowil](../../../characters/travelers/partitio.md)'s Chapter 2.
+**Clockbank** is a bustling industrial river town located in the eastern [Brightlands](../brightlands.md). Built along the riverbanks, it serves as the administrative headquarters of the [Roque Company](../../../world/factions/roque_company.md) and the focal setting for [Partitio Yellowil](../../../characters/partitio/partitio.md)'s Chapter 2.
 
 ## History & Industry
 

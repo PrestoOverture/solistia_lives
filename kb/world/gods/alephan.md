@@ -14,7 +14,7 @@ According to ancient legends, Alephan was among the eight deities who took up ar
 
 In Solistia, Alephan is venerated by academics, mages, and justices alike. Devotees offer prayers at the sacred [Altar of the Scholarking](../../locations/winterlands/wilds/altar_of_the_scholarking.md).
 
-During the opening mythical narration recounted by [Temenos Mistral](../../characters/travelers/temenos.md), Alephan is depicted as a divine presence shrouded within indistinct white robes. The rare arcane implement known as the Great Sage's Staff is associated with his divine legacy.
+During the opening mythical narration recounted by [Temenos Mistral](../../characters/temenos/temenos.md), Alephan is depicted as a divine presence shrouded within indistinct white robes. The rare arcane implement known as the Great Sage's Staff is associated with his divine legacy.
 
 ## Quotes
 

@@ -3,8 +3,7 @@
 Lore from the Octopath Traveler Fandom wiki, OT2 only. Each file is `<slug>.md` with `name`, `aliases`, and `source` (wiki page titles) in its frontmatter. Links between files are relative paths.
 
 ## characters/
-- `travelers/`: the eight travelers.
-- `osvald/`, `temenos/`, `agnea/`, `throne/`, `hikari/`, `ochette/`, `castti/`, `partitio/`: the people in each traveler's story (family, allies, rivals, antagonists), grouped by the wiki's "<Traveler>'s Path" lists.
+- `osvald/`, `temenos/`, `agnea/`, `throne/`, `hikari/`, `ochette/`, `castti/`, `partitio/`: one directory per traveler. It holds the traveler's own file (e.g. `osvald/osvald.md`) and the people in their story (family, allies, rivals, antagonists), grouped by the wiki's "<Traveler>'s Path" lists.
 - `side_stories/`: characters from side stories.
 - `others/`: characters who cut across stories (e.g. Arcanette, Oboro, Regulus).
 

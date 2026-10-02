@@ -6,7 +6,7 @@ source: ["Frigit Isle"]
 
 # Frigit Isle
 
-> *"Frigit Isle. A solitary island in the far northern reaches of the sea. Some call it the edge of the world. Blanketed in snow all through the year. The nearest continent is due east, four days' journey by sea - even on the largest vessel. Even then, the fierce blizzards at sea can make a wreck of the mightiest ships. Trips to and from this accursed place are heavily regulated."* — [Osvald](../../../characters/travelers/osvald.md)
+> *"Frigit Isle. A solitary island in the far northern reaches of the sea. Some call it the edge of the world. Blanketed in snow all through the year. The nearest continent is due east, four days' journey by sea - even on the largest vessel. Even then, the fierce blizzards at sea can make a wreck of the mightiest ships. Trips to and from this accursed place are heavily regulated."* — [Osvald](../../../characters/osvald/osvald.md)
 
 **Frigit Isle** is a solitary prison island in the [Winterlands](../winterlands.md), located in the far northern reaches of the [Sundering Sea](../../sundering_sea/the_sundering_sea.md). Blanketed in snow and ice throughout the year, it is often referred to as "the edge of the world."
 
@@ -23,7 +23,7 @@ source: ["Frigit Isle"]
 
 Frigit Isle was constructed atop the wreckage of abandoned ore mines lining the island. The prison is situated in the bitter far northern seas, where fierce blizzards can wreck even the sturdiest vessels. The nearest continent lies four days' journey to the east by sea, and all travel to and from the island is heavily regulated.
 
-For eighty years, criminals convicted of the most heinous crimes across Solistia were sent to Frigit Isle, holding over 300 inmates at its peak. Manned by a single warden and 34 guards, the facility held 292 prisoners at the time of [Osvald](../../../characters/travelers/osvald.md)'s incarceration. Conditions inside were deplorable, and sentences frequently outlived the convicts. Prisoners were subjected to forced labor mining phosphoal under the watchful eyes of the warden and guards, with many succumbing to the extreme cold.
+For eighty years, criminals convicted of the most heinous crimes across Solistia were sent to Frigit Isle, holding over 300 inmates at its peak. Manned by a single warden and 34 guards, the facility held 292 prisoners at the time of [Osvald](../../../characters/osvald/osvald.md)'s incarceration. Conditions inside were deplorable, and sentences frequently outlived the convicts. Prisoners were subjected to forced labor mining phosphoal under the watchful eyes of the warden and guards, with many succumbing to the extreme cold.
 
 Escape was considered impossible due to the freezing waters and harsh elements. Over its eighty-year history, not a single prisoner was known to have successfully escaped alive, though bodies of convicts who attempted to flee occasionally washed ashore at [Cape Cold](cape_cold.md).
 

@@ -5,17 +5,17 @@ source: ["Dire Duorduor"]
 ---
 # Dire Duorduor
 
-The **Dire Duorduor**, affectionately named **Wooly-Ooly** by [Castti](../travelers/castti.md), is an enormous wild [boar](../../world/species/ungulates.md) that makes its home along the [Animal Trail](../../locations/leaflands/dungeons/animal_trail.md) in the lush forests of the [Leaflands](../../locations/leaflands/leaflands.md). A close relative of the common [Duorduor](../agnea/duorduor.md), it acts as a steadfast protector of the forest's smaller wildlife.
+The **Dire Duorduor**, affectionately named **Wooly-Ooly** by [Castti](../castti/castti.md), is an enormous wild [boar](../../world/species/ungulates.md) that makes its home along the [Animal Trail](../../locations/leaflands/dungeons/animal_trail.md) in the lush forests of the [Leaflands](../../locations/leaflands/leaflands.md). A close relative of the common [Duorduor](../agnea/duorduor.md), it acts as a steadfast protector of the forest's smaller wildlife.
 
 ## Overview & Nature
 
-Though possessing immense physical power, sharp branching tusks, and concussive charges capable of leveling trees, Wooly-Ooly possesses an intelligent and protective disposition toward fellow woodland creatures. He communicates with the forest fauna and understands their plight, an ability interpreted and conveyed to others by the beastling hunter [Ochette](../travelers/ochette.md).
+Though possessing immense physical power, sharp branching tusks, and concussive charges capable of leveling trees, Wooly-Ooly possesses an intelligent and protective disposition toward fellow woodland creatures. He communicates with the forest fauna and understands their plight, an ability interpreted and conveyed to others by the beastling hunter [Ochette](../ochette/ochette.md).
 
 ## Story
 
 ### The Apothecary and Hunter: Part I
 
-During their first Crossed Path journey, [Castti Florenz](../travelers/castti.md) and [Ochette](../travelers/ochette.md) cross paths with an agitated Dire Duorduor while hunting along the [Animal Trail](../../locations/leaflands/dungeons/animal_trail.md). After driving the giant beast back into the deeper brush, the two decide against hunting him down. Instead, Castti approaches the wounded boar and gently bandages his injuries, bestowing upon him the name "Wooly-Ooly." Through Ochette's ability to communicate with beasts, Wooly-Ooly reveals that the woodland inhabitants have been deeply disturbed and agitated by the presence of a mysterious dark intruder.
+During their first Crossed Path journey, [Castti Florenz](../castti/castti.md) and [Ochette](../ochette/ochette.md) cross paths with an agitated Dire Duorduor while hunting along the [Animal Trail](../../locations/leaflands/dungeons/animal_trail.md). After driving the giant beast back into the deeper brush, the two decide against hunting him down. Instead, Castti approaches the wounded boar and gently bandages his injuries, bestowing upon him the name "Wooly-Ooly." Through Ochette's ability to communicate with beasts, Wooly-Ooly reveals that the woodland inhabitants have been deeply disturbed and agitated by the presence of a mysterious dark intruder.
 
 ### The Apothecary and Hunter: Part II
 

@@ -18,7 +18,7 @@ source: ["Garnet"]
 - **Owner**: [Roque](roque_brilliante.md)
 - **Caretaker**: [Thurston](thurston.md)
 
-**Garnet** is an aggressive guard hound in *Octopath Traveler II* belonging to industrialist [Roque](roque_brilliante.md). Pampered by her owner and tasked with defending company interests, she is unleashed by Roque's secretary [Thurston](thurston.md) to attack intruders and business rivals during [Partitio Yellowil](../travelers/partitio.md)'s story in [Clockbank](../../locations/brightlands/towns/clockbank.md).
+**Garnet** is an aggressive guard hound in *Octopath Traveler II* belonging to industrialist [Roque](roque_brilliante.md). Pampered by her owner and tasked with defending company interests, she is unleashed by Roque's secretary [Thurston](thurston.md) to attack intruders and business rivals during [Partitio Yellowil](partitio.md)'s story in [Clockbank](../../locations/brightlands/towns/clockbank.md).
 
 ## History
 

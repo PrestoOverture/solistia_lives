@@ -29,7 +29,7 @@ Legends within the Order also speak of an "isle of illusions"—widely dismissed
 - Kinchler (deceased)
 
 ### Inquisitors
-- [Temenos](../../characters/travelers/temenos.md)
+- [Temenos](../../characters/temenos/temenos.md)
 - [Roi](../../characters/temenos/roi.md) (deceased)
 
 ### Clerics

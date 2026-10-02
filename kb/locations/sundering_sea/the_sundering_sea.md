@@ -9,7 +9,7 @@ source: ["The Sundering Sea"]
 
 ## Overview
 
-The Sundering Sea serves as the vast oceanic expanse separating Solistia's continents and surrounding archipelagoes. While regular travel between the continents initially relies on established ferry anchorages between coastal ports, private voyages across its open waters become possible aboard the seafaring vessel *Grand Terry*, acquired during [Partitio Yellowil](../../characters/travelers/partitio.md)'s commercial endeavors in [Tropu'hopu](../../stories/side_stories/totohaha/the_scent_of_commerce_tropuhopu.md).
+The Sundering Sea serves as the vast oceanic expanse separating Solistia's continents and surrounding archipelagoes. While regular travel between the continents initially relies on established ferry anchorages between coastal ports, private voyages across its open waters become possible aboard the seafaring vessel *Grand Terry*, acquired during [Partitio Yellowil](../../characters/partitio/partitio.md)'s commercial endeavors in [Tropu'hopu](../../stories/side_stories/totohaha/the_scent_of_commerce_tropuhopu.md).
 
 The open sea is populated by dangerous aquatic beasts and legendary sea monsters, including the [Battle-Worn Shark](../../world/beasts/battle_worn_shark.md) and the colossal [Scourge of the Sea](../../world/beasts/scourge_of_the_sea.md). Uniquely, during the cataclysmic eclipse of [The Journey for the Dawn](../../stories/main/the_journey_for_the_dawn.md), the open waters of the Sundering Sea are the only region where regular wildlife persists rather than succumbing entirely to shadowy fiends.
 

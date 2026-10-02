@@ -9,7 +9,7 @@ The **Altar of the Charitable** is a sacred shrine situated in the [Harborlands]
 
 ## Overview
 
-The shrine is dedicated to [Dohter](../../../world/gods/dohter.md) the Charitable, the divine patron of apothecaries. Hidden along the coastal cliffs of the Harborlands, it houses an ancient stone effigy of the deity. When an apothecary of pure intent, such as [Castti Florenz](../../../characters/travelers/castti.md), communites with the statue, Dohter's divine voice speaks from beyond:
+The shrine is dedicated to [Dohter](../../../world/gods/dohter.md) the Charitable, the divine patron of apothecaries. Hidden along the coastal cliffs of the Harborlands, it houses an ancient stone effigy of the deity. When an apothecary of pure intent, such as [Castti Florenz](../../../characters/castti/castti.md), communites with the statue, Dohter's divine voice speaks from beyond:
 
 > "*Chosen apothecary...
 > Unto thee, I grant new power.*"

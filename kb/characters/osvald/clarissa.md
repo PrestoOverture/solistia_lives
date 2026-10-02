@@ -6,10 +6,10 @@ source: ["Clarissa"]
 
 # Lady Clarissa
 
-> "*Revenge is nothing, [Osvald](../travelers/osvald.md). It is empty and hollow.*"
+> "*Revenge is nothing, [Osvald](osvald.md). It is empty and hollow.*"
 > — Lady Clarissa
 
-**Lady Clarissa** is a scholar residing in [Conning Creek](../../locations/harborlands/towns/conning_creek.md) and the former research assistant of [Osvald V. Vanstein](../travelers/osvald.md). Devoted, keenly observant, and intellectually formidable, she maintained unwavering faith in Osvald's innocence throughout his five-year wrongful imprisonment on Frigit Isle and guarded his ransacked study against looters.
+**Lady Clarissa** is a scholar residing in [Conning Creek](../../locations/harborlands/towns/conning_creek.md) and the former research assistant of [Osvald V. Vanstein](osvald.md). Devoted, keenly observant, and intellectually formidable, she maintained unwavering faith in Osvald's innocence throughout his five-year wrongful imprisonment on Frigit Isle and guarded his ransacked study against looters.
 
 ## Profile
 

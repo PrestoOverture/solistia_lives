@@ -29,7 +29,7 @@ When Pom was just a year old, his nose led him astray: following an enticing aro
 
 ### Guiding Ochette
 
-Years later, [Ochette](../travelers/ochette.md) arrived in Crackridge seeking the whereabouts of Tera. She discovered Pom sprawled on the ground in the throes of hunger. In exchange for guiding her to the titan's resting place, Pom demanded savory jerky prepared from buttermeep roaming the outskirts.
+Years later, [Ochette](ochette.md) arrived in Crackridge seeking the whereabouts of Tera. She discovered Pom sprawled on the ground in the throes of hunger. In exchange for guiding her to the titan's resting place, Pom demanded savory jerky prepared from buttermeep roaming the outskirts.
 
 After feasting on the meat, Pom declared an ambition to become a master hunter and guided Ochette into the [Bed of the Titan](../../locations/wildlands/dungeons/bed_of_the_titan.md). However, the moment Ochette engaged the massive beast in battle, Pom fled in terror. Following Ochette's victory and Tera's pacification, Pom promptly reconsidered his hunting career, deciding instead that raising livestock was a far safer method to ensure a steady supply of meat.
 

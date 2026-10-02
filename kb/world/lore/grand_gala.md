@@ -15,6 +15,6 @@ The centerpiece of the gala is the **Festival of Grace**, a prestigious showcase
 
 ## History and Events
 
-During her journey, [Agnea Bristarni](../../characters/travelers/agnea.md) first learns of the Grand Gala from [Giselle](../../characters/agnea/giselle.md)'s Traveling Troupe, resolving to travel to Merry Hills to attend the event. Renowned star dancer [Dolcinaea Luciel](../../characters/agnea/dolcinaea_luciel.md) subsequently extends a personal invitation to Agnea to perform in the Festival of Grace, framing it as a direct contest between their conflicting philosophies of stardom.
+During her journey, [Agnea Bristarni](../../characters/agnea/agnea.md) first learns of the Grand Gala from [Giselle](../../characters/agnea/giselle.md)'s Traveling Troupe, resolving to travel to Merry Hills to attend the event. Renowned star dancer [Dolcinaea Luciel](../../characters/agnea/dolcinaea_luciel.md) subsequently extends a personal invitation to Agnea to perform in the Festival of Grace, framing it as a direct contest between their conflicting philosophies of stardom.
 
 At the festival, Agnea competes against Dolcinaea before the assembled crowds. Supported by her traveling companions, friends, and family, Agnea performs her signature debut piece, "Song of Hope," overcoming Dolcinaea's performance of "All for You" and winning the adoration of the audience.

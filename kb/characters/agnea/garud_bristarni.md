@@ -11,7 +11,7 @@ source: ["Garud Bristarni"]
 
 ## Overview
 
-**Garud Bristarni** is a forty-eight-year-old master tailor residing in [Cropdale](../../locations/leaflands/towns/cropdale.md). He is the widower of the renowned dancer [Cuani Bristarni](cuani_bristarni.md) and the father of [Agnea](../travelers/agnea.md) and [Pala Bristarni](pala_bristarni.md). His tailoring business is known locally as Garud Garments.
+**Garud Bristarni** is a forty-eight-year-old master tailor residing in [Cropdale](../../locations/leaflands/towns/cropdale.md). He is the widower of the renowned dancer [Cuani Bristarni](cuani_bristarni.md) and the father of [Agnea](agnea.md) and [Pala Bristarni](pala_bristarni.md). His tailoring business is known locally as Garud Garments.
 
 ## Profile
 
@@ -24,7 +24,7 @@ Garud is a gruff, taciturn man of very few words, often communicating in short g
 ## History
 
 ### Early Life and Marriage
-Since his youth, Garud's meticulous craftsmanship was celebrated by connoisseurs of fine garments. His renown spread across the eastern continent, eventually prompting the famous travelling dancer [Cuani](cuani_bristarni.md) to seek him out in Cropdale twenty years ago to order a custom-made dress. According to Agnea, Cuani fell in love at first wear and proposed to Garud immediately after trying on the outfit. The two married and had two daughters, [Agnea](../travelers/agnea.md) and [Pala](pala_bristarni.md).
+Since his youth, Garud's meticulous craftsmanship was celebrated by connoisseurs of fine garments. His renown spread across the eastern continent, eventually prompting the famous travelling dancer [Cuani](cuani_bristarni.md) to seek him out in Cropdale twenty years ago to order a custom-made dress. According to Agnea, Cuani fell in love at first wear and proposed to Garud immediately after trying on the outfit. The two married and had two daughters, [Agnea](agnea.md) and [Pala](pala_bristarni.md).
 
 As Cuani toured Solistia, Garud accompanied her alongside their children, tailoring all of her ceremonial garments as they traveled. When Cuani fell fatally ill, the family returned to their home in Cropdale, where Garud remained by her side through her final moments. Cuani's death devastated him, causing him to withdraw inward and adopt a gruff, guarded demeanor.
 

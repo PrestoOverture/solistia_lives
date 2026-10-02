@@ -16,7 +16,7 @@ The forest forms part of the path leading to the heights of the island:
 
 ## History & Story
 
-During [Ochette](../../../characters/travelers/ochette.md)'s quest to protect the island from the encroaching Night of the Calamity, the Verdant Wood became overrun by a horde of dark monsters. Enraged by the desecration of her home, the Wardenbeast [Tera](../../../world/beasts/tera.md) intervened:
+During [Ochette](../../../characters/ochette/ochette.md)'s quest to protect the island from the encroaching Night of the Calamity, the Verdant Wood became overrun by a horde of dark monsters. Enraged by the desecration of her home, the Wardenbeast [Tera](../../../world/beasts/tera.md) intervened:
 
 > *"You... How dare you? How dare you disturb my island!? Feel the force of my rage! Hraaaaaa!!!"*
 

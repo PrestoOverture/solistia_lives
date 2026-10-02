@@ -14,4 +14,4 @@ A statue of [Roque](../../../characters/partitio/roque_brilliante.md) stands in 
 
 ## Story Events
 
-During [Partitio](../../../characters/travelers/partitio.md)'s Chapter 4, Roque delivers an address announcing his industrial ambitions to a gathered assembly of reporters, audible across the bridge connecting the factory towers. Within the fortified compound behind the headquarters' gates, Roque harbors and deploys the [Steam Tank Obsidian](../../../world/beasts/steam_tank_obsidian.md) in an effort to crush Partitio and defend his monopoly over steam technology.
+During [Partitio](../../../characters/partitio/partitio.md)'s Chapter 4, Roque delivers an address announcing his industrial ambitions to a gathered assembly of reporters, audible across the bridge connecting the factory towers. Within the fortified compound behind the headquarters' gates, Roque harbors and deploys the [Steam Tank Obsidian](../../../world/beasts/steam_tank_obsidian.md) in an effort to crush Partitio and defend his monopoly over steam technology.

@@ -6,13 +6,13 @@ source: ["Frigit Isle: Prison"]
 
 # Frigit Isle: Prison
 
-> *"This place holds all mainlanders found guilty of the most heinous crimes. It held over 300 of us at its peak. In its eighty-year history, none have escaped. Or rather, I should say... The deplorable treatment of the prisoners ensured that lives end before sentences do."* — [Osvald](../../../characters/travelers/osvald.md)
+> *"This place holds all mainlanders found guilty of the most heinous crimes. It held over 300 of us at its peak. In its eighty-year history, none have escaped. Or rather, I should say... The deplorable treatment of the prisoners ensured that lives end before sentences do."* — [Osvald](../../../characters/osvald/osvald.md)
 
 **Frigit Isle: Prison** is the central cellblock and fortress of the penal colony on [Frigit Isle](frigit_isle.md) in the [Winterlands](../winterlands.md), connected directly to [Frigit Isle: Yard](frigit_isle_yard.md).
 
 ## Overview
 
-Designed to house mainland convicts sentenced for high treason, murder, and other capital offenses, the prison held over 300 convicts at its historical peak. During [Osvald](../../../characters/travelers/osvald.md)'s confinement, the facility was staffed by Warden [Davids](../../../characters/osvald/davids.md) and 34 guards, holding 292 prisoners including Osvald and [Emerald](../../../characters/osvald/emerald.md).
+Designed to house mainland convicts sentenced for high treason, murder, and other capital offenses, the prison held over 300 convicts at its historical peak. During [Osvald](../../../characters/osvald/osvald.md)'s confinement, the facility was staffed by Warden [Davids](../../../characters/osvald/davids.md) and 34 guards, holding 292 prisoners including Osvald and [Emerald](../../../characters/osvald/emerald.md).
 
 The facility was notorious for its harsh conditions and brutal discipline. Due to hypothermia, malnutrition, forced labor, and guard brutality, inmate lifespans rarely lasted the length of their sentences.
 

@@ -21,6 +21,6 @@ According to Solistian legend, the gods decreed a ban on the cultivation of grap
 
 ## Notable Items and Flora
 
-- **Lump of Silver**: The first official purchase secured by the merchant [Partitio](../../characters/travelers/partitio.md).
-- **Purse of Hope**: The pouch containing the travel savings gathered by [Agnea](../../characters/travelers/agnea.md) for her journey.
+- **Lump of Silver**: The first official purchase secured by the merchant [Partitio](../../characters/partitio/partitio.md).
+- **Purse of Hope**: The pouch containing the travel savings gathered by [Agnea](../../characters/agnea/agnea.md) for her journey.
 - **Medicinal Herbs**: Wild plants such as Slumber Sage and the valuable Herb of Serenity, gathered across Solistia to calm and heal the sick.

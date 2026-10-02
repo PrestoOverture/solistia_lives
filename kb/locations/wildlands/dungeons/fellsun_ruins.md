@@ -7,7 +7,7 @@ source: ["Fellsun Ruins"]
 # Fellsun Ruins
 
 > "*Bones... Human bones. Broken and disfigured by repeated blows. The darker stains, then, must be blood. What a horrific end... The bones grow in number the further in I go... I must follow their trail.*"  
-> — [Temenos](../../../characters/travelers/temenos.md), investigating the ruins
+> — [Temenos](../../../characters/temenos/temenos.md), investigating the ruins
 
 The **Fellsun Ruins** is an ancient underground sanctuary and ruin located in the [Wildlands](../wildlands.md), accessed via the [Abandoned Road](../wilds/abandoned_road.md) near [Crackridge](../towns/crackridge.md). Once the sacred haven of the [Kal](../../../world/lore/kal.md) people, it hides dark tragedies and one of Solistia's greatest divine secrets.
 
@@ -25,7 +25,7 @@ The sole survivor of the slaughter was a young girl named [Dena](../../../charac
 
 ## Story Events
 
-During [Temenos](../../../characters/travelers/temenos.md)'s investigation into the murder of Pontiff Jörg (Chapter 3: Crackridge Route), his search leads him along the Abandoned Road and deep into the Fellsun Ruins. Tracing the gruesome path of massacred remains, Temenos discovers the ancient murals chronicling the hero Kal, D'arqest, and the hidden truth behind Kaldena's origins.
+During [Temenos](../../../characters/temenos/temenos.md)'s investigation into the murder of Pontiff Jörg (Chapter 3: Crackridge Route), his search leads him along the Abandoned Road and deep into the Fellsun Ruins. Tracing the gruesome path of massacred remains, Temenos discovers the ancient murals chronicling the hero Kal, D'arqest, and the hidden truth behind Kaldena's origins.
 
 Behind the central mural at the heart of the ruins burns one of Solistia's four [Sacred Flames](../../../world/lore/sacred_flame_octopath_traveler_ii.md) in absolute secrecy. When the final eclipse of [The Journey for the Dawn](../../../stories/main/the_journey_for_the_dawn.md) commences, this mural is shattered, exposing the azure Sacred Flame to the world.
 

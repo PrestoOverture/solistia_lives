@@ -9,7 +9,7 @@ source: ["Giff"]
 > *"Another hard day of work. I've gone honest, I tell you."*  
 > — Giff, working in [Oresrush](../../locations/wildlands/towns/oresrush.md)
 
-**Giff** is a character in *Octopath Traveler II*. A former gang leader who operated as an extortionist and tax collector in [Oresrush](../../locations/wildlands/towns/oresrush.md), he was defeated by [Partitio](../travelers/partitio.md) and subsequently put to work by [Papp](papp_yellowil.md) to pay off his debts.
+**Giff** is a character in *Octopath Traveler II*. A former gang leader who operated as an extortionist and tax collector in [Oresrush](../../locations/wildlands/towns/oresrush.md), he was defeated by [Partitio](partitio.md) and subsequently put to work by [Papp](papp_yellowil.md) to pay off his debts.
 
 ## Profile
 

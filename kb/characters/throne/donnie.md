@@ -6,7 +6,7 @@ source: ["Donnie"]
 
 # Donnie
 
-**Donnie** was a thief and skilled lockpicker belonging to the [Blacksnakes](../../world/factions/blacksnakes.md) guild in [New Delsta](../../locations/brightlands/towns/new_delsta.md). Unbeknownst to him, he was one of [Claude](claude_blacksnakes.md)'s many children, making him a half-brother to his close companions [Throné Anguis](../travelers/throne.md), [Pirro](pirro.md), and [Scaracci](scaracci.md).
+**Donnie** was a thief and skilled lockpicker belonging to the [Blacksnakes](../../world/factions/blacksnakes.md) guild in [New Delsta](../../locations/brightlands/towns/new_delsta.md). Unbeknownst to him, he was one of [Claude](claude_blacksnakes.md)'s many children, making him a half-brother to his close companions [Throné Anguis](throne.md), [Pirro](pirro.md), and [Scaracci](scaracci.md).
 
 ## Profile
 
@@ -16,7 +16,7 @@ source: ["Donnie"]
 - **Status**: Deceased
 - **Relatives**:
   - [Claude](claude_blacksnakes.md) (father)
-  - [Throné Anguis](../travelers/throne.md) (half-sister)
+  - [Throné Anguis](throne.md) (half-sister)
   - [Pirro](pirro.md) (half-brother)
   - [Scaracci](scaracci.md) (half-brother)
   - [Father](father.md) (half-brother)

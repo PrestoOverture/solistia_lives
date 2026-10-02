@@ -11,7 +11,7 @@ source: ["Ku"]
 
 The **Kingdom of Ku** is a martial nation located in the arid region of [Hinoeuma](../../locations/hinoeuma/hinoeuma.md). Built upon centuries of warfare and territorial conquest, Ku expanded from a modest desert settlement into the dominant military power of the region. Fifty vassal houses, including [Clan Mei](../factions/clan_mei.md), historically pledged fealty to Ku's crown.
 
-Ku is the homeland and starting point of Prince [Hikari Ku](../../characters/travelers/hikari.md).
+Ku is the homeland and starting point of Prince [Hikari Ku](../../characters/hikari/hikari.md).
 
 ## Overview
 
@@ -39,7 +39,7 @@ Hikari gathered allies across Solistia and returned to Hinoeuma. Utilizing a san
 In the throne room of [Castle Ku](../../locations/hinoeuma/towns/castle_ku.md), Mugen revealed his longstanding goal to exterminate the lineage of Hikari's mother, [Kura](../../characters/hikari/kura.md). Mugen attempted to awaken Hikari's cursed shadow self, but Hikari confronted and conquered his internal darkness. Driven to madness, Mugen unsheathed the Darkblood Blade—an ancient Ku family heirloom soaked in the blood of countless souls—and was consumed by its dark sorcery, transforming into the [Enshrouded King](../../characters/hikari/mugen.md). Hikari defeated Mugen and reclaimed the throne.
 
 ### Postwar Reform
-Upon his coronation, King Hikari dismantled Ku's aggressive military apparatus, established an 11-captain defensive force, liberated subjugated neighboring territories, and opened Ku's borders to free commerce. In place of a triumphal celebration, Hikari and the dancer [Agnea Bristarni](../../characters/travelers/agnea.md) organized a solemn memorial festival to honor those who perished during the conflict, featuring traditional lute music by [Yomi](../../characters/others/yomi.md).
+Upon his coronation, King Hikari dismantled Ku's aggressive military apparatus, established an 11-captain defensive force, liberated subjugated neighboring territories, and opened Ku's borders to free commerce. In place of a triumphal celebration, Hikari and the dancer [Agnea Bristarni](../../characters/agnea/agnea.md) organized a solemn memorial festival to honor those who perished during the conflict, featuring traditional lute music by [Yomi](../../characters/others/yomi.md).
 
 ## Culture and Traditions
 

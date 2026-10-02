@@ -6,7 +6,7 @@ source: ["Dolcinaea Luciel"]
 
 # Dolcinaea Luciel
 
-**Dolcinaea Luciel** is a world-renowned dancer and opera singer in Solistia who serves as [Agnea Bristarni](../travelers/agnea.md)'s rival and the primary antagonist of her tale.
+**Dolcinaea Luciel** is a world-renowned dancer and opera singer in Solistia who serves as [Agnea Bristarni](agnea.md)'s rival and the primary antagonist of her tale.
 
 ## Overview
 
@@ -27,7 +27,7 @@ Dolcinaea has blue eyes and voluminous blonde hair styled into an elaborate bun.
 
 Dolcinaea radiates an aura of poise, elegance, and beauty, though her immense fame often gives way to arrogance and conceited behavior. Her haughty demeanor conceals deep insecurity stemming from her impoverished childhood as an orphaned runaway in [Sai](../../locations/hinoeuma/towns/sai.md), a past she desperately sought to leave behind. Despite her cultured exterior, she can be surprisingly eccentric and unworldly in practical matters—such as mistaking a heavy workout dumbbell given by her bodyguard [Veronica](veronica.md) for an exotic musical instrument.
 
-Unlike many of the realm's antagonists, Dolcinaea's ambitions have no ties to the [Moonshade Order](../../world/factions/moonshade_order.md). According to [Ochette](../travelers/ochette.md), beneath her proud facade, Dolcinaea "smells lonely." After her defeat by Agnea, she lets go of her vanity and re-embraces the pure joy of dance first instilled in her by [Cuani](cuani_bristarni.md).
+Unlike many of the realm's antagonists, Dolcinaea's ambitions have no ties to the [Moonshade Order](../../world/factions/moonshade_order.md). According to [Ochette](../ochette/ochette.md), beneath her proud facade, Dolcinaea "smells lonely." After her defeat by Agnea, she lets go of her vanity and re-embraces the pure joy of dance first instilled in her by [Cuani](cuani_bristarni.md).
 
 ## History
 

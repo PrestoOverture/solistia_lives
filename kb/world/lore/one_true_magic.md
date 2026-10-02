@@ -21,14 +21,14 @@ Four centuries later, the sage Gratton examined the pit and formulated "Gratton'
 
 Two prominent scholars at the Royal Academy dedicated their lives to uncovering the seventh source:
 
-- **[Osvald V. Vanstein](../../characters/travelers/osvald.md)**: Osvald posited that because the six known elements are physical in nature, their energy output is inherently finite. He reasoned that the seventh source must be entirely immaterial to harness boundless magical power. Osvald pursued a theoretical and mathematical methodology, formulating intricate equations to compress and concentrate elemental energies in search of the underlying constant.
+- **[Osvald V. Vanstein](../../characters/osvald/osvald.md)**: Osvald posited that because the six known elements are physical in nature, their energy output is inherently finite. He reasoned that the seventh source must be entirely immaterial to harness boundless magical power. Osvald pursued a theoretical and mathematical methodology, formulating intricate equations to compress and concentrate elemental energies in search of the underlying constant.
 - **[Harvey](../../characters/osvald/harvey.md)**: Harvey pursued a biological approach, theorizing that monster biology held the secret, as monsters channel innate magical powers without verbal incantations. He synthesized purified crystals of monster blood and conducted horrific crossbreeding experiments to create chimeras. By stealing Osvald's research formulae and merging them with his own monster blood studies, Harvey earned public acclaim as "Gratton's second coming."
 
 ## Awakening and the Two Magics
 
 Harvey ultimately deduced that the key to unlocking the power lay in human bloodlines, specifically the blood of the ancient [Lumina Clan](../factions/lumina_clan.md). By capturing Osvald's daughter, [Elena](../../characters/osvald/elena_vanstein.md), and combining her blood with the physical remains of Archmage [D'arqest](../../characters/others/darqest.md), Harvey succeeded in channeling the [Shadow](shadow.md). Harvey proclaimed this dark force to be the true seventh source, though it manifested as a corrosive, obsidian power that severely drained and damaged the caster upon invocation.
 
-During their final confrontation, [Osvald](../../characters/travelers/osvald.md) manifested the genuine One True Magic. Rather than relying on hatred, greed, or sacrifice, Osvald's magic was unlocked by his unconditional love for his daughter and his resolve to protect her. Unlike Harvey's self-destructive dark art, Osvald's One True Magic manifested as a radiant, benevolent force that harmed only his foes, proving that genuine One True Magic is rooted in altruism and an immaterial bond of love.
+During their final confrontation, [Osvald](../../characters/osvald/osvald.md) manifested the genuine One True Magic. Rather than relying on hatred, greed, or sacrifice, Osvald's magic was unlocked by his unconditional love for his daughter and his resolve to protect her. Unlike Harvey's self-destructive dark art, Osvald's One True Magic manifested as a radiant, benevolent force that harmed only his foes, proving that genuine One True Magic is rooted in altruism and an immaterial bond of love.
 
 ## Lore and Theories
 

@@ -26,7 +26,7 @@ Temm was deeply devoted to Sally, attuned to the loneliness she concealed and ea
 ## History
 
 ### Background
-Temm grew up in the peaceful village of Healeaks alongside Sally. When Sally suffered severe complications and collapsed from an untreated injury, Temm cried out for help, alerting [Eir's Apothecaries](../../world/factions/eirs_apothecaries.md). He watched with relief as [Castti Florenz](../travelers/castti.md) and [Trousseau](trousseau.md) saved Sally's life using Santanejo Blossoms.
+Temm grew up in the peaceful village of Healeaks alongside Sally. When Sally suffered severe complications and collapsed from an untreated injury, Temm cried out for help, alerting [Eir's Apothecaries](../../world/factions/eirs_apothecaries.md). He watched with relief as [Castti Florenz](castti.md) and [Trousseau](trousseau.md) saved Sally's life using Santanejo Blossoms.
 
 ### Death
 Years later, while Castti and the majority of Eir's Apothecaries were away on a medical mission, Trousseau—having succumbed to nihilistic madness under the influence of the [Moonshade Order](../../world/factions/moonshade_order.md)—lured Temm and Sally up the mountain overlooking the village. There, Trousseau poisoned both children, killing them.

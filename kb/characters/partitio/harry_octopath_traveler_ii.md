@@ -6,9 +6,9 @@ source: ["Harry (Octopath Traveler II)"]
 # Harry (Octopath Traveler II)
 
 > *"Let's get 'em good, Boss!"*
-> — Harry, to [Partitio](../travelers/partitio.md)
+> — Harry, to [Partitio](partitio.md)
 
-**Harry** is a 38-year-old miner living in [Oresrush](../../locations/wildlands/towns/oresrush.md). He is a member of [Partitio Yellowil](../travelers/partitio.md)'s posse alongside [Nikki](nikki.md), [Ned](ned_octopath_traveler_ii.md), and [Joe](joe.md). A hardworking family man, Harry labors tirelessly to provide for his beloved wife and six children. Although considerably older than Partitio, he chose to throw his lot in with the young merchant due to Partitio's chivalrous spirit and leadership.
+**Harry** is a 38-year-old miner living in [Oresrush](../../locations/wildlands/towns/oresrush.md). He is a member of [Partitio Yellowil](partitio.md)'s posse alongside [Nikki](nikki.md), [Ned](ned_octopath_traveler_ii.md), and [Joe](joe.md). A hardworking family man, Harry labors tirelessly to provide for his beloved wife and six children. Although considerably older than Partitio, he chose to throw his lot in with the young merchant due to Partitio's chivalrous spirit and leadership.
 
 ## Profile
 

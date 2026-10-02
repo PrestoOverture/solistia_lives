@@ -23,7 +23,7 @@ Following the downfall of the church's leadership and the widespread demoralizat
 ## History
 
 ### Canalbrine and Stormhail
-Ort is first deployed to [Canalbrine](../../locations/harborlands/towns/canalbrine.md) alongside Sacred Guard detachments investigating the serial murders of an apothecary and a scholar. Following the arrest of the architect [Vados](vados.md) by Inquisitor [Temenos Mistral](../travelers/temenos.md) and Crick, Ort reunites with Crick outside Kaldena's quarters, where the two friends exchange heartfelt encouragement.
+Ort is first deployed to [Canalbrine](../../locations/harborlands/towns/canalbrine.md) alongside Sacred Guard detachments investigating the serial murders of an apothecary and a scholar. Following the arrest of the architect [Vados](vados.md) by Inquisitor [Temenos Mistral](temenos.md) and Crick, Ort reunites with Crick outside Kaldena's quarters, where the two friends exchange heartfelt encouragement.
 
 Later, Ort attends Crick's funeral in [Stormhail](../../locations/winterlands/towns/stormhail.md) after Crick's murdered body is discovered discarded in the snow outside the Sacred Guard headquarters.
 

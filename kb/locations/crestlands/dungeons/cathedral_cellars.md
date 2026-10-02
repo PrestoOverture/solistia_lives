@@ -15,7 +15,7 @@ The **Cathedral Cellars** are a subterranean crypt and dungeon complex beneath [
 
 Constructed beneath the monumental cathedral of the Order of the Sacred Flame, the cellars function primarily as an ancient mausoleum. The stone subterranean halls and water channels are lined with solemn caskets and gravestones dedicated to departed clergy and church figures.
 
-During the events of [Temenos Mistral](../../../characters/travelers/temenos.md)'s investigation following the suspicious death of Pontiff [Jörg](../../../characters/temenos/jorg.md), Temenos discovers a secret subterranean passage leading into the cellars. Using this covert path, Temenos and the Sanctum Knight [Crick Wellsley](../../../characters/temenos/crick_wellsley.md) bypass the locked entrances above to gain access into the inner sanctum of the cathedral.
+During the events of [Temenos Mistral](../../../characters/temenos/temenos.md)'s investigation following the suspicious death of Pontiff [Jörg](../../../characters/temenos/jorg.md), Temenos discovers a secret subterranean passage leading into the cellars. Using this covert path, Temenos and the Sanctum Knight [Crick Wellsley](../../../characters/temenos/crick_wellsley.md) bypass the locked entrances above to gain access into the inner sanctum of the cathedral.
 
 ## Inhabitants & Threats
 

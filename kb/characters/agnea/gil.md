@@ -6,7 +6,7 @@ source: ["Gil"]
 
 # Gil
 
-**Gil** is an aspiring pianist and tavern keeper in [New Delsta: Backstreets](../../locations/brightlands/towns/new_delsta_backstreets.md), who plays a prominent supporting role in [Agnea Bristarni](../travelers/agnea.md)'s journey. He operates Montraine's Tavern, a modest establishment inherited from his late mentor.
+**Gil** is an aspiring pianist and tavern keeper in [New Delsta: Backstreets](../../locations/brightlands/towns/new_delsta_backstreets.md), who plays a prominent supporting role in [Agnea Bristarni](agnea.md)'s journey. He operates Montraine's Tavern, a modest establishment inherited from his late mentor.
 
 ## Profile
 
@@ -23,7 +23,7 @@ Gil has shoulder-length blond hair and wears a brown hat and vest.
 ### Personality
 Despite an inclination toward pessimism, Gil is a dreamer at heart who loves music and wishes to bring hope to others. Undervaluing his own musicianship, he long believed he lacked the talent to measure up to his mentor and abandoned his ambitions. However, his cynicism softens when he witnesses Agnea's radiant spirit. Her optimism reawakens his passion for music, inspiring him to believe in dreams once more and dedicate his craft to supporting others.
 
-Despite running a tavern that serves cheap liquors and simple fare, Gil rarely partakes of alcohol himself, preferring piping hot coffee—which his patrons praise as top-notch. He avoids drinking because he despises playing the piano while drunk, following the personal rule of his mentor, Montraine. Gil also shares a long history with a local handyman who frequently works off an immense bar tab through manual labor, leading some patrons to mistake him for full-time staff. According to [Ochette](../travelers/ochette.md), Gil's piano playing has a soothing warmth that makes listeners feel warm inside.
+Despite running a tavern that serves cheap liquors and simple fare, Gil rarely partakes of alcohol himself, preferring piping hot coffee—which his patrons praise as top-notch. He avoids drinking because he despises playing the piano while drunk, following the personal rule of his mentor, Montraine. Gil also shares a long history with a local handyman who frequently works off an immense bar tab through manual labor, leading some patrons to mistake him for full-time staff. According to [Ochette](../ochette/ochette.md), Gil's piano playing has a soothing warmth that makes listeners feel warm inside.
 
 ## Story
 
@@ -37,7 +37,7 @@ Later, Gil travels to [Merry Hills](../../locations/crestlands/towns/merry_hills
 
 ## Quotes
 
-- *"Only a handful of folks can become stars. The rest are just stardust in the wind."* — To [Agnea Bristarni](../travelers/agnea.md)
+- *"Only a handful of folks can become stars. The rest are just stardust in the wind."* — To [Agnea Bristarni](agnea.md)
 - *"Sorry, but we're not open yet."* — In New Delsta: Backstreets
 - *"You can get drunk for cheap here. Just don't get your hopes up about the food."* — In New Delsta: Backstreets
 - *"You want my help? All right. I'll do what I can."* — Upon being guided

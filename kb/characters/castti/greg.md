@@ -6,7 +6,7 @@ source: ["Greg"]
 
 # Greg
 
-**Greg** is the nephew of Lady [Rosa](rosa.md) Glenville of [Winterbloom](../../locations/winterlands/towns/winterbloom.md) and the cousin of [Melia](melia.md). He acts as an antagonist in [Castti Florenz](../travelers/castti.md)'s Winterbloom storyline before attempting to reform.
+**Greg** is the nephew of Lady [Rosa](rosa.md) Glenville of [Winterbloom](../../locations/winterlands/towns/winterbloom.md) and the cousin of [Melia](melia.md). He acts as an antagonist in [Castti Florenz](castti.md)'s Winterbloom storyline before attempting to reform.
 
 ## Profile
 
@@ -21,7 +21,7 @@ source: ["Greg"]
   - [Melia](melia.md) (cousin)
 
 ### Appearance
-Greg wears a red coat trimmed with gold and sports a pompous hairstyle that [Throné Anguis](../travelers/throne.md) derided as "the most pretentious hairstyle."
+Greg wears a red coat trimmed with gold and sports a pompous hairstyle that [Throné Anguis](../throne/throne.md) derided as "the most pretentious hairstyle."
 
 ### Personality
 Greg is selfish, presumptuous, and cowardly, yet insists his ambitions are for the good of Winterbloom. As the eldest son of an impoverished noble line with a long heritage, he grew frustrated with his aunt Rosa's traditional methods, dreaming of modernizing Winterbloom into a bustling commercial hub akin to [Clockbank](../../locations/brightlands/towns/clockbank.md). Lacking both patience and moral scruples, he went so far as to kidnap his young cousin and hire thieves to force Castti out of town.

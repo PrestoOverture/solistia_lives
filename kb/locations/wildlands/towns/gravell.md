@@ -8,7 +8,7 @@ source: ["Gravell"]
 > *"This village has been beset by calamity and plague. Most of our youngest and brightest are no longer with us."*  
 > —*Gravell Villager*
 
-**Gravell** is a remote, dwindling village tucked into the ravines of the [Wildlands](../wildlands.md) in *Octopath Traveler II*. It lies connected between the [Western Gravell Wilds](../wilds/western_gravell_wilds.md) and the [Path to the Duskruin Shrine](../wilds/path_to_the_duskruin_shrine.md), serving as the destination for [Osvald V. Vanstein](../../../characters/travelers/osvald.md)'s final confrontation.
+**Gravell** is a remote, dwindling village tucked into the ravines of the [Wildlands](../wildlands.md) in *Octopath Traveler II*. It lies connected between the [Western Gravell Wilds](../wilds/western_gravell_wilds.md) and the [Path to the Duskruin Shrine](../wilds/path_to_the_duskruin_shrine.md), serving as the destination for [Osvald V. Vanstein](../../../characters/osvald/osvald.md)'s final confrontation.
 
 ## History & Calamities
 

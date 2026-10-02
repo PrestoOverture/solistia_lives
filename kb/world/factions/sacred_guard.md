@@ -6,7 +6,7 @@ source: ["Sacred Guard"]
 # Sacred Guard
 
 > "*The Sanctum Knights are handpicked from among the church's best. They're even called 'Godsblade' by some, and reportedly capable of felling a thousand beasts.*"  
-> —*[Temenos Mistral](../../characters/travelers/temenos.md)*
+> —*[Temenos Mistral](../../characters/temenos/temenos.md)*
 
 The **Sacred Guard** is a military organization sworn to protect all within the [Order of the Sacred Flame](order_of_the_sacred_flame_octopath_traveler_ii.md).
 
@@ -16,7 +16,7 @@ The Sacred Guard was established 380 years ago by Archbishop Kinchler as an inde
 
 The Sacred Guard's main members are known as **Sanctum Knights**, also called **Godsblades**, who are known as "heroes of the scripture" and considered to be among the best of the organization. The leadership is responsible for testing promising members to give them a chance at knighthood through a series of trials.
 
-After the leadership was killed by the church's inquisitor, [Temenos](../../characters/travelers/temenos.md), and a lengthy investigation was conducted into their dark dealings, the Sacred Guard was stripped of its authority. Many of its members who were loyal to [Kaldena](../../characters/temenos/kaldena.md) and [Cubaryi](../../characters/temenos/cubaryi.md) were tried in court, forcing many of them to resign after their crimes were brought to light.
+After the leadership was killed by the church's inquisitor, [Temenos](../../characters/temenos/temenos.md), and a lengthy investigation was conducted into their dark dealings, the Sacred Guard was stripped of its authority. Many of its members who were loyal to [Kaldena](../../characters/temenos/kaldena.md) and [Cubaryi](../../characters/temenos/cubaryi.md) were tried in court, forcing many of them to resign after their crimes were brought to light.
 
 ## Organization and Traditions
 
@@ -26,7 +26,7 @@ While regular members wear blue, elite members of the Sanctum Knights—such as 
 
 According to an arms merchant in Stormhail, many Sanctum Knights prefer to purchase ornate, high-priced weapons with impressive appearances. Equipment associated with the order includes the Sanctum Sword, Sanctum Knight's Armor, Sanctum Knight's Helm, and the Tattered Sacred Shield.
 
-[Temenos](../../characters/travelers/temenos.md) derisively refers to the Sacred Guard as "crows," and a crow appears in the stained glass of his story Journal.
+[Temenos](../../characters/temenos/temenos.md) derisively refers to the Sacred Guard as "crows," and a crow appears in the stained glass of his story Journal.
 
 ## Known Members
 

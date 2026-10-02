@@ -8,7 +8,7 @@ source: ["New Delsta"]
 > "*Dignity, glamour, chaos, and tradition... That is the scent of this city!*"
 > — Traveler
 
-**New Delsta** is a bustling metropolis located in the [Brightlands](../brightlands.md). Known as the beating heart of the region, it is the city where the thief [Throné Anguis](../../../characters/travelers/throne.md) resides and serves as the setting for Chapter 1 of her tale, Chapter 2 of [Agnea Bristarni](../../../characters/travelers/agnea.md)'s journey, the first Crossed Path of [Osvald V. Vanstein](../../../characters/travelers/osvald.md) and [Partitio Yellowil](../../../characters/travelers/partitio.md), and the final gathering of the eight travelers in the Epilogue.
+**New Delsta** is a bustling metropolis located in the [Brightlands](../brightlands.md). Known as the beating heart of the region, it is the city where the thief [Throné Anguis](../../../characters/throne/throne.md) resides and serves as the setting for Chapter 1 of her tale, Chapter 2 of [Agnea Bristarni](../../../characters/agnea/agnea.md)'s journey, the first Crossed Path of [Osvald V. Vanstein](../../../characters/osvald/osvald.md) and [Partitio Yellowil](../../../characters/partitio/partitio.md), and the final gathering of the eight travelers in the Epilogue.
 
 ## Geography and Layout
 
@@ -45,7 +45,7 @@ Beneath New Delsta's dazzling glamour lies stark social inequality and friction:
   - A renowned master leatherworker, whose craftsmanship was once sought after across the world, completely shuttered his workshop and lost all will to work following the death of his beloved wife.
   - The tavern's friendly host is known to generously treat patrons, though he is prone to sudden bouts of fury during which he has wrecked his own tavern.
   - An elegant woman working in the brothel and seen in the tavern after dark is whispered to be a displaced princess from a fallen kingdom.
-- **Past Visitors**: In travel banter with Agnea, the cleric [Temenos Mistral](../../../characters/travelers/temenos.md) recalls once visiting New Delsta in the company of [Pontiff Jörg](../../../characters/temenos/jorg.md).
+- **Past Visitors**: In travel banter with Agnea, the cleric [Temenos Mistral](../../../characters/temenos/temenos.md) recalls once visiting New Delsta in the company of [Pontiff Jörg](../../../characters/temenos/jorg.md).
 
 ## Story Events
 

@@ -11,7 +11,7 @@ source: ["North Beasting Traverse"]
 
 The trail forms the primary overland route connecting the northern coast to the beastling settlements:
 - **[Beasting Bay: Anchorage](beasting_bay_anchorage.md)** to the north, providing sea passage to other regions of Solistia
-- **[Beasting Village](../towns/beasting_village.md)** to the south, home of the beastlings and the starting point of [Ochette](../../../characters/travelers/ochette.md)'s journey
+- **[Beasting Village](../towns/beasting_village.md)** to the south, home of the beastlings and the starting point of [Ochette](../../../characters/ochette/ochette.md)'s journey
 
 ## Wildlife and Inhabitants
 

@@ -8,7 +8,7 @@ source: ["Nameless Village"]
 > *"Welcome to Nameless Village! You bring stories? Tell news from outside!"*
 > — Beastling at the village entrance
 
-**Nameless Village** is an isolated, tradition-bound settlement nestled within the dense rainforests of [Toto'haha](../totohaha.md). Inhabited primarily by a small, reclusive population of [Beastlings](../../../world/species/beastling.md), the village serves as the setting for Chapter 4 of [Temenos Mistral](../../../characters/travelers/temenos.md)'s investigation.
+**Nameless Village** is an isolated, tradition-bound settlement nestled within the dense rainforests of [Toto'haha](../totohaha.md). Inhabited primarily by a small, reclusive population of [Beastlings](../../../world/species/beastling.md), the village serves as the setting for Chapter 4 of [Temenos Mistral](../../../characters/temenos/temenos.md)'s investigation.
 
 ## Geography & Sacred Duty
 

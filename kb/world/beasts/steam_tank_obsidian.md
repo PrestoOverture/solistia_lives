@@ -17,4 +17,4 @@ Representing the pinnacle of the Roque Company's mechanical engineering, the tan
 
 ## Story
 
-When [Partitio Yellowil](../../characters/travelers/partitio.md) raises the staggering sum of 80 billion leaves to purchase the patent rights to the steam engine to benefit the world, Roque refuses to relinquish the technology. Instead, Roque boards the Steam Tank Obsidian at the [Roque Island: Headquarters](../../locations/harborlands/towns/roque_island_headquarters.md) on [Roque Island](../../locations/harborlands/towns/roque_island.md) and unleashes the war machine to eliminate Partitio, leading to its destruction.
+When [Partitio Yellowil](../../characters/partitio/partitio.md) raises the staggering sum of 80 billion leaves to purchase the patent rights to the steam engine to benefit the world, Roque refuses to relinquish the technology. Instead, Roque boards the Steam Tank Obsidian at the [Roque Island: Headquarters](../../locations/harborlands/towns/roque_island_headquarters.md) on [Roque Island](../../locations/harborlands/towns/roque_island.md) and unleashes the war machine to eliminate Partitio, leading to its destruction.

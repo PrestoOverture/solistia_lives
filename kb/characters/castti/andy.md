@@ -17,7 +17,7 @@ source: ["Andy"]
 - **Status**: Deceased
 
 ### Background & Personality
-Andy was known for his brash, headstrong personality. In his youth, he aspired to become a soldier, driven toward battle until [Castti Florenz](../travelers/castti.md) taught him the irreplaceable value of life. Whether swayed by her philosophy or by his deep affection for Castti herself, Andy turned away from violence and dedicated his life to healing others alongside his brother.
+Andy was known for his brash, headstrong personality. In his youth, he aspired to become a soldier, driven toward battle until [Castti Florenz](castti.md) taught him the irreplaceable value of life. Whether swayed by her philosophy or by his deep affection for Castti herself, Andy turned away from violence and dedicated his life to healing others alongside his brother.
 
 ## Story
 

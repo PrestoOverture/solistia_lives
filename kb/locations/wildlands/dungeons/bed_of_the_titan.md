@@ -17,4 +17,4 @@ Lying deep beneath the arid wastes of the Wildlands, the Bed of the Titan is an 
 
 ## History and Events
 
-During [Ochette](../../../characters/travelers/ochette.md)'s search across Solistia to awaken the three ancient beasts before the Night of the Scarlet Moon, she journeys to the Wildlands alongside the merchant beastling [Pom](../../../characters/ochette/pom.md). Navigating deep into the canyon to the Bed of the Titan, Ochette confronts and calms the enraged volcanic titan Tera, successfully earning the creature's trust and cooperation.
+During [Ochette](../../../characters/ochette/ochette.md)'s search across Solistia to awaken the three ancient beasts before the Night of the Scarlet Moon, she journeys to the Wildlands alongside the merchant beastling [Pom](../../../characters/ochette/pom.md). Navigating deep into the canyon to the Bed of the Titan, Ochette confronts and calms the enraged volcanic titan Tera, successfully earning the creature's trust and cooperation.

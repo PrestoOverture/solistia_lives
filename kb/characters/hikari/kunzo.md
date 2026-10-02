@@ -9,7 +9,7 @@ source: ["Kunzo"]
 > *"This castle belongs to [House Mei](../../world/factions/clan_mei.md). There shall be no violence here."*  
 > — Kunzo, at [Stormhail: Castle Mei](../../locations/winterlands/towns/stormhail_castle_mei.md)
 
-**Kunzo** is a longtime vassal of [Clan Mei](../../world/factions/clan_mei.md) in *Octopath Traveler II*. He serves as a devoted retainer and bodyguard to [Rai Mei](rai_mei.md) during [Hikari Ku](../travelers/hikari.md)'s storyline.
+**Kunzo** is a longtime vassal of [Clan Mei](../../world/factions/clan_mei.md) in *Octopath Traveler II*. He serves as a devoted retainer and bodyguard to [Rai Mei](rai_mei.md) during [Hikari Ku](hikari.md)'s storyline.
 
 ## Profile
 

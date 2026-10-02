@@ -6,7 +6,7 @@ source: ["Giselle"]
 
 # Giselle
 
-**Giselle** is the leader of Giselle's Traveling Troupe, who appears as a supporting ally in [Agnea Bristarni](../travelers/agnea.md)'s journey. Formerly a noblewoman, she abandoned an arranged marriage to pursue life as an itinerant entertainer, striving to bring smiles across Solistia.
+**Giselle** is the leader of Giselle's Traveling Troupe, who appears as a supporting ally in [Agnea Bristarni](agnea.md)'s journey. Formerly a noblewoman, she abandoned an arranged marriage to pursue life as an itinerant entertainer, striving to bring smiles across Solistia.
 
 ## Profile
 

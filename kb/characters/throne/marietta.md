@@ -6,7 +6,7 @@ source: ["Marietta"]
 
 # Marietta
 
-**Marietta** was a master thief, the former leader of the [Blacksnakes](../../world/factions/blacksnakes.md) guild, and the biological mother of [Throné Anguis](../travelers/throne.md). Her tragic romantic entanglements with both [Sebastian](father.md) and the syndicate's founder, [Claude](claude_blacksnakes.md), set into motion the cycle of betrayal that defined the Blacksnakes.
+**Marietta** was a master thief, the former leader of the [Blacksnakes](../../world/factions/blacksnakes.md) guild, and the biological mother of [Throné Anguis](throne.md). Her tragic romantic entanglements with both [Sebastian](father.md) and the syndicate's founder, [Claude](claude_blacksnakes.md), set into motion the cycle of betrayal that defined the Blacksnakes.
 
 ## Profile
 

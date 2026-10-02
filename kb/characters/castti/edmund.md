@@ -17,7 +17,7 @@ source: ["Edmund"]
 - **Origin / Location**: [Sai](../../locations/hinoeuma/towns/sai.md), [Hinoeuma](../../locations/hinoeuma/hinoeuma.md); later [Timberain](../../locations/leaflands/towns/timberain.md), [Leaflands](../../locations/leaflands/leaflands.md) (also seen at [Sandflow Pass](../../locations/hinoeuma/wilds/sandflow_pass.md))
 - **Occupation**: Military commander, leader of Sai's immigrant forces; former soldier of Timberain
 
-**Master Edmund** is a military commander in Octopath Traveler II who leads the immigrant forces of [Sai](../../locations/hinoeuma/towns/sai.md) and plays a key role in the story of [Castti Florenz](../travelers/castti.md). A battle-hardened veteran who formerly served the kingdom of [Timberain](../../locations/leaflands/towns/timberain.md), Edmund initially scorns weakness and injury before witnessing Castti's selfless healing, which inspires a profound change of heart.
+**Master Edmund** is a military commander in Octopath Traveler II who leads the immigrant forces of [Sai](../../locations/hinoeuma/towns/sai.md) and plays a key role in the story of [Castti Florenz](castti.md). A battle-hardened veteran who formerly served the kingdom of [Timberain](../../locations/leaflands/towns/timberain.md), Edmund initially scorns weakness and injury before witnessing Castti's selfless healing, which inspires a profound change of heart.
 
 ## Appearance
 
@@ -31,7 +31,7 @@ However, beneath his abrasive exterior lies a deep capacity for honor and consci
 
 ## Relationships
 
-- **[Castti Florenz](../travelers/castti.md)**: Initially spurned by Edmund as a meddlesome "bonemender," Castti earns his deep respect and loyalty after convincing him to rescue trapped enemy soldiers in the quicksand and saving him from the sand lion. Edmund later serves as a crucial ally during the crisis in Timberain.
+- **[Castti Florenz](castti.md)**: Initially spurned by Edmund as a meddlesome "bonemender," Castti earns his deep respect and loyalty after convincing him to rescue trapped enemy soldiers in the quicksand and saving him from the sand lion. Edmund later serves as a crucial ally during the crisis in Timberain.
 - **[Griff](griff.md)** / **[Commander Griff](griff.md)**: The commander of the opposing forces during the border war near Sai. After being rescued by Castti and Edmund from the sand lion, Griff reconciles with Edmund, and the two work together to convince the king of Timberain to halt hostilities and welcome outsiders.
 - **[Mao](mao.md)**: An apothecary in Sai whose aid Edmund initially dismissed before his change of perspective.
 

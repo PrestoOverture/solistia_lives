@@ -15,7 +15,7 @@ Inside a lower chamber on the castle's eastern wing, the strategist [Oboro](../.
 
 ## Story Significance
 
-- **The Coup**: At the conclusion of Chapter 1 of [Hikari](../../../characters/travelers/hikari.md)'s tale, Prince Mugen executes a bloody coup, slaying King Jigo and seizing the fortress. Forced into exile, Hikari departs the citadel to gather loyal allies across Solistia.
+- **The Coup**: At the conclusion of Chapter 1 of [Hikari](../../../characters/hikari/hikari.md)'s tale, Prince Mugen executes a bloody coup, slaying King Jigo and seizing the fortress. Forced into exile, Hikari departs the citadel to gather loyal allies across Solistia.
 - **The Liberation of Ku**: In the climax of Chapter 5, Hikari and his comrades storm the fortress, overcoming elite Ku defenders and guardians to confront [King Mugen](../../../characters/hikari/mugen.md) in the royal throne room. After defeating his brother, Hikari ascends the throne as king.
 
 ## Post-War Era

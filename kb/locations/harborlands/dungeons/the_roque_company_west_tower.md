@@ -13,4 +13,4 @@ The West Tower forms part of the sprawling island headquarters of the [Roque Com
 
 ## Story
 
-During [Partitio Yellowil](../../../characters/travelers/partitio.md)'s business journey to secure the rights to the steam engine, the investigative reporter [Ori](../../../characters/partitio/ori.md) guides Partitio through the corridors of the West Tower to bypass security and sneak into the corporate auditorium where [Roque](../../../characters/partitio/roque_brilliante.md) is holding a major presentation event.
+During [Partitio Yellowil](../../../characters/partitio/partitio.md)'s business journey to secure the rights to the steam engine, the investigative reporter [Ori](../../../characters/partitio/ori.md) guides Partitio through the corridors of the West Tower to bypass security and sneak into the corporate auditorium where [Roque](../../../characters/partitio/roque_brilliante.md) is holding a major presentation event.

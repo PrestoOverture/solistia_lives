@@ -32,7 +32,7 @@ Mikka is gentle and empathetic, though forced from an early age to endure the ha
 
 ### Early Life in Ku
 
-Mikka was raised in Ku by her father, a struggling oil peddler, alongside her elder brother Ritsu. Her father was murdered by Ku soldiers after attempting to advertise his wares to them. While weeping at his grave, Mikka and Ritsu met young Prince [Hikari Ku](../travelers/hikari.md), who came to pay respects and swore to bring the murderers to justice. 
+Mikka was raised in Ku by her father, a struggling oil peddler, alongside her elder brother Ritsu. Her father was murdered by Ku soldiers after attempting to advertise his wares to them. While weeping at his grave, Mikka and Ritsu met young Prince [Hikari Ku](hikari.md), who came to pay respects and swore to bring the murderers to justice. 
 
 As Ritsu and Hikari trained and sparred together throughout their youth, Mikka often brought them handmade rice balls, worried that they pushed themselves past their limits. During this time, Ritsu gave Mikka a pair of matching "reunion earrings," said to ensure that those who wear them will inevitably cross paths again, telling her to save one for someone truly special.
 

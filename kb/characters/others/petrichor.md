@@ -8,7 +8,7 @@ source: ["Petrichor"]
 
 "*I met [Arcanette](../temenos/arcanette.md) when I was young, and it was then that I swore myself to her service. Ever since, I have hunted for her and her alone, even slaying the legendary monster known as the 'Guardian of the First Flame' at her behest. Sometimes, I hunted people too, like the time I came to possess the Darkblood Bow. Once again, my lady has use of me, and so I shall gladly obey.*" —Petrichor
 
-**Petrichor**, known as the **Dark Hunter**, is an operative of the [Moonshade Order](../../world/factions/moonshade_order.md) and the primary instigator behind the catastrophic events unfolding throughout [Ochette](../travelers/ochette.md)'s storyline.
+**Petrichor**, known as the **Dark Hunter**, is an operative of the [Moonshade Order](../../world/factions/moonshade_order.md) and the primary instigator behind the catastrophic events unfolding throughout [Ochette](../ochette/ochette.md)'s storyline.
 
 ## Profile
 

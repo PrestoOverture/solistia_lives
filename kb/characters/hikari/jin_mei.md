@@ -8,7 +8,7 @@ source: ["Jin Mei"]
 > *"The failure was entirely mine, and I accept my punishment. I only beg you spare my clan... May [Clan Mei](../../world/factions/clan_mei.md) live on..."*
 > — Jin Mei, final words to [Mugen](mugen.md)
 
-**Jin Mei** was the elder brother of [Rai Mei](rai_mei.md) and a prominent warrior of [Clan Mei](../../world/factions/clan_mei.md). A dedicated swordsman and mentor to the young prince [Hikari Ku](../travelers/hikari.md), Jin Mei sought peace and prosperity for his clan through their alliance with [Ku](../../world/nations/ku.md), but was ultimately coerced into a tragic political conspiracy that cost him his life.
+**Jin Mei** was the elder brother of [Rai Mei](rai_mei.md) and a prominent warrior of [Clan Mei](../../world/factions/clan_mei.md). A dedicated swordsman and mentor to the young prince [Hikari Ku](hikari.md), Jin Mei sought peace and prosperity for his clan through their alliance with [Ku](../../world/nations/ku.md), but was ultimately coerced into a tragic political conspiracy that cost him his life.
 
 ## Profile
 

@@ -5,7 +5,7 @@ source: ["The Treasures of Ku"]
 ---
 # The Treasures of Ku
 
-**The Treasures of Ku** is a side story in [Ku: Castle Town](../../../locations/hinoeuma/towns/ku_castle_town.md), located in [Hinoeuma](../../../locations/hinoeuma/hinoeuma.md), taking place after the events of [Hikari](../../../characters/travelers/hikari.md)'s story.
+**The Treasures of Ku** is a side story in [Ku: Castle Town](../../../locations/hinoeuma/towns/ku_castle_town.md), located in [Hinoeuma](../../../locations/hinoeuma/hinoeuma.md), taking place after the events of [Hikari](../../../characters/hikari/hikari.md)'s story.
 
 ## Overview
 

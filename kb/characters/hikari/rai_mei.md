@@ -8,7 +8,7 @@ source: ["Rai Mei"]
 
 "*My brother and I used to have faith in the future as well. But now there is only me. Not everyone can walk a path of their convictions. It never ends - one must be willing to leave everything else behind in their journey. And so instead of placing my faith in the future, I've chosen to put the safety of my clan above all.*" —Rai Mei
 
-**Rai Mei** is the ruler and matriarch of [Clan Mei](../../world/factions/clan_mei.md), seated at [Castle Mei](../../locations/winterlands/towns/stormhail_castle_mei.md) in [Stormhail](../../locations/winterlands/towns/stormhail.md). A master spearwoman and former comrade-in-arms of [Hikari Ku](../travelers/hikari.md), she wields the renowned Spear of Levin.
+**Rai Mei** is the ruler and matriarch of [Clan Mei](../../world/factions/clan_mei.md), seated at [Castle Mei](../../locations/winterlands/towns/stormhail_castle_mei.md) in [Stormhail](../../locations/winterlands/towns/stormhail.md). A master spearwoman and former comrade-in-arms of [Hikari Ku](hikari.md), she wields the renowned Spear of Levin.
 
 ## Profile
 
@@ -39,7 +39,7 @@ Moved by Hikari's unyielding trust, Rai Mei marshaled Clan Mei's warriors and ma
 
 Following Mugen's defeat, Rai Mei celebrated the end of the conflict and witnessed Hikari's coronation as King of Ku. With peace restored, Clan Mei reestablished close diplomatic ties with Ku, with Rai Mei impressing the new monarch with her statesmanship and diplomatic finesse.
 
-During the realm-wide festivities following the return of the dawn, Rai Mei journeyed on horseback to [New Delsta](../../locations/brightlands/towns/new_delsta.md), determined to arrive on time for [Agnea Bristarni](../travelers/agnea.md)'s gala performance.
+During the realm-wide festivities following the return of the dawn, Rai Mei journeyed on horseback to [New Delsta](../../locations/brightlands/towns/new_delsta.md), determined to arrive on time for [Agnea Bristarni](../agnea/agnea.md)'s gala performance.
 
 ## Quotes
 

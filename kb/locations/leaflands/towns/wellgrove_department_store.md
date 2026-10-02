@@ -15,7 +15,7 @@ source: ["Wellgrove: Department Store"]
 
 ## History
 
-During his travels, the merchant [Partitio Yellowil](../../../characters/travelers/partitio.md) renovated the vacant building into Solistia's first full-scale department store with the backing of Lord [Alrond](../../../characters/partitio/alrond_rondwell.md). The project created a centralized emporium gathering wares, craftsmen, and merchants from across Solistia.
+During his travels, the merchant [Partitio Yellowil](../../../characters/partitio/partitio.md) renovated the vacant building into Solistia's first full-scale department store with the backing of Lord [Alrond](../../../characters/partitio/alrond_rondwell.md). The project created a centralized emporium gathering wares, craftsmen, and merchants from across Solistia.
 
 ## Commerce and Community
 

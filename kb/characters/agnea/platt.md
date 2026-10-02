@@ -29,7 +29,7 @@ In the impoverished East District of [Sai](../../locations/hinoeuma/towns/sai.md
 
 ### Defending the East District
 
-During [Agnea Bristarni](../travelers/agnea.md)'s visit to Sai, Platt and his wife were chasing down the rebellious young orphan [Laila](laila.md), who had defaced the town square's statue. Recognizing a familiar grace in Agnea, the couple invited the traveling dancer to their home, where they warmly discovered that Agnea was the daughter of [Cuani Bristarni](cuani_bristarni.md), a dancer they fondly remembered.
+During [Agnea Bristarni](agnea.md)'s visit to Sai, Platt and his wife were chasing down the rebellious young orphan [Laila](laila.md), who had defaced the town square's statue. Recognizing a familiar grace in Agnea, the couple invited the traveling dancer to their home, where they warmly discovered that Agnea was the daughter of [Cuani Bristarni](cuani_bristarni.md), a dancer they fondly remembered.
 
 Their gathering was abruptly interrupted by [Veronica](veronica.md), who stormed the orphanage demanding that Platt and the orphans vacate the premises. Platt held his ground, weary of the repeated harassment and threats of eviction. After Laila boldly scolded the intruder, Veronica withdrew, warning that it would be their final chance to leave willingly.
 

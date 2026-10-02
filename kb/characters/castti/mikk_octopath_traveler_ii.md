@@ -6,7 +6,7 @@ source: ["Mikk (Octopath Traveler II)"]
 
 # Mikk (Octopath Traveler II)
 
-**Mikk** is a thief and devoted henchman of [Plukk](plukk.md) who appears in [Winterbloom](../../locations/winterlands/towns/winterbloom.md) during [Castti Florenz](../travelers/castti.md)'s story.
+**Mikk** is a thief and devoted henchman of [Plukk](plukk.md) who appears in [Winterbloom](../../locations/winterlands/towns/winterbloom.md) during [Castti Florenz](castti.md)'s story.
 
 ## Overview
 

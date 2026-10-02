@@ -6,7 +6,7 @@ source: ["Gus"]
 
 # Gus
 
-**Gus** is the tavernkeeper of [Cropdale](../../locations/leaflands/towns/cropdale.md) and a childhood friend of [Agnea Bristarni](../travelers/agnea.md), who plays a supportive role in the opening and conclusion of her journey.
+**Gus** is the tavernkeeper of [Cropdale](../../locations/leaflands/towns/cropdale.md) and a childhood friend of [Agnea Bristarni](agnea.md), who plays a supportive role in the opening and conclusion of her journey.
 
 ## Profile
 
@@ -33,6 +33,6 @@ The next day, Gus gathers with Agnea's family at the village entrance to see her
 
 ## Quotes
 
-- *"It's exactly 1,000 leaves. For you."* — To [Agnea Bristarni](../travelers/agnea.md)
+- *"It's exactly 1,000 leaves. For you."* — To [Agnea Bristarni](agnea.md)
 - *"On my honor as a tavernkeep!"* — Resolving to protect his friends
 - *"A tavernkeep's gotta be strong."* — After battle

@@ -17,7 +17,7 @@ source: ["Randy"]
 
 Randy was sensible, diligent, and pragmatic, serving as a much-needed counterbalance to his impetuous older brother Andy. While he often quarreled with Andy and openly wished his brother possessed more brains than brawn, the two brothers shared an unbreakable bond. 
 
-Initially, Randy had been reluctant to join Eir's Apothecaries, only enlisting at the persistent urging of Andy and Chief [Castti Florenz](../travelers/castti.md). Once integrated into the order, however, his dedication deepened until he became even more active and committed to the troupe's humanitarian missions than Andy himself. Alongside fellow apothecary [Elma](elma.md), Randy was a veterinarian who looked after animals, including the order's trusty travel horse, [Jeyah](jeyah.md).
+Initially, Randy had been reluctant to join Eir's Apothecaries, only enlisting at the persistent urging of Andy and Chief [Castti Florenz](castti.md). Once integrated into the order, however, his dedication deepened until he became even more active and committed to the troupe's humanitarian missions than Andy himself. Alongside fellow apothecary [Elma](elma.md), Randy was a veterinarian who looked after animals, including the order's trusty travel horse, [Jeyah](jeyah.md).
 
 ## Biography
 

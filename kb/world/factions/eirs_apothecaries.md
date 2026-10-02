@@ -9,7 +9,7 @@ source: ["Eir's Apothecaries"]
 > *"Eir's Apothecaries. We're here to help."*
 > — Castti Florenz
 
-**Eir's Apothecaries** was an order of altruistic traveling healers dedicated to the humanitarian creed to "extend a helping hand to all in need." Founded and led by [Castti Florenz](../../characters/travelers/castti.md), the fellowship journeyed throughout Solistia providing free medical relief to the sick and wounded.
+**Eir's Apothecaries** was an order of altruistic traveling healers dedicated to the humanitarian creed to "extend a helping hand to all in need." Founded and led by [Castti Florenz](../../characters/castti/castti.md), the fellowship journeyed throughout Solistia providing free medical relief to the sick and wounded.
 
 ## History
 
@@ -34,7 +34,7 @@ Castti, having awakened with amnesia after being found adrift at sea, slowly rec
 
 ## Members
 
-- **[Castti Florenz](../../characters/travelers/castti.md)**: Founder and leader ("Chief") of the order; sole survivor.
+- **[Castti Florenz](../../characters/castti/castti.md)**: Founder and leader ("Chief") of the order; sole survivor.
 - **[Malaya](../../characters/castti/malaya.md)**: Senior apothecary and Castti's former rival turned closest friend; died saving Castti.
 - **[Andy](../../characters/castti/andy.md)**: Apothecary brother; sacrificed his life to extinguish Trousseau's poisoned fire on Mount Liphia.
 - **[Randy](../../characters/castti/randy.md)**: Apothecary brother; sacrificed his life alongside Andy on Mount Liphia.

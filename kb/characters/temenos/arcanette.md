@@ -6,7 +6,7 @@ source: ["Arcanette"]
 
 # Arcanette
 
-**Arcanette**, masquerading for years under the pious disguise of **Sister Mindt**, is an immortal sorceress and the supreme leader of the [Moonshade Order](../../world/factions/moonshade_order.md). She serves as the true primary antagonist of [Temenos Mistral](../travelers/temenos.md)'s tale and one of the central conspirators in the catastrophic return of [Vide the Wicked](../../world/gods/vide.md) during [The Journey for the Dawn](../../stories/main/the_journey_for_the_dawn.md).
+**Arcanette**, masquerading for years under the pious disguise of **Sister Mindt**, is an immortal sorceress and the supreme leader of the [Moonshade Order](../../world/factions/moonshade_order.md). She serves as the true primary antagonist of [Temenos Mistral](temenos.md)'s tale and one of the central conspirators in the catastrophic return of [Vide the Wicked](../../world/gods/vide.md) during [The Journey for the Dawn](../../stories/main/the_journey_for_the_dawn.md).
 
 ## Overview
 
@@ -47,7 +47,7 @@ As Temenos investigated Jörg's murder across Solistia, Arcanette preyed upon [T
 
 During the Night of the Raven in [The Journey for the Dawn](../../stories/main/the_journey_for_the_dawn.md), the eight travelers united to rekindle the sacred braziers across Solistia. Arcanette confronted them to defend the eclipse and allow Vide's resurrection to run its course. Dropping her disguise, she challenged the party with overwhelming dark and celestial sorcery. 
 
-Defeated in combat and fatally wounded, Arcanette left mocking parting words for Temenos and [Throné Anguis](../travelers/throne.md), reflecting serenely on her nihilistic worldview before her physical body dissolved into black mist.
+Defeated in combat and fatally wounded, Arcanette left mocking parting words for Temenos and [Throné Anguis](../throne/throne.md), reflecting serenely on her nihilistic worldview before her physical body dissolved into black mist.
 
 ## Quotes
 

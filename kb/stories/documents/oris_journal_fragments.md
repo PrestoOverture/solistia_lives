@@ -39,7 +39,7 @@ My brother and I have seen so much together, and we've both reached the same con
 
 My brother's face was flushed as he handed me the letter addressed to [Rai Mei](../../characters/hikari/rai_mei.md). Perhaps he'd been in his cups. I didn't need to ask him why he would be celebrating; the fundraising in [Montwise](../../locations/crestlands/towns/montwise.md) was going swimmingly.
 
-On my way home I spotted [Hikari](../../characters/travelers/hikari.md). He's the key to everything in [Ku](../../world/nations/ku.md), and if our machinations go according to plan, my brother will get what he's after.
+On my way home I spotted [Hikari](../../characters/hikari/hikari.md). He's the key to everything in [Ku](../../world/nations/ku.md), and if our machinations go according to plan, my brother will get what he's after.
 
 I doubt Hikari has a clue who I am. Another tactic proposed by brother dearest. No prior familiarity with me will help move things along down the line. But though Hikari doesn't know anything about me, I certainly know a lot about him.
 
@@ -61,7 +61,7 @@ I handed my overdue missive to one of Rai Mei's retainers and quickly put that c
 
 ### Chapter 5: The Trial of Osvald
 
-"[Osvald](../../characters/travelers/osvald.md) is sentenced to life imprisonment."
+"[Osvald](../../characters/osvald/osvald.md) is sentenced to life imprisonment."
 
 It took me a moment to process the judge's verdict. I blinked, doubting my ears. What was going on here!? He was supposed to be executed... wasn't he?
 
@@ -111,7 +111,7 @@ Besides, I've seen nothing suspect in all the time I've watched Elena. Might as 
 
 Well, here I am in [Canalbrine](../../locations/harborlands/towns/canalbrine.md). Word is that I can find someone who has the lost pages of the *Book of Night*'s original manuscript. [Kaldena](../../characters/temenos/kaldena.md), captain of the [Sacred Guard](../../world/factions/sacred_guard.md), seems to be moving as [Arcanette](../../characters/temenos/arcanette.md) predicted and assembling these pages.
 
-There's a potential problem, however. A nosy inquisitor named [Temenos](../../characters/travelers/temenos.md) seems to have caught wind of all this. Arcanette has her eye on him, but I can only pray he doesn't make any problems for us.
+There's a potential problem, however. A nosy inquisitor named [Temenos](../../characters/temenos/temenos.md) seems to have caught wind of all this. Arcanette has her eye on him, but I can only pray he doesn't make any problems for us.
 
 ...I'll need to be careful not to draw his attention, too.
 
@@ -137,13 +137,13 @@ Let's rewind the clock.
 
 It was one year ago that Trousseau lost hope in the future and started down this path. He was out gathering medicinal herbs when he stumbled into [Lostseed](../../locations/brightlands/towns/lostseed.md). There, he met [Claude](../../characters/throne/claude_blacksnakes.md), who gave him the *Book of Night*. Claude was disappointed with the encounter, it seems. He had swayed Trousseau to his side, but couldn't persuade an apothecary in the man's company. With a regretful sigh, he told me that this other apothecary's eyes were filled with a motherly strength: deep wells of kindness that belied a sense of fierce determination.
 
-What was her name again? Ah, yes. [Castti](../../characters/travelers/castti.md). She stopped Trousseau, saw the people of Timberain to safety, and even dealt with the poison rain. As if that wasn't enough, she also managed to mix up medicine that could combat the Shadow on the spot!
+What was her name again? Ah, yes. [Castti](../../characters/castti/castti.md). She stopped Trousseau, saw the people of Timberain to safety, and even dealt with the poison rain. As if that wasn't enough, she also managed to mix up medicine that could combat the Shadow on the spot!
 
 Claude's intuition was right: Castti is someone to keep an eye on. My brother will need to know that we have another dangerous potential wrench in our plans.
 
 ### Chapter 12: The Merchant in Clockbank
 
-I met a merchant today in [Clockbank](../../locations/brightlands/towns/clockbank.md); an honest fellow with laughing eyes named [Partitio](../../characters/travelers/partitio.md). He boasted that he'll "rustle up" eighty billion leaves and buy the rights to the steam engine from its current owner, [Mr. Roque](../../characters/partitio/roque_brilliante.md). Then he'll give the technology away to everyone. When pressed on why, he said: "Things like this should be shared with the whole world."
+I met a merchant today in [Clockbank](../../locations/brightlands/towns/clockbank.md); an honest fellow with laughing eyes named [Partitio](../../characters/partitio/partitio.md). He boasted that he'll "rustle up" eighty billion leaves and buy the rights to the steam engine from its current owner, [Mr. Roque](../../characters/partitio/roque_brilliante.md). Then he'll give the technology away to everyone. When pressed on why, he said: "Things like this should be shared with the whole world."
 
 Partitio... confuses me.
 
@@ -201,7 +201,7 @@ With the blood of D'arqest and Vide within his veins, Claude's fate was to becom
 
 "Preferences," fah! The man sired countless children with countless women and set his progeny at each other's throats—to the bloody victor goes the ultimate spoils. I shivered as he looked me up and down, his eyes seeming to pierce my very soul. It was as if he was seeking to plant a murderous seed inside me, too.
 
-When he handed me the Darkblood Staff, he told me that [the woman](../../characters/travelers/throne.md) who stole it for him has a lot of potential. His words. My purpose in Lostseed fulfilled, I hurried out of there. I can't wait to hand the staff over to Arcanette and let her handle the cathedral's [Sacred Flame](../../world/lore/sacred_flame_octopath_traveler_ii.md).
+When he handed me the Darkblood Staff, he told me that [the woman](../../characters/throne/throne.md) who stole it for him has a lot of potential. His words. My purpose in Lostseed fulfilled, I hurried out of there. I can't wait to hand the staff over to Arcanette and let her handle the cathedral's [Sacred Flame](../../world/lore/sacred_flame_octopath_traveler_ii.md).
 
 ### Chapter 17: The Dark Hunter and the Beast
 

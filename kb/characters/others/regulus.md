@@ -11,7 +11,7 @@ source: ["Regulus"]
 
 ## Overview
 
-**Regulus** is a thirty-eight-year-old scholar and astronomer residing in the [Montwise: Library](../../locations/crestlands/towns/montwise_library.md). An old university friend of [Osvald V. Vanstein](../travelers/osvald.md), he is the central figure in [Osvald](../travelers/osvald.md) and [Partitio Yellowil](../travelers/partitio.md)'s Crossed Paths storyline.
+**Regulus** is a thirty-eight-year-old scholar and astronomer residing in the [Montwise: Library](../../locations/crestlands/towns/montwise_library.md). An old university friend of [Osvald V. Vanstein](../osvald/osvald.md), he is the central figure in [Osvald](../osvald/osvald.md) and [Partitio Yellowil](../partitio/partitio.md)'s Crossed Paths storyline.
 
 ## Profile
 
@@ -29,7 +29,7 @@ Regulus speaks about celestial bodies with dramatic, poetic melodrama, prompting
 Fascinated by the night sky since boyhood, Regulus has kept a continuous, unbroken daily log of celestial observations for decades. During his academic career, he studied alongside Osvald, forging a lasting friendship.
 
 ### The Scholar and the Merchant
-While staying in [New Delsta](../../locations/brightlands/towns/new_delsta.md) to obtain specialty lenses and parts for his new invention—an "astronomical telescope"—Regulus collapsed on the street from starvation after going three days, nine hours, and twenty-three minutes without food. Osvald and [Partitio](../travelers/partitio.md) revived him. With only 600 leaves remaining to his name, Regulus entrusted the travelers to purchase the final components needed to finish his instrument, inviting them to Montwise to see the completed apparatus.
+While staying in [New Delsta](../../locations/brightlands/towns/new_delsta.md) to obtain specialty lenses and parts for his new invention—an "astronomical telescope"—Regulus collapsed on the street from starvation after going three days, nine hours, and twenty-three minutes without food. Osvald and [Partitio](../partitio/partitio.md) revived him. With only 600 leaves remaining to his name, Regulus entrusted the travelers to purchase the final components needed to finish his instrument, inviting them to Montwise to see the completed apparatus.
 
 When Osvald and Partitio arrived at the [Montwise: Library](../../locations/crestlands/towns/montwise_library.md), they found that Regulus had once again collapsed from hunger and that his finished telescope was missing. Though he initially claimed it had been stolen, Regulus confessed in embarrassment that he had pawned it to a local moneylender as collateral. Investigating the lender's estate, Osvald and Partitio discovered that Regulus had already paid off the loan in full, but the dishonest moneylender was exploiting Regulus's gullibility to extort further coin. After defeating the moneylender and recovering the telescope, the companions set up the device atop Montwise. Gazing upon the heavens, they noticed a subtle, troubling omen: the nights over Solistia had been gradually lengthening over the years.
 

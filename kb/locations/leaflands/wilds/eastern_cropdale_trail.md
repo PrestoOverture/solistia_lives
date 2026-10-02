@@ -17,7 +17,7 @@ Winding through verdant woodlands and riverbanks east of Cropdale, the trail ser
 
 ## Story & Significance
 
-Travelers embarking on journeys from Cropdale frequently pass through this trail. If [Agnea Bristarni](../../../characters/travelers/agnea.md) begins her travels from her hometown, she encounters a traveler in distress along this route during the side story [The Traveler's Bag](../../../stories/side_stories/the_travelers_bag.md).
+Travelers embarking on journeys from Cropdale frequently pass through this trail. If [Agnea Bristarni](../../../characters/agnea/agnea.md) begins her travels from her hometown, she encounters a traveler in distress along this route during the side story [The Traveler's Bag](../../../stories/side_stories/the_travelers_bag.md).
 
 ## Wildlife & Inhabitants
 

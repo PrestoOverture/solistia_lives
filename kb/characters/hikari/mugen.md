@@ -6,7 +6,7 @@ source: ["Mugen"]
 
 # Mugen
 
-**General Mugen**, later crowned **King Mugen**, is a prince of [Ku](../../world/nations/ku.md), the older half-brother of [Hikari Ku](../travelers/hikari.md), and the primary antagonist of Hikari's story. Known feared throughout the realm as the "Scarlet Demon of Ku," Mugen is a ruthless and formidable warrior who subscribes wholly to the doctrine that might makes right. Tracing his lineage back to the archmage [D'arqest](../others/darqest.md), Mugen is driven by the dark, cursed blood of Clan Ku and seeks to plunge the world into constant war.
+**General Mugen**, later crowned **King Mugen**, is a prince of [Ku](../../world/nations/ku.md), the older half-brother of [Hikari Ku](hikari.md), and the primary antagonist of Hikari's story. Known feared throughout the realm as the "Scarlet Demon of Ku," Mugen is a ruthless and formidable warrior who subscribes wholly to the doctrine that might makes right. Tracing his lineage back to the archmage [D'arqest](../others/darqest.md), Mugen is driven by the dark, cursed blood of Clan Ku and seeks to plunge the world into constant war.
 
 ## Profile
 
@@ -37,5 +37,5 @@ Driven to madness by Hikari's triumph over the blood curse, Mugen surrendered hi
 
 - "*…His final words prove his weakness. That he would hoist his unfulfilled ambitions on the shoulders of another. Only I am fit to be king. And I shall see the fires of war engulf the world.*" — Upon killing King Jigo
 - "*Such is the way of the world. The mighty shall build their castles upon the corpses of the meek.*" — To [Ritsu Mishuyo](ritsu_mishuyo.md)
-- "*Strength is to exert your will upon others. To make them bend to it. Or break.*" — To [Hikari Ku](../travelers/hikari.md)
+- "*Strength is to exert your will upon others. To make them bend to it. Or break.*" — To [Hikari Ku](hikari.md)
 - "*Compassion cannot build greatness. It was strength that led Clan Ku to glory, and strength alone.*" — To Hikari Ku

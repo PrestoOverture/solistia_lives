@@ -11,7 +11,7 @@ source: ["Reiza"]
 
 ## Overview
 
-**Reiza** is a thirty-seven-year-old woman residing in [Crackridge](../../locations/wildlands/towns/crackridge.md) and a operative of the enigmatic [Moonshade Order](../../world/factions/moonshade_order.md). She encounters [Temenos Mistral](../travelers/temenos.md) during his investigation in the [Wildlands](../../locations/wildlands/wildlands.md).
+**Reiza** is a thirty-seven-year-old woman residing in [Crackridge](../../locations/wildlands/towns/crackridge.md) and a operative of the enigmatic [Moonshade Order](../../world/factions/moonshade_order.md). She encounters [Temenos Mistral](temenos.md) during his investigation in the [Wildlands](../../locations/wildlands/wildlands.md).
 
 ## Profile
 

@@ -17,8 +17,8 @@ Both Tropu'hopu and the city of [Merry Hills](../../crestlands/towns/merry_hills
 ## Story Connections
 
 Tropu'hopu is a prominent setting in the journeys of several travelers:
-- [Agnea Bristarni](../../../characters/travelers/agnea.md) visits Tropu'hopu during Chapter 3 of her journey, seeking out the town's renowned floating theater.
-- [Partitio Yellowil](../../../characters/travelers/partitio.md) travels here during his "Scent of Commerce" endeavors, visiting the town's shipyard in search of a vessel.
+- [Agnea Bristarni](../../../characters/agnea/agnea.md) visits Tropu'hopu during Chapter 3 of her journey, seeking out the town's renowned floating theater.
+- [Partitio Yellowil](../../../characters/partitio/partitio.md) travels here during his "Scent of Commerce" endeavors, visiting the town's shipyard in search of a vessel.
 
 ## Notable Inhabitants
 

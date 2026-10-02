@@ -8,7 +8,7 @@ source: ["Underground Laboratory"]
 The **Underground Laboratory** is a hidden subterranean research facility located beneath the [Montwise: Library](../towns/montwise_library.md) in the [Crestlands](../crestlands.md). Accessible only via a concealed passageway, it served as the covert workshop where [Harvey](../../../characters/osvald/harvey.md) conducted forbidden alchemical research in his obsessive quest to attain the [One True Magic](../../../world/lore/one_true_magic.md).
 
 > *"So this is Harvey's laboratory. Are these...chimeras...? He's combining creatures to create new varieties. This kind of study is forbidden. He mixes the blood of monsters in attempts to create even stronger magical abominations. He presumes this will lead him to the One True Magic, and so he worked on it in secret. That said...I've never seen chimeras like these before. Did he employ my formulae to arrive at these combinations?"*
-> — [Osvald](../../../characters/travelers/osvald.md)
+> — [Osvald](../../../characters/osvald/osvald.md)
 
 ## Atmosphere & Layout
 

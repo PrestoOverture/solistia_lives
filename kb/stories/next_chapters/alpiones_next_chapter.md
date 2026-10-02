@@ -13,7 +13,7 @@ source: ["Alpione's Next Chapter"]
 
 ## Story
 
-Following the conclusion of her duties in [Toto'haha](../../locations/totohaha/totohaha.md) alongside [Ochette](../../characters/travelers/ochette.md), the skilled hunter and beast tamer Alpione journeys inland to the remote settlement of Gravell. Accustomed to a life of active pursuit, she finds herself restless and idle in the quiet town, seeking any employ that would put her hunting abilities to use.
+Following the conclusion of her duties in [Toto'haha](../../locations/totohaha/totohaha.md) alongside [Ochette](../../characters/ochette/ochette.md), the skilled hunter and beast tamer Alpione journeys inland to the remote settlement of Gravell. Accustomed to a life of active pursuit, she finds herself restless and idle in the quiet town, seeking any employ that would put her hunting abilities to use.
 
 A lucrative hunting bounty posted by a merchant outside of town eventually comes to light. When Alpione investigates the mark, she discovers that the quarry is not a vicious menace, but a persecuted beast pursued by aggressive merchants. Rather than claiming the bounty, Alpione defends the creature, driving off the hunters. After calming and befriending the creature, Alpione discovers a renewed purpose: traveling the realm to locate and protect other mistreated animals.
 

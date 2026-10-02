@@ -20,4 +20,4 @@ Native to the wild expanses of [Toto'haha](../../locations/totohaha/totohaha.md)
 
 ## Material Lore
 
-- Organic materials harvested from these amphibians are used in crafting protective gear, such as the Frog Membrane worn by the hunter [Ochette](../../characters/travelers/ochette.md) at the start of her journey.
+- Organic materials harvested from these amphibians are used in crafting protective gear, such as the Frog Membrane worn by the hunter [Ochette](../../characters/ochette/ochette.md) at the start of her journey.

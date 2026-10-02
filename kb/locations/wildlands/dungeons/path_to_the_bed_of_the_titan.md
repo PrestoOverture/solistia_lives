@@ -14,4 +14,4 @@ Descending deep below Crackridge via wooden ladders and stone ledges, the trail 
 
 ## Story
 
-The path serves as the route taken during [Ochette](../../../characters/travelers/ochette.md)'s Chapter 2 (Tera Route). Guided by the local Crackridge boy [Pom](../../../characters/ochette/pom.md), Ochette descends this precarious valley trail to reach the sacred sanctuary where [Tera](../../../world/beasts/tera.md), the slumbering earth wardenbeast, resides.
+The path serves as the route taken during [Ochette](../../../characters/ochette/ochette.md)'s Chapter 2 (Tera Route). Guided by the local Crackridge boy [Pom](../../../characters/ochette/pom.md), Ochette descends this precarious valley trail to reach the sacred sanctuary where [Tera](../../../world/beasts/tera.md), the slumbering earth wardenbeast, resides.

@@ -6,12 +6,12 @@ source: ["Pala Bristarni"]
 
 # Pala Bristarni
 
-> "*Welcome home, [Agnie](../travelers/agnea.md). You were workin' late tonight again.*"
+> "*Welcome home, [Agnie](agnea.md). You were workin' late tonight again.*"
 > — Pala, to Agnea
 
 ## Overview
 
-**Pala Bristarni** is a fourteen-year-old resident of [Cropdale](../../locations/leaflands/towns/cropdale.md) in the [Leaflands](../../locations/leaflands/leaflands.md). She is the younger daughter of [Garud Bristarni](garud_bristarni.md) and the late [Cuani Bristarni](cuani_bristarni.md), and the younger sister of [Agnea Bristarni](../travelers/agnea.md). Precocious and spirited, she affectionately calls her elder sister "Agnie" and supports her dream of becoming a star with all her heart.
+**Pala Bristarni** is a fourteen-year-old resident of [Cropdale](../../locations/leaflands/towns/cropdale.md) in the [Leaflands](../../locations/leaflands/leaflands.md). She is the younger daughter of [Garud Bristarni](garud_bristarni.md) and the late [Cuani Bristarni](cuani_bristarni.md), and the younger sister of [Agnea Bristarni](agnea.md). Precocious and spirited, she affectionately calls her elder sister "Agnie" and supports her dream of becoming a star with all her heart.
 
 ## Profile
 

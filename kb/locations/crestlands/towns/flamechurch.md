@@ -6,7 +6,7 @@ source: ["Flamechurch"]
 
 # Flamechurch
 
-**Flamechurch** is a tranquil town nestled in the [Crestlands](../crestlands.md), situated directly south of the holy [Flamechurch: Cathedral](flamechurch_cathedral.md). Connected to the cathedral via the [Flamechurch Pilgrims' Way](../wilds/flamechurch_pilgrims_way.md) and bordered to the east by the [Eastern Flamechurch Pass](../wilds/eastern_flamechurch_pass.md), it serves as both the starting point of [Temenos](../../../characters/travelers/temenos.md)'s journey and an essential waystation for pilgrims traveling to revere the Sacred Flame.
+**Flamechurch** is a tranquil town nestled in the [Crestlands](../crestlands.md), situated directly south of the holy [Flamechurch: Cathedral](flamechurch_cathedral.md). Connected to the cathedral via the [Flamechurch Pilgrims' Way](../wilds/flamechurch_pilgrims_way.md) and bordered to the east by the [Eastern Flamechurch Pass](../wilds/eastern_flamechurch_pass.md), it serves as both the starting point of [Temenos](../../../characters/temenos/temenos.md)'s journey and an essential waystation for pilgrims traveling to revere the Sacred Flame.
 
 ## Overview & Culture
 

@@ -9,7 +9,7 @@ source: ["The Roque Company: Factory"]
 The **Roque Company: Factory** is a massive industrial manufacturing plant situated in the Industrial District of [Clockbank](../towns/clockbank_industrial_district.md) in the [Brightlands](../brightlands.md).
 
 > *"So this is a steam engine! Steamy, huh? Guess that makes sense. Mister Roque... You really are changin' the world, just like you said."*
-> — [Partitio Yellowil](../../../characters/travelers/partitio.md)
+> — [Partitio Yellowil](../../../characters/partitio/partitio.md)
 
 ## Overview and Lore
 

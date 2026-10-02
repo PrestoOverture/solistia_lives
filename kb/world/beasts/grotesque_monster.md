@@ -9,7 +9,7 @@ The **Grotesque Monster** is a monstrous dark entity and boss in *Octopath Trave
 
 ## Story
 
-During the deep night caused by the [Moonshade Order](../factions/moonshade_order.md), the eight travelers journey across Solistia to rekindle the four extinguished Sacred Flames. Upon arriving at the Tombs of the Wardenbeasts, their approach to the altar is blocked by a horrifying abomination guarding the darkened flame. Following a fierce battle, the beast is slain, allowing [Ochette](../../characters/travelers/ochette.md) and [Castti](../../characters/travelers/castti.md) to relight [The Sacred Flame](../lore/sacred_flame_octopath_traveler_ii.md).
+During the deep night caused by the [Moonshade Order](../factions/moonshade_order.md), the eight travelers journey across Solistia to rekindle the four extinguished Sacred Flames. Upon arriving at the Tombs of the Wardenbeasts, their approach to the altar is blocked by a horrifying abomination guarding the darkened flame. Following a fierce battle, the beast is slain, allowing [Ochette](../../characters/ochette/ochette.md) and [Castti](../../characters/castti/castti.md) to relight [The Sacred Flame](../lore/sacred_flame_octopath_traveler_ii.md).
 
 ## Nature & Origin
 

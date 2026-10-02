@@ -5,7 +5,7 @@ source: ["Blacksnakes"]
 ---
 # Blacksnakes
 
-"*There's no such thing as freedom, [Throné](../../characters/travelers/throne.md)... Once a Snake, always a Snake...!*"
+"*There's no such thing as freedom, [Throné](../../characters/throne/throne.md)... Once a Snake, always a Snake...!*"
 —*[Mother](../../characters/throne/mother.md)*
 
 The **Blacksnakes** are an underworld criminal organization of thieves and assassins operating primarily in [New Delsta](../../locations/brightlands/towns/new_delsta.md), founded by [Claude](../../characters/throne/claude_blacksnakes.md) of the [Moonshade Order](moonshade_order.md).
@@ -23,7 +23,7 @@ Claude populated the syndicate with his own illegitimate offspring fathered acro
 
 Before the events of Throné's journey, the Blacksnakes were led by [Marietta](../../characters/throne/marietta.md), Father's former lover. Mother and Father killed Marietta and took control as co-leaders. Under their joint rule, the syndicate split into bitter factional rivalry, with spies loyal to either Mother or Father watching each other at the Game Parlor.
 
-When [Throné Anguis](../../characters/travelers/throne.md) sought her freedom, she tracked down and killed both Mother and Father. Deprived of leadership, the Blacksnakes devolved into chaos, with surviving members turning violently against one another in street-level fighting across New Delsta. Following Throné's subsequent slaying of Claude, the organization fell apart entirely.
+When [Throné Anguis](../../characters/throne/throne.md) sought her freedom, she tracked down and killed both Mother and Father. Deprived of leadership, the Blacksnakes devolved into chaos, with surviving members turning violently against one another in street-level fighting across New Delsta. Following Throné's subsequent slaying of Claude, the organization fell apart entirely.
 
 ## Known Members
 
@@ -31,7 +31,7 @@ When [Throné Anguis](../../characters/travelers/throne.md) sought her freedom, 
 - [Marietta](../../characters/throne/marietta.md) – Former leader (deceased)
 - [Mother](../../characters/throne/mother.md) – Co-leader and administrator of Mother's Garden (deceased)
 - [Father](../../characters/throne/father.md) – Co-leader and master assassin (deceased)
-- [Throné Anguis](../../characters/travelers/throne.md) – Elite assassin and daughter of Claude and Marietta
+- [Throné Anguis](../../characters/throne/throne.md) – Elite assassin and daughter of Claude and Marietta
 - [Pirro](../../characters/throne/pirro.md) – Assassin and childhood friend of Throné (deceased)
 - [Scaracci](../../characters/throne/scaracci.md) – Enforcer (deceased)
 - [Donnie](../../characters/throne/donnie.md) – Underworld affiliate (deceased)

@@ -6,12 +6,12 @@ source: ["Jigo Ku"]
 
 # Jigo Ku
 
-> "*[Hikari](../travelers/hikari.md), I have devoted my life to expanding our borders. Many a dawn has been stained crimson by my ambition. Now, at the end of that path... I realize that it has all led to nothing.*"
+> "*[Hikari](hikari.md), I have devoted my life to expanding our borders. Many a dawn has been stained crimson by my ambition. Now, at the end of that path... I realize that it has all led to nothing.*"
 > — King Jigo Ku
 
 ## Overview
 
-**King Jigo Ku** was the aging monarch of [Ku](../../world/nations/ku.md) in the desert realm of [Hinoeuma](../../locations/hinoeuma/hinoeuma.md). He is the father of half-brothers [Mugen](mugen.md) and [Hikari Ku](../travelers/hikari.md), and the partner of Lady [Kura](kura.md). After spending much of his life waging aggressive wars to expand his kingdom, he came to regret the bloodshed and sought a peaceful future for Ku, ultimately leading to his betrayal and death during Mugen's coup d'état.
+**King Jigo Ku** was the aging monarch of [Ku](../../world/nations/ku.md) in the desert realm of [Hinoeuma](../../locations/hinoeuma/hinoeuma.md). He is the father of half-brothers [Mugen](mugen.md) and [Hikari Ku](hikari.md), and the partner of Lady [Kura](kura.md). After spending much of his life waging aggressive wars to expand his kingdom, he came to regret the bloodshed and sought a peaceful future for Ku, ultimately leading to his betrayal and death during Mugen's coup d'état.
 
 ## Profile
 

@@ -9,7 +9,7 @@ source: ["Emerald"]
 > "*They made me mine phosphoal 'til I spit blood. So I might as well put it to good use! Heh... Farewell, Professor.*"
 > — Emerald, prior to setting the inspection ship ablaze
 
-**Emerald** was an inmate and underworld informant imprisoned on [Frigit Isle](../../locations/winterlands/towns/frigit_isle.md) alongside [Osvald V. Vanstein](../travelers/osvald.md). A sharp and observant convict, he partnered with Osvald to orchestrate an escape from the frozen penal colony, ultimately laying down his life so that Osvald could regain his freedom.
+**Emerald** was an inmate and underworld informant imprisoned on [Frigit Isle](../../locations/winterlands/towns/frigit_isle.md) alongside [Osvald V. Vanstein](osvald.md). A sharp and observant convict, he partnered with Osvald to orchestrate an escape from the frozen penal colony, ultimately laying down his life so that Osvald could regain his freedom.
 
 ## Profile
 

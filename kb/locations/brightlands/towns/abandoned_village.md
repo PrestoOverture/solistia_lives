@@ -11,7 +11,7 @@ The **Abandoned Village**, formerly known as **Healeaks**, is an uninhabited rui
 
 ### Eir's Apothecaries
 
-Two years prior, Healeaks was a peaceful, thriving community and the home base of [Eir's Apothecaries](../../../world/factions/eirs_apothecaries.md), a dedicated traveling medical band composed of [Castti Florenz](../../../characters/travelers/castti.md), [Malaya](../../../characters/castti/malaya.md), brothers [Andy](../../../characters/castti/andy.md) and [Randy](../../../characters/castti/randy.md), [Elma](../../../characters/castti/elma.md), and [Trousseau](../../../characters/castti/trousseau.md). Their tireless healing earned them the deep affection and trust of the villagers.
+Two years prior, Healeaks was a peaceful, thriving community and the home base of [Eir's Apothecaries](../../../world/factions/eirs_apothecaries.md), a dedicated traveling medical band composed of [Castti Florenz](../../../characters/castti/castti.md), [Malaya](../../../characters/castti/malaya.md), brothers [Andy](../../../characters/castti/andy.md) and [Randy](../../../characters/castti/randy.md), [Elma](../../../characters/castti/elma.md), and [Trousseau](../../../characters/castti/trousseau.md). Their tireless healing earned them the deep affection and trust of the villagers.
 
 During their stay, a young girl named [Sally](../../../characters/castti/sally.md) fell gravely ill despite the efforts of Trousseau and her protective brother [Temm](../../../characters/castti/temm.md). Determining that only a santanejo blossom growing atop the monster-infested summit of [Mount Liphia](../dungeons/mount_liphia.md) could cure her, Castti and Trousseau climbed the mountain together to gather the petals, successfully curing Sally and earning the admiration of the town.
 

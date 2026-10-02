@@ -19,5 +19,5 @@ The district spans the monumental stone bridge connecting the lower city of Stor
 
 ## Story Events
 
-- **[Hikari Ku](../../../characters/travelers/hikari.md)**: During Hikari's arrival in Stormhail to treat with Clan Mei, a fierce storm sees a thunderbolt strike and shatter the bridge leading to the fortress. The chasm is subsequently bridged with sturdy wooden planking.
-- **[Ochette](../../../characters/travelers/ochette.md)**: Seeks passage past the Sacred Guard's barricade to ascend Sacred Peak Altahe and quell Glacis.
+- **[Hikari Ku](../../../characters/hikari/hikari.md)**: During Hikari's arrival in Stormhail to treat with Clan Mei, a fierce storm sees a thunderbolt strike and shatter the bridge leading to the fortress. The chasm is subsequently bridged with sturdy wooden planking.
+- **[Ochette](../../../characters/ochette/ochette.md)**: Seeks passage past the Sacred Guard's barricade to ascend Sacred Peak Altahe and quell Glacis.

@@ -5,10 +5,10 @@ source: ["Hikari"]
 ---
 # "Hikari"
 
-> *"How long do you plan on playing the part of the noble warrior? Submit to your nature, [Hikari](../travelers/hikari.md). Hehehe... I know you better than anyone, Hikari. You have a thirst that can never be sated. Show them, Hikari. Show them your face stained crimson."*
+> *"How long do you plan on playing the part of the noble warrior? Submit to your nature, [Hikari](hikari.md). Hehehe... I know you better than anyone, Hikari. You have a thirst that can never be sated. Show them, Hikari. Show them your face stained crimson."*
 > — "Hikari"
 
-**"Hikari"** is the malevolent alter ego and dark manifestation of Prince [Hikari Ku](../travelers/hikari.md). Born of and nourished by the accursed bloodline of Clan [Ku](../../world/nations/ku.md) and its link to the [Shadow](../../world/lore/shadow.md), this entity lurks within Hikari's subconscious, constantly whispering to him during battle and tempting him to succumb to sadistic frenzy and slaughter his foes.
+**"Hikari"** is the malevolent alter ego and dark manifestation of Prince [Hikari Ku](hikari.md). Born of and nourished by the accursed bloodline of Clan [Ku](../../world/nations/ku.md) and its link to the [Shadow](../../world/lore/shadow.md), this entity lurks within Hikari's subconscious, constantly whispering to him during battle and tempting him to succumb to sadistic frenzy and slaughter his foes.
 
 ## Profile
 
@@ -36,4 +36,4 @@ Upon his defeat, "Hikari" dissolves into black smoke, breaking the hold of Clan 
 
 ## Lore & Banter
 
-- **Scent:** In travel banter, [Ochette](../travelers/ochette.md) detects two distinct scents radiating from Hikari: one warm and gentle, and a second pungent, unpleasant odor emanating from deep within him, which she identifies with the entity lurking inside his soul.
+- **Scent:** In travel banter, [Ochette](../ochette/ochette.md) detects two distinct scents radiating from Hikari: one warm and gentle, and a second pungent, unpleasant odor emanating from deep within him, which she identifies with the entity lurking inside his soul.

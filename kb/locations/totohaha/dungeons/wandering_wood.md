@@ -16,7 +16,7 @@ The wood is naturally shrouded in an optical and spatial illusion known among th
 
 ## History & Story
 
-During his pursuit of the secrets behind the mysterious [Moonshade Order](../../../world/factions/moonshade_order.md) and the origin of the Kal tribe, [Temenos Mistral](../../../characters/travelers/temenos.md) arrived at the woods in his Chapter 4. Finding the forest impossible to penetrate alone, Temenos recruited the aid of the young beastling [Shirlutto](../../../characters/temenos/shirlutto.md):
+During his pursuit of the secrets behind the mysterious [Moonshade Order](../../../world/factions/moonshade_order.md) and the origin of the Kal tribe, [Temenos Mistral](../../../characters/temenos/temenos.md) arrived at the woods in his Chapter 4. Finding the forest impossible to penetrate alone, Temenos recruited the aid of the young beastling [Shirlutto](../../../characters/temenos/shirlutto.md):
 
 > *"Doing good. Island riddle. You solving. Very good."*
 > — [Shirlutto](../../../characters/temenos/shirlutto.md)

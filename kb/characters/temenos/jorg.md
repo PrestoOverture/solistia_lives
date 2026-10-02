@@ -6,10 +6,10 @@ source: ["Jörg"]
 
 # Jörg
 
-> *"Since arriving here, I've felt forces mobilizing against the church. I know your position as inquisitor keeps you plenty busy. But I beg you to aid me, [Temenos](../travelers/temenos.md). I know I can trust you. Just as I trusted [Roi](roi.md)."*
+> *"Since arriving here, I've felt forces mobilizing against the church. I know your position as inquisitor keeps you plenty busy. But I beg you to aid me, [Temenos](temenos.md). I know I can trust you. Just as I trusted [Roi](roi.md)."*
 > — Pontiff Jörg, to Temenos Mistral
 
-**Pontiff Jörg** was the head of the [Order of the Sacred Flame](../../world/factions/order_of_the_sacred_flame_octopath_traveler_ii.md) and the supreme spiritual leader of the church. Respected by the clergy and common folk alike, he served as the adoptive father and mentor to [Temenos Mistral](../travelers/temenos.md) and [Roi](roi.md), appointing both as Inquisitors of the faith.
+**Pontiff Jörg** was the head of the [Order of the Sacred Flame](../../world/factions/order_of_the_sacred_flame_octopath_traveler_ii.md) and the supreme spiritual leader of the church. Respected by the clergy and common folk alike, he served as the adoptive father and mentor to [Temenos Mistral](temenos.md) and [Roi](roi.md), appointing both as Inquisitors of the faith.
 
 ## Profile
 
@@ -19,7 +19,7 @@ source: ["Jörg"]
 - **Status**: Deceased
 - **Affiliation**: [Order of the Sacred Flame](../../world/factions/order_of_the_sacred_flame_octopath_traveler_ii.md)
 - **Relatives**:
-  - [Temenos Mistral](../travelers/temenos.md) (adoptive son)
+  - [Temenos Mistral](temenos.md) (adoptive son)
   - [Roi](roi.md) (adoptive son)
 
 ### Appearance
@@ -30,7 +30,7 @@ Pontiff Jörg was a compassionate, fatherly figure devoted to protecting both hi
 
 ## History
 
-Years before his death, Jörg discovered [Alpates](../others/alpates.md). Recognizing her critical significance and the danger she faced, he arranged for her safety in a secret sanctuary situated above the cathedral in [Flamechurch: Cathedral](../../locations/crestlands/towns/flamechurch_cathedral.md), accessible solely through a hidden door in his private chambers constructed by a carpenter decades earlier. Jörg took in [Roi](roi.md) and [Temenos Mistral](../travelers/temenos.md) as orphaned foundlings, raising them as his sons and eventually appointing them as Inquisitors to investigate growing heresy.
+Years before his death, Jörg discovered [Alpates](../others/alpates.md). Recognizing her critical significance and the danger she faced, he arranged for her safety in a secret sanctuary situated above the cathedral in [Flamechurch: Cathedral](../../locations/crestlands/towns/flamechurch_cathedral.md), accessible solely through a hidden door in his private chambers constructed by a carpenter decades earlier. Jörg took in [Roi](roi.md) and [Temenos Mistral](temenos.md) as orphaned foundlings, raising them as his sons and eventually appointing them as Inquisitors to investigate growing heresy.
 
 In the days preceding his death, Jörg visited the local chapel where Temenos and Sister [Mindt](arcanette.md) were performing a puppet play for village children. After greeting them warmly, he pulled Temenos aside, confiding that he felt insidious forces mobilizing against the church and requesting a private meeting in the cathedral later that night. En route, Jörg also conferred privately with the scholar [Lucian](lucian.md).
 

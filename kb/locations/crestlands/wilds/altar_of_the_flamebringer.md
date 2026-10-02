@@ -11,7 +11,7 @@ The **Altar of the Flamebringer** is a sacred sanctuary situated in the [Crestla
 
 The altar is dedicated to [Aelfric](../../../world/gods/aelfric.md) the Flamebringer, god of light and the sacred flame. Unlike the other divine altars of Solistia, which lie hidden out in the wilderness, caves, or ruins, the Altar of the Flamebringer is unique in being located within an enclosed structure—the guildhouse where clerics obtain their licenses.
 
-Within the sanctuary stands a consecrated effigy of the deity. When an ordained cleric, such as [Temenos Mistral](../../../characters/travelers/temenos.md), approaches and prays before the statue, Aelfric's presence confers his divine benediction:
+Within the sanctuary stands a consecrated effigy of the deity. When an ordained cleric, such as [Temenos Mistral](../../../characters/temenos/temenos.md), approaches and prays before the statue, Aelfric's presence confers his divine benediction:
 
 > "*Chosen cleric...
 > Unto thee, I grant new power.*"

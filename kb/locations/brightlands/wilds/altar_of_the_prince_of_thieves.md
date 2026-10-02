@@ -16,4 +16,4 @@ The **Altar of the Prince of Thieves** is a hidden shrine in the [Brightlands](.
 
 The altar is situated along the [Southern Clockbank Highroad](southern_clockbank_highroad.md), concealed within a hidden cave on the southeastern end of the river.
 
-Inside the cavern stands a sacred statue of Aeber. When approached by the thief [Throné](../../../characters/travelers/throne.md), the deity grants her the power of Veil of Darkness.
+Inside the cavern stands a sacred statue of Aeber. When approached by the thief [Throné](../../../characters/throne/throne.md), the deity grants her the power of Veil of Darkness.

@@ -9,7 +9,7 @@ source: ["Ritsu Mishuyo"]
 > "*The powerless will always be stepped on by the strong! You have to lift their boots off you with your own hands! You think your 'friends' care about you? That's all lies! Strength is all that matters!*"
 > — Ritsu Mishuyo
 
-**Ritsu Mishuyo** is a warrior of [Ku](../../world/nations/ku.md) and [Hikari Ku](../travelers/hikari.md)'s rival, sparring partner, and former stalwart ally on the battlefield. Born as a commoner, Ritsu harbors deep resentment toward Ku's rigid social hierarchy that oppresses the lowborn. His desperate desire to overcome powerlessness and carve his name into history ultimately leads him to abandon his bond with Hikari and align himself with the ruthless [Mugen](mugen.md).
+**Ritsu Mishuyo** is a warrior of [Ku](../../world/nations/ku.md) and [Hikari Ku](hikari.md)'s rival, sparring partner, and former stalwart ally on the battlefield. Born as a commoner, Ritsu harbors deep resentment toward Ku's rigid social hierarchy that oppresses the lowborn. His desperate desire to overcome powerlessness and carve his name into history ultimately leads him to abandon his bond with Hikari and align himself with the ruthless [Mugen](mugen.md).
 
 ## Profile
 

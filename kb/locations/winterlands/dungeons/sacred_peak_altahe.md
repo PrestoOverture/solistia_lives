@@ -18,4 +18,4 @@ Access to the mountain is strictly barred and guarded by the [Sacred Guard](../.
 
 ## Story
 
-During [Ochette](../../../characters/travelers/ochette.md)'s journey (Chapter 2: Glacis's Route), Ochette seeks an audience with Glacis to secure her aid against the coming Night of the Sorrowful Moon. Upon gaining entry, Ochette lets out a powerful roar that inadvertently triggers a massive avalanche, collapsing and sealing off the mountain's primary path.
+During [Ochette](../../../characters/ochette/ochette.md)'s journey (Chapter 2: Glacis's Route), Ochette seeks an audience with Glacis to secure her aid against the coming Night of the Sorrowful Moon. Upon gaining entry, Ochette lets out a powerful roar that inadvertently triggers a massive avalanche, collapsing and sealing off the mountain's primary path.

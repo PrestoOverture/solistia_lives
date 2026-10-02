@@ -6,9 +6,9 @@ source: ["Heig"]
 # Heig
 
 > *"Humans and beasts are made to hate and kill each other."*
-> — Heig, to [Ochette](../travelers/ochette.md)
+> — Heig, to [Ochette](ochette.md)
 
-**Heig** is a 58-year-old veteran hunter from [Stormhail](../../locations/winterlands/towns/stormhail.md) who plays a central role in [Ochette](../travelers/ochette.md)'s quest to find the legendary beast [Glacis](../../world/beasts/glacis.md) atop [Sacred Peak Altahe](../../locations/winterlands/dungeons/sacred_peak_altahe.md). A longtime resident of the region, he earns a living guiding foreign hunters on expeditions into the treacherous mountains.
+**Heig** is a 58-year-old veteran hunter from [Stormhail](../../locations/winterlands/towns/stormhail.md) who plays a central role in [Ochette](ochette.md)'s quest to find the legendary beast [Glacis](../../world/beasts/glacis.md) atop [Sacred Peak Altahe](../../locations/winterlands/dungeons/sacred_peak_altahe.md). A longtime resident of the region, he earns a living guiding foreign hunters on expeditions into the treacherous mountains.
 
 ## Profile
 
@@ -34,10 +34,10 @@ Resting in his cabin, Heig opens up about his past, confessing his regret over l
 
 ## Relationships & Banter
 
-- **[Ochette](../travelers/ochette.md):** Although initially dismissing her and warning her away from Altahe, Heig is profoundly moved by her ability to quell Glacis without hatred. Ochette's refusal to leave him behind restores his desire to live.
-- **[Castti Florenz](../travelers/castti.md):** While Castti treated his wounds following the ordeal on Altahe, Heig was flustered and could not stop blushing in her presence.
-- **[Partitio Yellowil](../travelers/partitio.md):** Heig shared a sample of the local Winterlands liquor with Partitio, which Partitio and Ochette subsequently drank together.
-- **[Agnea Bristarni](../travelers/agnea.md):** Heig has visited [New Delsta](../../locations/brightlands/towns/new_delsta.md) in the past, and he later travels there to attend Agnea's grand theatrical performance.
+- **[Ochette](ochette.md):** Although initially dismissing her and warning her away from Altahe, Heig is profoundly moved by her ability to quell Glacis without hatred. Ochette's refusal to leave him behind restores his desire to live.
+- **[Castti Florenz](../castti/castti.md):** While Castti treated his wounds following the ordeal on Altahe, Heig was flustered and could not stop blushing in her presence.
+- **[Partitio Yellowil](../partitio/partitio.md):** Heig shared a sample of the local Winterlands liquor with Partitio, which Partitio and Ochette subsequently drank together.
+- **[Agnea Bristarni](../agnea/agnea.md):** Heig has visited [New Delsta](../../locations/brightlands/towns/new_delsta.md) in the past, and he later travels there to attend Agnea's grand theatrical performance.
 
 ## Quotes
 

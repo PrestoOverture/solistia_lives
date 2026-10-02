@@ -20,4 +20,4 @@ Among the outpost's inhabitants is an animal lender who leases horses, camels, a
 
 ## Story
 
-Ryu serves as the destination and concluding setting of [Hikari](../../../characters/travelers/hikari.md)'s Chapter 1 journey across the sands. If Hikari is not chosen as the initial traveler, the party encounters him here standing against a group of ruffian soldiers harassing the local villagers, after which he joins the party.
+Ryu serves as the destination and concluding setting of [Hikari](../../../characters/hikari/hikari.md)'s Chapter 1 journey across the sands. If Hikari is not chosen as the initial traveler, the party encounters him here standing against a group of ruffian soldiers harassing the local villagers, after which he joins the party.

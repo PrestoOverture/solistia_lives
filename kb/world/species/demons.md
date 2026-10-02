@@ -22,7 +22,7 @@ The appearance and nature of a demon often depend on how the transformation occu
 
 In Solistia, transformation into a demon typically cannot be reversed once complete. Known and theorized methods include:
 
-- **The Shadow**: Although the Shadow can be harnessed without triggering a demonic transformation (as demonstrated by [Hikari](../../characters/travelers/hikari.md) and [Harvey](../../characters/osvald/harvey.md)), drawing excessively upon its power without proper precautions warps mortals into demons.
+- **The Shadow**: Although the Shadow can be harnessed without triggering a demonic transformation (as demonstrated by [Hikari](../../characters/hikari/hikari.md) and [Harvey](../../characters/osvald/harvey.md)), drawing excessively upon its power without proper precautions warps mortals into demons.
 - **Darkblood Bow Sacrifice**: The cursed Darkblood Bow is capable of causing grotesque demonic mutations. The [Dark Entity](../../characters/ochette/dark_entity.md) repeats [Roi](../../characters/temenos/roi.md)'s final words before death and wears shreds of his robe, suggesting that the Dark Hunter [Petrichor](../../characters/others/petrichor.md) mutated him after his disappearance with the bow, potentially in combination with Harvey's Shadow-based experiments. Later, following Petrichor's death with the bow in her possession, the [Grotesque Monster](../beasts/grotesque_monster.md) appeared at the site of her death.
 - **Arcane Experimentation**: Sorcerer [Harvey](../../characters/osvald/harvey.md) crafted a grimoire known as the *Book of Demons* using the corpse of dark sorcerer [D'arqest](../../characters/others/darqest.md), allowing him to harness the Shadow. The infernal tome *[From the Far Reaches of Hell](../../stories/documents/from_the_far_reaches_of_hell_book.md)* also outlines formulas for synthesizing dark blood-crystals.
 
@@ -37,7 +37,7 @@ In Solistia, transformation into a demon typically cannot be reversed once compl
 
 ## Lore and Expressions
 
-- **["Hikari"](../../characters/hikari/hikari_shadow.md)**: Represents a psychological manifestation of the Shadow within [Hikari Ku](../../characters/travelers/hikari.md). Hikari avoids undergoing a demonic transformation by mastering Shadow's Hold rather than allowing the darkness to consume him.
+- **["Hikari"](../../characters/hikari/hikari_shadow.md)**: Represents a psychological manifestation of the Shadow within [Hikari Ku](../../characters/hikari/hikari.md). Hikari avoids undergoing a demonic transformation by mastering Shadow's Hold rather than allowing the darkness to consume him.
 - **Transformed Beasts**: Non-human creatures can also be warped by these dark forces; the [Darkling of the Sorrowful Moon](../beasts/darkling_of_the_sorrowful_moon.md) is presumed to have been warped by the Darkblood Bow combined with Harvey's Shadow magic.
 - **Metaphorical Use**: Ferocious warriors are sometimes referred to hyperbolically as "demons" despite remaining human; during his arena tournament, [Hikari](../../characters/hikari/hikari_shadow.md) is noted to "fight like a demon."
 - **Nomenclature**: Several natural beasts bear the descriptive title of "demon," including the Demon Deer, Demon Goat, Demon Yak, and Demon Jellyfish.

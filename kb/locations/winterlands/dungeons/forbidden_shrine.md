@@ -9,7 +9,7 @@ source: ["Forbidden Shrine"]
 The **Forbidden Shrine** is an ancient subterranean sanctuary hidden beneath [Stormhail: Sacred Guard Headquarters](../towns/stormhail_sacred_guard_headquarters.md) in the [Winterlands](../winterlands.md), accessible only through a concealed passage.
 
 > *"What is this place...? ...... Forbidden tomes, all. So much knowledge erased from history... What could possibly be the [Sacred Guard](../../../world/factions/sacred_guard.md)'s aim?"*  
-> — [Temenos](../../../characters/travelers/temenos.md)
+> — [Temenos](../../../characters/temenos/temenos.md)
 
 ## Overview & Architecture
 
@@ -17,4 +17,4 @@ Constructed beneath the seat of the holy order, the shrine houses a clandestine 
 
 ## Story Events
 
-During Chapter 3 of [Temenos](../../../characters/travelers/temenos.md)'s journey (Stormhail Route), his investigation into the conspiracy festering within the [Sacred Guard](../../../world/factions/sacred_guard.md) brings him through the secret portal beneath headquarters. Venturing into the shrine's depths, Temenos discovers the hidden collection of forbidden lore and confronts [Deputy Cubaryi](../../../characters/temenos/cubaryi.md), who stands guard over the sanctum's secrets.
+During Chapter 3 of [Temenos](../../../characters/temenos/temenos.md)'s journey (Stormhail Route), his investigation into the conspiracy festering within the [Sacred Guard](../../../world/factions/sacred_guard.md) brings him through the secret portal beneath headquarters. Venturing into the shrine's depths, Temenos discovers the hidden collection of forbidden lore and confronts [Deputy Cubaryi](../../../characters/temenos/cubaryi.md), who stands guard over the sanctum's secrets.

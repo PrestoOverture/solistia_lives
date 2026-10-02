@@ -10,7 +10,7 @@ source: ["Montwise"]
 
 **Montwise** is an academic mountain town located in the eastern [Crestlands](../crestlands.md). Recognized across Solistia as a preeminent seat of scholarship, the town is home to an expansive library, a renowned book trade, and a clandestine underground arena hidden beneath its studious exterior.
 
-Montwise serves as the setting for [Hikari](../../../characters/travelers/hikari.md)'s Chapter 2, [Throné](../../../characters/travelers/throne.md)'s Chapter 3 ([Father](../../../characters/throne/father.md)'s route), [Osvald](../../../characters/travelers/osvald.md)'s Chapter 4, and the final episode of Osvald and [Partitio](../../../characters/travelers/partitio.md)'s Crossed Path. It is also the location of the side quests *[Tourney Champion](../../../stories/side_stories/crestlands/tourney_champion.md)* and *[Will Research for Money](../../../stories/side_stories/crestlands/will_research_for_money.md)*.
+Montwise serves as the setting for [Hikari](../../../characters/hikari/hikari.md)'s Chapter 2, [Throné](../../../characters/throne/throne.md)'s Chapter 3 ([Father](../../../characters/throne/father.md)'s route), [Osvald](../../../characters/osvald/osvald.md)'s Chapter 4, and the final episode of Osvald and [Partitio](../../../characters/partitio/partitio.md)'s Crossed Path. It is also the location of the side quests *[Tourney Champion](../../../stories/side_stories/crestlands/tourney_champion.md)* and *[Will Research for Money](../../../stories/side_stories/crestlands/will_research_for_money.md)*.
 
 ## Geography & Layout
 

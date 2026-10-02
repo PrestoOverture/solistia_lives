@@ -18,7 +18,7 @@ source: ["Zeto"]
 - **Occupation**: Gladiator, warrior, builder
 - **Location**: [Ku: Castle Town](../../locations/hinoeuma/towns/ku_castle_town.md) (day); [Castle Ku](../../locations/hinoeuma/towns/castle_ku.md) (night); formerly [Montwise arena](../../locations/crestlands/dungeons/montwise_underground_arena.md)
 
-**Zeto the Butcher** is a character in *Octopath Traveler II* who features prominently during [Hikari](../travelers/hikari.md)'s journey. A seasoned gladiator in the [Montwise arena](../../locations/crestlands/dungeons/montwise_underground_arena.md) boasting a streak of 22 consecutive victories, he is defined by an unwavering dedication to his comrades-in-arms.
+**Zeto the Butcher** is a character in *Octopath Traveler II* who features prominently during [Hikari](hikari.md)'s journey. A seasoned gladiator in the [Montwise arena](../../locations/crestlands/dungeons/montwise_underground_arena.md) boasting a streak of 22 consecutive victories, he is defined by an unwavering dedication to his comrades-in-arms.
 
 ## Profile
 

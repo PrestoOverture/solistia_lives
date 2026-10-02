@@ -9,7 +9,7 @@ source: ["Pirro"]
 > "*We do what we can to survive in this dump. Living with a collar around our necks from our "parents". I want to rise in the ranks and get my hands on some *real* money… Buy good liquor, good smokes, fall asleep in a big bed. I want to enjoy my life before I bite the dust.*"
 > — Pirro
 
-**Pirro** was a prominent member of the [Blacksnakes](../../world/factions/blacksnakes.md) thieves' guild operating in [New Delsta](../../locations/brightlands/towns/new_delsta.md). Though resigned to a grim existence under the thumb of the guild's masters, he harbored dreams of rising through the ranks to secure true wealth and freedom before his death. Unknown to him for most of his life, he was one of the many children sired across Solistia by [Claude](claude_blacksnakes.md), making him a half-brother to [Throné Anguis](../travelers/throne.md), [Scaracci](scaracci.md), [Donnie](donnie.md), [Father](father.md), and [Mother](mother.md).
+**Pirro** was a prominent member of the [Blacksnakes](../../world/factions/blacksnakes.md) thieves' guild operating in [New Delsta](../../locations/brightlands/towns/new_delsta.md). Though resigned to a grim existence under the thumb of the guild's masters, he harbored dreams of rising through the ranks to secure true wealth and freedom before his death. Unknown to him for most of his life, he was one of the many children sired across Solistia by [Claude](claude_blacksnakes.md), making him a half-brother to [Throné Anguis](throne.md), [Scaracci](scaracci.md), [Donnie](donnie.md), [Father](father.md), and [Mother](mother.md).
 
 ## Profile
 

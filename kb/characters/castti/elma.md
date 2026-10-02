@@ -22,7 +22,7 @@ source: ["Elma"]
 
 ## Personality & Backstory
 
-Elma possessed an exceptionally calming and gentle presence that put both patients and animals at ease. She was inspired to join Eir's Apothecaries after watching [Castti Florenz](../travelers/castti.md) miraculously cure an entire family afflicted by a deadly sickness. Within the organization, she and fellow apothecary [Randy](randy.md) fell in love and pledged their lives to one another.
+Elma possessed an exceptionally calming and gentle presence that put both patients and animals at ease. She was inspired to join Eir's Apothecaries after watching [Castti Florenz](castti.md) miraculously cure an entire family afflicted by a deadly sickness. Within the organization, she and fellow apothecary [Randy](randy.md) fell in love and pledged their lives to one another.
 
 ## Story
 

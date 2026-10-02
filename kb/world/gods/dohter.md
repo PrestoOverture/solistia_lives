@@ -11,7 +11,7 @@ source: ["Dohter"]
 
 Dohter is depicted as a smiling apothecary holding a mortar and pestle. According to Solistian legend, she bestowed the holy art of concoction upon humanity.
 
-In the sacred play during the opening sequence of [Temenos](../../characters/travelers/temenos.md)'s journey, she appears shrouded in an indistinct white robe.
+In the sacred play during the opening sequence of [Temenos](../../characters/temenos/temenos.md)'s journey, she appears shrouded in an indistinct white robe.
 
 ## History
 

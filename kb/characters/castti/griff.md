@@ -6,7 +6,7 @@ source: ["Griff"]
 
 # Griff
 
-**Commander Griff** is the commander of [Timberain](../../locations/leaflands/towns/timberain.md)'s foreign expedition corps who plays an important supporting role in [Castti Florenz](../travelers/castti.md)'s storyline. Initially leading military campaigns against [Sai](../../locations/hinoeuma/towns/sai.md), he undergoes a change of heart and becomes an advocate for diplomacy and civilian protection.
+**Commander Griff** is the commander of [Timberain](../../locations/leaflands/towns/timberain.md)'s foreign expedition corps who plays an important supporting role in [Castti Florenz](castti.md)'s storyline. Initially leading military campaigns against [Sai](../../locations/hinoeuma/towns/sai.md), he undergoes a change of heart and becomes an advocate for diplomacy and civilian protection.
 
 ## Profile
 

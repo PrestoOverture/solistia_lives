@@ -6,7 +6,7 @@ source: ["Grieving Golem"]
 
 # Grieving Golem
 
-The **Grieving Golem** is a monstrous chimera encountered as the climactic boss of [Osvald V. Vanstein](../travelers/osvald.md)'s Chapter 4. Created through the forbidden experiments of [Harvey](harvey.md), it is the horrific transformation of Osvald's murdered wife, [Rita Lumina](rita_lumina.md).
+The **Grieving Golem** is a monstrous chimera encountered as the climactic boss of [Osvald V. Vanstein](osvald.md)'s Chapter 4. Created through the forbidden experiments of [Harvey](harvey.md), it is the horrific transformation of Osvald's murdered wife, [Rita Lumina](rita_lumina.md).
 
 ## Profile
 
@@ -30,4 +30,4 @@ From the shattered remains of the golem, Osvald detects an alien arcane essence.
 
 ## Quotes
 
-- *"My... deee...arrr..."* — Weakly muttered to [Osvald V. Vanstein](../travelers/osvald.md) during battle
+- *"My... deee...arrr..."* — Weakly muttered to [Osvald V. Vanstein](osvald.md) during battle

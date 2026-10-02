@@ -6,9 +6,9 @@ source: ["Mahina"]
 # Mahina
 
 > *"Hoowoo… are you… a girl, too?"*
-> — Mahina, before [Ochette](../travelers/ochette.md) chooses her companion
+> — Mahina, before [Ochette](ochette.md) chooses her companion
 
-**Mahina** is a female malamaowl described as serene in the grace of the moon, with wings that shape the air's currents and possess magical power. If selected as [Ochette](../travelers/ochette.md)'s companion, Mahina acts as both a younger and older sister to her along her journey across Solistia.
+**Mahina** is a female malamaowl described as serene in the grace of the moon, with wings that shape the air's currents and possess magical power. If selected as [Ochette](ochette.md)'s companion, Mahina acts as both a younger and older sister to her along her journey across Solistia.
 
 ## Profile
 
@@ -26,7 +26,7 @@ When Ochette was ten years old, [Juvah](juvah.md) took her to the [Tombs of the 
 If Ochette selects Mahina, Akalā is shrouded in darkness, goes berserk, attacks Ochette, and flees into the wilderness. If Akalā is chosen instead, Mahina is overtaken by darkness, attacks Ochette, and disappears into the wild, eventually becoming corrupted into the [Malamaowl of the Sorrowful Moon](../../world/beasts/darkling_of_the_sorrowful_moon.md)—the final adversary Ochette must defeat to save the island.
 
 ### Journey with Ochette
-If chosen as Ochette's companion, Mahina accompanies her throughout all of her story chapters, including her Crossed Paths chapters with [Castti Florenz](../travelers/castti.md).
+If chosen as Ochette's companion, Mahina accompanies her throughout all of her story chapters, including her Crossed Paths chapters with [Castti Florenz](../castti/castti.md).
 
 Ten years after being chosen, Mahina helps Ochette track down and capture the gluttonous [King Iguana](../../world/beasts/king_iguana.md), which threatens the natural order by overconsuming prey. When Ochette is tempted to eat the captured lizard herself, Mahina reminds her that the catch belongs to the people of [Beasting Village](../../locations/totohaha/towns/beasting_village.md).
 

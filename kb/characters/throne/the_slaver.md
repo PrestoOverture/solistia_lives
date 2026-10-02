@@ -9,7 +9,7 @@ source: ["The Slaver"]
 > *"Even the most disciplined are exposed by their own scent. Humans are overcome with fear before their demise, and their sweat reeks something awful."*  
 > — The Slaver
 
-**The Slaver** is a character in *Octopath Traveler II*. A member of the [Blacksnakes](../../world/factions/blacksnakes.md) syndicate in charge of human trafficking, he serves as an antagonist encountered by [Throné Anguis](../travelers/throne.md) during her hunt for [Mother](mother.md).
+**The Slaver** is a character in *Octopath Traveler II*. A member of the [Blacksnakes](../../world/factions/blacksnakes.md) syndicate in charge of human trafficking, he serves as an antagonist encountered by [Throné Anguis](throne.md) during her hunt for [Mother](mother.md).
 
 ## Profile
 

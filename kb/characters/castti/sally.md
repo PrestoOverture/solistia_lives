@@ -18,7 +18,7 @@ Mature and considerate despite her young age, Sally took great care not to burde
 ## History
 
 ### Treatment by Eir's Apothecaries
-During the time when Healeaks was a peaceful, thriving settlement, Sally was treated for a minor injury by [Trousseau](trousseau.md) of [Eir's Apothecaries](../../world/factions/eirs_apothecaries.md). Sometime later, severe swelling linked to the wound caused her to suddenly lose consciousness. She was saved by the quick intervention of [Castti Florenz](../travelers/castti.md) and Trousseau, who harvested Santanejo Blossoms to compound a medicine that cured her affliction.
+During the time when Healeaks was a peaceful, thriving settlement, Sally was treated for a minor injury by [Trousseau](trousseau.md) of [Eir's Apothecaries](../../world/factions/eirs_apothecaries.md). Sometime later, severe swelling linked to the wound caused her to suddenly lose consciousness. She was saved by the quick intervention of [Castti Florenz](castti.md) and Trousseau, who harvested Santanejo Blossoms to compound a medicine that cured her affliction.
 
 ### The Tragedy of Healeaks
 Years later, while most members of Eir's Apothecaries were away on a relief mission, Trousseau returned to Healeaks, having descended into homicidal madness after embracing the nihilistic dogma of the [Moonshade Order](../../world/factions/moonshade_order.md). Trousseau lured Sally and Temm up to a nearby mountain and administered deadly poison to them, ending both of their lives. He then used their sudden disappearance as bait to send the remaining villagers into search parties across the countryside, leaving them exposed to the lethal rain that devastated the entire town.

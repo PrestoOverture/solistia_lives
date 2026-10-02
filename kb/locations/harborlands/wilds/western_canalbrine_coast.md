@@ -13,4 +13,4 @@ The Western Canalbrine Coast stretches along the shoreline just outside the port
 
 ## Notable Events
 
-- **[The Traveler's Bag](../../../stories/side_stories/the_travelers_bag.md)**: If [Castti Florenz](../../../characters/travelers/castti.md) begins her journey from Canalbrine, she encounters an embattled traveler along this coast whose belongings have been stolen by opportunistic thieves, prompting an intervention to recover the bag.
+- **[The Traveler's Bag](../../../stories/side_stories/the_travelers_bag.md)**: If [Castti Florenz](../../../characters/castti/castti.md) begins her journey from Canalbrine, she encounters an embattled traveler along this coast whose belongings have been stolen by opportunistic thieves, prompting an intervention to recover the bag.

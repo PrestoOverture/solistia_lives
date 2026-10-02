@@ -18,7 +18,7 @@ source: ["Yomi"]
 - **Occupation**: Lutist (former traveling lute player)
 - **Location**: [Ku: Castle Town](../../locations/hinoeuma/towns/ku_castle_town.md) (day); [Southern Ku Sands](../../locations/hinoeuma/wilds/southern_ku_sands.md) / Crest of Heroes (night)
 
-**Yomi**, known as "Yomi of a Thousand Tones," is a famed lutist in *Octopath Traveler II* who appears during [Hikari](../travelers/hikari.md) and [Agnea](../travelers/agnea.md)'s Crossed Paths story. She is the twin sister of [Tsuki](../hikari/tsuki.md).
+**Yomi**, known as "Yomi of a Thousand Tones," is a famed lutist in *Octopath Traveler II* who appears during [Hikari](../hikari/hikari.md) and [Agnea](../agnea/agnea.md)'s Crossed Paths story. She is the twin sister of [Tsuki](../hikari/tsuki.md).
 
 ## Profile
 
@@ -36,7 +36,7 @@ Yomi and her twin sister [Tsuki](../hikari/tsuki.md) were born and raised togeth
 
 As Yomi reached adulthood, she honed her musicianship on the lute, becoming renowned as "Yomi of a Thousand Tones." She traveled the world hoping to learn songs from every corner to play for her sister. Upon returning to Ku after many years apart, Yomi was reunited with Tsuki, who was serving as a castle attendant. However, their reunion ended in tragedy when [Mugen](../hikari/mugen.md) staged a coup against Clan Ku, setting the town and castle on fire and causing Tsuki's death.
 
-Sometime later, Yomi was traveling through [Ryu](../../locations/hinoeuma/towns/ryu.md) when she encountered [Hikari](../travelers/hikari.md) and [Agnea](../travelers/agnea.md). Hikari paid her for a performance at Agnea's urging, but Yomi postponed the recital until the next day. The following morning, having used the money to purchase a new kimono, she found a lute string frayed and delayed once more. Agnea procured horsehair to repair the instrument, and Yomi agreed to play the following night on a nearby hill. There, she performed "By the Light of the Heart"—a traditional melody Hikari recognized from Ku—before moving on.
+Sometime later, Yomi was traveling through [Ryu](../../locations/hinoeuma/towns/ryu.md) when she encountered [Hikari](../hikari/hikari.md) and [Agnea](../agnea/agnea.md). Hikari paid her for a performance at Agnea's urging, but Yomi postponed the recital until the next day. The following morning, having used the money to purchase a new kimono, she found a lute string frayed and delayed once more. Agnea procured horsehair to repair the instrument, and Yomi agreed to play the following night on a nearby hill. There, she performed "By the Light of the Heart"—a traditional melody Hikari recognized from Ku—before moving on.
 
 Yomi eventually traveled to the [Tranquil Grotto](../../locations/hinoeuma/dungeons/tranquil_grotto.md), where she crossed paths with Hikari and Agnea again while they investigated the ruins at [Benkei](../hikari/benkei.md)'s request. Holding Clan Ku responsible for Tsuki's demise, Yomi revealed her past and engaged Hikari in a duel to soothe her grief. After Hikari soundly bested her, she let go of her resentment. Hikari invited her to perform at a memorial festival in Ku honoring the fallen, and Yomi agreed, playing "By the Light of the Heart" alongside Agnea's dance.
 

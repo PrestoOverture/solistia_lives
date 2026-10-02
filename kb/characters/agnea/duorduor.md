@@ -15,7 +15,7 @@ The duorduor is a massive wild beast known for its aggressive charges and insati
 
 ## Story
 
-Years prior to the events of [Agnea Bristarni](../travelers/agnea.md)'s journey, a rampaging duorduor attacked Cropdale, requiring the combined efforts of the entire village to drive the beast back into the woods.
+Years prior to the events of [Agnea Bristarni](agnea.md)'s journey, a rampaging duorduor attacked Cropdale, requiring the combined efforts of the entire village to drive the beast back into the woods.
 
 During the preparations for Cropdale's annual village festival, [Gus](gus.md) discovers fresh duorduor hoofprints near the settlement, realizing the creature has been lured toward the [Festival Grounds](../../locations/leaflands/wilds/festival_grounds.md) by the aroma of cooking food. When Agnea's younger sister [Pala Bristarni](pala_bristarni.md) fails to return from foraging for raspberries in the forest, Agnea and Gus enter the [Veil of Trees](../../locations/leaflands/dungeons/veil_of_trees.md) to find her.
 

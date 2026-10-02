@@ -5,7 +5,7 @@ source: ["Crackridge"]
 ---
 # Crackridge
 
-**Crackridge** is a cliffside mining town situated in the arid [Wildlands](../wildlands.md), perched precipitously above a yawning chasm. It serves as a major setting for [Ochette](../../../characters/travelers/ochette.md)'s Chapter 2 ([Tera](../../../world/beasts/tera.md) Route) and [Temenos](../../../characters/travelers/temenos.md)'s Chapter 3 (Crackridge Route).
+**Crackridge** is a cliffside mining town situated in the arid [Wildlands](../wildlands.md), perched precipitously above a yawning chasm. It serves as a major setting for [Ochette](../../../characters/ochette/ochette.md)'s Chapter 2 ([Tera](../../../world/beasts/tera.md) Route) and [Temenos](../../../characters/temenos/temenos.md)'s Chapter 3 (Crackridge Route).
 
 ## Overview
 

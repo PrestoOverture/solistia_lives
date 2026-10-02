@@ -8,7 +8,7 @@ source: ["Merry Hills"]
 > *"Merry Hills is a town dedicated to the arts! Artists and entertainers from the world over settled here."*  
 > — Tavern Assistant
 
-**Merry Hills** is a bustling city in the [Crestlands](../crestlands.md), connected to the [Western Merry Hills Pass](../wilds/western_merry_hills_pass.md) to the west and the [Merry Hills: Shrine Entrance](merry_hills_shrine_entrance.md) to the north. Renowned as the cultural haven and home of the arts, it is populated by artists, musicians, dancers, actors, and performers from across the world. The final chapter of [Agnea Bristarni](../../../characters/travelers/agnea.md)'s journey takes place here.
+**Merry Hills** is a bustling city in the [Crestlands](../crestlands.md), connected to the [Western Merry Hills Pass](../wilds/western_merry_hills_pass.md) to the west and the [Merry Hills: Shrine Entrance](merry_hills_shrine_entrance.md) to the north. Renowned as the cultural haven and home of the arts, it is populated by artists, musicians, dancers, actors, and performers from across the world. The final chapter of [Agnea Bristarni](../../../characters/agnea/agnea.md)'s journey takes place here.
 
 ## Culture and Festivities
 

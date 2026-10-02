@@ -6,7 +6,7 @@ source: ["Roque Brilliante"]
 
 # Roque Brilliante
 
-**Roque Brilliante** is a wealthy industrial magnate and business tycoon who serves as the primary antagonist of [Partitio Yellowil](../travelers/partitio.md)'s story.
+**Roque Brilliante** is a wealthy industrial magnate and business tycoon who serves as the primary antagonist of [Partitio Yellowil](partitio.md)'s story.
 
 ## Overview
 

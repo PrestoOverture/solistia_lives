@@ -6,7 +6,7 @@ source: ["Mira"]
 
 # Mira
 
-**Mira** is a young thief raised in [Mother's Garden: Orphanage](../../locations/leaflands/wilds/mothers_garden_orphanage.md) who belongs to the [Blacksnakes](../../world/factions/blacksnakes.md) guild and encounters [Throné Anguis](../travelers/throne.md).
+**Mira** is a young thief raised in [Mother's Garden: Orphanage](../../locations/leaflands/wilds/mothers_garden_orphanage.md) who belongs to the [Blacksnakes](../../world/factions/blacksnakes.md) guild and encounters [Throné Anguis](throne.md).
 
 ## Overview
 

@@ -6,7 +6,7 @@ source: ["Dark Entity"]
 
 # Dark Entity
 
-The **Dark Entity** is a demonic shadow beast that attacks [Beasting Village](../../locations/totohaha/towns/beasting_village.md) on [Toto'haha](../../locations/totohaha/totohaha.md) prior to the [Night of the Scarlet Moon](../../world/lore/night_of_the_scarlet_moon.md). Encountered as the climactic threat in [Ochette](../travelers/ochette.md)'s first chapter, the creature is strongly implied to be the tragic, corrupted form of [Roi](../temenos/roi.md).
+The **Dark Entity** is a demonic shadow beast that attacks [Beasting Village](../../locations/totohaha/towns/beasting_village.md) on [Toto'haha](../../locations/totohaha/totohaha.md) prior to the [Night of the Scarlet Moon](../../world/lore/night_of_the_scarlet_moon.md). Encountered as the climactic threat in [Ochette](ochette.md)'s first chapter, the creature is strongly implied to be the tragic, corrupted form of [Roi](../temenos/roi.md).
 
 ## Profile
 
@@ -14,7 +14,7 @@ The **Dark Entity** is a demonic shadow beast that attacks [Beasting Village](..
 The Dark Entity is a grotesque, monstrous demon wreathed in dark miasma that can produce shrill-screaming fledgling spawn. Pieces of what appear to be a tattered scholar's or traveler's robe cling to its tail, hinting at its human origins. It bears striking physiological similarities to the [Grotesque Monster](../../world/beasts/grotesque_monster.md) encountered elsewhere on Toto'haha, another creature born of unnatural shadow corruption.
 
 ### Identity
-Evidence within the narrative strongly indicates that the Dark Entity is the mutated form of Roi, an associate of [Temenos Mistral](../travelers/temenos.md) who went missing. Following its defeat, the beast utters broken words—*"no longer... trust... cannot... be allowed... to... exist..."*—which closely mirror the final words spoken by Roi before his disappearance.
+Evidence within the narrative strongly indicates that the Dark Entity is the mutated form of Roi, an associate of [Temenos Mistral](../temenos/temenos.md) who went missing. Following its defeat, the beast utters broken words—*"no longer... trust... cannot... be allowed... to... exist..."*—which closely mirror the final words spoken by Roi before his disappearance.
 
 ## Story
 

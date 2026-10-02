@@ -6,10 +6,10 @@ source: ["Terry"]
 
 # Terry
 
-> *"There are people out there who will appreciate me and my works for what they are. Like you, [Partitio](../travelers/partitio.md)."*  
+> *"There are people out there who will appreciate me and my works for what they are. Like you, [Partitio](partitio.md)."*  
 > — Terry
 
-**Terry** is a character in *Octopath Traveler II*. A nineteen-year-old prodigy shipwright residing in [Tropu'hopu](../../locations/totohaha/towns/tropuhopu.md), she constructed the ocean-faring vessel named the *Grand Terry*, purchased by [Partitio Yellowil](../travelers/partitio.md).
+**Terry** is a character in *Octopath Traveler II*. A nineteen-year-old prodigy shipwright residing in [Tropu'hopu](../../locations/totohaha/towns/tropuhopu.md), she constructed the ocean-faring vessel named the *Grand Terry*, purchased by [Partitio Yellowil](partitio.md).
 
 ## Profile
 
@@ -35,7 +35,7 @@ After her grandfather passed away, fickle investors abandoned her workshop, doub
 Terry inherited the family shipyard in Tropu'hopu from her grandfather, a shipwright celebrated across Solistia. Following his death, patrons ceased backing her projects out of distrust for her youth and inexperience. Her masterpiece sat unfinished in the drydocks for months as she continually dismissed buyers unwilling to meet her standards.
 
 ### Partitio's Tale
-During his journey across Solistia, [Partitio](../travelers/partitio.md) seeks an ocean-going vessel to expand trade routes across the [Sundering Sea](../../locations/sundering_sea/the_sundering_sea.md). Visiting the shipyard in Tropu'hopu, Partitio recognizes Terry's supreme craftsmanship and agrees to purchase the unfinished ship for her full asking price of 100,000 leaves.
+During his journey across Solistia, [Partitio](partitio.md) seeks an ocean-going vessel to expand trade routes across the [Sundering Sea](../../locations/sundering_sea/the_sundering_sea.md). Visiting the shipyard in Tropu'hopu, Partitio recognizes Terry's supreme craftsmanship and agrees to purchase the unfinished ship for her full asking price of 100,000 leaves.
 
 Invigorated by Partitio's sincere appreciation, Terry completes the vessel's construction. In recognition of her talent, Partitio names the ship the *Grand Terry*, allowing the party to sail freely across open waters. Terry also provides subsequent cosmetic modifications and sail alterations to the vessel from her dockside workshop.
 

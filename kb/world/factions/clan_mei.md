@@ -12,7 +12,7 @@ source: ["Clan Mei"]
 
 ## History
 
-Seeking stability and protection for his people, Jin Mei pledged Clan Mei to the royal house of Ku. However, political machinations soon entangled the clan; [General Mugen](../../characters/hikari/mugen.md) secretly ordered Jin to assassinate Prince [Hikari](../../characters/travelers/hikari.md). The plot ended in tragedy: Jin perished alongside Hikari's mother, Lady [Kura](../../characters/hikari/kura.md), and Rai Mei was forced to assume leadership of the grieving clan.
+Seeking stability and protection for his people, Jin Mei pledged Clan Mei to the royal house of Ku. However, political machinations soon entangled the clan; [General Mugen](../../characters/hikari/mugen.md) secretly ordered Jin to assassinate Prince [Hikari](../../characters/hikari/hikari.md). The plot ended in tragedy: Jin perished alongside Hikari's mother, Lady [Kura](../../characters/hikari/kura.md), and Rai Mei was forced to assume leadership of the grieving clan.
 
 Following these events, King [Jigo](../../characters/hikari/jigo_ku.md) dispatched Clan Mei across the sea to establish a military foothold on the eastern continent. Taking up residence at Castle Mei in the mountainous city of Stormhail, the clan succeeded in mediating peace among the region's warring factions, earning widespread acclaim from the citizenry and the [Order of the Sacred Flame](order_of_the_sacred_flame_octopath_traveler_ii.md). This sudden ascendancy sparked deep resentment and political friction with the [Sacred Guard](sacred_guard.md), who had long held undisputed authority over the city.
 

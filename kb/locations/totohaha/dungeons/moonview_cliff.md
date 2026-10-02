@@ -6,9 +6,9 @@ source: ["Moonview Cliff"]
 # Moonview Cliff
 
 > *"No. It's not over. Something's coming... And it smells...familiar."*
-> — [Ochette](../../../characters/travelers/ochette.md), scenting the [Darkling of the Sorrowful Moon](../../../world/beasts/darkling_of_the_sorrowful_moon.md)
+> — [Ochette](../../../characters/ochette/ochette.md), scenting the [Darkling of the Sorrowful Moon](../../../world/beasts/darkling_of_the_sorrowful_moon.md)
 
-**Moonview Cliff** is a coastal cliff and dungeon sub-area on the island of [Toto'haha](../totohaha.md). Connected to the [Stormy Cape](stormy_cape.md), this windswept precipice overlooking the sea serves as the dramatic culmination of [Ochette](../../../characters/travelers/ochette.md)'s quest.
+**Moonview Cliff** is a coastal cliff and dungeon sub-area on the island of [Toto'haha](../totohaha.md). Connected to the [Stormy Cape](stormy_cape.md), this windswept precipice overlooking the sea serves as the dramatic culmination of [Ochette](../../../characters/ochette/ochette.md)'s quest.
 
 ## Story
 

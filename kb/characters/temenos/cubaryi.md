@@ -9,7 +9,7 @@ source: ["Cubaryi"]
 > "*Ha ha ha! Face the [gods](../../world/gods/gods.md)' wrath!*"
 > — Deputy Cubaryi, in battle
 
-**Deputy Cubaryi** is a high-ranking officer in the [Sacred Guard](../../world/factions/sacred_guard.md) and the secondary antagonist of [Temenos](../travelers/temenos.md)'s path in *Octopath Traveler II*. While posing as a pious knight upholding church authority, she secretly conspired with [Captain Kaldena](kaldena.md) to infiltrate the [Order of the Sacred Flame](../../world/factions/order_of_the_sacred_flame_octopath_traveler_ii.md) and bring about the return of the [Shadow](../../world/lore/shadow.md).
+**Deputy Cubaryi** is a high-ranking officer in the [Sacred Guard](../../world/factions/sacred_guard.md) and the secondary antagonist of [Temenos](temenos.md)'s path in *Octopath Traveler II*. While posing as a pious knight upholding church authority, she secretly conspired with [Captain Kaldena](kaldena.md) to infiltrate the [Order of the Sacred Flame](../../world/factions/order_of_the_sacred_flame_octopath_traveler_ii.md) and bring about the return of the [Shadow](../../world/lore/shadow.md).
 
 ## Profile
 

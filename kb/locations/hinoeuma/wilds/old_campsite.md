@@ -10,6 +10,6 @@ The **Old Campsite** is a field location in [Hinoeuma](../hinoeuma.md), connecti
 
 ## Overview
 
-The site was once an encampment in the desert of [Hinoeuma](../hinoeuma.md) that was abandoned after the ground gave way in a collapse. Upon arriving at the ruined encampment during her journey, [Castti](../../../characters/travelers/castti.md) observes:
+The site was once an encampment in the desert of [Hinoeuma](../hinoeuma.md) that was abandoned after the ground gave way in a collapse. Upon arriving at the ruined encampment during her journey, [Castti](../../../characters/castti/castti.md) observes:
 
 > *"There's no one here. I can only pray they weren't caught when the ground gave way..."*

@@ -6,10 +6,10 @@ source: ["Malaya"]
 
 # Malaya
 
-> "*[Castti](../travelers/castti.md)... You have the power to save lives. More than any other. That's why...you have to live.*"
+> "*[Castti](castti.md)... You have the power to save lives. More than any other. That's why...you have to live.*"
 > — Malaya
 
-**Malaya** was an exceptionally gifted apothecary and a prominent member of [Eir's Apothecaries](../../world/factions/eirs_apothecaries.md). Originally a fierce rival of [Castti Florenz](../travelers/castti.md), she grew to become one of her most devoted companions and confidantes. When tragedy struck the order at [Healeaks](../../locations/brightlands/towns/abandoned_village.md), Malaya sacrificed her own life to save Castti, and later lingered as a guiding phantom in Castti's amnesiac mind.
+**Malaya** was an exceptionally gifted apothecary and a prominent member of [Eir's Apothecaries](../../world/factions/eirs_apothecaries.md). Originally a fierce rival of [Castti Florenz](castti.md), she grew to become one of her most devoted companions and confidantes. When tragedy struck the order at [Healeaks](../../locations/brightlands/towns/abandoned_village.md), Malaya sacrificed her own life to save Castti, and later lingered as a guiding phantom in Castti's amnesiac mind.
 
 ## Profile
 
@@ -35,7 +35,7 @@ Disaster struck upon their return to their mountain base at [Healeaks](../../loc
 
 ### A Memory's Guidance
 
-Following her drift at sea, Castti was pulled ashore at [Canalbrine](../../locations/harborlands/towns/canalbrine.md) with total retrograde amnesia. When Castti rushed to treat an ailing child in the street, an illusion of Malaya appeared alongside her to offer guidance. While Castti believed Malaya was physically present, outsiders did not notice or acknowledge her; the boy's brother, [Sesque](sesque.md), completely disregarded Malaya when she addressed him, and [Osvald](../travelers/osvald.md) once remarked during their travels on Castti's curious habit of holding conversations with empty air.
+Following her drift at sea, Castti was pulled ashore at [Canalbrine](../../locations/harborlands/towns/canalbrine.md) with total retrograde amnesia. When Castti rushed to treat an ailing child in the street, an illusion of Malaya appeared alongside her to offer guidance. While Castti believed Malaya was physically present, outsiders did not notice or acknowledge her; the boy's brother, [Sesque](sesque.md), completely disregarded Malaya when she addressed him, and [Osvald](../osvald/osvald.md) once remarked during their travels on Castti's curious habit of holding conversations with empty air.
 
 "Malaya" assisted Castti in addressing the outbreak in Canalbrine, monitoring the sick at the tavern while Castti investigated the corrupted water reservoir. Once the immediate crisis passed, Castti questioned Malaya about their shared past, but the vision vanished before providing answers.
 

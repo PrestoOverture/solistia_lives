@@ -11,7 +11,7 @@ source: ["Rosa"]
 
 ## Overview
 
-**Lady Rosa Glenville** was the thirty-five-year-old ruler of [Winterbloom](../../locations/winterlands/towns/winterbloom.md) in the [Winterlands](../../locations/winterlands/winterlands.md), head of House Glenville, and mother to [Melia](melia.md). Despite suffering from a progressive and fatal paralysis, she fought tenaciously to survive until her daughter's twelfth birthday. She plays a pivotal role in [Castti Florenz](../travelers/castti.md)'s journey through Winterbloom.
+**Lady Rosa Glenville** was the thirty-five-year-old ruler of [Winterbloom](../../locations/winterlands/towns/winterbloom.md) in the [Winterlands](../../locations/winterlands/winterlands.md), head of House Glenville, and mother to [Melia](melia.md). Despite suffering from a progressive and fatal paralysis, she fought tenaciously to survive until her daughter's twelfth birthday. She plays a pivotal role in [Castti Florenz](castti.md)'s journey through Winterbloom.
 
 ## Profile
 

@@ -26,10 +26,10 @@ In his early military service, Ageha rose through the ranks of Clan Ku to become
 
 Three years following the war and Mugen's usurpation of the throne, Ageha served as Mugen's advisor. When reporting the capture of a southern rebel stronghold, Mugen decreed that all inhabitants of the town be slaughtered. Though clearly reluctant, Ageha obeyed his king's orders.
 
-When [Hikari](../travelers/hikari.md) and his forces launched their final assault on Ku, Ageha confronted the prince outside the royal palace, demanding that Hikari surrender. Before his soldiers could seize the prince, [Rai Mei](rai_mei.md) intervened and engaged Ageha in combat, giving Hikari the opening needed to breach the palace. Ageha was defeated and subdued before Hikari returned to declare Mugen dead.
+When [Hikari](hikari.md) and his forces launched their final assault on Ku, Ageha confronted the prince outside the royal palace, demanding that Hikari surrender. Before his soldiers could seize the prince, [Rai Mei](rai_mei.md) intervened and engaged Ageha in combat, giving Hikari the opening needed to breach the palace. Ageha was defeated and subdued before Hikari returned to declare Mugen dead.
 
 Following Hikari's ascension as king of Ku, Ageha was captured by Kazan and brought in secret to the [Tranquil Grotto](../../locations/hinoeuma/dungeons/tranquil_grotto.md), home to one of Solistia's [Sacred Flames](../../world/lore/sacred_flame_octopath_traveler_ii.md). There, Kazan revealed his true identity as Oboro and sacrificed Ageha with the Darkblood Blade to extinguish the holy fire.
 
 ## Quotes
 
-- *"Prince [Hikari](../travelers/hikari.md), you've arrived just in time. You rats have fallen straight into our trap... Lay down your arms and surrender."*
+- *"Prince [Hikari](hikari.md), you've arrived just in time. You rats have fallen straight into our trap... Lay down your arms and surrender."*

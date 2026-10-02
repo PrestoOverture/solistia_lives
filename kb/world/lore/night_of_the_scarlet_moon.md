@@ -9,7 +9,7 @@ source: ["Night of the Scarlet Moon"]
 > *"Moon and sun cross paths in the sky, world crosses path with world, and calamity comes to the island."*
 > —Master [Juvah](../../characters/ochette/juvah.md)
 
-The **Night of the Scarlet Moon** is a recurring cataclysmic phenomenon that befalls the island of [Toto'haha](../../locations/totohaha/totohaha.md) once every four hundred years. It forms the central threat during the journey of the hunter [Ochette](../../characters/travelers/ochette.md).
+The **Night of the Scarlet Moon** is a recurring cataclysmic phenomenon that befalls the island of [Toto'haha](../../locations/totohaha/totohaha.md) once every four hundred years. It forms the central threat during the journey of the hunter [Ochette](../../characters/ochette/ochette.md).
 
 ## Phenomenon and Origin
 

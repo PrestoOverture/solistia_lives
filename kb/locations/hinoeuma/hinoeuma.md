@@ -24,7 +24,7 @@ Hinoeuma borders the [Harborlands](../harborlands/harborlands.md) to the east, t
 
 ## Major Settlements
 
-- **[Ku: Castle Town](towns/ku_castle_town.md)**: A militaristic capital located at the southwestern tip of Solistia. Dominated by martial barracks and weapon smiths, it is ruled by the cursed, war-hungry Clan Ku and serves as the center of [Hikari Ku](../../characters/travelers/hikari.md)'s storyline.
+- **[Ku: Castle Town](towns/ku_castle_town.md)**: A militaristic capital located at the southwestern tip of Solistia. Dominated by martial barracks and weapon smiths, it is ruled by the cursed, war-hungry Clan Ku and serves as the center of [Hikari Ku](../../characters/hikari/hikari.md)'s storyline.
 - **[Sai](towns/sai.md)**: A fortified desert city built around ancient stone bastions. Formerly an important stronghold of the fallen realm of U, it is fraught with social tension between its native townsfolk and impoverished refugees huddled in its Eastern District.
 - **[Ryu](towns/ryu.md)**: A quiet desert waystation and trading post situated in the northwest sands. Serving as a crucial rest stop for caravans crossing the dunes, it is renowned as a hub where gossip and intelligence from across Solistia converge.
 

@@ -5,7 +5,7 @@ source: ["Darkling of the Sorrowful Moon"]
 ---
 # Darkling of the Sorrowful Moon
 
-The **Darkling of the Sorrowful Moon** is a tragic, monstrous creature born from the corruption and torture of [Ochette](../../characters/travelers/ochette.md)'s unchosen companion ([Akalā](../../characters/ochette/akala.md) or [Mahina](../../characters/ochette/mahina.md)). It serves as the catastrophic harbinger of the [Night of the Scarlet Moon](../lore/night_of_the_scarlet_moon.md).
+The **Darkling of the Sorrowful Moon** is a tragic, monstrous creature born from the corruption and torture of [Ochette](../../characters/ochette/ochette.md)'s unchosen companion ([Akalā](../../characters/ochette/akala.md) or [Mahina](../../characters/ochette/mahina.md)). It serves as the catastrophic harbinger of the [Night of the Scarlet Moon](../lore/night_of_the_scarlet_moon.md).
 
 ## Origin & Corruption
 

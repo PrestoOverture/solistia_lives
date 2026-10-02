@@ -8,7 +8,7 @@ source: ["Duskruin Shrine"]
 > "*...I'd stay away from the ruins to the east. Dangerous monsters have made their den there.*"
 > —Villager in [Gravell](../towns/gravell.md)
 
-The **Duskruin Shrine** is a sprawling ancient dungeon situated east of [Gravell](../towns/gravell.md) in the rugged [Wildlands](../wildlands.md). It serves as the opening section of the final dungeon during [Osvald V. Vanstein](../../../characters/travelers/osvald.md)'s quest for vengeance.
+The **Duskruin Shrine** is a sprawling ancient dungeon situated east of [Gravell](../towns/gravell.md) in the rugged [Wildlands](../wildlands.md). It serves as the opening section of the final dungeon during [Osvald V. Vanstein](../../../characters/osvald/osvald.md)'s quest for vengeance.
 
 ## History & Significance
 

@@ -27,11 +27,11 @@ Bandelam is clad in heavy gray armor and has dark hair, with a prominent scar ru
 
 Bandelam is driven by an intense lust for battle, claiming that he lives solely to fight—a bloodlust that initially led him to serve the unscrupulous Lord [Borneau](borneau.md). He strictly abides by an unyielding arena creed that dictates "defeat is death."
 
-Despite his brutality, Bandelam is a man of deep martial honor. When bested, he fully expects and demands execution to preserve his warrior's code. However, witnessing [Hikari](../travelers/hikari.md)'s selflessness and refusal to engage in needless slaughter profoundly alters his perspective on combat and purpose.
+Despite his brutality, Bandelam is a man of deep martial honor. When bested, he fully expects and demands execution to preserve his warrior's code. However, witnessing [Hikari](hikari.md)'s selflessness and refusal to engage in needless slaughter profoundly alters his perspective on combat and purpose.
 
 ## Story
 
-In [Montwise](../../locations/crestlands/towns/montwise.md), [Hikari Ku](../travelers/hikari.md) seeks out the strategist [Kazan](oboro.md), who is encumbered by crushing gambling debts owed to arena proprietor Lord [Borneau](borneau.md). To settle Kazan's accounts, Hikari enters the underground arena tournaments, aiming to challenge Borneau's personal champion, Bandelam.
+In [Montwise](../../locations/crestlands/towns/montwise.md), [Hikari Ku](hikari.md) seeks out the strategist [Kazan](oboro.md), who is encumbered by crushing gambling debts owed to arena proprietor Lord [Borneau](borneau.md). To settle Kazan's accounts, Hikari enters the underground arena tournaments, aiming to challenge Borneau's personal champion, Bandelam.
 
 After winning his match against [Zeto the Butcher](zeto.md), Hikari refuses to kill his defeated opponent, defying both the bloodthirsty spectators and the dark whispers of his [inner shadow](hikari_shadow.md). Bandelam enters the ring to execute Zeto himself, but Hikari intervenes and issues a formal challenge. Bandelam accepts, relishing the prospect of facing a worthy adversary.
 

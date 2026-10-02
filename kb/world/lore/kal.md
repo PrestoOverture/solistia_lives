@@ -19,7 +19,7 @@ Following Kal's victory, his successors formed the Keepers of the Flame. They sw
 
 Approximately thirty years before the journey of the eight travelers, the [Moonshade Order](../factions/moonshade_order.md) discovered the sanctuary and launched a brutal slaughter against the Kal, murdering the inhabitants and scattering their bones throughout the ruins.
 
-Decades later, the inquisitor [Temenos](../../characters/travelers/temenos.md) journeyed into the Fellsun Ruins during his investigation into the Moonshade Order. There he deciphered the murals recording Kal's duel with D'arqest, which concealed the chamber housing one of Solistia's four Sacred Flames.
+Decades later, the inquisitor [Temenos](../../characters/temenos/temenos.md) journeyed into the Fellsun Ruins during his investigation into the Moonshade Order. There he deciphered the murals recording Kal's duel with D'arqest, which concealed the chamber housing one of Solistia's four Sacred Flames.
 
 ## Known Members
 

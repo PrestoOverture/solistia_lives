@@ -6,7 +6,7 @@ source: ["Mother"]
 
 # Mother
 
-**Mother** is a co-leader of the [Blacksnakes](../../world/factions/blacksnakes.md) thieves' guild and one of the primary antagonists in [Throné Anguis](../travelers/throne.md)'s story alongside [Father](father.md). Valuing strict discipline and obedience above all else, Mother commands the guild's initiates through terror and torment, overseeing the recruitment and indoctrination of young thieves across Solistia.
+**Mother** is a co-leader of the [Blacksnakes](../../world/factions/blacksnakes.md) thieves' guild and one of the primary antagonists in [Throné Anguis](throne.md)'s story alongside [Father](father.md). Valuing strict discipline and obedience above all else, Mother commands the guild's initiates through terror and torment, overseeing the recruitment and indoctrination of young thieves across Solistia.
 
 ## Profile
 

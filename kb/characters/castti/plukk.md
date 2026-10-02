@@ -6,7 +6,7 @@ source: ["Plukk"]
 # Plukk
 
 > *"Little Miss Tough Girl here's on her way out of town. Show her the boot, and take her purse for the trouble!"*
-> — Plukk, confronting [Castti Florenz](../travelers/castti.md)
+> — Plukk, confronting [Castti Florenz](castti.md)
 
 > *"... No one loses their way in life on purpose."*
 > — Plukk, in [Winterbloom: Thieves' Quarter](../../locations/winterlands/towns/winterbloom_thieves_quarter.md)
@@ -30,7 +30,7 @@ Rowdy, loud-mouthed, and quick to violence, Plukk appears to be a standard ruffi
 In her youth, Plukk was sold to a brothel to settle family debts. While there, she suffered the loss of her left eye after lying to protect her closest companion. In an effort to take control of her own destiny and no longer remain at the mercy of fate, she abandoned that life and turned to banditry.
 
 ### Castti's Journey
-Plukk first appears during [Castti Florenz](../travelers/castti.md)'s travels in Winterbloom, working alongside her lackeys [Mikk](mikk_octopath_traveler_ii.md) and [Makk](makk_octopath_traveler_ii.md) as enforcers for [Greg](greg.md). Under Greg's direction, Plukk assists in kidnapping [Melia](melia.md) to coerce Castti into allowing Greg to inherit the town's estate from Lady [Rosa](rosa.md). Growing impatient with Greg's hesitation and speeches, Plukk disobeys his orders and attempts to force Castti out of town by violence. Castti soundly defeats Plukk and her henchmen, leaving Greg to answer for the plot.
+Plukk first appears during [Castti Florenz](castti.md)'s travels in Winterbloom, working alongside her lackeys [Mikk](mikk_octopath_traveler_ii.md) and [Makk](makk_octopath_traveler_ii.md) as enforcers for [Greg](greg.md). Under Greg's direction, Plukk assists in kidnapping [Melia](melia.md) to coerce Castti into allowing Greg to inherit the town's estate from Lady [Rosa](rosa.md). Growing impatient with Greg's hesitation and speeches, Plukk disobeys his orders and attempts to force Castti out of town by violence. Castti soundly defeats Plukk and her henchmen, leaving Greg to answer for the plot.
 
 ### Redemption
 Following the conclusion of Castti's journey and the demise of [Bergomi](../throne/bergomi.md), Plukk assumes command of the surviving remnants of the [Snowhares](../../world/factions/snowhares.md) in Winterbloom. Although thieving has significantly slowed down, Plukk staunchly refuses to revive the brutal human trafficking trade operated by the syndicate's former leader.

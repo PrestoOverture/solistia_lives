@@ -9,7 +9,7 @@ source: ["Laila"]
 > *"When I dance... my heart feels warm. All the bad thoughts in my head disappear. And I'm filled with happiness."*  
 > — Laila
 
-**Laila** is an orphaned dancer from [Sai: East District](../../locations/hinoeuma/towns/sai_east_district.md) in *Octopath Traveler II*. She plays a prominent supporting role in [Agnea Bristarni](../travelers/agnea.md)'s tale.
+**Laila** is an orphaned dancer from [Sai: East District](../../locations/hinoeuma/towns/sai_east_district.md) in *Octopath Traveler II*. She plays a prominent supporting role in [Agnea Bristarni](agnea.md)'s tale.
 
 ## Profile
 

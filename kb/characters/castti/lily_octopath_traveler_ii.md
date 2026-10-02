@@ -9,7 +9,7 @@ source: ["Lily (Octopath Traveler II)"]
 > *"I... wish to live to watch Lady Melia grow and thrive, for as long as I am able."*  
 > — Lily, in [Winterbloom](../../locations/winterlands/towns/winterbloom.md)
 
-**Lily** is the devoted butler and assistant to Lady [Rosa](rosa.md) of House Glenville in *Octopath Traveler II*. She plays a key supporting role in [Castti Florenz](../travelers/castti.md)'s storyline in [Winterbloom](../../locations/winterlands/towns/winterbloom.md).
+**Lily** is the devoted butler and assistant to Lady [Rosa](rosa.md) of House Glenville in *Octopath Traveler II*. She plays a key supporting role in [Castti Florenz](castti.md)'s storyline in [Winterbloom](../../locations/winterlands/towns/winterbloom.md).
 
 ## Profile
 
@@ -37,6 +37,6 @@ Following the ordeal, Greg returns to the manor in contrition. On Melia's twelft
 
 ## Quotes
 
-- *"Oh... my... If it isn't [Castti](../travelers/castti.md)!"* — Greeting Castti in Winterbloom
+- *"Oh... my... If it isn't [Castti](castti.md)!"* — Greeting Castti in Winterbloom
 - *"Phew... Age is really catching up to me. The fatigue takes a long time to go away now."* — In Winterbloom by day
 - *"I... wish to live to watch Lady Melia grow and thrive, for as long as I am able."* — In Winterbloom by night

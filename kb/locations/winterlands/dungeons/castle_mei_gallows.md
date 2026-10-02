@@ -9,7 +9,7 @@ source: ["Castle Mei: Gallows"]
 > *"Are you truly putting Prince Hikari to the sword?"*
 > — Kunzo to Rai Mei
 
-**Castle Mei: Gallows** is an execution platform and high tower within [Stormhail: Castle Mei](../towns/stormhail_castle_mei.md) in the [Winterlands](../winterlands.md). Reached by ascending through [Castle Mei: East Tower](castle_mei_east_tower.md), it serves as the climactic setting for [Hikari Ku](../../../characters/travelers/hikari.md)'s confrontation with [Rai Mei](../../../characters/hikari/rai_mei.md).
+**Castle Mei: Gallows** is an execution platform and high tower within [Stormhail: Castle Mei](../towns/stormhail_castle_mei.md) in the [Winterlands](../winterlands.md). Reached by ascending through [Castle Mei: East Tower](castle_mei_east_tower.md), it serves as the climactic setting for [Hikari Ku](../../../characters/hikari/hikari.md)'s confrontation with [Rai Mei](../../../characters/hikari/rai_mei.md).
 
 ## Overview & Story
 

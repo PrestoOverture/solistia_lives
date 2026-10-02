@@ -19,6 +19,6 @@ The quarter also attracts outcasts from other regions; outside the tavern at nig
 
 ## Story Events
 
-During Chapter 2 of [Throné Anguis](../../../characters/travelers/throne.md)'s journey ([Father](../../../characters/throne/father.md)'s Route), Throné arrives in Winterbloom's Thieves' Quarter to meet with Father. Upon arriving at the local tavern, she is assaulted by three thugs whom she quickly dispatches, only to find Father had arranged the encounter to test her edge.
+During Chapter 2 of [Throné Anguis](../../../characters/throne/throne.md)'s journey ([Father](../../../characters/throne/father.md)'s Route), Throné arrives in Winterbloom's Thieves' Quarter to meet with Father. Upon arriving at the local tavern, she is assaulted by three thugs whom she quickly dispatches, only to find Father had arranged the encounter to test her edge.
 
 Father assigns her to help him raid the nearby [Snowhares' Den](../dungeons/snowhares_den.md) to execute [Bergomi](../../../characters/throne/bergomi.md), leader of the rival Snowhares gang. Sensing an opening to break her collar, Throné resolves to strike Father down during the chaos. Although they successfully neutralize Bergomi, Father anticipates Throné's intent and turns on her first, wounding her and leaving her behind in the den before she can regroup for another attempt on his life.

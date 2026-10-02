@@ -6,12 +6,12 @@ source: ["Rita Lumina"]
 
 # Rita Lumina
 
-> "*Oh, [Osvald](../travelers/osvald.md)... How I long to be with you. To ease your pain. To get you looking presentable again. To make you some goulash, with [Elena](elena_vanstein.md). Alas, my dear, I cannot. You have unfinished business. So you cannot stay here. For it is not yet time. I love you, my dear.*"
+> "*Oh, [Osvald](osvald.md)... How I long to be with you. To ease your pain. To get you looking presentable again. To make you some goulash, with [Elena](elena_vanstein.md). Alas, my dear, I cannot. You have unfinished business. So you cannot stay here. For it is not yet time. I love you, my dear.*"
 > — Rita, to Osvald after her death
 
 ## Overview
 
-**Rita Lumina** was the wife of [Osvald V. Vanstein](../travelers/osvald.md), mother of [Elena Vanstein](elena_vanstein.md), and a descendant of the [Lumina Clan](../../world/factions/lumina_clan.md).
+**Rita Lumina** was the wife of [Osvald V. Vanstein](osvald.md), mother of [Elena Vanstein](elena_vanstein.md), and a descendant of the [Lumina Clan](../../world/factions/lumina_clan.md).
 
 ## Profile
 

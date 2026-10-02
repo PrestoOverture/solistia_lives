@@ -9,4 +9,4 @@ The **Southern Cape Cold Snows** is a snowy field route situated in the [Winterl
 
 ## Story & Events
 
-For travelers arriving from the frozen north, this passage represents the southern boundary of the Winterlands where the snowfields meet the warmer climes of the Brightlands. If [Osvald](../../../characters/travelers/osvald.md) is chosen as the starting traveler upon escaping [Frigit Isle](../towns/frigit_isle.md), the side story *[The Traveler's Bag](../../../stories/side_stories/the_travelers_bag.md)* takes place along this road when an itinerant traveler is ambushed by bandits.
+For travelers arriving from the frozen north, this passage represents the southern boundary of the Winterlands where the snowfields meet the warmer climes of the Brightlands. If [Osvald](../../../characters/osvald/osvald.md) is chosen as the starting traveler upon escaping [Frigit Isle](../towns/frigit_isle.md), the side story *[The Traveler's Bag](../../../stories/side_stories/the_travelers_bag.md)* takes place along this road when an itinerant traveler is ambushed by bandits.

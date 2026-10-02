@@ -17,4 +17,4 @@ Timberain Castle rises above the town, connected below to the [Timberain Castle:
 
 ## Story Events
 
-During Chapter 4 of [Castti Florenz](../../../characters/travelers/castti.md)'s journey, the fallen apothecary [Trousseau](../../../characters/castti/trousseau.md) infiltrates the royal stronghold to unleash a lethal airborne deluge upon the city during the prince's coronation celebrations. Trousseau leaves a trail of unconscious castle guards behind him, having rendered them into deep slumber with medicinal sedatives to reach the castle heights unobstructed. Castti ascends the silent halls of the castle to confront him on the roof.
+During Chapter 4 of [Castti Florenz](../../../characters/castti/castti.md)'s journey, the fallen apothecary [Trousseau](../../../characters/castti/trousseau.md) infiltrates the royal stronghold to unleash a lethal airborne deluge upon the city during the prince's coronation celebrations. Trousseau leaves a trail of unconscious castle guards behind him, having rendered them into deep slumber with medicinal sedatives to reach the castle heights unobstructed. Castti ascends the silent halls of the castle to confront him on the roof.

@@ -8,7 +8,7 @@ source: ["Mira and the Elderly Guard's Next Chapter"]
 "*Could you help me find [Mira](../../characters/throne/mira.md)? I remember her saying something about a gondola...*"
 —*[Elderly Guard](../../characters/throne/elderly_guard.md)*
 
-**Mira and the Elderly Guard's Next Chapter** is a tale in the [Leaflands](../../locations/leaflands/leaflands.md), taking place following the conclusion of [Throné](../../characters/travelers/throne.md)'s journey.
+**Mira and the Elderly Guard's Next Chapter** is a tale in the [Leaflands](../../locations/leaflands/leaflands.md), taking place following the conclusion of [Throné](../../characters/throne/throne.md)'s journey.
 
 ## The Lost Orphan
 

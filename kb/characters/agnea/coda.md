@@ -6,7 +6,7 @@ source: ["Coda"]
 
 # Coda
 
-**Coda** is a 19-year-old performer and flutist in [Giselle](giselle.md)'s Traveling Troupe who appears during [Agnea Bristarni](../travelers/agnea.md)'s journey. Clumsy yet charming, she brings warmth and entertainment to the stage, often performing in tandem with fellow performer [Rico](rico.md).
+**Coda** is a 19-year-old performer and flutist in [Giselle](giselle.md)'s Traveling Troupe who appears during [Agnea Bristarni](agnea.md)'s journey. Clumsy yet charming, she brings warmth and entertainment to the stage, often performing in tandem with fellow performer [Rico](rico.md).
 
 ## Profile
 

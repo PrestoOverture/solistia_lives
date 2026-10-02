@@ -24,6 +24,6 @@ Deep within the trail, concealed inside a secluded cavern overhung by thick curt
 
 ## Environment and Inhabitants
 
-- **Perpetual Rain**: The trail is notable for being enveloped in near-constant rainfall. The weeping canopy foreshadows the tragic downpour that surrounds [Timberain](../towns/timberain.md) during the climax of [Castti Florenz](../../../characters/travelers/castti.md)'s quest against [Trousseau](../../../characters/castti/trousseau.md).
+- **Perpetual Rain**: The trail is notable for being enveloped in near-constant rainfall. The weeping canopy foreshadows the tragic downpour that surrounds [Timberain](../towns/timberain.md) during the climax of [Castti Florenz](../../../characters/castti/castti.md)'s quest against [Trousseau](../../../characters/castti/trousseau.md).
 - **Travelers**: Itinerant Sacred Guard clerics periodically pass through the woods, including a knight and squire who seek shelter beneath rock overhangs at night, and a devout traveler who meditates before the path's great central tree.
 - **Wildlife**: Indigenous fauna includes tribes of Woodland Birdians and Birdkings, Demon Deer, Forest Foxes, Red Foxes, Giant Boars, Gargantuan Boars, Porcupines, Silky Cocoons, and Great Silk Moths.

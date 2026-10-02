@@ -6,7 +6,7 @@ source: ["Masoud's Daughter"]
 
 # Masoud's Daughter
 
-**Masoud's Daughter** is a 27-year-old resident of [Sai](../../locations/hinoeuma/towns/sai.md) and the only child of the legendary merchant [Masoud](masoud.md). She plays an instrumental role in [Partitio Yellowil](../travelers/partitio.md)'s Scent of Commerce journey in [Hinoeuma](../../locations/hinoeuma/hinoeuma.md).
+**Masoud's Daughter** is a 27-year-old resident of [Sai](../../locations/hinoeuma/towns/sai.md) and the only child of the legendary merchant [Masoud](masoud.md). She plays an instrumental role in [Partitio Yellowil](partitio.md)'s Scent of Commerce journey in [Hinoeuma](../../locations/hinoeuma/hinoeuma.md).
 
 ## Profile
 

@@ -6,7 +6,7 @@ source: ["Masoud"]
 
 # Masoud
 
-**Masoud** is a 60-year-old legendary retired merchant residing at the top of the hill in [Sai](../../locations/hinoeuma/towns/sai.md) in [Hinoeuma](../../locations/hinoeuma/hinoeuma.md). During his active years, he became renowned for pioneering trade across both continents when travel routes were still perilous and undeveloped. He authored *[The Mercantile Manuscript](../../stories/documents/masoud_script.md)*, a multi-volume treatise revered by merchants throughout Solistia. He is featured prominently in [Partitio Yellowil](../travelers/partitio.md)'s Scent of Commerce storyline in Sai.
+**Masoud** is a 60-year-old legendary retired merchant residing at the top of the hill in [Sai](../../locations/hinoeuma/towns/sai.md) in [Hinoeuma](../../locations/hinoeuma/hinoeuma.md). During his active years, he became renowned for pioneering trade across both continents when travel routes were still perilous and undeveloped. He authored *[The Mercantile Manuscript](../../stories/documents/masoud_script.md)*, a multi-volume treatise revered by merchants throughout Solistia. He is featured prominently in [Partitio Yellowil](partitio.md)'s Scent of Commerce storyline in Sai.
 
 ## Profile
 
@@ -26,6 +26,6 @@ Following a subtle hint from Masoud's daughter that the riddle concerns what Mas
 
 ## Quotes
 
-- "*Prove your worth to me, oh nobody of supposed talent.*" — To [Partitio Yellowil](../travelers/partitio.md)
+- "*Prove your worth to me, oh nobody of supposed talent.*" — To [Partitio Yellowil](partitio.md)
 - "*The Mercantile Manuscript is in here. Peruse it at your leisure.*"
 - "*Here again, at this hour? You're very passionate about your merchant studies.*"

@@ -9,7 +9,7 @@ source: ["Kaldena"]
 > *"I will make the [Shadow](../../world/lore/shadow.md) mine and avenge the [Kal](../../world/lore/kal.md) people! I will kill as many as it takes! I will become whatever I must to see my will done!"*
 > — Captain Kaldena, confronting Temenos Mistral
 
-**Captain Kaldena**, born **Dena**, was the supreme commander of the [Sacred Guard](../../world/factions/sacred_guard.md) and the primary antagonist of [Temenos Mistral](../travelers/temenos.md)'s journey. Driven by a thirst to avenge the genocide of her people, she secretly subverted the church's holy order from within, conspiring to wield the power of the [Shadow](../../world/lore/shadow.md).
+**Captain Kaldena**, born **Dena**, was the supreme commander of the [Sacred Guard](../../world/factions/sacred_guard.md) and the primary antagonist of [Temenos Mistral](temenos.md)'s journey. Driven by a thirst to avenge the genocide of her people, she secretly subverted the church's holy order from within, conspiring to wield the power of the [Shadow](../../world/lore/shadow.md).
 
 ## Profile
 

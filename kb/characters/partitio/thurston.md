@@ -9,7 +9,7 @@ source: ["Thurston"]
 > *"Forget your silly dreams, [Floyd](floyd.md). They're not needed here."*  
 > — Thurston
 
-**Thurston** is a character in *Octopath Traveler II*. He initially serves as the ruthless, hyper-efficient secretary to industrial magnate [Roque](roque_brilliante.md) before reforming and entering [Partitio](../travelers/partitio.md)'s employment.
+**Thurston** is a character in *Octopath Traveler II*. He initially serves as the ruthless, hyper-efficient secretary to industrial magnate [Roque](roque_brilliante.md) before reforming and entering [Partitio](partitio.md)'s employment.
 
 ## Profile
 
@@ -34,7 +34,7 @@ Following his defeat at Wellgrove, Partitio forgave him and recognized his tenac
 For many years, Thurston served as the right-hand secretary to [Roque](roque_brilliante.md) at the [Roque Company](../../world/factions/roque_company.md). His unyielding enforcement of productivity quotas earned him enmity among workers in [Clockbank: Industrial District](../../locations/brightlands/towns/clockbank_industrial_district.md), where one employee was fired after punching Thurston during a dispute over grueling working hours.
 
 ### Partitio's Tale
-Thurston first encounters [Partitio](../travelers/partitio.md) in [Clockbank](../../locations/brightlands/towns/clockbank.md), where he attempts to extort taxes from the youth [Will](will.md). Partitio drives him away, but Thurston soon attempts to seize control of [Floyd](floyd.md)'s newly designed steam engine on behalf of the Roque Company. When Partitio steps in to protect Floyd, Thurston unleashes the company attack hound [Garnet](garnet.md), though Partitio overcomes the beast. Along with Floyd and the journalist [Ori](ori.md), Thurston witnesses Roque agreeing to sell the steam engine rights to Partitio for eighty billion leaves.
+Thurston first encounters [Partitio](partitio.md) in [Clockbank](../../locations/brightlands/towns/clockbank.md), where he attempts to extort taxes from the youth [Will](will.md). Partitio drives him away, but Thurston soon attempts to seize control of [Floyd](floyd.md)'s newly designed steam engine on behalf of the Roque Company. When Partitio steps in to protect Floyd, Thurston unleashes the company attack hound [Garnet](garnet.md), though Partitio overcomes the beast. Along with Floyd and the journalist [Ori](ori.md), Thurston witnesses Roque agreeing to sell the steam engine rights to Partitio for eighty billion leaves.
 
 Following the scandal in Clockbank, Roque summarily fired Thurston. Blaming Partitio for his ruined career, Thurston tracked him to [Wellgrove](../../locations/leaflands/towns/wellgrove.md) in an attempt to assassinate both Partitio and the wealthy noble [Alrond](alrond_rondwell.md) to win back Roque's favor. Operating a concealed steam-powered machine shrouded in fog (Enemy in the Mist), Thurston was defeated once the engine was destroyed. Instead of abandoning him, Partitio reprimanded Thurston's misdeeds but praised his persistence and offered him a job once the steam engine contract was secured. Utterly humbled, Thurston accepted.
 

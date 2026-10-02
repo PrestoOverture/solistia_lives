@@ -9,7 +9,7 @@ source: ["Davids"]
 > "*Ohoho! You're not the first, you know. I've seen countless like you. So many have tried, and every last one died a tragic death. And so it would be my honor to put you back in your place!*"
 > — Warden Davids, before battle
 
-**Warden Davids** is the sadistic prison warden of [Frigit Isle](../../locations/winterlands/towns/frigit_isle.md) and the Chapter 1 antagonist in [Osvald V. Vanstein](../travelers/osvald.md)'s story in *Octopath Traveler II*.
+**Warden Davids** is the sadistic prison warden of [Frigit Isle](../../locations/winterlands/towns/frigit_isle.md) and the Chapter 1 antagonist in [Osvald V. Vanstein](osvald.md)'s story in *Octopath Traveler II*.
 
 ## Profile
 
@@ -27,7 +27,7 @@ Davids is a cold, uncaring, and sadistic warden who takes intense pleasure in to
 ## Biography
 
 ### Prior to Story
-During his tenure as warden of the frozen penal colony on [Frigit Isle](../../locations/winterlands/towns/frigit_isle.md), Davids received [Osvald](../travelers/osvald.md) into custody following his life sentence for the murder of his wife and child. To prevent Osvald from casting magic, Davids had him fitted with an iron muzzle of his own design. For five years, Davids abused and tormented Osvald and the other inmates, forcing them to labor in the prison mines extracting materials for extra profit.
+During his tenure as warden of the frozen penal colony on [Frigit Isle](../../locations/winterlands/towns/frigit_isle.md), Davids received [Osvald](osvald.md) into custody following his life sentence for the murder of his wife and child. To prevent Osvald from casting magic, Davids had him fitted with an iron muzzle of his own design. For five years, Davids abused and tormented Osvald and the other inmates, forcing them to labor in the prison mines extracting materials for extra profit.
 
 ### Osvald's Escape
 One day, Davids and his guards overheard another inmate crying for help after being mugged by Osvald, who was retrieving a stolen notebook. Entering the cell, Davids administered a beating to Osvald before leaving. The next day, when that same inmate collapsed outside the mines from the extreme cold, Davids beat the fallen man repeatedly and demanded he resume working, stopping only when a guard informed him the prisoner had already died.

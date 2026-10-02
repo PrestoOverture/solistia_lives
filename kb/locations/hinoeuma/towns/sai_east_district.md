@@ -16,7 +16,7 @@ The structures in the East District were originally erected as the fortification
 
 ## Landmarks & Inhabitants
 
-- **Mother's Statue**: A memorial statue erected in tribute to [Cuani](../../../characters/agnea/cuani_bristarni.md), standing as an emblem of hope for the downtrodden. Two decades prior, Cuani danced throughout this district and mentored the young orphan [Dolcinaea](../../../characters/agnea/dolcinaea_luciel.md). During [Agnea Bristarni](../../../characters/travelers/agnea.md)'s fourth chapter, the statue is destroyed in the conflict over the town's ownership.
+- **Mother's Statue**: A memorial statue erected in tribute to [Cuani](../../../characters/agnea/cuani_bristarni.md), standing as an emblem of hope for the downtrodden. Two decades prior, Cuani danced throughout this district and mentored the young orphan [Dolcinaea](../../../characters/agnea/dolcinaea_luciel.md). During [Agnea Bristarni](../../../characters/agnea/agnea.md)'s fourth chapter, the statue is destroyed in the conflict over the town's ownership.
 - **The Orphanage**: A shelter for impoverished children maintained by [Platt](../../../characters/agnea/platt.md) and his wife.
 - **Dolcinaea's Old Dwelling**: A secluded warehouse in the heart of the district where Dolcinaea lived in extreme poverty prior to her stardom. The quarters contain simple worn attire, a poster of Cuani, and the [Dancer's Journal](../../../stories/documents/dancers_journal_script.md).
 - **Drifters and Outcasts**: The district's night markets and dusty alleys attract transient wanderers, including an exiled swordswoman fugitive and an itinerant thief marked by chains on his wrists.

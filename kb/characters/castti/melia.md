@@ -6,7 +6,7 @@ source: ["Melia"]
 
 # Melia
 
-**Lady Melia Glenville** is the young ruler of [Winterbloom](../../locations/winterlands/towns/winterbloom.md) who appears during [Castti Florenz](../travelers/castti.md)'s journey.
+**Lady Melia Glenville** is the young ruler of [Winterbloom](../../locations/winterlands/towns/winterbloom.md) who appears during [Castti Florenz](castti.md)'s journey.
 
 ## Overview
 
@@ -34,7 +34,7 @@ Despite her tender years, Melia possesses poise, solemnity, and maturity well be
 
 Melia grew up in Winterbloom as the daughter of Lady [Rosa](rosa.md) Glenville. When Rosa fell ill with a debilitating, degenerative disease that slowly paralyzed her limbs, numerous physicians and herbalists attempted to heal her without success. Among them was the compassionate apothecary [Trousseau](trousseau.md), with whom Melia developed a close bond.
 
-Eventually, [Castti Florenz](../travelers/castti.md) and [Malaya](malaya.md) of [Eir's Apothecaries](../../world/factions/eirs_apothecaries.md) arrived in town and formulated a medicinal regimen capable of arresting the illness's progression. Before departing, Castti provided herbal seeds and helped Melia cultivate a dedicated greenhouse garden at the Glenville manor to guarantee an enduring supply of medicine for Rosa.
+Eventually, [Castti Florenz](castti.md) and [Malaya](malaya.md) of [Eir's Apothecaries](../../world/factions/eirs_apothecaries.md) arrived in town and formulated a medicinal regimen capable of arresting the illness's progression. Before departing, Castti provided herbal seeds and helped Melia cultivate a dedicated greenhouse garden at the Glenville manor to guarantee an enduring supply of medicine for Rosa.
 
 ### The Abduction and Succession
 

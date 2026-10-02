@@ -9,7 +9,7 @@ source: ["Stenvar"]
 > *"Facts are malleable things, you see. The powerful can bend 'em to their will. Provided they have enough coin, that is."*  
 > — Captain Stenvar
 
-**Captain Stenvar** is a character in *Octopath Traveler II*. A corrupt officer stationed at [Conning Creek](../../locations/harborlands/towns/conning_creek.md), he conspired with [Harvey](harvey.md) to frame [Osvald](../travelers/osvald.md) for murder in exchange for substantial bribes.
+**Captain Stenvar** is a character in *Octopath Traveler II*. A corrupt officer stationed at [Conning Creek](../../locations/harborlands/towns/conning_creek.md), he conspired with [Harvey](harvey.md) to frame [Osvald](osvald.md) for murder in exchange for substantial bribes.
 
 ## Profile
 
@@ -29,7 +29,7 @@ Stenvar is a completely venal and unscrupulous man driven purely by monetary gre
 ## History
 
 ### Background
-Stenvar served as a member of the local security forces in the Harborlands port town of [Conning Creek](../../locations/harborlands/towns/conning_creek.md). Five years prior to the main narrative, he met with [Harvey](harvey.md), a scholar from [Montwise](../../locations/crestlands/towns/montwise.md) and member of the [Moonshade Order](../../world/factions/moonshade_order.md). Bribed handsomely, Stenvar orchestrated the arrest and wrongful conviction of [Osvald](../travelers/osvald.md) for the murder of Osvald's wife [Rita](rita_lumina.md) and daughter [Elena](elena_vanstein.md).
+Stenvar served as a member of the local security forces in the Harborlands port town of [Conning Creek](../../locations/harborlands/towns/conning_creek.md). Five years prior to the main narrative, he met with [Harvey](harvey.md), a scholar from [Montwise](../../locations/crestlands/towns/montwise.md) and member of the [Moonshade Order](../../world/factions/moonshade_order.md). Bribed handsomely, Stenvar orchestrated the arrest and wrongful conviction of [Osvald](osvald.md) for the murder of Osvald's wife [Rita](rita_lumina.md) and daughter [Elena](elena_vanstein.md).
 
 Following Osvald's sentencing and imprisonment on [Frigit Isle](../../locations/winterlands/towns/frigit_isle.md), Stenvar rose through the ranks to become captain of the town guard. To secure his grip on the garrison, he replaced most of the honorable municipal guards with mercenary ruffians brought over from the eastern continent. When Ethan, one of his subordinates and the husband of [Clarissa](clarissa.md), confronted Stenvar after discovering his clandestine meetings with Harvey, Stenvar murdered him and staged the scene to appear as a suicide.
 

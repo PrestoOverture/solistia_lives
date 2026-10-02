@@ -6,7 +6,7 @@ source: ["Five-Tiered Tower"]
 
 # Five-Tiered Tower
 
-The **Five-Tiered Tower** is an ancient tower and trial dungeon located at [Castle Ku: Entrance](../towns/castle_ku_entrance.md) in the region of [Hinoeuma](../hinoeuma.md), within the city of [Ku](../../../world/nations/ku.md). It can only be entered once [Hikari](../../../characters/travelers/hikari.md)'s journey is concluded.
+The **Five-Tiered Tower** is an ancient tower and trial dungeon located at [Castle Ku: Entrance](../towns/castle_ku_entrance.md) in the region of [Hinoeuma](../hinoeuma.md), within the city of [Ku](../../../world/nations/ku.md). It can only be entered once [Hikari](../../../characters/hikari/hikari.md)'s journey is concluded.
 
 ## Overview
 

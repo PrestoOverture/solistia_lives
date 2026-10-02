@@ -10,7 +10,7 @@ The **Archmage D'arqest** is a legendary ancient sorcerer whose mastery of the [
 
 ## History
 
-D'arqest's dark deeds and magical achievements spanned multiple continents and eras. Centered in Solistian myth and dark history, he was an ancient figure of potentially royal lineage, whose bloodline extends to his grandson [Claude](../throne/claude_blacksnakes.md), his great-granddaughter [Throné Anguis](../travelers/throne.md), and those cursed with the shadow-tainted blood of Clan [Ku](../../world/nations/ku.md). Later dark scholars, including [Harvey](../osvald/harvey.md), revered him as an ancestor.
+D'arqest's dark deeds and magical achievements spanned multiple continents and eras. Centered in Solistian myth and dark history, he was an ancient figure of potentially royal lineage, whose bloodline extends to his grandson [Claude](../throne/claude_blacksnakes.md), his great-granddaughter [Throné Anguis](../throne/throne.md), and those cursed with the shadow-tainted blood of Clan [Ku](../../world/nations/ku.md). Later dark scholars, including [Harvey](../osvald/harvey.md), revered him as an ancestor.
 
 ### The Kal and the Curse of the Beastlings
 In the distant past, D'arqest visited the [Kal](../../world/lore/kal.md) people and attempted to summon an eternal "night," summoning hordes of ravenous dark beasts to overwhelm the land. A legendary hero named Kal took up arms against him, channeling the radiance of the [Sacred Flame](../../world/lore/sacred_flame_octopath_traveler_ii.md) to thwart the ritual and drive the sorcerer away. Amidst the chaos, D'arqest placed a curse upon the greedy humans who squabbled around him, transforming them into the [Beastlings](../../world/species/beastling.md).
@@ -23,4 +23,4 @@ Following his death, D'arqest's body was interred deep within the [Duskruin Shri
 
 ## Quotes
 
-- *"D'arqest... The one who tried to call forth the night with an unholy ritual."* — [Temenos Mistral](../travelers/temenos.md)
+- *"D'arqest... The one who tried to call forth the night with an unholy ritual."* — [Temenos Mistral](../temenos/temenos.md)

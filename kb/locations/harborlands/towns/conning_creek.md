@@ -5,7 +5,7 @@ source: ["Conning Creek"]
 ---
 # Conning Creek
 
-**Conning Creek** is a coastal town located in the [Harborlands](../harborlands.md). It serves as the setting for [Ochette](../../../characters/travelers/ochette.md)'s Chapter 2 ([Cateracta](../../../world/beasts/cateracta.md) route), [Osvald](../../../characters/travelers/osvald.md)'s Chapter 3, and [Temenos](../../../characters/travelers/temenos.md) and [Throné](../../../characters/travelers/throne.md)'s Crossed Path (Part 2).
+**Conning Creek** is a coastal town located in the [Harborlands](../harborlands.md). It serves as the setting for [Ochette](../../../characters/ochette/ochette.md)'s Chapter 2 ([Cateracta](../../../world/beasts/cateracta.md) route), [Osvald](../../../characters/osvald/osvald.md)'s Chapter 3, and [Temenos](../../../characters/temenos/temenos.md) and [Throné](../../../characters/throne/throne.md)'s Crossed Path (Part 2).
 
 ## Overview
 
@@ -20,5 +20,5 @@ In the past, Conning Creek was protected by the sea guardian [Cateracta](../../.
 - **Seafood Cuisine**: The head chef at the local tavern is celebrated as the "God of Seafood Cuisine," renowned for whole roasted octopus, his lunch special "Chef's Choice on a Stick," and the dinner special "Rare Fish Supreme." His apprentices have traveled widely, disseminating his recipes and culinary seasonings throughout Solistia. His inventive daughter created the famous local specialty "octoball stew."
 - **Palatial Prodigy**: A young local girl is known among residents as the "Palatial Prodigy" due to her refined and sophisticated tastes.
 - **The Heirloomed Vest**: For generations, a prominent local lineage kept an heirloom vest believed to bestow fortune upon its wearer. Its current owner, a bedridden young girl living on the [Conning Creek: Outskirts](conning_creek_outskirts.md), suffers from a severe illness (intertwined with the quest [A Young Girl's Wish](../../../stories/side_stories/harborlands/a_young_girls_wish.md)).
-- **The Watch at the Ruins**: A solitary guard has spent five years continuously surveilling the burned remnants of [Osvald](../../../characters/travelers/osvald.md)'s former estate on the [outskirts](conning_creek_outskirts.md), stationed there under the direction of [Harvey](../../../characters/osvald/harvey.md).
+- **The Watch at the Ruins**: A solitary guard has spent five years continuously surveilling the burned remnants of [Osvald](../../../characters/osvald/osvald.md)'s former estate on the [outskirts](conning_creek_outskirts.md), stationed there under the direction of [Harvey](../../../characters/osvald/harvey.md).
 - **Sunken Cargo**: According to the leader of the Apothecaries' Guild, the legendary Double Tomahawk was recovered from an uncharted island but lost beneath the waves of the [Sundering Sea](../../sundering_sea/the_sundering_sea.md) when the transport vessel ran aground southwest of Conning Creek.

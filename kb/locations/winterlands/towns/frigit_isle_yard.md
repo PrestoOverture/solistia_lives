@@ -6,7 +6,7 @@ source: ["Frigit Isle: Yard"]
 
 # Frigit Isle: Yard
 
-> *"Forced labor is followed by a vanishingly small window of free time. It is in this free time that I review the remaining pieces of my plan."* — [Osvald](../../../characters/travelers/osvald.md)
+> *"Forced labor is followed by a vanishingly small window of free time. It is in this free time that I review the remaining pieces of my plan."* — [Osvald](../../../characters/osvald/osvald.md)
 
 **Frigit Isle: Yard** is the central courtyard and communal hub of the penal colony on [Frigit Isle](frigit_isle.md) in the [Winterlands](../winterlands.md).
 
@@ -22,6 +22,6 @@ Despite the prison's brutal regime, the compound houses a surprisingly large lib
 
 ## Notable Inhabitants
 
-The courtyard served as the meeting ground where [Osvald](../../../characters/travelers/osvald.md) coordinated his escape with [Emerald](../../../characters/osvald/emerald.md) and gathered necessary supplies and intelligence. Other individuals present in the yard included:
+The courtyard served as the meeting ground where [Osvald](../../../characters/osvald/osvald.md) coordinated his escape with [Emerald](../../../characters/osvald/emerald.md) and gathered necessary supplies and intelligence. Other individuals present in the yard included:
 - [Bale](../../../characters/osvald/bale_octopath_traveler_ii.md), a susceptible guard whose leverage Osvald exploited during his escape preparations.
 - Inmates convicted of major mainland crimes, including mass poisoners, illegal potion brewers, black-market smugglers, forgers, human traffickers, and serial arsonists.

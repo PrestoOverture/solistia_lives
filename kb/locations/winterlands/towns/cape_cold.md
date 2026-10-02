@@ -24,4 +24,4 @@ Despite the severe climate, the village maintains a steady livelihood:
 
 ## Story Significance
 
-Cape Cold serves as the mainland landfall for the scholar [Osvald V. Vanstein](../../../characters/travelers/osvald.md) after his harrowing breakout from Frigit Isle and treacherous ocean crossing, marking the close of Chapter 2 of his quest for vengeance.
+Cape Cold serves as the mainland landfall for the scholar [Osvald V. Vanstein](../../../characters/osvald/osvald.md) after his harrowing breakout from Frigit Isle and treacherous ocean crossing, marking the close of Chapter 2 of his quest for vengeance.

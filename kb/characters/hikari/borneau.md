@@ -28,7 +28,7 @@ Callous, greedy, and devoid of empathy, Borneau views human life purely as comme
 
 ## Story
 
-During [Hikari](../travelers/hikari.md)'s visit to Montwise, the strategist [Kazan](oboro.md) enters Hikari into underground matches to clear substantial gambling debts owed to Borneau. Kazan repeatedly places escalating wagers on Hikari's triumphs.
+During [Hikari](hikari.md)'s visit to Montwise, the strategist [Kazan](oboro.md) enters Hikari into underground matches to clear substantial gambling debts owed to Borneau. Kazan repeatedly places escalating wagers on Hikari's triumphs.
 
 Borneau is first encountered berating his captive gladiators, demanding they fight for his profit. When [Zeto the Butcher](zeto.md) steps forward and is defeated, Hikari refuses to execute him. Viewing mercy as an insult to paying spectators, Borneau orders Bandelam to finish Zeto, but Hikari intervenes and challenges Bandelam directly. To appease the baying audience, Borneau sanctions the championship bout.
 

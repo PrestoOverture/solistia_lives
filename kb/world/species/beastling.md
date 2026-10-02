@@ -24,7 +24,7 @@ The Beastling race was created during the ancient era by the Archmage [D'arqest]
 
 ## Culture and Society
 
-- **Language**: Beastlings possess their own spoken and written tongue. An ancient dialect known as "Ancient Beastling" is preserved by a few village elders, though community life relies as much on shared emotion and instinct as on formal vocabulary. While most Beastlings can comprehend common human speech, the anatomy of their snouts makes pronunciation difficult, leading many to converse in concise sentences. However, select individuals—such as the traveler [Ochette](../../characters/travelers/ochette.md)—attain full fluency.
+- **Language**: Beastlings possess their own spoken and written tongue. An ancient dialect known as "Ancient Beastling" is preserved by a few village elders, though community life relies as much on shared emotion and instinct as on formal vocabulary. While most Beastlings can comprehend common human speech, the anatomy of their snouts makes pronunciation difficult, leading many to converse in concise sentences. However, select individuals—such as the traveler [Ochette](../../characters/ochette/ochette.md)—attain full fluency.
 - **Diet & Economy**: Pure carnivores, Beastlings subsist almost exclusively on raw meat and cured jerky, lacking an indigenous culture of cooking or agriculture. In [Beasting Village](../../locations/totohaha/towns/beasting_village.md), dried jerky functions as the primary medium of exchange, and food is prioritized above virtually all else.
 - **Customs**: According to ancient custom, Beastlings present hand-crafted "amulets of affection" to those they wish to befriend. Primitive geometric symbols—such as sun and moon markings—serve as an early form of script, inscribed with plant sap and mud.
 
@@ -38,5 +38,5 @@ Tucked away beyond the [Wandering Wood](../../locations/totohaha/dungeons/wander
 
 ## Notable Beastlings
 
-- [Ochette](../../characters/travelers/ochette.md): One of the eight travelers of Solistia, chosen by Master Juvah to protect Toto'haha from the Night of the Scarlet Moon.
+- [Ochette](../../characters/ochette/ochette.md): One of the eight travelers of Solistia, chosen by Master Juvah to protect Toto'haha from the Night of the Scarlet Moon.
 - [Shirlutto](../../characters/temenos/shirlutto.md): An elder guide of the Wandering Wood who preserves the historical memory of D'arqest and the birth of the Beastlings.

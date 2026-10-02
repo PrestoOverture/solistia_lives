@@ -5,7 +5,7 @@ source: ["Misha"]
 ---
 # Misha
 
-> *"Master [Partitio](../travelers/partitio.md), I take it. Word has reached me you would be coming. The master's study is this way. If you'd follow me."*
+> *"Master [Partitio](partitio.md), I take it. Word has reached me you would be coming. The master's study is this way. If you'd follow me."*
 > — Misha, welcoming Partitio
 
 > *"I enjoy the night. ... The master is much less of a handful."*
@@ -27,7 +27,7 @@ Misha is completely devoted to Alrond and the welfare of Wellgrove. He is modest
 In his youth, Misha supported his family by collecting trash around Wellgrove to keep the streets clean. While working one day, a young man stopped to ask him about his labor and aspirations. After listening to Misha's story and ideals, the young man revealed himself to be [Alrond](alrond_rondwell.md) and offered him employment as his personal butler, a position Misha gratefully accepted.
 
 ### Journey with Partitio
-Years later, Misha greets the merchant [Partitio Yellowil](../travelers/partitio.md) at Alrond's estate, having been alerted by Alrond to expect his arrival after his master tested Partitio's character. Escorting Partitio to the study, Misha observes the negotiation over purchasing the steam engine rights for eighty billion leaves. Despite Misha's sensible objections to such an exorbitant sum, Alrond agrees to fund the contract on the condition that Partitio revitalize Wellgrove's stagnant commerce.
+Years later, Misha greets the merchant [Partitio Yellowil](partitio.md) at Alrond's estate, having been alerted by Alrond to expect his arrival after his master tested Partitio's character. Escorting Partitio to the study, Misha observes the negotiation over purchasing the steam engine rights for eighty billion leaves. Despite Misha's sensible objections to such an exorbitant sum, Alrond agrees to fund the contract on the condition that Partitio revitalize Wellgrove's stagnant commerce.
 
 While Partitio gathers supplies for the town's industrial development, Thurston—a former subordinate of [Roque](roque_brilliante.md)—attacks the estate. Misha steps between them to protect Alrond, enduring injuries and being subdued before Partitio arrives to defeat Thurston.
 

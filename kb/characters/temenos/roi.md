@@ -6,12 +6,12 @@ source: ["Roi"]
 
 # Roi
 
-> "*[Temenos](../travelers/temenos.md), I... I can no longer trust the church! You are the only person I *can* trust, apart from the [pontiff](jorg.md). As someone who was lifted up by the pontiff himself, I wish to confide in you.*"
+> "*[Temenos](temenos.md), I... I can no longer trust the church! You are the only person I *can* trust, apart from the [pontiff](jorg.md). As someone who was lifted up by the pontiff himself, I wish to confide in you.*"
 > — Roi
 
 ## Overview
 
-**Roi** was an inquisitor within the [Order of the Sacred Flame](../../world/factions/order_of_the_sacred_flame_octopath_traveler_ii.md), the adoptive brother and closest companion of [Temenos Mistral](../travelers/temenos.md), and an adoptive son of [Pontiff Jörg](jorg.md). His mysterious murder five years before the main story serves as the catalyst for Temenos's pursuit of truth behind the corruption festering within the church.
+**Roi** was an inquisitor within the [Order of the Sacred Flame](../../world/factions/order_of_the_sacred_flame_octopath_traveler_ii.md), the adoptive brother and closest companion of [Temenos Mistral](temenos.md), and an adoptive son of [Pontiff Jörg](jorg.md). His mysterious murder five years before the main story serves as the catalyst for Temenos's pursuit of truth behind the corruption festering within the church.
 
 ## Profile
 
@@ -34,4 +34,4 @@ Five years prior to the events of *Octopath Traveler II*, Roi discovered the dar
 Roi set out alone to neutralize or dispose of the Darkblood Bow. However, he was intercepted and murdered by operatives of the [Moonshade Order](../../world/factions/moonshade_order.md), who seized the bow and placed it in the hands of the cultist [Petrichor](../others/petrichor.md).
 
 ### Legacy
-Roi's memory profoundly shaped Temenos, reinforcing his conviction that doubt is an essential tool in finding the divine truth. Furthermore, dialogue and visual details strongly imply that the [Dark Entity](../ochette/dark_entity.md) fought by [Ochette](../travelers/ochette.md) in Toto'haha was a twisted incarnation created from Roi's remains or essence: upon its defeat, the creature's dying words echo what Roi said to Temenos before departing, and shredded remnants of a cleric's robe cling to its tail.
+Roi's memory profoundly shaped Temenos, reinforcing his conviction that doubt is an essential tool in finding the divine truth. Furthermore, dialogue and visual details strongly imply that the [Dark Entity](../ochette/dark_entity.md) fought by [Ochette](../ochette/ochette.md) in Toto'haha was a twisted incarnation created from Roi's remains or essence: upon its defeat, the creature's dying words echo what Roi said to Temenos before departing, and shredded remnants of a cleric's robe cling to its tail.

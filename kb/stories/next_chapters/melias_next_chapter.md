@@ -8,7 +8,7 @@ source: ["Melia's Next Chapter"]
 "*It seems the Snowhares are up to no good again. Would you be so kind as to investigate them for me?*"
 —*[Melia](../../characters/castti/melia.md)*
 
-**Melia's Next Chapter** is a tale in [Winterbloom](../../locations/winterlands/towns/winterbloom.md) in the [Winterlands](../../locations/winterlands/winterlands.md), taking place after the conclusion of [Castti](../../characters/travelers/castti.md)'s journey.
+**Melia's Next Chapter** is a tale in [Winterbloom](../../locations/winterlands/towns/winterbloom.md) in the [Winterlands](../../locations/winterlands/winterlands.md), taking place after the conclusion of [Castti](../../characters/castti/castti.md)'s journey.
 
 ## The Resurgent Snowhares
 

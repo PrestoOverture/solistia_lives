@@ -20,7 +20,7 @@ source: ["Elderly Guard"]
   - [Claude](claude_blacksnakes.md) (father)
   - [Guide](guide_thrones_story.md) (twin brother)
 
-The **Elderly Guard** is a character in *Octopath Traveler II* who serves as the gatekeeper of [Mother's Garden: Orphanage](../../locations/leaflands/wilds/mothers_garden_orphanage.md) in the story of [Throné Anguis](../travelers/throne.md). Unbeknownst to most, he is one of the many offspring of [Claude](claude_blacksnakes.md) and has tended the grounds of Mother's Garden since it was merely a rose bed. Following [Mother](mother.md)'s downfall, he dedicates his remaining years to protecting and nurturing the orphaned children as a surrogate father.
+The **Elderly Guard** is a character in *Octopath Traveler II* who serves as the gatekeeper of [Mother's Garden: Orphanage](../../locations/leaflands/wilds/mothers_garden_orphanage.md) in the story of [Throné Anguis](throne.md). Unbeknownst to most, he is one of the many offspring of [Claude](claude_blacksnakes.md) and has tended the grounds of Mother's Garden since it was merely a rose bed. Following [Mother](mother.md)'s downfall, he dedicates his remaining years to protecting and nurturing the orphaned children as a surrogate father.
 
 ## Appearance
 

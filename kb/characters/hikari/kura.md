@@ -9,7 +9,7 @@ source: ["Kura"]
 > *"There's no need for titles. I was born here, too, lest you forget."*  
 > — Kura, speaking to the commoners of [Ku](../../world/nations/ku.md)
 
-**Kura** was the second wife of King [Jigo Ku](jigo_ku.md) and the mother of [Hikari Ku](../travelers/hikari.md) in *Octopath Traveler II*.
+**Kura** was the second wife of King [Jigo Ku](jigo_ku.md) and the mother of [Hikari Ku](hikari.md) in *Octopath Traveler II*.
 
 ## Profile
 
@@ -17,7 +17,7 @@ source: ["Kura"]
 - **Gender**: Female
 - **Status**: Deceased
 - **Spouse**: [Jigo Ku](jigo_ku.md)
-- **Children**: [Hikari Ku](../travelers/hikari.md)
+- **Children**: [Hikari Ku](hikari.md)
 
 ### Appearance
 Kura wore her long black hair styled into an intricate traditional arrangement. She dressed in a sweeping cream-colored robe decorated with vibrant red, pink, and gold accents.

@@ -5,7 +5,7 @@ source: ["Shirlutto's Next Chapter"]
 ---
 # Shirlutto's Next Chapter
 
-**Shirlutto's Next Chapter** is a side story in the [Nameless Village](../../locations/totohaha/towns/nameless_village.md) on the island of [Toto'haha](../../locations/totohaha/totohaha.md), accessible after the conclusion of [Temenos](../../characters/travelers/temenos.md)'s fourth chapter.
+**Shirlutto's Next Chapter** is a side story in the [Nameless Village](../../locations/totohaha/towns/nameless_village.md) on the island of [Toto'haha](../../locations/totohaha/totohaha.md), accessible after the conclusion of [Temenos](../../characters/temenos/temenos.md)'s fourth chapter.
 
 ## Story
 

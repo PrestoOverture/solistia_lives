@@ -5,7 +5,7 @@ source: ["Jeyah"]
 ---
 # Jeyah
 
-**Jeyah** was the faithful horse belonging to [Eir's Apothecaries](../../world/factions/eirs_apothecaries.md). Accompanying the traveling healers throughout their journey across Solistia, Jeyah played a vital role in carrying the wounded [Castti Florenz](../travelers/castti.md) to safety following the tragedy of [Healeaks](../../locations/brightlands/towns/abandoned_village.md).
+**Jeyah** was the faithful horse belonging to [Eir's Apothecaries](../../world/factions/eirs_apothecaries.md). Accompanying the traveling healers throughout their journey across Solistia, Jeyah played a vital role in carrying the wounded [Castti Florenz](castti.md) to safety following the tragedy of [Healeaks](../../locations/brightlands/towns/abandoned_village.md).
 
 ## Profile
 

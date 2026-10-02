@@ -6,10 +6,10 @@ source: ["Juvah"]
 
 # Juvah
 
-> *"I have ruled as warden of the island for many years now, but I will die one day, just like the creature that gave us this meat. When that time comes, [Ochette](../travelers/ochette.md), the island will become your burden to bear."*
+> *"I have ruled as warden of the island for many years now, but I will die one day, just like the creature that gave us this meat. When that time comes, [Ochette](ochette.md), the island will become your burden to bear."*
 > — Master Juvah, to Ochette
 
-**Master Juvah** is the ancient Warden of the Isle, leader of the [Beastlings](../../world/species/beastling.md) of [Toto'haha](../../locations/totohaha/totohaha.md), and the adoptive father and mentor of [Ochette](../travelers/ochette.md). At over two centuries old, he serves as the primary protector of the island and guides Ochette to become his successor.
+**Master Juvah** is the ancient Warden of the Isle, leader of the [Beastlings](../../world/species/beastling.md) of [Toto'haha](../../locations/totohaha/totohaha.md), and the adoptive father and mentor of [Ochette](ochette.md). At over two centuries old, he serves as the primary protector of the island and guides Ochette to become his successor.
 
 ## Profile
 
@@ -20,7 +20,7 @@ source: ["Juvah"]
 - **Species**: Wardenbeast (Feline / Lion)
 - **Role**: Warden of the Isle / Leader of the Beastlings
 - **Location**: [Beasting Village](../../locations/totohaha/towns/beasting_village.md)
-- **Relatives**: [Ochette](../travelers/ochette.md) (adoptive daughter / apprentice)
+- **Relatives**: [Ochette](ochette.md) (adoptive daughter / apprentice)
 
 ### Appearance
 Juvah is a massive, majestic white [lion](../../world/species/felines.md) adorned with distinct blue markings across his back. His forelegs and tail are ornamented with elegant golden braids and metal bracelets, symbolizing his revered station.
@@ -57,5 +57,5 @@ After Ochette was thrown from the cliffs during the onslaught, Juvah rushed to t
 
 ## Quotes
 
-- *"I have ruled as warden of the island for many years now, but I will die one day, just like the creature that gave us this meat. When that time comes, [Ochette](../travelers/ochette.md), the island will become your burden to bear."* — Speaking to Ochette
+- *"I have ruled as warden of the island for many years now, but I will die one day, just like the creature that gave us this meat. When that time comes, [Ochette](ochette.md), the island will become your burden to bear."* — Speaking to Ochette
 - *"How much of my life, I wonder, have I spent here, gazing at the sea? And yet I would spend another lifetime here if I could. This view is home. It is the landscape I love."* — Resting at Beasting Village

@@ -21,7 +21,7 @@ Operating the solitary gondola to Lostseed, the Guide possesses an eerie and slo
 
 ## Story
 
-Years before [Throné Anguis](../travelers/throne.md) arrived, the Guide ferried her mother, [Marietta](marietta.md), across the chasm to Lostseed. To soothe her nervous anticipation, he shared the tale he recites to all travelers: the founding legend of Lostseed, in which a prince and princess from warring kingdoms fell in love and eloped with their loyal retainers, building Lostseed as a hidden sanctuary while their homelands tore each other apart in war.
+Years before [Throné Anguis](throne.md) arrived, the Guide ferried her mother, [Marietta](marietta.md), across the chasm to Lostseed. To soothe her nervous anticipation, he shared the tale he recites to all travelers: the founding legend of Lostseed, in which a prince and princess from warring kingdoms fell in love and eloped with their loyal retainers, building Lostseed as a hidden sanctuary while their homelands tore each other apart in war.
 
 The Guide continued operating the gondola across the years. When Throné journeyed along the Deserted Highroad in pursuit of Claude, she encountered the Guide and his gondola. He ferried her toward Lostseed while recounting the city's ancient founding. Throughout the journey, he offered cryptic remarks about how the turning gears of the gondola seemed to turn back time, observing that all riders are children of the same progenitor if one looks back far enough. While Throné sensed a strange familiarity in him, she could not initially place it. Upon disembarking at the gates of Lostseed, she realized his resemblance to the [Elderly Guard](elderly_guard.md) of Mother's orphanage.
 

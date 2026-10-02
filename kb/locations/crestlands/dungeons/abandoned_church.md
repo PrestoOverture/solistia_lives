@@ -11,4 +11,4 @@ The **Abandoned Church** is a ruined church and dungeon situated in the [Crestla
 
 The sanctuary is desolate and forgotten. In the past, [Marietta](../../../characters/throne/marietta.md) remarked on its melancholy state: "*What a sad little church... Blessed by no one, just like us.*"
 
-During her journey, [Throné Anguis](../../../characters/travelers/throne.md) travels through the Abandoned Traverse to the church to track down and confront [Father](../../../characters/throne/father.md) in the conclusion of her Chapter 3 route.
+During her journey, [Throné Anguis](../../../characters/throne/throne.md) travels through the Abandoned Traverse to the church to track down and confront [Father](../../../characters/throne/father.md) in the conclusion of her Chapter 3 route.

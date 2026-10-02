@@ -6,7 +6,7 @@ source: ["Lostseed"]
 
 # Lostseed
 
-**Lostseed** is a secluded, ruined town located in the [Brightlands](../brightlands.md), situated deep in the valley directly beneath the bustling metropolis of [New Delsta](new_delsta.md). It is accessed via the gondola across the [Deserted Highroad](../wilds/deserted_highroad.md) and leads directly to [Lostseed Castle](../dungeons/lostseed_castle.md). It is uncovered during Chapter 4 of [Throné Anguis](../../../characters/travelers/throne.md)'s journey as the ancestral seat and breeding ground of [Claude](../../../characters/throne/claude_blacksnakes.md).
+**Lostseed** is a secluded, ruined town located in the [Brightlands](../brightlands.md), situated deep in the valley directly beneath the bustling metropolis of [New Delsta](new_delsta.md). It is accessed via the gondola across the [Deserted Highroad](../wilds/deserted_highroad.md) and leads directly to [Lostseed Castle](../dungeons/lostseed_castle.md). It is uncovered during Chapter 4 of [Throné Anguis](../../../characters/throne/throne.md)'s journey as the ancestral seat and breeding ground of [Claude](../../../characters/throne/claude_blacksnakes.md).
 
 ## Geography and Atmosphere
 

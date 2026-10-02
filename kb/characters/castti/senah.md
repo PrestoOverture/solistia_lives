@@ -19,7 +19,7 @@ source: ["Senah"]
 Senah has short brown hair.
 
 ### Personality
-Earnest, ambitious, and proud of his brother, Senah speaks frequently of his brother's seafaring work. He is polite and deeply grateful to those who assist him, showing heartfelt appreciation to [Castti Florenz](../travelers/castti.md) after she cures his affliction.
+Earnest, ambitious, and proud of his brother, Senah speaks frequently of his brother's seafaring work. He is polite and deeply grateful to those who assist him, showing heartfelt appreciation to [Castti Florenz](castti.md) after she cures his affliction.
 
 ## History
 

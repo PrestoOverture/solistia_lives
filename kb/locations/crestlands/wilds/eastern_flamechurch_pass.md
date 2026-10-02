@@ -18,7 +18,7 @@ The pass serves as a central crossroads linking several distinct regions:
 
 ## Story and Events
 
-When the cleric [Temenos](../../../characters/travelers/temenos.md) embarks on his journey from Flamechurch as a starting traveler, he travels through the Eastern Flamechurch Pass and becomes involved in the side story [The Traveler's Bag](../../../stories/side_stories/the_travelers_bag.md).
+When the cleric [Temenos](../../../characters/temenos/temenos.md) embarks on his journey from Flamechurch as a starting traveler, he travels through the Eastern Flamechurch Pass and becomes involved in the side story [The Traveler's Bag](../../../stories/side_stories/the_travelers_bag.md).
 
 ## Wildlife
 

@@ -24,11 +24,11 @@ Audley wears a bright blue merchant's attire paired with a feathered hat, and ca
 
 ## Personality
 
-Enthusiastic and eloquent, Audley possesses a boundless passion for oddities and novel inventions, despite the frequent commercial struggles of his unusual inventory. He is fond of vibrant, alliterative speech and is deeply inspired by [Partitio Yellowil](../travelers/partitio.md)'s populist commercial vision.
+Enthusiastic and eloquent, Audley possesses a boundless passion for oddities and novel inventions, despite the frequent commercial struggles of his unusual inventory. He is fond of vibrant, alliterative speech and is deeply inspired by [Partitio Yellowil](partitio.md)'s populist commercial vision.
 
 ## Story
 
-During his travels through [Winterbloom](../../locations/winterlands/towns/winterbloom.md), [Partitio](../travelers/partitio.md) hears repeated cries for help coming from a house. Rushing inside, he discovers the building is deserted and realizes the looped sound is issuing from an unfamiliar mechanical device.
+During his travels through [Winterbloom](../../locations/winterlands/towns/winterbloom.md), [Partitio](partitio.md) hears repeated cries for help coming from a house. Rushing inside, he discovers the building is deserted and realizes the looped sound is issuing from an unfamiliar mechanical device.
 
 Audley returns home and introduces the machine as a "phonographic articulator." He explains that he has struggled to commercialize it because prospective clients prefer paper as a cheaper and more straightforward recording medium. Partitio suggests redirecting the invention toward preserving music rather than spoken words. Partitio sets out across Solistia to recruit three performers to test the device: a pianist from [Flamechurch](../../locations/crestlands/towns/flamechurch.md), a violinist from [Canalbrine](../../locations/harborlands/towns/canalbrine.md), and a guitarist from [Crackridge](../../locations/wildlands/towns/crackridge.md).
 

@@ -12,7 +12,7 @@ The **Montwise Underground Arena** is a clandestine fighting colosseum and sub-a
 
 ## Story
 
-During Chapter 2 of [Hikari](../../../characters/travelers/hikari.md)'s journey, the exiled prince journeys to Montwise to recruit the famed tactician [Kazan](../../../characters/hikari/oboro.md). Upon finding him, Kazan forces Hikari into the arena pit to fight a consecutive gauntlet of hardened combatants. Kazan places massive wagers on the young prince—hailed as the "Sword of the West"—using the escalating payouts to settle astronomical debts totaling billions of leaves.
+During Chapter 2 of [Hikari](../../../characters/hikari/hikari.md)'s journey, the exiled prince journeys to Montwise to recruit the famed tactician [Kazan](../../../characters/hikari/oboro.md). Upon finding him, Kazan forces Hikari into the arena pit to fight a consecutive gauntlet of hardened combatants. Kazan places massive wagers on the young prince—hailed as the "Sword of the West"—using the escalating payouts to settle astronomical debts totaling billions of leaves.
 
 After Hikari vanquishes the reigning champion, [Bandelam the Reaper](../../../characters/hikari/bandelam.md), Kazan orchestrates the downfall of the arena's corrupt owner, [Borneau](../../../characters/hikari/borneau.md). By liberating the oppressed gladiators from Borneau's cruel exploitation, Kazan and Hikari earn their unyielding loyalty, and the fighters pledge themselves to Hikari's campaign to reclaim Ku.
 

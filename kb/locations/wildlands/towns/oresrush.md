@@ -6,7 +6,7 @@ source: ["Oresrush"]
 
 # Oresrush
 
-**Oresrush** is a frontier mining town located in the [Wildlands](../wildlands.md). It is the hometown of the merchant [Partitio](../../../characters/travelers/partitio.md) and serves as the setting for the beginning of his journey, as well as the setting for [Throné](../../../characters/travelers/throne.md)'s pursuit of [Mother](../../../characters/throne/mother.md).
+**Oresrush** is a frontier mining town located in the [Wildlands](../wildlands.md). It is the hometown of the merchant [Partitio](../../../characters/partitio/partitio.md) and serves as the setting for the beginning of his journey, as well as the setting for [Throné](../../../characters/throne/throne.md)'s pursuit of [Mother](../../../characters/throne/mother.md).
 
 > *"We'll make this town twice as prosperous as it once was!"*
 > — Townsperson
@@ -33,7 +33,7 @@ Sixteen years before the present day, Oresrush did not exist; the site was merel
 Shortly following its peak, the original landowner bought back the settlement and levied ruinous taxes on the silver extraction. Deprived of their livelihood, the townspeople fell into bitter poverty, struggling without work and surviving on stale bread crusts while the buildings decayed.
 
 ### Revitalization
-Years later, [Partitio](../../../characters/travelers/partitio.md) rallied his lifelong friends—including [Ned](../../../characters/partitio/ned_octopath_traveler_ii.md), [Joe](../../../characters/partitio/joe.md), [Harry](../../../characters/partitio/harry_octopath_traveler_ii.md), and [Nikki](../../../characters/partitio/nikki.md)—to take a stand against the corrupt landowner's ruthless enforcer, [Giff](../../../characters/partitio/giff.md). By overcoming Giff and reclaiming the stolen silver, Partitio broke the oppressive monopoly, restored economic vitality to Oresrush, and inspired the townspeople to rebuild their home.
+Years later, [Partitio](../../../characters/partitio/partitio.md) rallied his lifelong friends—including [Ned](../../../characters/partitio/ned_octopath_traveler_ii.md), [Joe](../../../characters/partitio/joe.md), [Harry](../../../characters/partitio/harry_octopath_traveler_ii.md), and [Nikki](../../../characters/partitio/nikki.md)—to take a stand against the corrupt landowner's ruthless enforcer, [Giff](../../../characters/partitio/giff.md). By overcoming Giff and reclaiming the stolen silver, Partitio broke the oppressive monopoly, restored economic vitality to Oresrush, and inspired the townspeople to rebuild their home.
 
 ## Culture and Lore
 

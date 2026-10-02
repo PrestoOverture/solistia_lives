@@ -11,7 +11,7 @@ source: ["Rico"]
 
 ## Overview
 
-**Rico** is a twenty-year-old entertainer and key performer in [Giselle](giselle.md)'s Traveling Troupe. She and her fellow troupe members form a close bond with [Agnea Bristarni](../travelers/agnea.md) during her journey across Solistia.
+**Rico** is a twenty-year-old entertainer and key performer in [Giselle](giselle.md)'s Traveling Troupe. She and her fellow troupe members form a close bond with [Agnea Bristarni](agnea.md) during her journey across Solistia.
 
 ## Profile
 

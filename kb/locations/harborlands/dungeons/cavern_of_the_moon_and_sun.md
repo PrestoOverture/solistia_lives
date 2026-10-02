@@ -16,7 +16,7 @@ The cavern displays an unusual supernatural quality tied to time and light: diff
 
 ## Story Significance
 
-During their journey, [Temenos Mistral](../../../characters/travelers/temenos.md) and [Throné Anguis](../../../characters/travelers/throne.md) venture into the depths of the Cavern of the Moon and Sun during their crossed path travels. Seeking the truth behind the enigmatic [Alpates](../../../characters/others/alpates.md), the cleric and the thief navigate the shifting illumination of the cave to uncover the clues she left behind.
+During their journey, [Temenos Mistral](../../../characters/temenos/temenos.md) and [Throné Anguis](../../../characters/throne/throne.md) venture into the depths of the Cavern of the Moon and Sun during their crossed path travels. Seeking the truth behind the enigmatic [Alpates](../../../characters/others/alpates.md), the cleric and the thief navigate the shifting illumination of the cave to uncover the clues she left behind.
 
 ## Inhabitants & Threats
 

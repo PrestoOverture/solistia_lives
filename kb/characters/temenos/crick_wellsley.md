@@ -8,7 +8,7 @@ source: ["Crick Wellsley"]
 
 "*The world is a cruel and irrational place. I wanted something to believe in. Something to hold fast to. I want to extend a hand to the weak and cleave the wickedness from this world. I wish to be that sword for the people.*" —Crick
 
-**Crick Wellsley** is a newly anointed Sanctum Knight of the [Sacred Guard](../../world/factions/sacred_guard.md) who serves as a close companion and investigator alongside Inquisitor [Temenos Mistral](../travelers/temenos.md).
+**Crick Wellsley** is a newly anointed Sanctum Knight of the [Sacred Guard](../../world/factions/sacred_guard.md) who serves as a close companion and investigator alongside Inquisitor [Temenos Mistral](temenos.md).
 
 ## Profile
 

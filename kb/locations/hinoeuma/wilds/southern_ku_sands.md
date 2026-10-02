@@ -21,7 +21,7 @@ A clifftop grave memorial overlooking the sands is known as the **Crest of Heroe
 
 ## History & Story
 
-During [Hikari](../../../characters/travelers/hikari.md)'s youth, Southern Ku Sands became a critical battleground. Following the coup by [Mugen](../../../characters/hikari/mugen.md) and the fall of Castle Ku, Hikari fought his way through the sands, where he was confronted and betrayed by his former comrade [Ritsu Mishuyo](../../../characters/hikari/ritsu_mishuyo.md). Following their battle, Hikari went into exile, and the upper approaches of the pass were subsequently fortified and blocked by Mugen's garrison.
+During [Hikari](../../../characters/hikari/hikari.md)'s youth, Southern Ku Sands became a critical battleground. Following the coup by [Mugen](../../../characters/hikari/mugen.md) and the fall of Castle Ku, Hikari fought his way through the sands, where he was confronted and betrayed by his former comrade [Ritsu Mishuyo](../../../characters/hikari/ritsu_mishuyo.md). Following their battle, Hikari went into exile, and the upper approaches of the pass were subsequently fortified and blocked by Mugen's garrison.
 
 Years later, during Hikari's return to liberate Ku, his tactician [Kazan](../../../characters/hikari/oboro.md) exploited the valley's distinctive atmospheric conditions. By calculating the timing of the eastern sea winds, Kazan harnessed the sandstorms to breach Ku's defenses and lead the allied army into the city.
 

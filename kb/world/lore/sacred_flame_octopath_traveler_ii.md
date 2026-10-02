@@ -6,7 +6,7 @@ source: ["Sacred Flame (Octopath Traveler II)"]
 # Sacred Flame (Octopath Traveler II)
 
 > "*The truth... lies in the flame.*"
-> — *[Temenos Mistral](../../characters/travelers/temenos.md)*
+> — *[Temenos Mistral](../../characters/temenos/temenos.md)*
 
 The **Sacred Flame** is a divine azure fire that protects Solistia, warding off the [Shadow](shadow.md) and keeping the wicked god [Vide](../gods/vide.md) imprisoned.
 
@@ -16,7 +16,7 @@ According to legend, after sacrificing their divine strength to defeat Vide in t
 
 The Sacred Flame has been venerated in Solistia since ancient times, with historical records dating back over 1,500 years. Its largest following is organized under the [Order of the Sacred Flame](../factions/order_of_the_sacred_flame_octopath_traveler_ii.md), guarded by the holy knights of the [Sacred Guard](../factions/sacred_guard.md). In addition, the [Kal](kal.md) people—known historically as the Keepers of the Flame—dedicated their civilization to tending and guarding the azure flame. Candles lit from the Sacred Flame possess sacred properties that ward away monsters.
 
-Beyond its physical manifestation as holy fire, the Sacred Flame is intrinsically tied to the light residing within the human heart. Clerics in [Canalbrine](../../locations/harborlands/towns/canalbrine.md) teach that "the True Sacred Flame burns always within your heart." This internal light is embodied by the eight travelers: [Temenos](../../characters/travelers/temenos.md) channels the Flame to pierce illusions and uncover hidden truths during his investigations, while [Ochette](../../characters/travelers/ochette.md) is acknowledged and protected by the First Flame, empowering her animal companion with azure flame. [Juvah](../../characters/ochette/juvah.md) recognizes this blessing as the mark of a true hunter, revealing that the isolated beastlings of [Toto'haha](../../locations/totohaha/totohaha.md) retain ancient understanding of the Flame.
+Beyond its physical manifestation as holy fire, the Sacred Flame is intrinsically tied to the light residing within the human heart. Clerics in [Canalbrine](../../locations/harborlands/towns/canalbrine.md) teach that "the True Sacred Flame burns always within your heart." This internal light is embodied by the eight travelers: [Temenos](../../characters/temenos/temenos.md) channels the Flame to pierce illusions and uncover hidden truths during his investigations, while [Ochette](../../characters/ochette/ochette.md) is acknowledged and protected by the First Flame, empowering her animal companion with azure flame. [Juvah](../../characters/ochette/juvah.md) recognizes this blessing as the mark of a true hunter, revealing that the isolated beastlings of [Toto'haha](../../locations/totohaha/totohaha.md) retain ancient understanding of the Flame.
 
 ## The Four Sacred Flames
 

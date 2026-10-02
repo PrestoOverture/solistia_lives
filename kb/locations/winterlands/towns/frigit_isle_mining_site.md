@@ -6,7 +6,7 @@ source: ["Frigit Isle: Mining Site"]
 
 # Frigit Isle: Mining Site
 
-> *"I understand this island was once dotted with mines. Entire mountains were reduced to rubble for ore, and the prison was built atop the wreckage. To this day there remains phosphoal buried in the frigid earth. It's immensely flammable, and sells for a fair bit of coin. So the prisoners are forced to mine it, and the guards line their pockets with the proceeds."* — [Osvald](../../../characters/travelers/osvald.md)
+> *"I understand this island was once dotted with mines. Entire mountains were reduced to rubble for ore, and the prison was built atop the wreckage. To this day there remains phosphoal buried in the frigid earth. It's immensely flammable, and sells for a fair bit of coin. So the prisoners are forced to mine it, and the guards line their pockets with the proceeds."* — [Osvald](../../../characters/osvald/osvald.md)
 
 **Frigit Isle: Mining Site** is a forced-labor quarry located on [Frigit Isle](frigit_isle.md) in the [Winterlands](../winterlands.md), situated immediately east of [Frigit Isle: Yard](frigit_isle_yard.md).
 

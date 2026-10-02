@@ -13,7 +13,7 @@ The cavern houses the pure natural spring from which the inhabitants of Canalbri
 
 ## Story Significance
 
-During Chapter 1 of [Castti Florenz](../../../characters/travelers/castti.md)'s journey, two foul, venomous beasts known as [Veron and Doron](../../../characters/castti/veron_and_doron.md) take up residence inside the cavern:
+During Chapter 1 of [Castti Florenz](../../../characters/castti/castti.md)'s journey, two foul, venomous beasts known as [Veron and Doron](../../../characters/castti/veron_and_doron.md) take up residence inside the cavern:
 
 > "*...What is this foul smell? It is true what they say: filth is the root of all illness. Now then... What is it that's made all this mess? Foul vapors abound... I need to be careful not to inhale any effluvia.*"
 

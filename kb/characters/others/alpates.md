@@ -6,7 +6,7 @@ source: ["Alpates"]
 
 # Alpates
 
-**Alpates** is a secluded descendant of the [Lumina Clan](../../world/factions/lumina_clan.md) whose lineage traces directly back to the god [Aelfric](../../world/gods/aelfric.md). She plays a pivotal role in the Crossed Paths journey of [Temenos Mistral](../travelers/temenos.md) and [Throné Anguis](../travelers/throne.md).
+**Alpates** is a secluded descendant of the [Lumina Clan](../../world/factions/lumina_clan.md) whose lineage traces directly back to the god [Aelfric](../../world/gods/aelfric.md). She plays a pivotal role in the Crossed Paths journey of [Temenos Mistral](../temenos/temenos.md) and [Throné Anguis](../throne/throne.md).
 
 ## Profile
 

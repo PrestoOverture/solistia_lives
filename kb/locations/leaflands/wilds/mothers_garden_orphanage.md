@@ -15,6 +15,6 @@ Within the oppressive walls of the institution, children were subjected to rigor
 
 ## Liberation & Reformation
 
-Following the death of [Mother](../../../characters/throne/mother.md) and the conclusion of [Throné Anguis](../../../characters/travelers/throne.md)'s journey, the criminal ring was dismantled. Genuine nuns from the monastery took over the care of the children, transforming the compound into a legitimate, joyful refuge.
+Following the death of [Mother](../../../characters/throne/mother.md) and the conclusion of [Throné Anguis](../../../characters/throne/throne.md)'s journey, the criminal ring was dismantled. Genuine nuns from the monastery took over the care of the children, transforming the compound into a legitimate, joyful refuge.
 
 The reform was further solidified following the resolution of [Mira](../../../characters/throne/mira.md)'s quest, when the [Elderly Guard](../../../characters/throne/elderly_guard.md)—who had long maintained a conflicted watch over the compound under guild orders—dedicated his remaining years to acting as a loving, protective surrogate father to all the orphans. The children flourished under this newfound safety; among them, an enterprising young orphan began hand-carving ornate wooden accessories of such high quality that traveling merchants arrived in droves to purchase them, donating every coin of his earnings directly to the orphanage's maintenance.

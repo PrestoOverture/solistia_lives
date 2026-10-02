@@ -19,4 +19,4 @@ Architecturally, the interior of the shrine features distinctive four-pronged fl
 
 ## Story Events
 
-During Chapter 5 of [Agnea Bristarni](../../../characters/travelers/agnea.md)'s journey, Agnea arrives in Merry Hills to participate in the Grand Gala. The manager [La'mani](../../../characters/agnea/lamani.md) deploys hired guards and thugs throughout the corridors of the shrine to control the competition and safeguard his interests. Agnea and her companions navigate through the shrine to reach the main stage for her final dance competition against [Dolcinaea](../../../characters/agnea/dolcinaea_luciel.md).
+During Chapter 5 of [Agnea Bristarni](../../../characters/agnea/agnea.md)'s journey, Agnea arrives in Merry Hills to participate in the Grand Gala. The manager [La'mani](../../../characters/agnea/lamani.md) deploys hired guards and thugs throughout the corridors of the shrine to control the competition and safeguard his interests. Agnea and her companions navigate through the shrine to reach the main stage for her final dance competition against [Dolcinaea](../../../characters/agnea/dolcinaea_luciel.md).

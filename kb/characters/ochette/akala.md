@@ -6,9 +6,9 @@ source: ["Akalā"]
 # Akalā
 
 > *"Grrrrrr… I am… strong."*
-> — Akalā, before [Ochette](../travelers/ochette.md) chooses her companion
+> — Akalā, before [Ochette](ochette.md) chooses her companion
 
-**Akalā** is a male lājackal described as radiant in the sun's grace, with formidable fangs that tear the flesh of his prey. If [Ochette](../travelers/ochette.md) selects him as her companion, he serves as both a younger and older brother to her throughout her journey across Solistia.
+**Akalā** is a male lājackal described as radiant in the sun's grace, with formidable fangs that tear the flesh of his prey. If [Ochette](ochette.md) selects him as her companion, he serves as both a younger and older brother to her throughout her journey across Solistia.
 
 ## Profile
 
@@ -28,7 +28,7 @@ Ten years prior to the main story, [Juvah](juvah.md) brought the young hunter Oc
 If Ochette selects Akalā, Mahina is immediately overtaken by darkness, attacks Ochette, and flees into the wilderness. If Ochette chooses Mahina instead, Akalā is shrouded in darkness, goes berserk, attacks Ochette, and flees, eventually becoming corrupted into the [Lājackal of the Sorrowful Moon](../../world/beasts/darkling_of_the_sorrowful_moon.md)—the final adversary Ochette must face to save the island.
 
 ### Journey with Ochette
-If chosen as Ochette's companion, Akalā accompanies her throughout all of her story chapters, including her Crossed Paths chapters with [Castti Florenz](../travelers/castti.md).
+If chosen as Ochette's companion, Akalā accompanies her throughout all of her story chapters, including her Crossed Paths chapters with [Castti Florenz](../castti/castti.md).
 
 Ten years after their partnership begins, Akalā and Ochette hunt down the gluttonous [King Iguana](../../world/beasts/king_iguana.md), whose excessive eating threatens the island's natural order. When Ochette is tempted to eat the captured creature herself, Akalā reminds her that the King Iguana's meat is meant for the people of [Beasting Village](../../locations/totohaha/towns/beasting_village.md).
 

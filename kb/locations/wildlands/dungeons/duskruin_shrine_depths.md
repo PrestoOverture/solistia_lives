@@ -8,7 +8,7 @@ source: ["Duskruin Shrine: Depths"]
 > "*I was worshipping near the [Duskruin Shrine](duskruin_shrine.md)... Without warning, a strange black fog rose from the ruins.*"
 > —Adherent
 
-**Duskruin Shrine: Depths** is the innermost sanctuary of the [Duskruin Shrine](duskruin_shrine.md), nestled deep within the crags of the [Wildlands](../wildlands.md). It serves as the climatic battleground for [Osvald V. Vanstein](../../../characters/travelers/osvald.md)'s final confrontation.
+**Duskruin Shrine: Depths** is the innermost sanctuary of the [Duskruin Shrine](duskruin_shrine.md), nestled deep within the crags of the [Wildlands](../wildlands.md). It serves as the climatic battleground for [Osvald V. Vanstein](../../../characters/osvald/osvald.md)'s final confrontation.
 
 ## Architecture & Lore
 

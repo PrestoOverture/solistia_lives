@@ -9,7 +9,7 @@ source: ["Veronica's Next Chapter"]
 > *"What would make my lady happiest on such a momentous day? Perhaps someone close to her heart would know what best to give..."*
 > — Veronica
 
-**Veronica's Next Chapter** is a side story in *Octopath Traveler II* taking place in [New Delsta](../../locations/brightlands/towns/new_delsta.md) within the [Brightlands](../../locations/brightlands/brightlands.md), following the completion of [Agnea Bristarni](../../characters/travelers/agnea.md)'s journey.
+**Veronica's Next Chapter** is a side story in *Octopath Traveler II* taking place in [New Delsta](../../locations/brightlands/towns/new_delsta.md) within the [Brightlands](../../locations/brightlands/brightlands.md), following the completion of [Agnea Bristarni](../../characters/agnea/agnea.md)'s journey.
 
 ## Overview
 

@@ -16,4 +16,4 @@ The **Altar of the Trader** is a secluded shrine in the [Wildlands](../wildlands
 
 The altar is located in the [Southern Crackridge Wilds](southern_crackridge_wilds.md). It can be reached through a hidden tunnel situated south of the path leading toward the [Western Crackridge Wilds](western_crackridge_wilds.md).
 
-Within the cavern stands a statue of Bifelgan. When the merchant [Partitio](../../../characters/travelers/partitio.md) approaches the sacred figure, he receives the merchant technique of Negotiate Schedule.
+Within the cavern stands a statue of Bifelgan. When the merchant [Partitio](../../../characters/partitio/partitio.md) approaches the sacred figure, he receives the merchant technique of Negotiate Schedule.

@@ -16,7 +16,7 @@ The **Altar of the Lady of Grace** is a sacred site in the [Leaflands](../leafla
 
 The entrance to the altar is located along the [Northern Wellgrove Trail](northern_wellgrove_trail.md). It lies partially obscured by a log below a cliff near the path leading toward the [Southern Cropdale Trail](southern_cropdale_trail.md).
 
-Within the sanctuary stands a divine statue of Sealticge. When approached by the dancer [Agnea](../../../characters/travelers/agnea.md), the goddess bestows the power of Windy Refrain.
+Within the sanctuary stands a divine statue of Sealticge. When approached by the dancer [Agnea](../../../characters/agnea/agnea.md), the goddess bestows the power of Windy Refrain.
 
 ## Lore
 

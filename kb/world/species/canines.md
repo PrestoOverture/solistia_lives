@@ -7,7 +7,7 @@ source: ["Canines"]
 
 **Canines** are a family of [mammalian](mammalians.md) doglike creatures found throughout Solistia. Although many are feral monsters, some can be tamed or kept as domestic pets.
 
-One notable type of canine are [direwolves](direwolves.md), which hunt in packs throughout the land. Ordinary domesticated dogs can also be found in cities across the realm, including [New Delsta](../../locations/brightlands/towns/new_delsta.md) and [Canalbrine](../../locations/harborlands/towns/canalbrine.md). [Throné](../../characters/travelers/throne.md) notably keeps a pet dog, which she feeds dried strawberries.
+One notable type of canine are [direwolves](direwolves.md), which hunt in packs throughout the land. Ordinary domesticated dogs can also be found in cities across the realm, including [New Delsta](../../locations/brightlands/towns/new_delsta.md) and [Canalbrine](../../locations/harborlands/towns/canalbrine.md). [Throné](../../characters/throne/throne.md) notably keeps a pet dog, which she feeds dried strawberries.
 
 ## Varieties
 

@@ -10,7 +10,7 @@ source: ["Mother's Garden"]
 
 **Mother's Garden** is a secluded estate and dungeon hidden within the forests near [Wellgrove](../towns/wellgrove.md) in the [Leaflands](../leaflands.md). Ostensibly an extension of a charitable orphanage supported by the local monastery, it functions as the private domain and training grounds of [Mother](../../../characters/throne/mother.md), a high-ranking leader of the [Blacksnakes](../../../world/factions/blacksnakes.md) guild.
 
-The estate serves as the climactic setting for [Throné Anguis](../../../characters/travelers/throne.md)'s Chapter 3 ([Mother](../../../characters/throne/mother.md)'s route).
+The estate serves as the climactic setting for [Throné Anguis](../../../characters/throne/throne.md)'s Chapter 3 ([Mother](../../../characters/throne/mother.md)'s route).
 
 ## Overview & Atmosphere
 

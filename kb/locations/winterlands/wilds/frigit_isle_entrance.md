@@ -18,7 +18,7 @@ During normal prison operation, the massive gates leading into the Yard were str
 
 ## History and Events
 
-During their prison break, [Osvald](../../../characters/travelers/osvald.md) and [Emerald](../../../characters/osvald/emerald.md) navigated through the secret underground tunnels and emerged at the entrance area, momentarily believing they had successfully evaded the guards before discovering the harbor was on alert.
+During their prison break, [Osvald](../../../characters/osvald/osvald.md) and [Emerald](../../../characters/osvald/emerald.md) navigated through the secret underground tunnels and emerged at the entrance area, momentarily believing they had successfully evaded the guards before discovering the harbor was on alert.
 
 ## Wildlife
 

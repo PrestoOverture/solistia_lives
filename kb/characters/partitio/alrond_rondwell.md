@@ -6,7 +6,7 @@ source: ["Alrond Rondwell"]
 
 # Alrond Rondwell
 
-"*Welcome to my manor, [Partitio](../travelers/partitio.md). I am none other than Alrond himself. Don't think ill of me, Partitio. I had my reasons to disguise myself as the everyman. As one of the wealthiest people on the continent, I find that most put on a false mask when speaking to me. It's much easier to judge someone's true character by how they treat you when they think you're nothing special.*" —Alrond, revealing his true identity
+"*Welcome to my manor, [Partitio](partitio.md). I am none other than Alrond himself. Don't think ill of me, Partitio. I had my reasons to disguise myself as the everyman. As one of the wealthiest people on the continent, I find that most put on a false mask when speaking to me. It's much easier to judge someone's true character by how they treat you when they think you're nothing special.*" —Alrond, revealing his true identity
 
 **Lord Alrond Rondwell** is the presiding lord of [Wellgrove](../../locations/leaflands/towns/wellgrove.md) and the heir to the Rondwell family fortune. He is regarded as one of the wealthiest nobles in all of Solistia and the richest individual on the western continent.
 
@@ -30,7 +30,7 @@ Following the death of his parents, Alrond fell into profound despondency. He wa
 One night, while wandering the town in disguise, Alrond met [Misha](misha.md), an earnest youth collecting street rubbish to support his family. Deeply impressed by Misha's diligence and character, Alrond disclosed his true identity and appointed him as his personal butler.
 
 ### Meeting Partitio
-While strolling through Wellgrove in disguise, Alrond was targeted by an unscrupulous merchant attempting to sell him a fraudulent silver statue of [Oresrush](../../locations/wildlands/towns/oresrush.md). The traveling merchant [Partitio Yellowil](../travelers/partitio.md) stepped in, exposing the forgery using genuine silver and running the scammer off. Grateful, Alrond invited Partitio to the tavern for drinks. Upon learning that Partitio had come seeking an audience with Lord Alrond to pitch an ambitious commercial enterprise, Alrond agreed to arrange an introduction and returned to his manor.
+While strolling through Wellgrove in disguise, Alrond was targeted by an unscrupulous merchant attempting to sell him a fraudulent silver statue of [Oresrush](../../locations/wildlands/towns/oresrush.md). The traveling merchant [Partitio Yellowil](partitio.md) stepped in, exposing the forgery using genuine silver and running the scammer off. Grateful, Alrond invited Partitio to the tavern for drinks. Upon learning that Partitio had come seeking an audience with Lord Alrond to pitch an ambitious commercial enterprise, Alrond agreed to arrange an introduction and returned to his manor.
 
 At [Wellgrove: Alrond's Estate](../../locations/leaflands/towns/wellgrove_alronds_estate.md), Alrond revealed that he was the lord Partitio sought. Partitio outlined his plan to purchase the steam engine patent from [Roque](roque_brilliante.md) for eighty billion leaves. Alrond agreed to provide the capital, but set a condition to verify Partitio's capability: reviving Wellgrove's dead economy and returning the town to its former glory.
 

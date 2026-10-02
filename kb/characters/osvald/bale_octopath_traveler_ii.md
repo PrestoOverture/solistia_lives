@@ -29,7 +29,7 @@ Wary, guarded, and prickly, Bale prefers to keep to himself and maintain an inti
 
 ## Story
 
-During [Osvald](../travelers/osvald.md)'s imprisonment on Frigit Isle, Bale runs an internal trade in smuggled contraband. Osvald blackmails him using knowledge of these illicit transactions, forcing Bale to provide cold-weather clothing capable of withstanding the island's lethal blizzards, a vital component of Osvald's escape plan.
+During [Osvald](osvald.md)'s imprisonment on Frigit Isle, Bale runs an internal trade in smuggled contraband. Osvald blackmails him using knowledge of these illicit transactions, forcing Bale to provide cold-weather clothing capable of withstanding the island's lethal blizzards, a vital component of Osvald's escape plan.
 
 Bale later makes his own escape from Frigit Isle during a massive prison riot, ultimately finding refuge at [Crackridge Harbor: Anchorage](../../locations/wildlands/wilds/crackridge_harbor_anchorage.md).
 

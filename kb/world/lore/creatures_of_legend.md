@@ -10,7 +10,7 @@ source: ["Creatures of Legend"]
 
 The **Creatures of Legend** are three colossal, primordial beasts venerated as the ancient protectors of [Toto'haha](../../locations/totohaha/totohaha.md). Every 400 years, they are summoned to assemble and shield the realm from the apocalyptic calamity known as the [Night of the Scarlet Moon](night_of_the_scarlet_moon.md).
 
-Each creature commands a force of nature tied to an elemental power: [Cateracta](../beasts/cateracta.md) embodies water, [Tera](../beasts/tera.md) commands earth and fire, and [Glacis](../beasts/glacis.md) controls ice and wind. Both Cateracta and Glacis reproduce via eggs despite being the sole known entities of their kind. Following an earlier age of calamity, the three beasts dispersed across Solistia to watch over disparate regions, and rallying them is the purpose of [Ochette](../../characters/travelers/ochette.md)'s pilgrimage.
+Each creature commands a force of nature tied to an elemental power: [Cateracta](../beasts/cateracta.md) embodies water, [Tera](../beasts/tera.md) commands earth and fire, and [Glacis](../beasts/glacis.md) controls ice and wind. Both Cateracta and Glacis reproduce via eggs despite being the sole known entities of their kind. Following an earlier age of calamity, the three beasts dispersed across Solistia to watch over disparate regions, and rallying them is the purpose of [Ochette](../../characters/ochette/ochette.md)'s pilgrimage.
 
 ## The Three Guardians
 

@@ -28,6 +28,6 @@ Bergomi is a self-serving, capricious opportunist who seeks to align himself exc
 
 ## Story
 
-As leader of the Snowhares, Bergomi controlled the underworld of Winterbloom from the gang's [hideout](../../locations/winterlands/dungeons/snowhares_den.md). When he attempted to break away from the Blacksnakes and seek alliances with rival factions, [Father](father.md) dispatched [Throné](../travelers/throne.md) to assassinate him.
+As leader of the Snowhares, Bergomi controlled the underworld of Winterbloom from the gang's [hideout](../../locations/winterlands/dungeons/snowhares_den.md). When he attempted to break away from the Blacksnakes and seek alliances with rival factions, [Father](father.md) dispatched [Throné](throne.md) to assassinate him.
 
 Throné infiltrated the den and confronted Bergomi. Despite ingesting combat drugs to enhance his strength, Bergomi was defeated and brought to his knees. When Father subsequently arrived at the den and struck Throné, Bergomi attempted to exploit the chaos to flee. Before he could escape, Father threw a dagger, killing him instantly.

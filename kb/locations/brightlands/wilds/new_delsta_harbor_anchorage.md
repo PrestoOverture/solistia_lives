@@ -6,7 +6,7 @@ source: ["New Delsta Harbor: Anchorage"]
 # New Delsta Harbor: Anchorage
 
 > "*Just you and me now, [Jeyah](../../../characters/castti/jeyah.md)... Let's see her off... Bon voyage, Chief.*"
-> — [Malaya](../../../characters/castti/malaya.md) setting [Castti Florenz](../../../characters/travelers/castti.md) adrift
+> — [Malaya](../../../characters/castti/malaya.md) setting [Castti Florenz](../../../characters/castti/castti.md) adrift
 
 **New Delsta Harbor: Anchorage** is a bustling maritime port located on the coast of the [Brightlands](../brightlands.md), serving the city of [New Delsta](../towns/new_delsta.md).
 
@@ -21,5 +21,5 @@ As a major maritime hub on the Sundering Sea, ferry services connect the anchora
 
 ## Story Events and Lore
 
-- **Castti's Departure**: New Delsta Harbor is the fateful location where [Malaya](../../../characters/castti/malaya.md) put an unconscious, amnesiac [Castti Florenz](../../../characters/travelers/castti.md) aboard a small drifting boat to save her life following the catastrophe that befell Eir's Apothecaries. Standing at the docks with [Jeyah](../../../characters/castti/jeyah.md), Malaya bid her final farewell to her "Chief," setting Castti adrift upon the sea before she washed ashore in [Canalbrine](../../harborlands/towns/canalbrine.md).
-- **The Traveling Troupe**: Following the conclusion of [Agnea Bristarni](../../../characters/travelers/agnea.md)'s tale, [Giselle](../../../characters/agnea/giselle.md) and the other members of her traveling troupe can be found gathered near the entrance of the harbor during daytime.
+- **Castti's Departure**: New Delsta Harbor is the fateful location where [Malaya](../../../characters/castti/malaya.md) put an unconscious, amnesiac [Castti Florenz](../../../characters/castti/castti.md) aboard a small drifting boat to save her life following the catastrophe that befell Eir's Apothecaries. Standing at the docks with [Jeyah](../../../characters/castti/jeyah.md), Malaya bid her final farewell to her "Chief," setting Castti adrift upon the sea before she washed ashore in [Canalbrine](../../harborlands/towns/canalbrine.md).
+- **The Traveling Troupe**: Following the conclusion of [Agnea Bristarni](../../../characters/agnea/agnea.md)'s tale, [Giselle](../../../characters/agnea/giselle.md) and the other members of her traveling troupe can be found gathered near the entrance of the harbor during daytime.

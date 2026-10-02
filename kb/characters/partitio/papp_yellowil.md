@@ -9,7 +9,7 @@ source: ["Papp Yellowil"]
 > *"You'll never lose if you never try, son. But you'll never win, either."*  
 > — Papp
 
-**Papp Yellowil** is a character in *Octopath Traveler II*. He is [Partitio](../travelers/partitio.md)'s father and mentor in commerce, having helped found and build the pioneer mining town of [Oresrush](../../locations/wildlands/towns/oresrush.md) from the ground up.
+**Papp Yellowil** is a character in *Octopath Traveler II*. He is [Partitio](partitio.md)'s father and mentor in commerce, having helped found and build the pioneer mining town of [Oresrush](../../locations/wildlands/towns/oresrush.md) from the ground up.
 
 ## Profile
 
@@ -19,7 +19,7 @@ source: ["Papp Yellowil"]
 - **Status**: Alive
 - **Location**: [Oresrush](../../locations/wildlands/towns/oresrush.md)
 - **Occupation**: Merchant / Silver merchant
-- **Relatives**: [Partitio](../travelers/partitio.md) (son), unnamed wife (deceased)
+- **Relatives**: [Partitio](partitio.md) (son), unnamed wife (deceased)
 
 ### Appearance
 Papp is bald with a bushy black beard. He originally wore a yellow-banded white hat—which concealed a full head of hair attached to the inside to cover his baldness—before gifting it to Partitio prior to his son's departure on his journey.

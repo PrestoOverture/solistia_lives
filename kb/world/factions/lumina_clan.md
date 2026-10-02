@@ -22,12 +22,12 @@ Centuries later, the sinister archmage [D'arqest](../../characters/others/darqes
 ## The Tragedies of the Lumina Lineage
 
 ### The Fall of the Vanstein Family
-Scholar [Osvald V. Vanstein](../../characters/travelers/osvald.md) unwittingly wed into the Lineage of Light when he married [Rita Lumina](../../characters/osvald/rita_lumina.md). Their union produced a daughter, [Elena Vanstein](../../characters/osvald/elena_vanstein.md), whose innate mystical power exceeded even her mother's.
+Scholar [Osvald V. Vanstein](../../characters/osvald/osvald.md) unwittingly wed into the Lineage of Light when he married [Rita Lumina](../../characters/osvald/rita_lumina.md). Their union produced a daughter, [Elena Vanstein](../../characters/osvald/elena_vanstein.md), whose innate mystical power exceeded even her mother's.
 
 When Harvey uncovered the truth of their ancestry, he framed Osvald for murder, burned their estate, and kidnapped Rita and Elena for gruesome experimentation. Harvey drained Rita's life and blood to construct and power the monstrous [Grieving Golem](../../characters/osvald/grieving_golem.md). Years later, he combined Elena's blood with the preserved physical remains of Archmage D'arqest to manifest the One True Magic through dark sacrifice. Osvald ultimately defeated Harvey by mastering the true form of the One True Magic fueled by love for his child, rescuing Elena.
 
 ### The Purge in Ku
-Lady [Kura](../../characters/hikari/kura.md), the consort of King [Jigo Ku](../../characters/hikari/jigo_ku.md) and mother of [Hikari Ku](../../characters/travelers/hikari.md), also bore the blood of the radiant clan. Fearing and despising the clan, Prince [Mugen](../../characters/hikari/mugen.md) orchestrated Kura's assassination. During his bloody reign in [Ku](../nations/ku.md), Mugen sought to eradicate all surviving descendants of the Lumina bloodline, a genocidal goal brought to an end when Hikari deposed Mugen and claimed the throne.
+Lady [Kura](../../characters/hikari/kura.md), the consort of King [Jigo Ku](../../characters/hikari/jigo_ku.md) and mother of [Hikari Ku](../../characters/hikari/hikari.md), also bore the blood of the radiant clan. Fearing and despising the clan, Prince [Mugen](../../characters/hikari/mugen.md) orchestrated Kura's assassination. During his bloody reign in [Ku](../nations/ku.md), Mugen sought to eradicate all surviving descendants of the Lumina bloodline, a genocidal goal brought to an end when Hikari deposed Mugen and claimed the throne.
 
 ## Known Lineage
 
@@ -35,4 +35,4 @@ Lady [Kura](../../characters/hikari/kura.md), the consort of King [Jigo Ku](../.
 - **[Rita Lumina](../../characters/osvald/rita_lumina.md)**: Wife of Osvald, murdered and transformed into the Grieving Golem by Harvey.
 - **[Elena Vanstein](../../characters/osvald/elena_vanstein.md)**: Daughter of Rita and Osvald, possessor of extraordinary latent light.
 - **[Kura](../../characters/hikari/kura.md)**: Consort of King Jigo and mother of Hikari, who carried the radiant bloodline.
-- **[Hikari Ku](../../characters/travelers/hikari.md)**: Son of Kura, who reconciled his mother's light with his father's cursed Ku bloodline.
+- **[Hikari Ku](../../characters/hikari/hikari.md)**: Son of Kura, who reconciled his mother's light with his father's cursed Ku bloodline.

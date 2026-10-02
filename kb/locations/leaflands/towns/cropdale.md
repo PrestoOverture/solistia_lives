@@ -5,7 +5,7 @@ source: ["Cropdale"]
 ---
 # Cropdale
 
-**Cropdale** is a tranquil, rural village nestled in the verdant valleys of the [Leaflands](../leaflands.md). It is the hometown of the dancer [Agnea Bristarni](../../../characters/travelers/agnea.md) and the setting of her Chapter 1.
+**Cropdale** is a tranquil, rural village nestled in the verdant valleys of the [Leaflands](../leaflands.md). It is the hometown of the dancer [Agnea Bristarni](../../../characters/agnea/agnea.md) and the setting of her Chapter 1.
 
 ## Overview
 
@@ -21,7 +21,7 @@ According to merchant accounts in the Mercantile Manuscript ([Masoud](../../../s
 
 ## Culture & Notable Residents
 
-- **The Bristarni Household**: Home to the tavern weaver [Garud](../../../characters/agnea/garud_bristarni.md) and his younger daughter [Pala](../../../characters/agnea/pala_bristarni.md). From this home, [Agnea](../../../characters/travelers/agnea.md) sets out into the world following the footsteps of her mother, the legendary dancer [Cuani](../../../characters/agnea/cuani_bristarni.md).
+- **The Bristarni Household**: Home to the tavern weaver [Garud](../../../characters/agnea/garud_bristarni.md) and his younger daughter [Pala](../../../characters/agnea/pala_bristarni.md). From this home, [Agnea](../../../characters/agnea/agnea.md) sets out into the world following the footsteps of her mother, the legendary dancer [Cuani](../../../characters/agnea/cuani_bristarni.md).
 - **The Royal Minstrel**: A traveling minstrel who frequents the village is actually an undercover intelligence agent in service to the crown of [Timberain](timberain.md), sent to listen to the grievances and talk of ordinary folk.
 - **The Sheltered Beastling**: A kindhearted hog farmer on the village's northeastern fringe quietly shelters and tends to an injured [beastling](../../../world/species/beastling.md) traveler whom he rescued from grievous wounds.
 - **The Midnight Curse**: At night, a bitter woman whispers curses from the village bridge, believed to be directing maledictions toward a notorious tavern playboy whose stomach suddenly begins to ache after dark.

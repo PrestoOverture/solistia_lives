@@ -5,7 +5,7 @@ source: ["The Scent of Commerce: Tropu'hopu"]
 ---
 # The Scent of Commerce: Tropu'hopu
 
-**The Scent of Commerce: Tropu'hopu** is a storyline quest in [Tropu'hopu: Shipyard](../../../locations/totohaha/towns/tropuhopu_shipyard.md) on [Toto'haha](../../../locations/totohaha/totohaha.md), centered on the merchant [Partitio Yellowil](../../../characters/travelers/partitio.md).
+**The Scent of Commerce: Tropu'hopu** is a storyline quest in [Tropu'hopu: Shipyard](../../../locations/totohaha/towns/tropuhopu_shipyard.md) on [Toto'haha](../../../locations/totohaha/totohaha.md), centered on the merchant [Partitio Yellowil](../../../characters/partitio/partitio.md).
 
 ## Overview
 

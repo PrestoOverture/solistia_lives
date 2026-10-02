@@ -10,7 +10,7 @@ source: ["Northern Ryu Sands"]
 ## Geography and Connections
 
 The desert trail links central Hinoeuma with the neighboring Harborlands and Wildlands:
-- **[Ryu](../towns/ryu.md)** to the south, the desert settlement where [Hikari Ku](../../../characters/travelers/hikari.md) begins his exiled journey
+- **[Ryu](../towns/ryu.md)** to the south, the desert settlement where [Hikari Ku](../../../characters/hikari/hikari.md) begins his exiled journey
 - **[Canalbrine Bridge](../../harborlands/wilds/canalbrine_bridge.md)** to the east, spanning the border toward the Harborlands
 - **[Southern Oresrush Wilds](../../wildlands/wilds/southern_oresrush_wilds.md)** to the north, leading toward the mining frontiers of the Wildlands
 

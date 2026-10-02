@@ -6,7 +6,7 @@ source: ["Mao"]
 
 # Mao
 
-**Mao** is a 27-year-old apothecary living in the old quarters of [Sai](../../locations/hinoeuma/towns/sai.md). She appears in [Castti Florenz](../travelers/castti.md)'s Chapter 2 (Sai Route) as the town's resident healer, providing medical care for wounded soldiers and townspeople during the region's protracted conflicts.
+**Mao** is a 27-year-old apothecary living in the old quarters of [Sai](../../locations/hinoeuma/towns/sai.md). She appears in [Castti Florenz](castti.md)'s Chapter 2 (Sai Route) as the town's resident healer, providing medical care for wounded soldiers and townspeople during the region's protracted conflicts.
 
 ## Profile
 
@@ -24,6 +24,6 @@ When an amnesiac Castti returns to Sai years later, Mao readily accepts her assi
 
 ## Quotes
 
-- "*In that case, it's my turn to help you. Ask me anything, I'll be glad to answer.*" — To [Castti Florenz](../travelers/castti.md)
+- "*In that case, it's my turn to help you. Ask me anything, I'll be glad to answer.*" — To [Castti Florenz](castti.md)
 - "*This ceasefire is all thanks to you, Castti. We owe you so much.*"
 - "*There's no telling what tomorrow may bring, but whatever happens, I'll be there to heal people in need.*"

@@ -13,4 +13,4 @@ The **Secret Forest** is a secluded wooded area located adjacent to [Wellgrove](
 
 ## History and Events
 
-During Chapter 3 of [Hikari Ku](../../../characters/travelers/hikari.md)'s journey, Hikari learns from the merchant Azuma that the nation of Ku is secretly purchasing advanced weaponry from abroad. The illicit arms transaction takes place deep within the Secret Forest to avoid public notice. Hikari infiltrates the woods, defeats the heavily guarded contingent of Ku Soldiers, and confronts [General Rou](../../../characters/hikari/rou.md) to disrupt the arms supply line.
+During Chapter 3 of [Hikari Ku](../../../characters/hikari/hikari.md)'s journey, Hikari learns from the merchant Azuma that the nation of Ku is secretly purchasing advanced weaponry from abroad. The illicit arms transaction takes place deep within the Secret Forest to avoid public notice. Hikari infiltrates the woods, defeats the heavily guarded contingent of Ku Soldiers, and confronts [General Rou](../../../characters/hikari/rou.md) to disrupt the arms supply line.

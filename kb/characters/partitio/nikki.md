@@ -8,7 +8,7 @@ source: ["Nikki"]
 
 "*I've gotta find a way to make this last measly crust of bread keep me going...*" —Nikki, during the famine in Oresrush
 
-**Nikki** is a resident of [Oresrush](../../locations/wildlands/towns/oresrush.md) and a close friend of [Partitio Yellowil](../travelers/partitio.md), belonging to his loyal posse alongside [Ned](ned_octopath_traveler_ii.md), [Joe](joe.md), and [Harry](harry_octopath_traveler_ii.md).
+**Nikki** is a resident of [Oresrush](../../locations/wildlands/towns/oresrush.md) and a close friend of [Partitio Yellowil](partitio.md), belonging to his loyal posse alongside [Ned](ned_octopath_traveler_ii.md), [Joe](joe.md), and [Harry](harry_octopath_traveler_ii.md).
 
 ## Profile
 

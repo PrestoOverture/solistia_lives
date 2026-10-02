@@ -6,10 +6,10 @@ source: ["Joe"]
 
 # Joe
 
-> *"Barterin' or bruisin', no one can beat [Partitio](../travelers/partitio.md) the Wild Stallion!"*
+> *"Barterin' or bruisin', no one can beat [Partitio](partitio.md) the Wild Stallion!"*
 > — Joe, to the posse
 
-**Joe** is a resident of [Oresrush](../../locations/wildlands/towns/oresrush.md) in the [Wildlands](../../locations/wildlands/wildlands.md) and a loyal member of [Partitio Yellowil](../travelers/partitio.md)'s posse, alongside [Nikki](nikki.md), [Ned](ned_octopath_traveler_ii.md), and [Harry](harry_octopath_traveler_ii.md).
+**Joe** is a resident of [Oresrush](../../locations/wildlands/towns/oresrush.md) in the [Wildlands](../../locations/wildlands/wildlands.md) and a loyal member of [Partitio Yellowil](partitio.md)'s posse, alongside [Nikki](nikki.md), [Ned](ned_octopath_traveler_ii.md), and [Harry](harry_octopath_traveler_ii.md).
 
 ## Profile
 
@@ -36,7 +36,7 @@ Together, the posse marched on Giff's hideout and ousted him from power, uncover
 
 ## Quotes
 
-- *"Barterin' or bruisin', no one can beat [Partitio](../travelers/partitio.md) the Wild Stallion!"* — Speaking to the posse
+- *"Barterin' or bruisin', no one can beat [Partitio](partitio.md) the Wild Stallion!"* — Speaking to the posse
 - *"I like that gal's laugh a lot. I don't know why she thinks it's somethin' to be ashamed of. Then again, I think it was real cute how she blushed afterwards. Hehe."* — In Oresrush
 - *"Mining's given me arms the size of tree trunks, and you'll soon feel their strength!"* — When challenged to a fight
 - *"Say your prayers, varmint!"* — When provoked

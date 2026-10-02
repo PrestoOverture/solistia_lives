@@ -24,7 +24,7 @@ source: ["Vados"]
 Vados wears a brown robe secured with a long white sash. On the back of his hand, he bears the tattooed mark of the Keepers of the Flame, signifying his heritage as a descendant of the Kal.
 
 ### Personality
-Vados is a quiet man who rarely speaks unless he deems it necessary. He is fanatically devoted to the teachings of the [Moonshade Order](../../world/factions/moonshade_order.md) and to [Vide the Wicked](../../world/gods/vide.md), pursuing Vide's resurrection with ruthless commitment. In travel banter, [Throné](../travelers/throne.md) observes that Vados's messy killings are the work of an amateur unskilled with a dagger, a deduction corroborated by his failure to kill Hermes before help arrived and his reliance on magical elementals in combat rather than physical attacks.
+Vados is a quiet man who rarely speaks unless he deems it necessary. He is fanatically devoted to the teachings of the [Moonshade Order](../../world/factions/moonshade_order.md) and to [Vide the Wicked](../../world/gods/vide.md), pursuing Vide's resurrection with ruthless commitment. In travel banter, [Throné](../throne/throne.md) observes that Vados's messy killings are the work of an amateur unskilled with a dagger, a deduction corroborated by his failure to kill Hermes before help arrived and his reliance on magical elementals in combat rather than physical attacks.
 
 ## Biography
 

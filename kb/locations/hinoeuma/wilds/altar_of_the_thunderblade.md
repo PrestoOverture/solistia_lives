@@ -16,7 +16,7 @@ The **Altar of the Thunderblade** is a hidden sanctuary in [Hinoeuma](../hinoeum
 
 The entrance to the altar is located in the [Eastern Sai Sands](eastern_sai_sands.md), reached along a secluded path south of the main trail and behind a ruined building.
 
-Within the altar stands a statue depicting Brand. When approached by the warrior prince [Hikari](../../../characters/travelers/hikari.md), the god bestows the martial secret of the Ultimate Stance.
+Within the altar stands a statue depicting Brand. When approached by the warrior prince [Hikari](../../../characters/hikari/hikari.md), the god bestows the martial secret of the Ultimate Stance.
 
 ## Lore
 

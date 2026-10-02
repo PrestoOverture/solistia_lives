@@ -16,4 +16,4 @@ Centuries ago, the archmage [D'arqest](../../../characters/others/darqest.md) su
 
 ## The Climax of Temenos's Journey
 
-The cavern serves as the stage for the climax of [Temenos Mistral](../../../characters/travelers/temenos.md)'s story. In its depths, Temenos corners [Captain Kaldena](../../../characters/temenos/kaldena.md), uncovering the sinister conspiracy surrounding the church and her ambitions tied to the ancient rite.
+The cavern serves as the stage for the climax of [Temenos Mistral](../../../characters/temenos/temenos.md)'s story. In its depths, Temenos corners [Captain Kaldena](../../../characters/temenos/kaldena.md), uncovering the sinister conspiracy surrounding the church and her ambitions tied to the ancient rite.

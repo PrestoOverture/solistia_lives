@@ -6,7 +6,7 @@ source: ["Father"]
 
 # Father
 
-**Father**, real name **Sebastian** (often called **Seb**), is a master assassin and co-leader of the [Blacksnakes](../../world/factions/blacksnakes.md) thieves' guild in [New Delsta](../../locations/brightlands/towns/new_delsta.md). Alongside [Mother](mother.md), he serves as a secondary antagonist in [Throné Anguis](../travelers/throne.md)'s story. As the guild commander overseeing assassination contracts, Father trained Throné from childhood in the lethal arts, raising her as his daughter while harboring a tragic, bloody secret.
+**Father**, real name **Sebastian** (often called **Seb**), is a master assassin and co-leader of the [Blacksnakes](../../world/factions/blacksnakes.md) thieves' guild in [New Delsta](../../locations/brightlands/towns/new_delsta.md). Alongside [Mother](mother.md), he serves as a secondary antagonist in [Throné Anguis](throne.md)'s story. As the guild commander overseeing assassination contracts, Father trained Throné from childhood in the lethal arts, raising her as his daughter while harboring a tragic, bloody secret.
 
 ## Profile
 
@@ -37,4 +37,4 @@ At the abandoned church where he had once proposed to Marietta, Father recounts 
 
 ## Quotes
 
-- "*[Throné](../travelers/throne.md)... You should have been *my* daughter! I raised you as if you were truly my own, more precious than anything... But enough talk. Everything I've done... has been for this, and this alone.*" — Before their final duel
+- "*[Throné](throne.md)... You should have been *my* daughter! I raised you as if you were truly my own, more precious than anything... But enough talk. Everything I've done... has been for this, and this alone.*" — Before their final duel

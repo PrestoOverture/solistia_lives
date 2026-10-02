@@ -6,10 +6,10 @@ source: ["Tsuki"]
 
 # Tsuki
 
-> *"Lord [Hikari](../travelers/hikari.md)... Save our kingdom... Only your gentle hands... can guide us back...."*  
+> *"Lord [Hikari](hikari.md)... Save our kingdom... Only your gentle hands... can guide us back...."*  
 > — Tsuki's final words
 
-**Tsuki** is a character in *Octopath Traveler II*. A palace attendant and tavern maid from the castle town of [Ku](../../world/nations/ku.md), she is the twin sister of [Yomi](../others/yomi.md) and a close friend of Prince [Hikari Ku](../travelers/hikari.md).
+**Tsuki** is a character in *Octopath Traveler II*. A palace attendant and tavern maid from the castle town of [Ku](../../world/nations/ku.md), she is the twin sister of [Yomi](../others/yomi.md) and a close friend of Prince [Hikari Ku](hikari.md).
 
 ## Profile
 

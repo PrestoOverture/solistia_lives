@@ -15,7 +15,7 @@ source: ["Tera"]
 
 In the distant past, Tera saved the surrounding lands from catastrophe when a violently erupting volcano threatened total destruction. With a single colossal strike, Tera shattered the mountain itself, reducing the fiery peak into the vast canyon valley surrounding [Crackridge](../../locations/wildlands/towns/crackridge.md). Following this feat, Tera made his home deep underground within the magma-carved caverns known as the [Bed of the Titan](../../locations/wildlands/dungeons/bed_of_the_titan.md).
 
-Prior to the events of [Ochette](../../characters/travelers/ochette.md)'s journey, Tera engaged in a ferocious struggle against the Moonshade Order's [Dark Hunter](../../characters/others/petrichor.md), leaving both combatants heavily wounded. Tera retreated into a deep hibernation within the Bed of the Titan to heal his grievous injuries. Over the eons, his shifting movements beneath the earth were immense enough to send tremors and earthquakes through the town of Crackridge above.
+Prior to the events of [Ochette](../../characters/ochette/ochette.md)'s journey, Tera engaged in a ferocious struggle against the Moonshade Order's [Dark Hunter](../../characters/others/petrichor.md), leaving both combatants heavily wounded. Tera retreated into a deep hibernation within the Bed of the Titan to heal his grievous injuries. Over the eons, his shifting movements beneath the earth were immense enough to send tremors and earthquakes through the town of Crackridge above.
 
 ## Ochette's Journey
 

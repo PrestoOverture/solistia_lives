@@ -17,4 +17,4 @@ The divine skill Bifelgan's Bounty channels his favor to strike foes and reap mo
 
 According to ancient lore inscribed upon statues in the Eternal Quicksand, the Trader is traditionally accompanied by two sacred camel-like beasts: one tasked with protecting his wares, and the other with punishing greedy travelers.
 
-During his travels across Solistia, the merchant [Partitio Yellowil](../../characters/travelers/partitio.md) earned renown for his extraordinary mercantile genius, being hailed by onlookers as Bifelgan the Trader reborn.
+During his travels across Solistia, the merchant [Partitio Yellowil](../../characters/partitio/partitio.md) earned renown for his extraordinary mercantile genius, being hailed by onlookers as Bifelgan the Trader reborn.

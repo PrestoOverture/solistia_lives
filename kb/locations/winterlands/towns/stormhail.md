@@ -28,9 +28,9 @@ Stormhail has a long history of military strife:
 ## Story Events
 
 Stormhail serves as the backdrop for multiple travelers' journeys:
-- **[Ochette](../../../characters/travelers/ochette.md)**: Journeys here during her search for Glacis, scaling Sacred Peak Altahe to soothe the raging guardian, which finally halts the perpetual blizzards assailing the town.
-- **[Temenos Mistral](../../../characters/travelers/temenos.md)**: Investigates the Sacred Guard Headquarters to uncover the corruption within the order and confront Captain Kaldena's designs.
-- **[Hikari Ku](../../../characters/travelers/hikari.md)**: Comes to Stormhail seeking an alliance with Clan Mei and Rai Mei against Mugen's regime.
+- **[Ochette](../../../characters/ochette/ochette.md)**: Journeys here during her search for Glacis, scaling Sacred Peak Altahe to soothe the raging guardian, which finally halts the perpetual blizzards assailing the town.
+- **[Temenos Mistral](../../../characters/temenos/temenos.md)**: Investigates the Sacred Guard Headquarters to uncover the corruption within the order and confront Captain Kaldena's designs.
+- **[Hikari Ku](../../../characters/hikari/hikari.md)**: Comes to Stormhail seeking an alliance with Clan Mei and Rai Mei against Mugen's regime.
 
 ## Notable People
 

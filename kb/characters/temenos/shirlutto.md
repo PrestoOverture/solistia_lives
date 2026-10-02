@@ -30,7 +30,7 @@ Like many of his kin, Shirlutto speaks in fragmented sentences and expresses his
 ## History
 
 ### Temenos's Tale
-When [Temenos](../travelers/temenos.md) ventures into the labyrinthine [Wandering Wood](../../locations/totohaha/dungeons/wandering_wood.md) in pursuit of [Kaldena](kaldena.md), he finds himself looping back through the trees. Heeding Kaldena's clue to consult the wisdom of forebears, Temenos returns to the Nameless Village and recruits Shirlutto on the settlement's eastern edge. Welcoming Temenos to undertake the trial, Shirlutto leads him safely through the magical forest toward the [Rifted Rock](../../locations/totohaha/dungeons/rifted_rock.md).
+When [Temenos](temenos.md) ventures into the labyrinthine [Wandering Wood](../../locations/totohaha/dungeons/wandering_wood.md) in pursuit of [Kaldena](kaldena.md), he finds himself looping back through the trees. Heeding Kaldena's clue to consult the wisdom of forebears, Temenos returns to the Nameless Village and recruits Shirlutto on the settlement's eastern edge. Welcoming Temenos to undertake the trial, Shirlutto leads him safely through the magical forest toward the [Rifted Rock](../../locations/totohaha/dungeons/rifted_rock.md).
 
 Before leaving Temenos at the ruins' entrance, Shirlutto shares the origin lore of the Beastling race, recounting how they were brought into existence through the sorcery of [D'arqest](../others/darqest.md). He also mentions that Kaldena and members of the [Sacred Guard](../../world/factions/sacred_guard.md) entered before them, though he remains neutral and indifferent to their presence.
 

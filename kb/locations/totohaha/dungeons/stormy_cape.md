@@ -6,10 +6,10 @@ source: ["Stormy Cape"]
 # Stormy Cape
 
 > *"Hey, it's a road of ice! We can zip right along! Nice work, [Glacis](../../../world/beasts/glacis.md)!"*
-> — [Ochette](../../../characters/travelers/ochette.md)
+> — [Ochette](../../../characters/ochette/ochette.md)
 
 **Stormy Cape** is a rugged coastal promontory and dungeon sub-area located on the island of [Toto'haha](../totohaha.md). Situated between the [Verdant Wood](verdant_wood.md) to the east and the towering [Moonview Cliff](moonview_cliff.md) to the west, it juts out directly into rough seas.
 
 ## Story Events
 
-During the crisis of the [Night of the Scarlet Moon](../../../world/lore/night_of_the_scarlet_moon.md) in [Ochette](../../../characters/travelers/ochette.md)'s journey (Chapter 3), the travelers journey across the cape to confront the corrupting shadow spreading across the island. To bypass the treacherous coastal waves and open a direct passage across the sea, the Wardenbeast [Glacis](../../../world/beasts/glacis.md) conjures a vast bridge of solid ice. During the lunar upheaval, the cape is overrun by shadow-tainted beasts, which revert to ordinary wildlife once the Scarlet Moon is quelled.
+During the crisis of the [Night of the Scarlet Moon](../../../world/lore/night_of_the_scarlet_moon.md) in [Ochette](../../../characters/ochette/ochette.md)'s journey (Chapter 3), the travelers journey across the cape to confront the corrupting shadow spreading across the island. To bypass the treacherous coastal waves and open a direct passage across the sea, the Wardenbeast [Glacis](../../../world/beasts/glacis.md) conjures a vast bridge of solid ice. During the lunar upheaval, the cape is overrun by shadow-tainted beasts, which revert to ordinary wildlife once the Scarlet Moon is quelled.

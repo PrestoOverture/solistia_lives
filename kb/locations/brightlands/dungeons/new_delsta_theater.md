@@ -20,5 +20,5 @@ The theater connects southward to the main streets of [New Delsta](../towns/new_
 
 ## Story Events
 
-- **Agnea's Chapter 2**: [Agnea Bristarni](../../../characters/travelers/agnea.md) comes to New Delsta with dreams of performing in the grand theater, following in the footsteps of her mother. However, access is strictly controlled by ticket and monitored by the haughty manager [La'mani](../../../characters/agnea/lamani.md), leading Agnea to perform first in the Backstreets before challenging the establishment.
+- **Agnea's Chapter 2**: [Agnea Bristarni](../../../characters/agnea/agnea.md) comes to New Delsta with dreams of performing in the grand theater, following in the footsteps of her mother. However, access is strictly controlled by ticket and monitored by the haughty manager [La'mani](../../../characters/agnea/lamani.md), leading Agnea to perform first in the Backstreets before challenging the establishment.
 - **The Epilogue**: In the culmination of the travelers' journey, Agnea fulfills her lifelong dream by taking center stage at the New Delsta Theater for a triumphant performance. The living companions, allies, and friends she made across Solistia gather together in the auditorium to watch the spectacle.

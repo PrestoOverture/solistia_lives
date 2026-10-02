@@ -35,7 +35,7 @@ In ancient beastling tradition, the northern island of the landmass was referred
 
 ## Story Significance
 
-- **[Ochette](../../characters/travelers/ochette.md)**: Toto'haha is Ochette's ancestral homeland. From Beasting Village, she departs on a journey across Solistia to locate the Creatures of Legend to protect her home from the prophesied [Night of the Scarlet Moon](../../world/lore/night_of_the_scarlet_moon.md).
-- **[Agnea Bristarni](../../characters/travelers/agnea.md)**: Performs at the floating theater in Tropu'hopu during Chapter 3 of her journey.
-- **[Partitio Yellowil](../../characters/travelers/partitio.md)**: Purchases maritime transport and follows the Scent of Commerce in Tropu'hopu.
-- **[Temenos Mistral](../../characters/travelers/temenos.md)**: Investigates the Nameless Village and breaches the Wandering Wood to discover the truth behind the Shadow and Kaldena's conspiratorial order.
+- **[Ochette](../../characters/ochette/ochette.md)**: Toto'haha is Ochette's ancestral homeland. From Beasting Village, she departs on a journey across Solistia to locate the Creatures of Legend to protect her home from the prophesied [Night of the Scarlet Moon](../../world/lore/night_of_the_scarlet_moon.md).
+- **[Agnea Bristarni](../../characters/agnea/agnea.md)**: Performs at the floating theater in Tropu'hopu during Chapter 3 of her journey.
+- **[Partitio Yellowil](../../characters/partitio/partitio.md)**: Purchases maritime transport and follows the Scent of Commerce in Tropu'hopu.
+- **[Temenos Mistral](../../characters/temenos/temenos.md)**: Investigates the Nameless Village and breaches the Wandering Wood to discover the truth behind the Shadow and Kaldena's conspiratorial order.
