@@ -1,3 +1,4 @@
+import hashlib
 import json
 import secrets
 from datetime import datetime, timezone
@@ -23,7 +24,18 @@ class RunMeta(BaseModel):
     stop: str
     stop_after: Literal["scene_context", "beat_plan", "transcript"] | None
     models: Models
+    prompt_hashes: dict[str, str]
     status: Literal["dry_run", "running", "passed", "failed"]
+
+
+def _prompt_hashes() -> dict[str, str]:
+    hashes = {}
+    for directory in (Path("prompts"), Path("cards")):
+        for path in directory.rglob("*"):
+            if any(part.startswith(".") for part in path.parts) or not path.is_file():
+                continue
+            hashes[path.as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return dict(sorted(hashes.items()))
 
 
 def create_run(
@@ -45,6 +57,7 @@ def create_run(
         stop=stop,
         stop_after=stop_after,
         models=models,
+        prompt_hashes=_prompt_hashes(),
         status="dry_run",
     )
     run_dir = Path("runs") / run_id

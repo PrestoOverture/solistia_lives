@@ -1,3 +1,4 @@
+import hashlib
 import json
 from pathlib import Path
 
@@ -93,8 +94,64 @@ def test_valid_dry_run(config_dir: Path) -> None:
         assert meta.status == "dry_run"
         assert meta.models.model_dump() == expected_models
         assert meta.stop == expected_stop
+        assert meta.prompt_hashes == {}
         run_dirs.append(run_dir)
     assert run_dirs[0] != run_dirs[1]
+
+
+def test_dry_run_prompt_hashes_are_fresh(config_dir: Path) -> None:
+    files = {
+        "prompts/style_spec.md": "Style — 乾杯\r\n".encode("utf-8"),
+        "prompts/nested/instructions.txt": b"\xff\x00\r\nraw bytes\n",
+        "cards/osvald.md": b"Osvald\r\n",
+        "cards/nested/temenos.md": b"Temenos\n",
+    }
+    for name, content in files.items():
+        path = Path(name)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+
+    snapshots = []
+    run_dirs = []
+    for style_bytes in (files["prompts/style_spec.md"], b"Revised style\r\n"):
+        Path("prompts/style_spec.md").write_bytes(style_bytes)
+        files["prompts/style_spec.md"] = style_bytes
+        result = CliRunner().invoke(app, ARGS)
+        assert result.exit_code == 0, result.output
+        run_dir = Path(result.output.strip())
+        hashes = json.loads((run_dir / "meta.json").read_bytes())["prompt_hashes"]
+        assert hashes == {
+            name: hashlib.sha256(content).hexdigest()
+            for name, content in files.items()
+        }
+        assert list(hashes) == sorted(files)
+        snapshots.append(hashes)
+        run_dirs.append(run_dir)
+
+    assert run_dirs[0] != run_dirs[1]
+    assert snapshots[0]["prompts/style_spec.md"] != snapshots[1]["prompts/style_spec.md"]
+    assert snapshots[0]["cards/osvald.md"] == snapshots[1]["cards/osvald.md"]
+    assert {name for name in files if snapshots[0][name] != snapshots[1][name]} == {
+        "prompts/style_spec.md"
+    }
+
+
+def test_dry_run_prompt_hashes_skip_hidden_and_missing_cards(config_dir: Path) -> None:
+    Path("prompts/nested").mkdir(parents=True)
+    Path("prompts/.hidden").mkdir()
+    content = b"Visible prompt\r\n"
+    Path("prompts/style_spec.md").write_bytes(content)
+    for name in ("prompts/.gitkeep", "prompts/nested/.secret", "prompts/.hidden/prompt.md"):
+        Path(name).write_bytes(b"Hidden")
+    assert not Path("cards").exists()
+
+    result = CliRunner().invoke(app, ARGS)
+    assert result.exit_code == 0, result.output
+    meta = json.loads((Path(result.output.strip()) / "meta.json").read_bytes())
+    assert "prompts/.gitkeep" not in meta["prompt_hashes"]
+    assert meta["prompt_hashes"] == {
+        "prompts/style_spec.md": hashlib.sha256(content).hexdigest()
+    }
 
 
 def test_invalid_stop_creates_no_run(config_dir: Path) -> None:
