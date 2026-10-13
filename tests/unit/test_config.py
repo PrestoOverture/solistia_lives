@@ -28,6 +28,9 @@ def config_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     target.mkdir()
     for name in ("models.yaml", "settings.yaml"):
         (target / name).write_text((source / name).read_text())
+    locations = tmp_path / "kb/locations/brightlands/towns"
+    locations.mkdir(parents=True)
+    (locations / "new_delsta.md").write_text("# New Delsta\n")
     monkeypatch.chdir(tmp_path)
     return target
 
@@ -158,3 +161,84 @@ def test_invalid_stop_creates_no_run(config_dir: Path) -> None:
     result = CliRunner().invoke(app, ARGS + ["--stop", "fixed:0"])
     assert result.exit_code != 0
     assert not (config_dir.parent / "runs").exists()
+
+
+@pytest.mark.parametrize("dry_run", [True, False])
+@pytest.mark.parametrize("option,value,message", [
+    ("--characters", "osvald,olberic", "unknown traveler"),
+    ("--characters", "osvald", "2-3 distinct travelers"),
+    ("--characters", "osvald,temenos,throne,castti", "2-3 distinct travelers"),
+    ("--characters", "osvald,osvald", "repeated traveler"),
+    ("--characters", "Throné,throne", "repeated traveler"),
+    ("--characters", "", "2-3 distinct travelers"),
+    ("--characters", "osvald,", "unknown traveler"),
+    ("--characters", "osvald,olberic\nunknown", "unknown traveler"),
+    ("--location", "new_delst", "closest location slugs: new_delsta"),
+    ("--location", "zzzzzz", "closest location slugs: new_delsta"),
+])
+def test_invalid_input_creates_no_run(
+    config_dir: Path, dry_run: bool, option: str, value: str, message: str,
+) -> None:
+    args = ARGS.copy()
+    args[args.index(option) + 1] = value
+    if not dry_run:
+        args.remove("--dry-run")
+    result = CliRunner().invoke(app, args)
+    assert result.exit_code == 1
+    assert message in result.output
+    bad_value = value.split(",")[-1] if "traveler" in message and "2-3" not in message else value
+    assert repr(bad_value) in result.output
+    assert len(result.output.splitlines()) == 1
+    assert "Traceback" not in result.output
+    assert isinstance(result.exception, SystemExit)
+    assert not (config_dir.parent / "runs").exists()
+
+
+@pytest.mark.parametrize("characters,expected", [
+    ("Throné,Temenos", ["throne", "temenos"]),
+    (" Throné , Temenos , Castti ", ["throne", "temenos", "castti"]),
+    ("Osvald,Agnea,Hikari", ["osvald", "agnea", "hikari"]),
+    ("Ochette,Partitio", ["ochette", "partitio"]),
+])
+def test_normalized_input_in_meta(config_dir: Path, characters: str, expected: list[str]) -> None:
+    args = ARGS.copy()
+    args[args.index("--characters") + 1] = characters
+    args[args.index("--location") + 1] = "New Delsta"
+    result = CliRunner().invoke(app, args)
+    assert result.exit_code == 0, result.output
+    meta = RunMeta.model_validate_json((Path(result.output.strip()) / "meta.json").read_text())
+    assert meta.input.characters == expected
+    assert meta.input.location == "new_delsta"
+
+
+def test_deeply_nested_location(config_dir: Path) -> None:
+    location = Path("kb/locations/region/dungeons/inner/deeper/test_place.md")
+    location.parent.mkdir(parents=True)
+    location.write_text("# Test Place\n")
+    args = ARGS.copy()
+    args[args.index("--location") + 1] = "Test Place"
+    result = CliRunner().invoke(app, args)
+    assert result.exit_code == 0, result.output
+    meta = RunMeta.model_validate_json((Path(result.output.strip()) / "meta.json").read_text())
+    assert meta.input.location == "test_place"
+
+
+@pytest.mark.parametrize("tree", ["missing", "empty", "directory_only", "outside_locations"])
+def test_location_requires_file_under_locations(config_dir: Path, tree: str) -> None:
+    location = Path("kb/locations/brightlands/towns/new_delsta.md")
+    location.unlink()
+    if tree == "missing":
+        for directory in (location.parent, location.parent.parent, Path("kb/locations")):
+            directory.rmdir()
+    elif tree == "directory_only":
+        location.mkdir()
+    elif tree == "outside_locations":
+        Path("kb/new_delsta.md").write_text("# New Delsta\n")
+    result = CliRunner().invoke(app, ARGS)
+    assert result.exit_code == 1
+    assert "new_delsta" in result.output
+    assert "no location files found under kb/locations/" in result.output
+    assert len(result.output.splitlines()) == 1
+    assert "Traceback" not in result.output
+    assert isinstance(result.exception, SystemExit)
+    assert not Path("runs").exists()

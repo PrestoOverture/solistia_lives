@@ -16,6 +16,9 @@ def config_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     target.mkdir()
     for name in ("models.yaml", "settings.yaml"):
         (target / name).write_bytes((source / name).read_bytes())
+    locations = tmp_path / "kb/locations/brightlands/towns"
+    locations.mkdir(parents=True)
+    (locations / "new_delsta.md").write_text("# New Delsta\n")
     monkeypatch.chdir(tmp_path)
     return target
 

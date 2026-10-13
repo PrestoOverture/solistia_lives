@@ -2,6 +2,7 @@ import typer
 from typing import Literal
 
 from story_engine.config import ConfigError, load_configs, valid_stop
+from story_engine.kb import validate_input
 from story_engine.runs import create_run
 from story_engine.trace import TraceWriter
 
@@ -31,10 +32,15 @@ def generate(
     except ValueError as error:
         typer.echo(f"--stop: {error}", err=True)
         raise typer.Exit(code=1)
+    try:
+        character_slugs, location_slug = validate_input(characters, location)
+    except ValueError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1)
     if dry_run:
         run_dir = create_run(
-            [character.strip() for character in characters.split(",")],
-            location,
+            character_slugs,
+            location_slug,
             scenario,
             mode,
             resolved_stop,
