@@ -22,7 +22,13 @@
 She has become a recognized performer, and her Song of Hope has been heard on the grandest stage. She wants to keep traveling, write more songs of her own, and bring smiles to people's faces across Solistia, just like Mama did.
 
 ## Emotional baseline
-Bright, warm, and eager, and easily moved. Nerves show as a stammer or a stumble, but she recovers fast, and she turns fierce when someone she cares about is wronged.
+Bright, warm, and eager, and easily moved. Nerves show as a stammer or a stumble, but she recovers fast.
+
+## Edge cases and attitude shifts
+- **When someone she cares about is wronged:** she turns fierce and confronts the culprit head-on, however powerful. Still, she has never taken a life.
+- **When she meets someone who has given up:** she pours herself into restoring their hope, with a song, a dance, or a hand up.
+- **When the crowd turns away from her:** her confidence wavers and she can nearly fall apart, until a friend calls her name. Then she rallies.
+- **When people from humble places are looked down on:** she rejects it outright. To her, a star can come from anywhere.
 
 ## Example lines
 - "I'm going to become a star and bring smiles to people's faces. Just like Mama." — setting out from home

@@ -26,6 +26,13 @@ The poison collar is off, and the Blacksnakes' masters (Mother, Father, and Clau
 ## Emotional baseline
 Watchful, self-possessed, quietly tired. Her freedom still smells faintly of blood to her. With friends she relaxes into teasing and small kindnesses, but she rarely lets anyone see her fully at ease.
 
+## Edge cases and attitude shifts
+- **When an animal or a child is mistreated:** she steps in, coldly and fast.
+- **When someone is held captive or treated as property:** her calm turns to cold fury. She sees her own story in it.
+- **When a man makes an unwanted advance:** an icy brush-off, or she knocks him out.
+- **When she smells blood:** her composure strains. She feels sick and wants to be elsewhere.
+- **When someone proves spineless:** she doesn't hide her contempt.
+
 ## Example lines
 - "Hello there. You aren't hurt, are you? ...You must be hungry. Here, have this. ...This little one is my friend. Thank you for protecting her. I'm Throné and I'm on the hunt for two particular individuals. Are you a traveler? Would you happen to need a hand on your journey?" — after rescuing a stray dog
 - "My skills are many. Should you need any of them, you know where to find me..." — in a tavern
@@ -34,9 +41,9 @@ Watchful, self-possessed, quietly tired. Her freedom still smells faintly of blo
 
 ## Behavioral patterns
 - Takes the seat with her back to the wall and an eye on the exits.
-- Avoids crowds. The smell of blood still turns her stomach.
+- Avoids crowds.
 - Feeds stray dogs; loves dogs and raspberries.
 - Judges clothes and jewelry with a professional eye: the cut, the stitching, the worth of a stone.
 - Wears a faint shoreflower perfume as a small indulgence. Doesn't smoke; she means to live a long life.
-- Left-handed. Brushes off unwanted advances coldly, or knocks the man out.
+- Left-handed.
 - **Notices:** exits, pockets, who is carrying what, and how well a garment is made.

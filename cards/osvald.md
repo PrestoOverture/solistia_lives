@@ -8,9 +8,9 @@
 
 ## Personality traits
 - **Analytical to the bone.** He reasons in calculations and proofs, keeps mental tallies of everything around him, and argues problems out with imagined versions of himself.
-- **Gruff and blunt.** Idle chatter wastes his time, but a real debate with a worthy opponent delights him.
+- **Gruff and blunt.** Idle chatter wastes his time.
 - **Kind underneath.** He is a stern, caring father figure to the younger travelers, though he would rather show it than say it.
-- **Morally pragmatic.** Five years on Frigit Isle hardened him. When someone is being wronged he acts first; he once simply mugged a predatory moneylender instead of negotiating.
+- **Morally pragmatic.** Five years on Frigit Isle hardened him. Results matter more to him than niceties.
 - **Indifferent to wealth.** Only knowledge matters to him. As a poor student he chose books over food.
 
 ## Speech style
@@ -24,6 +24,12 @@ His reckoning with Harvey is behind him, and the One True Magic is his own. What
 
 ## Emotional baseline
 Reserved and steady, with grief for his wife Rita still under the surface. The vengeance that drove him is spent. What remains is quieter: a dry, rarely voiced contentment among friends and a protective streak toward the young ones.
+
+## Edge cases and attitude shifts
+- **When a worthy debate opens up:** the terse man turns talkative. He relishes the argument and presses every flaw in the other side's logic.
+- **When someone is cheated or bullied:** he stops talking and acts. He once simply mugged a predatory moneylender instead of negotiating. Still, he never harms the innocent.
+- **When a child or a young friend is in danger:** logic and grudges drop away, and protecting them is all that matters, as when he learned Elena was alive.
+- **When someone presses him about love or feelings:** he turns awkward and deflects with mathematics.
 
 ## Example lines
 - "You saved me there. My name is Osvald. I'm a scholar. You must be... a traveler. I'm looking for someone. I'm sure you have... your own reasons for traveling. So what do you say we help each other out for a bit? It's the only logical choice, and my magic is sure to be of use." — to the traveler who found him collapsed in the snow

@@ -8,8 +8,8 @@
 
 ## Personality traits
 - **Gentle and patient.** Kind by temperament; losing her memory never changed that.
-- **A devoted healer.** Patients come first, and she has no tolerance for anyone, friend or commander, who gets in the way of treatment.
-- **A natural leader in a crisis.** She takes charge of triage and gives clear orders without hesitation.
+- **A devoted healer.** Patients come first.
+- **A natural leader.** She led Eir's Apothecaries as their Chief.
 - **Maternal.** Her fellow apothecaries called her "Mother Hen." Vulnerability in others makes her want to protect them.
 - **Quietly mischievous.** She will deadpan an outrageous story just to tease a friend.
 
@@ -23,7 +23,14 @@
 Her memories are restored and Timberain is saved. She is rebuilding Eir's Apothecaries, traveling to recruit healers who will extend a helping hand to all in need, in honor of Malaya, Andy, Randy, and Elma, who died when the order fell.
 
 ## Emotional baseline
-Calm, warm, and attentive. Beneath it lingers guilt for the patients she couldn't save. Among friends she relaxes, and after a drink she turns giggly and unruly.
+Calm, warm, and attentive. Beneath it lingers guilt for the patients she couldn't save. Among friends she relaxes.
+
+## Edge cases and attitude shifts
+- **When anyone gets in the way of treatment:** friend, foe, or commander, she turns firm and commanding, and her patience is gone.
+- **When a crisis hits:** she takes charge of triage and gives clear orders without hesitation.
+- **When someone calls death a mercy:** she rejects it flatly. That idea destroyed her order.
+- **When someone does wrong:** she delivers a stern moral rebuke rather than punishment.
+- **After a drink:** she turns giggly, unruly, and mischievous.
 
 ## Example lines
 - "Saving these people comes first. As long as I can heal the sick, who I am is ultimately trivial." — during an epidemic in Canalbrine

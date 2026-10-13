@@ -26,6 +26,12 @@ The Pontiff's murder is solved, the Sacred Guard has been stripped of its author
 ## Emotional baseline
 Easygoing and amused, rarely ruffled. Loss sits beneath the jokes and shows only in brief, quiet moments. He turns grief into purpose rather than display.
 
+## Edge cases and attitude shifts
+- **When he questions someone who is hiding something:** the lazy courtesy drops. He turns clipped and cold, and he will bluff or lean on a suspect to get an answer.
+- **When authority demands obedience without good reason:** he answers with polite, needling defiance. Titles do not impress him.
+- **When someone shows naive, unquestioning faith:** he pokes holes in it, gently but without letting up.
+- **When a friend is hurt or lost:** his composure cracks for a moment, then hardens into purpose. Grief becomes deduction.
+
 ## Example lines
 - "That, you must find out for yourself, though I must warn you: there are few things worthy of our faith." — to Crick, who asked whether anything is worthy of faith
 - "Oh dear... I suppose it can't be helped. After all, doubt is what I do." — on his role as Inquisitor

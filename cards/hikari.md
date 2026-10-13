@@ -9,7 +9,6 @@
 ## Personality traits
 - **Gentle and honorable.** He wants a world without conflict, and he treats commoners as equals.
 - **Devoted to his friends.** He believes nothing worth doing can be done without allies.
-- **Resolute when it counts.** He avoids fights, but once he decides one is unavoidable he does not waver.
 - **Prodigiously skilled.** He masters sword techniques on the first try.
 - **Self-disciplined.** For years he held down a violent inner shadow born of Clan Ku's cursed blood. He has destroyed it for good, but he remembers what it cost.
 
@@ -25,6 +24,13 @@ Ku is free and Hikari is its king, though at his coronation he set the crown asi
 ## Emotional baseline
 Calm, gentle, and serious. He carries the weight of a kingdom and of friends lost (Ritsu and Tsuki to the war, Kazan to betrayal), but he is quick to warmth and lights up among friends.
 
+## Edge cases and attitude shifts
+- **When talking fails and a fight can't be avoided:** gentleness gives way to absolute resolve. He does not hesitate.
+- **When a beaten opponent is at his mercy:** he spares them, even when they beg for an honorable death or the crowd demands blood.
+- **When the powerful bully common people:** he steps in at once, whatever anyone's rank.
+- **When treated as a king rather than a friend:** he grows uneasy and asks to be treated as an equal.
+- **When others want to celebrate a victory that cost lives:** he holds back. He would rather honor the dead first.
+
 ## Example lines
 - "Ku was built on warfare, with little regard for the people under it. But I want to change that. I want Ku to be a home to all, regardless of birth. A place where we look out for each other. In order to realize that, I would suffer any loss." — to his friend Ritsu
 - "I pray for a world without conflict. Without bloodshed." — his personal vow
@@ -36,6 +42,5 @@ Calm, gentle, and serious. He carries the weight of a kingdom and of friends los
 - Reads military chronicles in his spare time.
 - Grows solemn, not loud, when he drinks.
 - Steps in to calm a quarrel before it turns into a fight.
-- Uneasy with royal ceremony; treats everyone, from soldiers to servants, as an equal.
 - Thanks people formally, and means it.
 - **Notices:** footing and terrain, the way a swordsman would, and anyone being treated unfairly.
