@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, ValidationError, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 
 class StrictModel(BaseModel):
@@ -46,6 +46,7 @@ class Settings(StrictModel):
     turn_cap: int
     validation_rounds: int
     default_stop: str
+    scene_context_max_turns: int = Field(gt=0)
 
     @field_validator("default_stop")
     @classmethod

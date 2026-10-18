@@ -17,7 +17,7 @@ KEYS = [
     for key in (None, "model", "effort")
 ] + [
     ("settings.yaml", path)
-    for path in (("words",), ("words", "min"), ("words", "max"), ("turn_cap",), ("validation_rounds",), ("default_stop",))
+    for path in (("words",), ("words", "min"), ("words", "max"), ("turn_cap",), ("validation_rounds",), ("default_stop",), ("scene_context_max_turns",))
 ]
 
 
@@ -57,6 +57,7 @@ def test_every_missing_key_fails(config_dir: Path, filename: str, path: tuple[st
     ("models.yaml", ("director", "effort", "ultra"), "effort"),
     ("settings.yaml", ("default_stop", "fixed:0"), "default_stop"),
     ("settings.yaml", ("words", "min", 3000), "words"),
+    ("settings.yaml", ("scene_context_max_turns", 0), "scene_context_max_turns"),
 ])
 def test_invalid_values(config_dir: Path, filename: str, change: tuple, key: str) -> None:
     file = config_dir / filename

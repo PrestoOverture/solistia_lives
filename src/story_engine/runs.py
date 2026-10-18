@@ -4,6 +4,7 @@ import secrets
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlsplit
 
 from pydantic import BaseModel
 
@@ -25,7 +26,9 @@ class RunMeta(BaseModel):
     stop_after: Literal["scene_context", "beat_plan", "transcript"] | None
     models: Models
     prompt_hashes: dict[str, str]
-    status: Literal["dry_run", "running", "passed", "failed"]
+    status: Literal["dry_run", "running", "passed", "failed", "stopped"]
+    api_host: str = "api.anthropic.com"
+    error: str | None = None
 
 
 def _prompt_hashes() -> dict[str, str]:
@@ -46,6 +49,7 @@ def create_run(
     stop: str,
     stop_after: Literal["scene_context", "beat_plan", "transcript"] | None,
     models: Models,
+    status: Literal["dry_run", "running"] = "dry_run",
 ) -> Path:
     now = datetime.now(timezone.utc)
     run_id = f"{now:%Y%m%d-%H%M%S}-{secrets.token_hex(3)}"
@@ -58,7 +62,7 @@ def create_run(
         stop_after=stop_after,
         models=models,
         prompt_hashes=_prompt_hashes(),
-        status="dry_run",
+        status=status,
     )
     run_dir = Path("runs") / run_id
     run_dir.mkdir(parents=True, exist_ok=False)
@@ -67,3 +71,19 @@ def create_run(
         encoding="utf-8",
     )
     return run_dir
+
+
+def record_api_host(run_dir: Path, base_url: str | None) -> None:
+    """Record only the host from the effective session URL, never credentials."""
+    path = run_dir / "meta.json"
+    meta = RunMeta.model_validate_json(path.read_text(encoding="utf-8"))
+    meta.api_host = urlsplit(base_url or "https://api.anthropic.com").hostname or "api.anthropic.com"
+    path.write_text(meta.model_dump_json(indent=2), encoding="utf-8")
+
+
+def finish_run(run_dir: Path, status: Literal["stopped", "failed"], error: str | None = None) -> None:
+    path = run_dir / "meta.json"
+    meta = RunMeta.model_validate_json(path.read_text(encoding="utf-8"))
+    meta.status = status
+    meta.error = error
+    path.write_text(meta.model_dump_json(indent=2), encoding="utf-8")

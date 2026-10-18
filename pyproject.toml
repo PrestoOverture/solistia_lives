@@ -3,7 +3,12 @@ name = "story-engine"
 version = "0.1.0"
 description = "Octopath Traveler II story generation CLI"
 requires-python = ">=3.12"
-dependencies = ["typer", "pydantic", "pyyaml"]
+dependencies = [
+    "typer",
+    "pydantic",
+    "pyyaml",
+    "claude-agent-sdk>=0.2.168",
+]
 
 [project.scripts]
 story-engine = "story_engine.cli:app"
