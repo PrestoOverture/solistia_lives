@@ -1,5 +1,5 @@
-director: {model: claude-sonnet-5, effort: high}
-character: {model: claude-sonnet-5, effort: medium}
-rewrite: {model: claude-opus-5-5, effort: high}
-baseline: {model: claude-opus-5-5, effort: high}
-validator: {model: claude-sonnet-5, effort: high}
+director: {model: claude-sonnet-4-6, effort: high}
+character: {model: claude-sonnet-4-6, effort: medium}
+rewrite: {model: claude-opus-4-6, effort: high}
+baseline: {model: claude-opus-4-6, effort: high}
+validator: {model: claude-sonnet-4-6, effort: high}
