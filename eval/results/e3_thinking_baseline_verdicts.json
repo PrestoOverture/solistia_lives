@@ -1,0 +1,238 @@
+{
+  "runs": [
+    {
+      "case": "osvald_temenos_1",
+      "context": {
+        "exit": 0,
+        "run": "20261019-113826-d83be5",
+        "stderr": ""
+      },
+      "off": {
+        "exit": 0,
+        "run": "20261019-114022-89d03f",
+        "stderr": ""
+      },
+      "adaptive": {
+        "exit": 0,
+        "run": "20261019-114147-5136ae",
+        "stderr": ""
+      }
+    },
+    {
+      "case": "agnea_throne_1",
+      "context": {
+        "exit": 0,
+        "run": "20261019-113826-34a8a6",
+        "stderr": ""
+      },
+      "off": {
+        "exit": 0,
+        "run": "20261019-114018-7e4afb",
+        "stderr": ""
+      },
+      "adaptive": {
+        "exit": 0,
+        "run": "20261019-114141-c58cb4",
+        "stderr": ""
+      }
+    },
+    {
+      "case": "hikari_ochette_1",
+      "context": {
+        "exit": 0,
+        "run": "20261019-113826-0cfec4",
+        "stderr": ""
+      },
+      "off": {
+        "exit": 0,
+        "run": "20261019-114023-d292e8",
+        "stderr": ""
+      },
+      "adaptive": {
+        "exit": 0,
+        "run": "20261019-114151-0fb541",
+        "stderr": ""
+      }
+    },
+    {
+      "case": "castti_partitio_1",
+      "context": {
+        "exit": 0,
+        "run": "20261019-113826-7547b6",
+        "stderr": ""
+      },
+      "off": {
+        "exit": 0,
+        "run": "20261019-114008-d87107",
+        "stderr": ""
+      },
+      "adaptive": {
+        "exit": 0,
+        "run": "20261019-114206-0fb04f",
+        "stderr": ""
+      }
+    },
+    {
+      "case": "osvald_temenos_agnea_1",
+      "context": {
+        "exit": 0,
+        "run": "20261019-113826-3efc76",
+        "stderr": ""
+      },
+      "off": {
+        "exit": 0,
+        "run": "20261019-114026-ae20a4",
+        "stderr": ""
+      },
+      "adaptive": {
+        "exit": 0,
+        "run": "20261019-114206-193972",
+        "stderr": ""
+      }
+    }
+  ],
+  "packs": [
+    {
+      "case": "osvald_temenos_1",
+      "off": "20261019-114022-89d03f",
+      "adaptive": "20261019-114147-5136ae",
+      "packets": [
+        "/Users/kwang/blind_packets/886bdc98cc0dfa96f3d53104c39bfcdc",
+        "/Users/kwang/blind_packets/712d860dd20adb53f11dde42f2a1f590"
+      ],
+      "key": "/Users/kwang/projects/story_engine/eval/blind/c0bf65463e26712230f19822adba61ed.json"
+    },
+    {
+      "case": "agnea_throne_1",
+      "off": "20261019-114018-7e4afb",
+      "adaptive": "20261019-114141-c58cb4",
+      "packets": [
+        "/Users/kwang/blind_packets/8983dac7af1dd2a002134e0740f6f3fe",
+        "/Users/kwang/blind_packets/2990d84c2a18fb407cfc7af85126d719"
+      ],
+      "key": "/Users/kwang/projects/story_engine/eval/blind/31a474374ea1b419e2c6a70612f83e11.json"
+    },
+    {
+      "case": "hikari_ochette_1",
+      "off": "20261019-114023-d292e8",
+      "adaptive": "20261019-114151-0fb541",
+      "packets": [
+        "/Users/kwang/blind_packets/8f52b3e55cfd8c2ccefc3fd8a7d6b306",
+        "/Users/kwang/blind_packets/258227d65c8a85f046f4c0c25c67f7cf"
+      ],
+      "key": "/Users/kwang/projects/story_engine/eval/blind/1891ebfda2915b74540739d25de410b2.json"
+    },
+    {
+      "case": "castti_partitio_1",
+      "off": "20261019-114008-d87107",
+      "adaptive": "20261019-114206-0fb04f",
+      "packets": [
+        "/Users/kwang/blind_packets/96ea98be4ca0170a9d33a40b64977478",
+        "/Users/kwang/blind_packets/d1c951aae03405e940df7ed6f7ab6528"
+      ],
+      "key": "/Users/kwang/projects/story_engine/eval/blind/ad02f322fab8a8a0f392fd93abcdb155.json"
+    },
+    {
+      "case": "osvald_temenos_agnea_1",
+      "off": "20261019-114026-ae20a4",
+      "adaptive": "20261019-114206-193972",
+      "packets": [
+        "/Users/kwang/blind_packets/f48a2ae4edfe7792d326f57f40ab427a",
+        "/Users/kwang/blind_packets/70c5c0257dc43f9906e5d871952c0ebe"
+      ],
+      "key": "/Users/kwang/projects/story_engine/eval/blind/272ad54176ae1fb6ad18ba6577d0b91e.json"
+    }
+  ],
+  "verdicts": {
+    "osvald_temenos_1": [
+      {
+        "lore": "adaptive",
+        "voice": "adaptive",
+        "readability": "adaptive",
+        "overall": "adaptive",
+        "A": "off",
+        "reasons": "B wins lore because A's claim that Osvald spent five years believing 'Elena was alive' contradicts his belief that his daughter had died, while 'Eight gods sacrificed themselves' misstates the Sacred Flame's origin. B also wins voice: Temenos's suggestion that the seventh source might be 'sheep' and Osvald's curt 'Absolutely not' capture their recognizable banter, while 'The calculations mattered' gives Osvald more scholarly conviction than A's 'He hated that Temenos was right.' For readability, B moves from Osvald recognizing 'You're deflecting' to both men acknowledging their limits and finally leaving the tavern together, giving the conversation a clearer emotional progression than A's repeated analogies between faith and scientific inquiry. Both stories rely more on dialogue than the requested style favors, but B's reciprocal vulnerability and affectionate closing exchange make it the stronger overall episode."
+      },
+      {
+        "lore": "adaptive",
+        "voice": "adaptive",
+        "readability": "off",
+        "overall": "adaptive",
+        "A": "adaptive",
+        "reasons": "A wins lore because B's claim that Osvald spent 'five years on Frigit Isle' believing Elena was alive contradicts his pursuit of revenge for his supposedly murdered family and later discovery of her survival. A also better preserves their intellectual independence through Osvald's 'Logic and emotion are not mutually exclusive' and Temenos's 'doubting my doubt,' while B's 'Same thing, different vocabulary' flattens the distinction between hypothesis and faith and makes Osvald an easier opponent. B wins readability for its brisk exchanges, such as 'That's hypothesis formation,' and the concrete closing detail that Temenos asks about Elena 'in every letter,' whereas A repeatedly restates the idea of reason and doubt being 'bounded.' Overall A's more credible shared reflection, capped by the sheep callback and 'Your questions were adequate,' outweighs B's tighter pacing and affectionate ending."
+      }
+    ],
+    "agnea_throne_1": [
+      {
+        "lore": "adaptive",
+        "voice": "off",
+        "readability": "off",
+        "overall": "off",
+        "A": "off",
+        "reasons": "Lore favors B: A's claim that an 'ugly leather cuff' hides the scar 'where her poison collar had been' misplaces Throné's Blacksnakes collar, which she wore around her neck, while B explicitly grounds the friendship in the travelers 'fighting Vide side by side'. Voice favors A because the clipped 'You sent three letters' and 'It's a strong suggestion' exchange establishes Throné's dry resistance and Agnea's cheerful persistence, whereas B's extended explanation that she brought Throné 'somewhere that was good for me but hard for you' makes Agnea sound more like a counselor. Readability also favors A: the commissioned dress, concealed pockets, fitting, and fountain dance give the episode a clear progression, while B repeatedly explains the crowd discomfort and prolongs the reconciliation after 'I just needed it to end here instead of down there'. Overall, A's concrete gift and livelier interaction make it the more appealing episode despite its lore mistake; both miss the requested 2,000–3,000-word range, with A at roughly 1,900 words and B at roughly 3,160."
+      },
+      {
+        "lore": "adaptive",
+        "voice": "off",
+        "readability": "off",
+        "overall": "off",
+        "A": "adaptive",
+        "reasons": "A wins lore: its reference to Claude grooming Lostseed's orphans fits Throné's history, whereas B's recollection of a 'poison collar' misrepresents her Blacksnakes collar. B better distinguishes the voices in the exchange 'You sent three letters' / 'Well, yes, but you still came' and in Throné's deflection from gratitude to 'It's well made.' B also makes emotion concrete through the dress's concealed pockets and freedom of movement, while A repeatedly explains the same accommodation after reaching the overlook, including 'I just needed it to end here' and 'finding the places where you could stand together anyway.' Both fall outside the requested 2,000–3,000 words, but B's more economical gift-and-festival episode, ending with raspberry tarts and Throné ceasing to count exits, makes it my overall choice."
+      }
+    ],
+    "hikari_ochette_1": [
+      {
+        "lore": "tie",
+        "voice": "adaptive",
+        "readability": "adaptive",
+        "overall": "adaptive",
+        "A": "adaptive",
+        "reasons": "Lore is a tie: both place the destruction of Hikari's shadow at Ku (A's 'Before the throne of Ku' and B's 'During the battle for Ku'), keep the danger local, and leave defeated enemies in the past, including Mahina in B's remembered Darkling encounter. A wins voice through Ochette's practical affection in 'Our hunt' and 'Now you can help me carry this golt instead!', her teasing request that Hikari 'ask fancy', and his characteristically peace-seeking hope for 'fewer bad guys to fight'. A also reads better: the canyon's cooling stone and the golt's lanolin ground its close Ochette viewpoint, while the condor encounter makes Hikari's unburdened fighting lead naturally into the scent conversation; B's grain-shipment and reconstruction exposition slows the outing before its separate conversation about the shadow. Overall I prefer A because the shared carrying pole turns the discussion of Hikari's former burden into a concrete act of friendship, giving the hunt and emotional resolution a more cohesive shape."
+      },
+      {
+        "lore": "tie",
+        "voice": "adaptive",
+        "readability": "adaptive",
+        "overall": "adaptive",
+        "A": "off",
+        "reasons": "Lore is a tie: both treat Hikari's shadow as defeated and keep the present episode local, with A recalling its destruction 'During the battle for Ku' and B locating it 'Before the throne of Ku.' B better distinguishes the voices through Ochette's playful proposal that she 'ask nicely' and Hikari 'ask fancy,' alongside his restrained wish that 'there will be fewer bad guys to fight'; A more often explains their qualities outright, as in 'She was more perceptive than people assumed.' B also has stronger pacing: the condor encounter gives Ochette a concrete reason to notice Hikari's unburdened fighting, whereas A's closing reflections repeat the lesson already conveyed by 'Meat doesn't cook faster just because you're hungry.' Overall, B's transition from 'Must've been heavy' to helping carry the golt makes their friendship and his relief tangible, earning the emotional resolution through a shared action."
+      }
+    ],
+    "castti_partitio_1": [
+      {
+        "lore": "tie",
+        "voice": "off",
+        "readability": "off",
+        "overall": "off",
+        "A": "adaptive",
+        "reasons": "Lore is a tie: A's reference to the eighty-billion-leaf steam-engine rights and B's rebuilding of Eir's Apothecaries both fit the travelers' completed journeys, and neither brings back an enemy or introduces a world-level threat. B wins voice because Partitio's invitation to assess the town and his declaration that he will not trade lives for silver capture his humane initiative, while Castti's instruction not to let guilt stop him from finishing the work combines compassion with firmness; A makes him less perceptive and more defensive through his initial dismissal of Tommy's cough and his response to Castti's criticism in the tavern. B wins readability through the connected clues of Harry's sweet-smelling mine air and Lila's sticky ore, the dawn descent, and the public decision to close the shaft, whereas A repeatedly explains the distinction between prosperity and health before reaching its clinic proposal. Despite B's heavy arsenopyrite exposition and rushed recovery montage, its resolved mine incident and the friends' reciprocal trust make it the stronger story overall."
+      },
+      {
+        "lore": "tie",
+        "voice": "off",
+        "readability": "adaptive",
+        "overall": "off",
+        "A": "off",
+        "reasons": "Lore is a tie: A's rebuilding of Eir's Apothecaries and B's recollection of the eight defeating a god fit the post-ending setting, while both place Papp and Roque on railway plans and keep the conflict local without reviving enemies. A wins voice through Partitio's unsolicited concern that 'all the silver in the world' cannot ensure health, his refusal to 'trade your lives for silver,' and Castti's quietly firm 'Just work that needs doing'; B's 'Gettin' over a cold' and 'Someone should be' make their exchange feel less perceptive and less generous. B wins readability through Fen's permanently impaired grip and his return to measure clinic shelves, giving the town's suffering and communal response a tangible continuity that A's arsenopyrite exposition and compressed recovery montage lack. Overall I prefer A because the invitation to a trusted healer, investigation, shaft closure, and treated patients form a complete episode of friends cooperating, whereas B spends more time explaining the lesson and ends with its clinic still awaiting a resident healer."
+      }
+    ],
+    "osvald_temenos_agnea_1": [
+      {
+        "lore": "tie",
+        "voice": "off",
+        "readability": "off",
+        "overall": "off",
+        "A": "adaptive",
+        "reasons": "Lore is a tie: A's closing reference to the returned dawn and B's peaceful reunion at Gil's tavern fit the supplied post-ending premise, and neither revives a defeated enemy or creates a world-level threat. B wins voice through Osvald's terse 'She asked us to come' and Temenos's teasing about the 'official report,' while A's 'impact-to-audience ratio' and repeated recalculations make Osvald's analytical habits feel overplayed. B also reads more smoothly, moving from the warm velvet seats through backstage costume racks to the tavern, whereas A repeatedly explains the same lesson about audience size and calls the earlier celebration the immersion-breaking 'epilogue gathering' even in dialogue. Overall I prefer B's concrete reunion, including Ochette's enthusiastic hug and Partitio's questions about lighting costs, although A's decision to bring Elena time and attention gives its ending a meaningful personal consequence."
+      },
+      {
+        "lore": "tie",
+        "voice": "off",
+        "readability": "off",
+        "overall": "off",
+        "A": "off",
+        "reasons": "Lore is a tie: A's theater performance and reunion and B's benefit to ordinary tavern patrons both fit the peaceful post-Vide setting, without a clear distinguishing canon contradiction. A gives Osvald economical, recognizable lines such as 'She asked us to come' and 'They stood ... All of them,' while B's 'The impact-to-audience ratio was... optimal' pushes his analytical manner toward caricature. A's progression from Agnea recovering a turn to the ovation and her trembling backstage fingers makes the performance tangible, whereas B repeatedly explains its lesson through 'economic logic,' 'impact per individual,' and 'audience need,' and its spoken references to an 'epilogue gathering' break immersion. Overall, A's affectionate teasing about the 'official report' and the final reunion with all eight travelers make it the more convincing encounter with these friends."
+      }
+    ]
+  }
+}

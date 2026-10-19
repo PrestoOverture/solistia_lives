@@ -17,7 +17,7 @@ KEYS = [
     for key in (None, "model", "effort", "thinking")
 ] + [
     ("settings.yaml", path)
-    for path in (("words",), ("words", "min"), ("words", "max"), ("turn_cap",), ("validation_rounds",), ("default_stop",), ("scene_context_max_turns",))
+    for path in (("words",), ("words", "min"), ("words", "max"), ("turn_cap",), ("validation_rounds",), ("default_stop",), ("scene_context_max_turns",), ("writer_max_turns",))
 ]
 
 
@@ -59,6 +59,7 @@ def test_every_missing_key_fails(config_dir: Path, filename: str, path: tuple[st
     ("settings.yaml", ("default_stop", "fixed:0"), "default_stop"),
     ("settings.yaml", ("words", "min", 3000), "words"),
     ("settings.yaml", ("scene_context_max_turns", 0), "scene_context_max_turns"),
+    ("settings.yaml", ("writer_max_turns", 0), "writer_max_turns"),
 ])
 def test_invalid_values(config_dir: Path, filename: str, change: tuple, key: str) -> None:
     file = config_dir / filename
@@ -99,10 +100,23 @@ def test_valid_dry_run(config_dir: Path) -> None:
         assert meta.input.characters == ["osvald", "temenos"]
         assert meta.status == "dry_run"
         assert meta.models.model_dump() == expected_models
+        assert meta.models_file == "config/models.yaml"
+        assert meta.scene_context_from is None
         assert meta.stop == expected_stop
         assert meta.prompt_hashes == {}
         run_dirs.append(run_dir)
     assert run_dirs[0] != run_dirs[1]
+
+
+@pytest.mark.parametrize("content", [None, "[invalid", "director: {}", "baseline: {thinking: enabled}"])
+def test_invalid_alternate_models_creates_no_run(config_dir: Path, content: str | None) -> None:
+    alternate = config_dir.parent / "alternate.yaml"
+    if content is not None:
+        alternate.write_text(content)
+    result = CliRunner().invoke(app, ARGS + ["--models", str(alternate)])
+    assert result.exit_code == 1
+    assert str(alternate) in result.output
+    assert not (config_dir.parent / "runs").exists()
 
 
 def test_dry_run_prompt_hashes_are_fresh(config_dir: Path) -> None:

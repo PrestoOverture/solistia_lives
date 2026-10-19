@@ -25,6 +25,8 @@ class RunMeta(BaseModel):
     stop: str
     stop_after: Literal["scene_context", "beat_plan", "transcript"] | None
     models: Models
+    scene_context_from: str | None = None
+    models_file: str = "config/models.yaml"
     prompt_hashes: dict[str, str]
     status: Literal["dry_run", "running", "passed", "failed", "stopped"]
     api_host: str = "api.anthropic.com"
@@ -50,6 +52,8 @@ def create_run(
     stop_after: Literal["scene_context", "beat_plan", "transcript"] | None,
     models: Models,
     status: Literal["dry_run", "running"] = "dry_run",
+    scene_context_from: str | None = None,
+    models_file: str = "config/models.yaml",
 ) -> Path:
     now = datetime.now(timezone.utc)
     run_id = f"{now:%Y%m%d-%H%M%S}-{secrets.token_hex(3)}"
@@ -61,6 +65,8 @@ def create_run(
         stop=stop,
         stop_after=stop_after,
         models=models,
+        scene_context_from=scene_context_from,
+        models_file=models_file,
         prompt_hashes=_prompt_hashes(),
         status=status,
     )
@@ -71,6 +77,25 @@ def create_run(
         encoding="utf-8",
     )
     return run_dir
+
+
+def read_scene_context(run_id: str, expected_input: RunInput) -> bytes:
+    """Validate a source run and read its context before creating a new run."""
+    if not run_id or Path(run_id).name != run_id or run_id in (".", ".."):
+        raise ValueError("--scene-context-from must be a run ID")
+    source = Path("runs") / run_id
+    try:
+        context = (source / "scene_context.md").read_bytes()
+        meta = RunMeta.model_validate_json((source / "meta.json").read_bytes())
+    except (OSError, ValueError):
+        raise ValueError(
+            f"--scene-context-from {run_id}: cannot read scene_context.md or valid meta.json"
+        ) from None
+    if meta.input != expected_input:
+        raise ValueError(
+            f"--scene-context-from {run_id}: characters, location, or scenario differ"
+        )
+    return context
 
 
 def record_api_host(run_dir: Path, base_url: str | None) -> None:

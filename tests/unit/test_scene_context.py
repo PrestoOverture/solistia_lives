@@ -235,6 +235,7 @@ def test_scene_context_session(
     trace = rows(run_dir / "trace.jsonl")
     assert [row["type"] for row in trace] == ["run_started", "stage_started", "stage_usage", "stage_finished", "run_finished"]
     assert trace[2]["usage"] == USAGE and trace[2]["stage"] == "scene_context"
+    assert trace[2]["thinking_blocks"] == trace[2]["thinking_chars"] == 0
     assert trace[-1]["status"] == "stopped"
 
 

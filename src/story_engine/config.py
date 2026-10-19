@@ -48,6 +48,7 @@ class Settings(StrictModel):
     validation_rounds: int
     default_stop: str
     scene_context_max_turns: int = Field(gt=0)
+    writer_max_turns: int = Field(gt=0)
     blind_root: Path = Path("~/blind_packets")
 
     @field_validator("default_stop")
@@ -60,7 +61,7 @@ class ConfigError(Exception):
     pass
 
 
-def _load(filename: str, schema: type[Models] | type[Settings]) -> Models | Settings:
+def _load(filename: str | Path, schema: type[Models] | type[Settings]) -> Models | Settings:
     try:
         return schema.model_validate(yaml.safe_load(Path(filename).read_text()))
     except ValidationError as error:
@@ -71,8 +72,8 @@ def _load(filename: str, schema: type[Models] | type[Settings]) -> Models | Sett
         raise ConfigError(f"{filename}: {error}") from None
 
 
-def load_configs() -> tuple[Models, Settings]:
-    models = _load("config/models.yaml", Models)
+def load_configs(models_file: str | Path = "config/models.yaml") -> tuple[Models, Settings]:
+    models = _load(models_file, Models)
     settings = _load("config/settings.yaml", Settings)
     assert isinstance(models, Models) and isinstance(settings, Settings)
     return models, settings

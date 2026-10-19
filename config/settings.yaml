@@ -3,4 +3,5 @@ turn_cap: 40
 validation_rounds: 3
 default_stop: director
 scene_context_max_turns: 20
+writer_max_turns: 20
 blind_root: ~/blind_packets

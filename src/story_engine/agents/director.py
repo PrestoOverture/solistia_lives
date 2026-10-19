@@ -6,7 +6,7 @@ from pathlib import Path
 
 from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 
-from story_engine.agents.sdk import KBHooks, SessionError, session_error, session_options
+from story_engine.agents.sdk import KBHooks, SessionError, ThinkingUsage, session_error, session_options
 from story_engine.config import Role
 from story_engine.runs import record_api_host
 from story_engine.trace import TraceWriter
@@ -24,14 +24,19 @@ async def scene_context(
         "characters": characters, "location": location, "scenario": scenario,
         "kb_path": str((root / "kb").resolve()),
     }, ensure_ascii=False)
+    thinking = ThinkingUsage()
     async with ClaudeSDKClient(options=options) as client:
         await client.query(request)
         async for message in client.receive_response():
             hooks.observe(message)
+            thinking.observe(message)
             if isinstance(message, ResultMessage):
                 trace.write(
                     "stage_usage", stage="scene_context", agent="director",
                     usage=message.usage or {}, num_turns=message.num_turns,
+                    total_cost_usd=message.total_cost_usd,
+                    thinking_blocks=thinking.thinking_blocks,
+                    thinking_chars=thinking.thinking_chars,
                 )
                 if message.is_error or message.subtype != "success":
                     raise session_error(

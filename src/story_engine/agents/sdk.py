@@ -2,17 +2,34 @@
 
 import os
 import shlex
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
 from claude_agent_sdk import (
-    AssistantMessage, ClaudeAgentOptions, HookMatcher, TextBlock, ToolUseBlock, UserMessage,
+    AssistantMessage, ClaudeAgentOptions, HookMatcher, TextBlock, ThinkingBlock,
+    ToolUseBlock, UserMessage,
 )
 from pydantic import BaseModel
 
 from story_engine.config import Role
 
 KB_TOOLS = ["Read", "Grep", "Glob"]
+
+
+@dataclass
+class ThinkingUsage:
+    """Count received thinking blocks without retaining their text or signatures."""
+
+    thinking_blocks: int = 0
+    thinking_chars: int = 0
+
+    def observe(self, message: object) -> None:
+        if isinstance(message, AssistantMessage):
+            for block in message.content:
+                if isinstance(block, ThinkingBlock):
+                    self.thinking_blocks += 1
+                    self.thinking_chars += len(block.thinking)
 
 
 class SessionError(RuntimeError):
