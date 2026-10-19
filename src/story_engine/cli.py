@@ -6,6 +6,7 @@ from typing import Literal
 
 from story_engine.config import ConfigError, load_configs, valid_stop
 from story_engine.eval.pack import pack_runs
+from story_engine.eval.suite import run_suite
 from story_engine.kb import validate_input
 from story_engine.agents.baseline import baseline_writer
 from story_engine.agents.director import scene_context
@@ -137,6 +138,31 @@ def kb() -> None:
 @eval_app.callback()
 def evaluate() -> None:
     """Evaluate generated stories."""
+
+
+@eval_app.command("run-suite")
+def run_suite_command(
+    mode: Literal["baseline", "pipeline"] = typer.Option(...),
+    models_file: Path = typer.Option(Path("config/models.yaml"), "--models", help="Models YAML file"),
+    dry_run: bool = typer.Option(False),
+) -> None:
+    """Run every case in eval/test_suite.yaml."""
+    if mode == "pipeline":
+        typer.echo("pipeline mode is not implemented", err=True)
+        raise typer.Exit(code=1)
+    try:
+        _, settings = load_configs(models_file)
+        manifest, path = run_suite(models_file, dry_run, settings.suite_parallel)
+    except (ConfigError, OSError, ValueError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from None
+    for case_id, result in manifest.root.items():
+        cost = "unknown" if result.total_cost_usd is None else f"${result.total_cost_usd:.6f}"
+        typer.echo(f"{case_id}: {result.run_id or '-'} {result.status} {cost}")
+    typer.echo(path)
+    expected = "dry_run" if dry_run else "passed"
+    if any(result.status != expected for result in manifest.root.values()):
+        raise typer.Exit(code=1)
 
 
 @eval_app.command()

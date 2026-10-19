@@ -49,6 +49,7 @@ class Settings(StrictModel):
     default_stop: str
     scene_context_max_turns: int = Field(gt=0)
     writer_max_turns: int = Field(gt=0)
+    suite_parallel: int = Field(gt=0)
     blind_root: Path = Path("~/blind_packets")
 
     @field_validator("default_stop")

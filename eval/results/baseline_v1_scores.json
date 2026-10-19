@@ -1,0 +1,222 @@
+[
+  {
+    "case": "osvald_temenos_1",
+    "run": "20261019-131731-b3b1aa",
+    "scores": {
+      "lore": {
+        "score": 3,
+        "notes": "The quiet Montwise reunion fits the post-ending setting, and the paired statements 'Harvey was dead' and 'Elena was alive' preserves Osvald's central outcome. However, the recollection of fighting Vide 'in the dark below the Seat of the Flame' misplaces the final confrontation, which takes place at Vidania. I cannot confirm Temenos's claimed feat of channeling the Sacred Flame 'to break Vide's illusions' as a canonical event, so I have not counted that as a separate error."
+      },
+      "voice": {
+        "score": 3,
+        "notes": "Temenos's 'I meant the game, not the wine' and Osvald's 'Learning from the loss does' establish distinct teasing and terse voices. However, Osvald's speech about 'Oxytocin, dopamine, activation of the ventral tegmental area' sounds like a modern textbook, and his repeated insistence on rationality reduces his emotional range after his journey. Temenos's extended explanation beginning 'I'm going to say that preference is love' likewise turns his sly questioning into an unusually explicit philosophical lecture."
+      },
+      "readability": {
+        "score": 3,
+        "notes": "The tavern's chess-piece clicks and the mountain air 'smelling of snow and stone' give the conversation a tangible setting, while Osvald's admission 'Because I'd prefer not to be alone' supplies a satisfying emotional turn. The middle repeatedly restates the equivalence of love, faith, and connection, and recurring calculations, variables, and adjustments of spectacles make the prose feel patterned. The final journal entry closes this self-contained episode, but the prolonged explanation before it weakens the pacing and leaves little for the reader to infer."
+      }
+    },
+    "total": 9,
+    "pass": false,
+    "words": 2567,
+    "cost": 0.3154088
+  },
+  {
+    "case": "osvald_temenos_2",
+    "run": "20261019-131731-dec91f",
+    "scores": {
+      "lore": {
+        "score": 3,
+        "notes": "The references to Elena, Rita, and the travelers' shared fight against Vide fit the post-ending setting, and no defeated enemy returns. However, 'Crick died learning to believe' reverses the arc of an already devout knight who learned to question religious authority; in this discussion of faith, that is a concrete characterization error."
+      },
+      "voice": {
+        "score": 3,
+        "notes": "Temenos's teasing 'Oh dear' and 'Have I failed?' and Osvald's corrective 'I expanded it' give the opening recognizable voices. Their friendship also comes through in 'You challenged my conclusions' and 'That's respect'. However, the extended exchanges about axioms and 'learned faith' give both men similarly fluent, abstract explanatory speeches, making Osvald unusually expansive and the voices less distinct as the debate continues."
+      },
+      "readability": {
+        "score": 3,
+        "notes": "The unopened wine and cooling coffee give the meeting a clear physical frame, but repeated formulations such as 'faith dressed in scholarly robes' and 'faith and knowledge were two names for the same thing' overexplain the debate's central idea. Dialogue occupies roughly 60% of the 2,146-word story, contrary to the requested emphasis on narration, and slows the scene through repeated challenges and restatements. The viewpoint also moves from what 'Temenos recognized' in Osvald's finger-tapping to 'Osvald felt the irritation of being outmaneuvered,' breaking the requested single close-third perspective."
+      }
+    },
+    "total": 9,
+    "pass": false,
+    "words": 2146,
+    "cost": 0.31218775
+  },
+  {
+    "case": "agnea_throne_1",
+    "run": "20261019-131731-98926a",
+    "scores": {
+      "lore": {
+        "score": 3,
+        "notes": "Agnea's explanation that 'Song of Hope' was 'Mama's words, Mama's music' misattributes the song developed from her own journey with Gil's help, weakening the premise that she must now prove she can create something of her own. The Merry Hills festival, Sealticge as the Lady of Grace, and the friends' recollection of restoring the sun otherwise fit the setting; Marguerite and her booking offer are permissible new additions."
+      },
+      "voice": {
+        "score": 4,
+        "notes": "Agnea's excited 'Is that fire juggling?' and insistence that buying a tart is 'sharing' contrast clearly with Throné's terse 'You've been measuring sight lines since we arrived' and guarded acceptance of the hug. Throné straightening Agnea's rose and later listening to both versions of the melody convey affection through actions consistent with her reserve, though 'Throné didn't clap—she never did' makes that reserve unnecessarily absolute."
+      },
+      "readability": {
+        "score": 4,
+        "notes": "The tart's flaky crust, fountain murmur, and banners turning gold give the episode a tangible setting, while the closing comparison of the melody's fast and slow versions neatly resolves Throné's willingness to accept companionship. Stock emotional phrasing such as 'felt something shift in her chest' and 'small and new and tentative,' plus the promoter's swift offstage approval, make the emotional turn feel somewhat prearranged. At roughly 1,890 words, the story also falls short of the requested 2,000–3,000-word scope."
+      }
+    },
+    "total": 11,
+    "pass": false,
+    "words": 1892,
+    "cost": 0.28932614999999995
+  },
+  {
+    "case": "agnea_throne_2",
+    "run": "20261019-131731-957910",
+    "scores": {
+      "lore": {
+        "score": 5,
+        "notes": "The Cropdale homecoming with 'Garud’s offered chair and Pala’s questions,' Throné’s memory of 'wearing the collar again,' and Vide appearing only in a recollection fit the post-ending setting without an identifiable canon contradiction. The festival introduces no returning enemy or world-level threat and resolves both travelers’ immediate concerns. I cannot confirm the exact 'Festival of Grace' reference or the 'collapsing ruin' staging of the Song of Hope from the supplied material, so I have not counted those uncertain details as errors."
+      },
+      "voice": {
+        "score": 4,
+        "notes": "Throné’s dry 'You did drag me here' and 'He deserved it' contrast clearly with Agnea’s eager, tumbling explanation, 'Pala did most of the crust, but I picked the raspberries this morning.' Throné’s attention to exits and her response to Garud’s unquestioning welcome also make her guardedness and desire for belonging convincing after her journey. Her extended advice beginning 'You spent your whole journey dancing for other people' becomes more generic and explanatory than her otherwise economical speech."
+      },
+      "readability": {
+        "score": 4,
+        "notes": "The opening 'The raspberry tart was bleeding through its napkin' leads into vivid taste and memory, while the lanterns, music, and baking table give the homecoming a tangible setting. Agnea’s reluctance to perform supplies a clear, modest conflict that resolves naturally in the dance and the quiet walk home. Repeated stumbling, wet eyes, and watching gestures become noticeable, and the closing explanation that home 'was people, and choice, and the slow careful work of letting yourself be known' states a theme the offered chair, tart, and companionship have already conveyed."
+      }
+    },
+    "total": 13,
+    "pass": true,
+    "words": 2416,
+    "cost": 0.31944385
+  },
+  {
+    "case": "hikari_ochette_1",
+    "run": "20261019-131731-f935b1",
+    "scores": {
+      "lore": {
+        "score": 3,
+        "notes": "The closing description places the Leaflands west of Oresrush, although they lie to its east; this is a localized geographical error. The references to Kazan as Oboro and to the friends having defeated Vide fit the post-ending setting, and the hunt introduces no returning enemy or larger threat. I cannot confirm the \"Crest of Heroes\" memorial or Ochette's reference to \"Mama's cooking\", so I have not counted those as additional canon errors."
+      },
+      "voice": {
+        "score": 4,
+        "notes": "Hikari's \"I pray I may learn more from you\" and \"I am merely her student\" convey his formal humility, while Ochette's excitement over cheese and jerky and her thanks to the fallen golt make her readily identifiable. Ochette's polished maxim, \"Soldiers fight to win. Hunters fight to survive,\" sounds more like an imposed thematic lesson than her usual spontaneous speech, and Hikari's conclusion that she carries \"no shadows\" simplifies her experience."
+      },
+      "readability": {
+        "score": 3,
+        "notes": "The opening's brittle scrub and the golt's scarred horns establish a tangible setting, and the coordinated attack is easy to follow. However, Ochette's later claim that Hikari \"struck clean\" contradicts the blade scoring the animal's flank and her delivering the decisive blow. Repeated explanations of the hunter-soldier parallel, culminating in \"Perhaps that was the truest strength,\" overstate a theme the action already conveys and slow the walk back to Oresrush."
+      }
+    },
+    "total": 10,
+    "pass": false,
+    "words": 2153,
+    "cost": 0.3603579
+  },
+  {
+    "case": "hikari_ochette_2",
+    "run": "20261019-132031-827862",
+    "scores": {
+      "lore": {
+        "score": 3,
+        "notes": "The closing reference to \"Prince Hikari\" conflicts with his post-ending position as king of Ku, though the recollections of reclaiming Ku and defeating his shadow fit his completed journey. Ochette calling Castti \"Mama\" and traveling with Akalā fit the established relationships and a valid companion choice. I cannot verify whether golts or the local sulfur vents are established game details, so I do not count them as errors."
+      },
+      "voice": {
+        "score": 4,
+        "notes": "Ochette is recognizable in \"Hikarin!\", her attempted jerky barter, and \"He ate my jerky, didn't he? That's basically a sacred bond,\" while Hikari's \"What would you have me do?\" and soldier comparison preserve his courteous, martial perspective. Her concern for the wounded animal suits her compassion, although \"he's not part of the balance yet\" and the polished lesson about \"the right thing to do\" feel less natural than her food-centered enthusiasm."
+      },
+      "readability": {
+        "score": 3,
+        "notes": "The opening canyon heat and the golt flinching during treatment give the rescue a clear setting and an engaging physical focus. The supply sequence skips collecting sulfur before Ochette suddenly produces it from a pouch, and the promised need for another treatment is left at \"perhaps she will check on him herself, if we ask\" without securing that care. The ending repeats its moral through \"The right thing, rather than the easy thing,\" the chronicles discussion, and \"Some victories were not meant for history books,\" making an otherwise functional episode feel overexplained."
+      }
+    },
+    "total": 10,
+    "pass": false,
+    "words": 2364,
+    "cost": 0.3840558
+  },
+  {
+    "case": "castti_partitio_1",
+    "run": "20261019-132037-bf863d",
+    "scores": {
+      "lore": {
+        "score": 3,
+        "notes": "The opening's eight-month interval after Vide's defeat and Papp and Roque's railway work fit the post-ending setting. However, Castti's statement that she lost Eir's Apothecaries 'Four years ago' contradicts the order's destruction about a year before her game's journey, even allowing for the eight months since Vide. I am unsure whether Papp's stated age of fifty-six or the claim that Partitio gives a silver coin to everyone he meets is canonical, so I have not counted those as errors."
+      },
+      "voice": {
+        "score": 4,
+        "notes": "Castti's 'And fiddles typically run fevers and lie to apothecaries?' and her refusal of payment capture her firm, compassionate manner, while her reaction to Malaya's 'mother hen' nickname gives that care a personal history. Papp's 'Nothin' that rest won't fix' and his insistence that the farewell coin is 'an investment' give him a recognizable merchant's idiom distinct from Castti's precise instructions. His extended 'Bridges to people who need 'em' speech feels more like an explanation of the story's theme than spontaneous conversation."
+      },
+      "readability": {
+        "score": 3,
+        "notes": "The sulfur and woodsmoke opening establishes Oresrush clearly, and the story maintains Castti's viewpoint through a complete episode of illness, care, and departure. The ranch daughter's illness repeats Papp's examination-and-treatment pattern, and the later rounds summarize predictable recoveries with little complication, flattening the middle. 'Different devils, same devotion,' 'Different methods, same creed,' and the closing repetition of 'building bridges' explain the same connection several times, making otherwise readable prose feel formulaic."
+      }
+    },
+    "total": 10,
+    "pass": false,
+    "words": 2262,
+    "cost": 0.30509595
+  },
+  {
+    "case": "castti_partitio_2",
+    "run": "20261019-132040-5d810f",
+    "scores": {
+      "lore": {
+        "score": 5,
+        "notes": "Castti's recruitment for Eir's Apothecaries and Partitio's offer of railway work in Oresrush fit their post-journey priorities, while treating repentant former cultists leaves the Moonshade Order broken and the episode local. I cannot confirm the precise account of Crackridge townspeople rescuing Ori from the Fellsun Ruins, so I do not count that passage as an error; I find no definite canon contradiction in the text."
+      },
+      "voice": {
+        "score": 4,
+        "notes": "Partitio's 'That devil poverty's got his claws in deep here' and his insistence that hiring the injured miner is 'Good business' make his entrepreneurial compassion immediately recognizable, while Castti's 'You're my patient. I'm going to treat you properly' captures her firm, unconditional care. Their longer explanations of second chances, especially 'someone worth healing' paired with 'someone worth investing in,' feel more like a statement of the story's theme than spontaneous conversation, but their voices remain distinct."
+      },
+      "readability": {
+        "score": 4,
+        "notes": "The opening red quarry dust and the midnight scene of instruments and ledgers by lamplight establish a tangible setting, and the closing revision from 'Fair terms' to 'Good terms. For everyone.' gives the episode a satisfying finish. The repeated patient-treatment sequences and explicit explanations of second chances soften the pacing, while the final log's 'fourteen patients treated' overlooks the five evening patients who arrive after Castti has already seen fourteen."
+      }
+    },
+    "total": 13,
+    "pass": true,
+    "words": 2499,
+    "cost": 0.33453695
+  },
+  {
+    "case": "osvald_temenos_agnea_1",
+    "run": "20261019-132056-d0c35b",
+    "scores": {
+      "lore": {
+        "score": 5,
+        "notes": "Osvald recalling the One True Magic as \"powered by love for Rita and Elena\" and planning to visit Elena with Clarissa in Conning Creek fits his established relationships and resolution. Agnea's theater engagement and the scattered friends exchanging letters form a compatible post-ending episode without reviving an enemy or introducing a world-level threat. I cannot confirm the \"sheep hypothesis\" as a canonical exchange, so I have not counted it as an error."
+      },
+      "voice": {
+        "score": 3,
+        "notes": "Temenos's \"You should write poetry\" and Agnea's breathless \"They want me back!\" give them distinct, recognizable conversational roles. Osvald's repeated \"variable set,\" \"caloric value versus the cost,\" and \"correct response protocol,\" however, turn his scholarly reserve into an overly mechanical mannerism. Agnea's warmth comes through in her sudden hug and concern for the elderly audience member, but her speech mostly lacks her distinctive rural cadence."
+      },
+      "readability": {
+        "score": 4,
+        "notes": "The transition from stagehands striking the set to New Delsta's noisy streets and the quiet hotel gives the evening a clear shape and convincing sense of place. Osvald's \"You asked us to be there. Therefore, we were there\" makes the friendship tangible, and his plans for breakfast and a letter to Elena provide closure. Repeated calculation imagery and familiar abstractions such as \"Some variables resisted calculation\" and \"the city dreamed its restless dreams\" make the emotional finish more predictable than the strongest earlier details."
+      }
+    },
+    "total": 12,
+    "pass": true,
+    "words": 2414,
+    "cost": 0.39400095
+  },
+  {
+    "case": "osvald_temenos_agnea_2",
+    "run": "20261019-132104-e54294",
+    "scores": {
+      "lore": {
+        "score": 5,
+        "notes": "Merry Hills, the Stage of the Moon and Sun, and Agnea's Grand Gala success fit her completed journey, while \"Your mother would be proud\" respects her mother's death. The concert resolves without a returning enemy or larger threat; the church-linked \"Order\" funding venues does not clearly identify the defeated Moonshade Order, so it is not an established contradiction. I cannot confirm \"Festival of Grace,\" \"Seven Tenets,\" or \"Sixthday\"/\"Seventhday\" as canonical references from the supplied files, and do not count that uncertainty as an error."
+      },
+      "voice": {
+        "score": 4,
+        "notes": "Temenos's \"Shall I absolve the carpenter in advance\" and Osvald's \"The construction is sound\" make their teasing skepticism and terse literalism recognizable without tags; Agnea's excited invitation for fried fish likewise has her warmth. Osvald's \"Your mother would be proud\" gives his reserve a convincing affectionate release after their shared journey. Repeated numerical predictions of Agnea tripping, and her stumbling during the dance, bow, and alley greeting, push his analytical habits and her clumsiness toward caricature, but the three voices remain distinct."
+      },
+      "readability": {
+        "score": 3,
+        "notes": "The 2,194-word episode maintains Osvald's close perspective, uses more narration than dialogue, and gives the modest hall and raspberry-juice alley scene a clear sense of place; Agnea turning her caught heel into a spin supplies a satisfying small dramatic turn. Repeated emotional formulas such as \"Still trying to make people smile. Still tripping over her own feet. Still getting up.\" and \"something quieter. Something new.\" make the prose feel manufactured in places. The long preliminary banter and repeated tripping-probability jokes slow a slight incident, while the final \"Purely logical\" explains an affection the reader has already understood."
+      }
+    },
+    "total": 12,
+    "pass": true,
+    "words": 2194,
+    "cost": 0.367123
+  }
+]
