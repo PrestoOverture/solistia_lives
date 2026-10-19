@@ -12,6 +12,7 @@ class StrictModel(BaseModel):
 class Role(StrictModel):
     model: str
     effort: Literal["low", "medium", "high", "xhigh", "max"]
+    thinking: Literal["off", "adaptive"]
 
 
 class Models(StrictModel):

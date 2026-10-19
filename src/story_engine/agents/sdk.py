@@ -144,6 +144,7 @@ def session_options(
     env["CLAUDE_CONFIG_DIR"] = str((run_dir / ".sdk").resolve())
     return ClaudeAgentOptions(
         cwd=root, system_prompt=system_prompt, model=role.model, effort=role.effort,
+        thinking={"type": "disabled"} if role.thinking == "off" else {"type": "adaptive"},
         max_turns=max_turns, tools=KB_TOOLS.copy(), allowed_tools=KB_TOOLS.copy(),
         setting_sources=[], strict_mcp_config=True, env=env,
         verbatim_prompts=True, extra_args={"no-session-persistence": None},

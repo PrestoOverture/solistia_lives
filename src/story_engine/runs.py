@@ -81,7 +81,7 @@ def record_api_host(run_dir: Path, base_url: str | None) -> None:
     path.write_text(meta.model_dump_json(indent=2), encoding="utf-8")
 
 
-def finish_run(run_dir: Path, status: Literal["stopped", "failed"], error: str | None = None) -> None:
+def finish_run(run_dir: Path, status: Literal["stopped", "passed", "failed"], error: str | None = None) -> None:
     path = run_dir / "meta.json"
     meta = RunMeta.model_validate_json(path.read_text(encoding="utf-8"))
     meta.status = status

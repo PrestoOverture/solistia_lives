@@ -14,7 +14,7 @@ ARGS = ["generate", "--dry-run", "--characters", "osvald,temenos", "--location",
 KEYS = [
     ("models.yaml", (role,) if key is None else (role, key))
     for role in ("director", "character", "rewrite", "baseline", "validator")
-    for key in (None, "model", "effort")
+    for key in (None, "model", "effort", "thinking")
 ] + [
     ("settings.yaml", path)
     for path in (("words",), ("words", "min"), ("words", "max"), ("turn_cap",), ("validation_rounds",), ("default_stop",), ("scene_context_max_turns",))
@@ -55,6 +55,7 @@ def test_every_missing_key_fails(config_dir: Path, filename: str, path: tuple[st
 @pytest.mark.parametrize("filename,change,key", [
     ("models.yaml", ("director", "extra", "x"), "extra"),
     ("models.yaml", ("director", "effort", "ultra"), "effort"),
+    ("models.yaml", ("baseline", "thinking", "enabled"), "thinking"),
     ("settings.yaml", ("default_stop", "fixed:0"), "default_stop"),
     ("settings.yaml", ("words", "min", 3000), "words"),
     ("settings.yaml", ("scene_context_max_turns", 0), "scene_context_max_turns"),
@@ -80,6 +81,7 @@ def test_valid_dry_run(config_dir: Path) -> None:
     args = ARGS.copy()
     args[args.index("--scenario") + 1] = scenario
     expected_models = yaml.safe_load((config_dir / "models.yaml").read_text())
+    assert all(role["thinking"] == "off" for role in expected_models.values())
     default_stop = yaml.safe_load((config_dir / "settings.yaml").read_text())["default_stop"]
     run_dirs = []
     for extra, expected_stop in (([], default_stop), (["--stop", "fixed:6"], "fixed:6")):

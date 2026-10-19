@@ -8,7 +8,7 @@ import yaml
 from claude_agent_sdk import AssistantMessage, ResultMessage, TextBlock, ToolUseBlock, UserMessage
 from typer.testing import CliRunner
 
-from story_engine.agents import director
+from story_engine.agents import baseline, director
 from story_engine.agents.sdk import KBHooks, session_environment
 from story_engine.cli import app
 from story_engine.runs import RunMeta
@@ -47,6 +47,7 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
             pytest.fail("A unit test must install a fake SDK client")
 
     monkeypatch.setattr(director, "ClaudeSDKClient", UnexpectedClient)
+    monkeypatch.setattr(baseline, "ClaudeSDKClient", UnexpectedClient)
     return tmp_path
 
 
@@ -170,6 +171,7 @@ def test_scene_context_session(
             assert options.cwd == repo
             assert options.system_prompt == (repo / "prompts/director_scene_context.md").read_text()
             assert options.model == role["model"] and options.effort == role["effort"]
+            assert options.thinking == {"type": "disabled"}
             assert options.max_turns == 20
             assert options.tools == options.allowed_tools == ["Read", "Grep", "Glob"]
             assert options.setting_sources == []
@@ -286,11 +288,10 @@ def test_session_failures_mark_meta_failed(repo: Path, monkeypatch: pytest.Monke
     assert events[-2]["type"] == "stage_failed" and events[-1]["status"] == "failed"
 
 
-@pytest.mark.parametrize("mode", ["baseline", "pipeline"])
 @pytest.mark.parametrize("stage", [None, "beat_plan", "transcript"])
-def test_other_non_dry_stages_stay_unimplemented(repo: Path, mode: str, stage: str | None) -> None:
+def test_pipeline_stages_stay_unimplemented(repo: Path, stage: str | None) -> None:
     args = ARGS.copy()
-    args[args.index("--mode") + 1] = mode
+    args[args.index("--mode") + 1] = "pipeline"
     index = args.index("--stop-after")
     args[index:index + 2] = [] if stage is None else ["--stop-after", stage]
     result = CliRunner().invoke(app, args)
@@ -298,8 +299,26 @@ def test_other_non_dry_stages_stay_unimplemented(repo: Path, mode: str, stage: s
     assert not (repo / "runs").exists()
 
 
-def test_dry_run_scene_context_does_not_start_sdk(repo: Path) -> None:
-    result = CliRunner().invoke(app, ARGS + ["--dry-run"])
+@pytest.mark.parametrize("stage", ["beat_plan", "transcript"])
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_baseline_rejects_pipeline_stops(repo: Path, stage: str, dry_run: bool) -> None:
+    args = ARGS.copy()
+    args[args.index("--stop-after") + 1] = stage
+    result = CliRunner().invoke(app, args + (["--dry-run"] if dry_run else []))
+    assert result.exit_code == 1
+    assert f"--stop-after {stage} is not available in baseline mode" in result.output
+    assert not (repo / "runs").exists()
+
+
+@pytest.mark.parametrize("mode", ["baseline", "pipeline"])
+@pytest.mark.parametrize("stop_after", [None, "scene_context"])
+def test_dry_run_does_not_start_sdk(repo: Path, mode: str, stop_after: str | None) -> None:
+    args = ARGS.copy()
+    args[args.index("--mode") + 1] = mode
+    if stop_after is None:
+        index = args.index("--stop-after")
+        del args[index:index + 2]
+    result = CliRunner().invoke(app, args + ["--dry-run"])
     assert result.exit_code == 0, result.output
     run_dir = Path(result.output.strip())
     assert {path.name for path in run_dir.iterdir()} == {"meta.json", "trace.jsonl"}
