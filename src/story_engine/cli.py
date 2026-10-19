@@ -5,6 +5,7 @@ import typer
 from typing import Literal
 
 from story_engine.config import ConfigError, load_configs, valid_stop
+from story_engine.eval.pack import pack_runs
 from story_engine.kb import validate_input
 from story_engine.agents.baseline import baseline_writer
 from story_engine.agents.director import scene_context
@@ -115,6 +116,23 @@ def kb() -> None:
 @eval_app.callback()
 def evaluate() -> None:
     """Evaluate generated stories."""
+
+
+@eval_app.command()
+def pack(
+    run_id: str = typer.Argument(...),
+    second_run_id: str | None = typer.Argument(None),
+) -> None:
+    """Pack one or two finished runs for blind judging."""
+    try:
+        _, settings = load_configs()
+        run_ids = [run_id] if second_run_id is None else [run_id, second_run_id]
+        packets, key_path = pack_runs(run_ids, settings.blind_root)
+    except (ConfigError, OSError, ValueError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from None
+    for path in [*packets, key_path]:
+        typer.echo(path)
 
 
 app.add_typer(kb_app, name="kb")

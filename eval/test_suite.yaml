@@ -1,0 +1,47 @@
+# The 10-case test suite (prd §6.4): 5 groups, 2 cases each.
+# The two cases in a group share characters and scenario but differ in location.
+cases:
+  - id: osvald_temenos_1
+    characters: [osvald, temenos]
+    location: montwise
+    scenario: Debating faith and reason over drinks
+  - id: osvald_temenos_2
+    characters: [osvald, temenos]
+    location: flamechurch
+    scenario: Debating faith and reason over drinks
+
+  - id: agnea_throne_1
+    characters: [agnea, throne]
+    location: merry_hills
+    scenario: Agnea drags Throné to a festival
+  - id: agnea_throne_2
+    characters: [agnea, throne]
+    location: cropdale
+    scenario: Agnea drags Throné to a festival
+
+  - id: hikari_ochette_1
+    characters: [hikari, ochette]
+    location: southern_oresrush_wilds
+    scenario: Hunting together in the Wildlands
+  - id: hikari_ochette_2
+    characters: [hikari, ochette]
+    location: western_crackridge_wilds
+    scenario: Hunting together in the Wildlands
+
+  - id: castti_partitio_1
+    characters: [castti, partitio]
+    location: oresrush
+    scenario: Treating patients in an underserved town
+  - id: castti_partitio_2
+    characters: [castti, partitio]
+    location: crackridge
+    scenario: Treating patients in an underserved town
+
+  - id: osvald_temenos_agnea_1
+    characters: [osvald, temenos, agnea]
+    location: new_delsta
+    scenario: Agnea performing, the other two in the audience
+  - id: osvald_temenos_agnea_2
+    characters: [osvald, temenos, agnea]
+    location: merry_hills
+    scenario: Agnea performing, the other two in the audience

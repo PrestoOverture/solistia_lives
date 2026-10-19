@@ -48,6 +48,7 @@ class Settings(StrictModel):
     validation_rounds: int
     default_stop: str
     scene_context_max_turns: int = Field(gt=0)
+    blind_root: Path = Path("~/blind_packets")
 
     @field_validator("default_stop")
     @classmethod
