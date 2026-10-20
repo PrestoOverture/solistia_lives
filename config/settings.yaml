@@ -6,3 +6,4 @@ scene_context_max_turns: 20
 writer_max_turns: 20
 suite_parallel: 5
 blind_root: ~/blind_packets
+parts_of_day: [morning, afternoon, evening, night]

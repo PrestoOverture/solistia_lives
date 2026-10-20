@@ -18,6 +18,7 @@ class Role(StrictModel):
 class Models(StrictModel):
     initializer: Role
     character: Role
+    world: Role
     rewrite: Role
     baseline: Role
     validator: Role
@@ -44,6 +45,14 @@ def valid_stop(value: str) -> str:
 
 class Settings(StrictModel):
     words: Words
+    parts_of_day: list[Literal["morning", "afternoon", "evening", "night"]]
+
+    @field_validator("parts_of_day")
+    @classmethod
+    def check_parts(cls, value):
+        if value != ["morning", "afternoon", "evening", "night"]:
+            raise ValueError("parts_of_day must follow morning, afternoon, evening, night")
+        return value
     turn_cap: int
     validation_rounds: int
     default_stop: str

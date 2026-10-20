@@ -13,7 +13,7 @@ from story_engine.agents.sdk import (
 from story_engine.config import Role
 from story_engine.trace import TraceWriter
 from story_engine.world.io import load_state
-from story_engine.world.models import Event
+from story_engine.world.models import Event, PartOfDay
 
 
 class Action(BaseModel):
@@ -82,7 +82,13 @@ class CharacterAgent:
         finally:
             self.client = None
 
+    async def choose(self, part: PartOfDay, perceived: list[Event]) -> Action:
+        return await self._action(perceived, part)
+
     async def act(self, perceived: list[Event]) -> Action:
+        return await self._action(perceived)
+
+    async def _action(self, perceived: list[Event], part: PartOfDay | None = None) -> Action:
         if self.client is None:
             raise SessionError("CharacterAgent must be opened as an async context manager")
         self.turn += 1
@@ -92,7 +98,8 @@ class CharacterAgent:
             if self.slug in event.perceived_by and event.id not in self.seen:
                 events.append(event.model_dump(exclude={"intent", "perceived_by"}))
                 self.seen.add(event.id)
-        request = json.dumps({**(self.opening if self.turn == 1 else {}), "perceived": events},
+        request = json.dumps({**(self.opening if self.turn == 1 else {}), "perceived": events,
+                              **({"part": part, "call": "part_of_day"} if part else {})},
                              ensure_ascii=False)
         for attempt in range(2):
             thinking = ThinkingUsage()

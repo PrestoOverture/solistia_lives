@@ -73,6 +73,12 @@ def load_state(world_dir: Path) -> WorldState:
     return _validate_state(info, WorldState.model_validate(_read_json(world_dir / "state.json")))
 
 
+def validate_state(world_dir: Path, state: WorldState) -> WorldState:
+    """Validate a proposed state against the persistent world without writing it."""
+    info = WorldInfo.model_validate(_read_json(world_dir / "world.json"))
+    return _validate_state(info, state)
+
+
 def save_state(world_dir: Path, state: WorldState) -> None:
     info = WorldInfo.model_validate(_read_json(world_dir / "world.json"))
     state = _validate_state(info, state)

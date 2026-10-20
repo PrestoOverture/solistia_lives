@@ -28,3 +28,6 @@ Reply with one JSON object and nothing else:
 - `to` is who you speak to, if anyone; it may be omitted or null.
 - `action` and `say` are strings and may be empty, but `act` needs a non-empty action or say.
 - A wait may carry a visible reaction. Leave ends your part in the scene.
+
+## A part of the day
+A `part_of_day` call asks where you go and what you set out to do with the named part of the day, rather than your next move in a scene. Return the same Action JSON; put your destination and undertaking in `action`.
