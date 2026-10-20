@@ -1,5 +1,6 @@
 """Shared SDK session configuration and KB access hooks."""
 
+import json
 import os
 import shlex
 from dataclasses import dataclass
@@ -34,6 +35,20 @@ class ThinkingUsage:
 
 class SessionError(RuntimeError):
     """A session failure whose diagnostic has been scrubbed of credentials."""
+
+
+def json_object(reply: str) -> dict:
+    """Extract a JSON object, tolerating fences or surrounding prose."""
+    try:
+        data = json.loads(reply)
+    except json.JSONDecodeError:
+        start, end = reply.find("{"), reply.rfind("}")
+        if start < 0 or end < start:
+            raise ValueError("reply must be a JSON object") from None
+        data = json.loads(reply[start:end + 1])
+    if not isinstance(data, dict):
+        raise ValueError("reply must be a JSON object")
+    return data
 
 
 def session_error(error: object, env: dict[str, str]) -> SessionError:

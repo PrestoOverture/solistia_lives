@@ -1,0 +1,107 @@
+{
+  "clock": {
+    "day": 1,
+    "part": "morning"
+  },
+  "places": [
+    {
+      "slug": "cropdale",
+      "details": [
+        "A tranquil rural village in the Leaflands, famous for raspberry and peach orchards",
+        "Home to the Bristarni household where Agnea grew up",
+        "The local tavern is run by Gus, Agnea's childhood friend"
+      ]
+    },
+    {
+      "slug": "festival_grounds",
+      "details": [
+        "Open woodland clearing north of Cropdale, connected via the Forest Path",
+        "Features festive food stalls, banners, and a central raised wooden performance stage",
+        "Festival traditionally runs from sundown to sunrise",
+        "Hosts contests for raspberry baking and eating"
+      ]
+    }
+  ],
+  "characters": {
+    "agnea": {
+      "where": "festival_grounds",
+      "goals": [
+        "Share the joy of performance with her hometown and show Throné the festival she grew up with",
+        "Continue writing new songs and bringing smiles to people across Solistia",
+        "Honor her mother Cuani's legacy through her performances"
+      ],
+      "commitments": [
+        {
+          "what": "Perform on stage at the festival",
+          "where": "festival_grounds",
+          "day": 1,
+          "part": "evening"
+        }
+      ]
+    },
+    "throne": {
+      "where": "festival_grounds",
+      "goals": [
+        "Learn what freedom feels like by experiencing simple joys like village festivals",
+        "Support Agnea and understand what a loving hometown looks like",
+        "Eventually find a quiet, secluded place absent from every map to call home"
+      ],
+      "commitments": []
+    }
+  },
+  "situations": [
+    {
+      "id": "festival_textile_theft",
+      "summary": "Several of Garud Bristarni's rare hand-woven traditional textiles have gone missing from his workshop, and he fears they'll be sold before the evening showcase",
+      "touches": [
+        "agnea",
+        "throne"
+      ],
+      "people": [
+        "Garud Bristarni",
+        "unknown thief"
+      ],
+      "status": "open",
+      "next": "If no one recovers the textiles, Garud will be unable to display his craft revival at the evening festival showcase, and the rare pieces will be lost to collectors",
+      "due": {
+        "day": 1,
+        "part": "afternoon"
+      }
+    },
+    {
+      "id": "raspberry_contest_sabotage",
+      "summary": "Someone has tampered with the raspberry supplies for the baking contest, mixing in sour berries that will ruin the pies",
+      "touches": [
+        "agnea"
+      ],
+      "people": [
+        "Gus",
+        "festival contestants",
+        "unknown saboteur"
+      ],
+      "status": "open",
+      "next": "If the tainted berries are used, the baking contest will be ruined and the festival's centerpiece tradition will end in disappointment and accusations",
+      "due": {
+        "day": 1,
+        "part": "afternoon"
+      }
+    },
+    {
+      "id": "stage_collapse_risk",
+      "summary": "The central performance stage has structural damage from recent storms, and the supports may fail under the weight of performers and crowd pressure",
+      "touches": [
+        "agnea"
+      ],
+      "people": [
+        "festival organizers",
+        "Agnea"
+      ],
+      "status": "open",
+      "next": "If the stage is not repaired or replaced before evening performances begin, it could collapse during Agnea's show, injuring performers and audience members",
+      "due": {
+        "day": 1,
+        "part": "evening"
+      }
+    }
+  ]
+}

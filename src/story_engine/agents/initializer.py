@@ -6,7 +6,7 @@ from pathlib import Path
 
 from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 
-from story_engine.agents.sdk import KBHooks, SessionError, ThinkingUsage, session_error, session_options
+from story_engine.agents.sdk import KBHooks, SessionError, ThinkingUsage, json_object, session_error, session_options
 from story_engine.config import Role
 from story_engine.runs import record_api_host
 from story_engine.trace import TraceWriter
@@ -97,15 +97,7 @@ async def starting_state(
             if result is None:
                 raise SessionError("Initializer state session ended without a result")
             try:
-                try:
-                    data = json.loads(result)
-                except json.JSONDecodeError:
-                    start, end = result.find("{"), result.rfind("}")
-                    if start < 0 or end < start:
-                        raise ValueError("state must be a JSON object") from None
-                    data = json.loads(result[start:end + 1])
-                if not isinstance(data, dict):
-                    raise ValueError("state must be a JSON object")
+                data = json_object(result)
                 data["clock"] = {"day": 1, "part": "morning"}
                 state = WorldState.model_validate(data)
                 if set(state.characters) != set(characters):
