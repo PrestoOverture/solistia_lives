@@ -16,7 +16,7 @@ class Role(StrictModel):
 
 
 class Models(StrictModel):
-    director: Role
+    initializer: Role
     character: Role
     rewrite: Role
     baseline: Role

@@ -1,4 +1,4 @@
-director: {model: claude-sonnet-4-6, effort: high, thinking: "off"}
+initializer: {model: claude-sonnet-4-6, effort: high, thinking: "off"}
 character: {model: claude-sonnet-4-6, effort: medium, thinking: "off"}
 rewrite: {model: claude-opus-4-6, effort: high, thinking: "off"}
 baseline: {model: claude-opus-4-6, effort: high, thinking: "off"}

@@ -6,7 +6,7 @@ import yaml
 from claude_agent_sdk import AssistantMessage, ResultMessage, TextBlock, ThinkingBlock, ToolUseBlock
 from typer.testing import CliRunner
 
-from story_engine.agents import baseline, director
+from story_engine.agents import baseline, initializer
 from story_engine.cli import app
 from story_engine.runs import RunMeta
 
@@ -18,7 +18,7 @@ CONTEXT = "## Location\nNew Delsta\n## Characters\nOsvald and Temenos\n"
 STORY = "# An Unfinished Argument\n\nOsvald raised his glass. ‘To peace.’\n"
 USAGE = {"input_tokens": 123, "output_tokens": 45, "cache_read_input_tokens": 100}
 COST = 0.123
-THOUGHTS = {"director": ["Scene\ncontext", "", "乾杯"], "baseline": ["Plan the story.", "🍺\n"]}
+THOUGHTS = {"initializer": ["Scene\ncontext", "", "乾杯"], "baseline": ["Plan the story.", "🍺\n"]}
 
 
 def rows(path: Path) -> list[dict]:
@@ -33,7 +33,7 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes((source / name).read_bytes())
     for name, text in {
-        "prompts/director_scene_context.md": "Director instructions.",
+        "prompts/initializer_scene_context.md": "Initializer instructions.",
         "prompts/baseline_writer.md": "Writer instructions.",
         "prompts/style_spec.md": "Style instructions.",
         "cards/osvald.md": "Osvald's identity.",
@@ -49,7 +49,7 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         monkeypatch.delenv(key, raising=False)
     (tmp_path / ".env").write_text("ANTHROPIC_API_KEY=test-secret\n")
 
-    class FakeDirector:
+    class FakeInitializer:
         def __init__(self, *, options):
             pass
 
@@ -63,13 +63,13 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
             pass
 
         async def receive_response(self):
-            yield ResultMessage("success", 1, 1, False, 1, "director", usage=USAGE, result=CONTEXT)
+            yield ResultMessage("success", 1, 1, False, 1, "initializer", usage=USAGE, result=CONTEXT)
 
     class UnexpectedWriter:
         def __init__(self, **kwargs):
             pytest.fail("A unit test must install a fake writer")
 
-    monkeypatch.setattr(director, "ClaudeSDKClient", FakeDirector)
+    monkeypatch.setattr(initializer, "ClaudeSDKClient", FakeInitializer)
     monkeypatch.setattr(baseline, "ClaudeSDKClient", UnexpectedWriter)
     return tmp_path
 
@@ -80,7 +80,7 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 def test_baseline_session(repo: Path, monkeypatch: pytest.MonkeyPatch, thinking: str, characters: list[str], alternate_models: bool) -> None:
     models = yaml.safe_load((repo / "config/models.yaml").read_text())
     model_path = repo / ("alternate_models.yaml" if alternate_models else "config/models.yaml")
-    for role, effort in (("director", "low"), ("baseline", "max")):
+    for role, effort in (("initializer", "low"), ("baseline", "max")):
         models[role] = {"model": f"fake-{role}", "effort": effort, "thinking": thinking}
     model_path.write_text(yaml.safe_dump(models))
     settings_path = repo / "config/settings.yaml"
@@ -92,13 +92,13 @@ def test_baseline_session(repo: Path, monkeypatch: pytest.MonkeyPatch, thinking:
     class FakeClient:
         def __init__(self, *, options):
             self.options = options
-            self.role = "director" if options.model == "fake-director" else "baseline"
+            self.role = "initializer" if options.model == "fake-initializer" else "baseline"
             calls.append((self.role, "init"))
             expected = models[self.role]
             assert options.model == expected["model"]
             assert options.effort == expected["effort"]
             assert options.thinking == {"type": "disabled" if thinking == "off" else "adaptive"}
-            assert options.max_turns == (9 if self.role == "director" else 5)
+            assert options.max_turns == (9 if self.role == "initializer" else 5)
             assert options.tools == options.allowed_tools == ["Read", "Grep", "Glob"]
             assert options.setting_sources == [] and options.strict_mcp_config
             assert options.hooks["PreToolUse"][0].matcher is None
@@ -148,14 +148,14 @@ def test_baseline_session(repo: Path, monkeypatch: pytest.MonkeyPatch, thinking:
                 await post(data, tool, {})
                 blocked = {"tool_name": tool, "tool_input": {"path": str(repo), "file_path": str(repo / ".env")}}
                 assert (await pre(blocked, tool, {}))["hookSpecificOutput"]["permissionDecision"] == "deny"
-            final = CONTEXT if self.role == "director" else "Preamble.\nInline # heading\n## Notes\n\n" + STORY
+            final = CONTEXT if self.role == "initializer" else "Preamble.\nInline # heading\n## Notes\n\n" + STORY
             yield AssistantMessage(
                 [ThinkingBlock(text, "signature-not-counted") for text in thoughts[-1:]]
                 + [TextBlock("Intermediate prose is not the final reply.")], model="fake",
             )
             yield ResultMessage("success", 1, 1, False, 4, self.role, usage=USAGE, result=final, total_cost_usd=COST)
 
-    monkeypatch.setattr(director, "ClaudeSDKClient", FakeClient)
+    monkeypatch.setattr(initializer, "ClaudeSDKClient", FakeClient)
     monkeypatch.setattr(baseline, "ClaudeSDKClient", FakeClient)
     args = ARGS.copy()
     args[args.index("--characters") + 1] = ",".join(characters)
@@ -164,7 +164,7 @@ def test_baseline_session(repo: Path, monkeypatch: pytest.MonkeyPatch, thinking:
     result = CliRunner().invoke(app, args)
     assert result.exit_code == 0, result.output
     run_dir = Path(result.output.strip())
-    assert calls == [(role, event) for role in ("director", "baseline") for event in ("init", "enter", "query", "exit")]
+    assert calls == [(role, event) for role in ("initializer", "baseline") for event in ("init", "enter", "query", "exit")]
     assert (run_dir / "draft.md").read_text() == STORY
     assert (run_dir / "story.md").read_bytes() == (run_dir / "draft.md").read_bytes()
     meta = RunMeta.model_validate_json((run_dir / "meta.json").read_text())
@@ -173,7 +173,7 @@ def test_baseline_session(repo: Path, monkeypatch: pytest.MonkeyPatch, thinking:
     assert meta.models_file == (str(model_path) if alternate_models else "config/models.yaml")
     assert meta.scene_context_from is None
     retrieval = rows(run_dir / "retrieval.jsonl")
-    assert [(r["agent"], r["tool"]) for r in retrieval] == [(role, tool) for role in ("director", "baseline") for tool in ("Read", "Grep", "Glob")]
+    assert [(r["agent"], r["tool"]) for r in retrieval] == [(role, tool) for role in ("initializer", "baseline") for tool in ("Read", "Grep", "Glob")]
     assert all(r["reason"] == f"{r['agent']} checking {r['tool']}." for r in retrieval)
     trace = rows(run_dir / "trace.jsonl")
     assert [(e["type"], e.get("stage")) for e in trace] == [
@@ -204,12 +204,12 @@ def source_run(repo: Path) -> Path:
     return run_dir
 
 
-def test_reused_context_skips_director(repo: Path, source_run: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reused_context_skips_initializer(repo: Path, source_run: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     calls = []
 
-    class UnexpectedDirector:
+    class UnexpectedInitializer:
         def __init__(self, **kwargs):
-            pytest.fail("Reusing context must not start a Director session")
+            pytest.fail("Reusing context must not start an Initializer session")
 
     class FakeWriter:
         def __init__(self, *, options):
@@ -229,7 +229,7 @@ def test_reused_context_skips_director(repo: Path, source_run: Path, monkeypatch
         async def receive_response(self):
             yield ResultMessage("success", 1, 1, False, 1, "writer", usage=USAGE, result=STORY, total_cost_usd=COST)
 
-    monkeypatch.setattr(director, "ClaudeSDKClient", UnexpectedDirector)
+    monkeypatch.setattr(initializer, "ClaudeSDKClient", UnexpectedInitializer)
     monkeypatch.setattr(baseline, "ClaudeSDKClient", FakeWriter)
     original = (source_run / "scene_context.md").read_bytes()
     result = CliRunner().invoke(app, ARGS + ["--scene-context-from", source_run.name])

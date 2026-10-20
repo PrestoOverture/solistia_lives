@@ -46,7 +46,7 @@ def test_baseline(monkeypatch: pytest.MonkeyPatch) -> None:
     retrieval = [json.loads(line) for line in (run_dir / "retrieval.jsonl").read_text().splitlines()]
     assert retrieval
     for entry in retrieval:
-        assert entry["agent"] in ("director", "baseline")
+        assert entry["agent"] in ("initializer", "baseline")
         assert entry["tool"] in ("Read", "Grep", "Glob")
         assert not Path(entry["file"]).is_absolute()
         assert (root / "kb" / entry["file"]).resolve().is_relative_to(root / "kb")

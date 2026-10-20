@@ -8,7 +8,7 @@ import yaml
 from claude_agent_sdk import AssistantMessage, ResultMessage, TextBlock, ToolUseBlock, UserMessage
 from typer.testing import CliRunner
 
-from story_engine.agents import baseline, director
+from story_engine.agents import baseline, initializer
 from story_engine.agents.sdk import KBHooks, session_environment
 from story_engine.cli import app
 from story_engine.runs import RunMeta
@@ -29,7 +29,7 @@ def rows(path: Path) -> list[dict]:
 @pytest.fixture
 def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     source = Path(__file__).resolve().parents[2]
-    for name in ("config/models.yaml", "config/settings.yaml", "prompts/director_scene_context.md"):
+    for name in ("config/models.yaml", "config/settings.yaml", "prompts/initializer_scene_context.md"):
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes((source / name).read_bytes())
@@ -46,7 +46,7 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         def __init__(self, **kwargs):
             pytest.fail("A unit test must install a fake SDK client")
 
-    monkeypatch.setattr(director, "ClaudeSDKClient", UnexpectedClient)
+    monkeypatch.setattr(initializer, "ClaudeSDKClient", UnexpectedClient)
     monkeypatch.setattr(baseline, "ClaudeSDKClient", UnexpectedClient)
     return tmp_path
 
@@ -55,7 +55,7 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 def hooks(repo: Path) -> KBHooks:
     run_dir = repo / "runs/test"
     run_dir.mkdir(parents=True)
-    return KBHooks(repo, run_dir, "director", 0)
+    return KBHooks(repo, run_dir, "initializer", 0)
 
 
 def hook_data(tool: str, inputs: dict, tool_id: str = "call-1") -> dict:
@@ -75,7 +75,7 @@ def test_kb_access_is_allowed_and_logged(hooks: KBHooks, tool: str, inputs: dict
     assert answer["permissionDecision"] == "allow"
     assert Path(answer["updatedInput"]["file_path" if tool == "Read" else "path"]).is_absolute()
     asyncio.run(hooks.post_tool_use(data, "call-1", {}))
-    assert rows(hooks.log) == [{"turn": 0, "agent": "director", "tool": tool, "file": expected, "reason": reason}]
+    assert rows(hooks.log) == [{"turn": 0, "agent": "initializer", "tool": tool, "file": expected, "reason": reason}]
 
 
 @pytest.mark.parametrize("tool,inputs", [
@@ -167,9 +167,9 @@ def test_scene_context_session(
         def __init__(self, *, options):
             self.options = options
             calls.append("init")
-            role = yaml.safe_load((repo / "config/models.yaml").read_text())["director"]
+            role = yaml.safe_load((repo / "config/models.yaml").read_text())["initializer"]
             assert options.cwd == repo
-            assert options.system_prompt == (repo / "prompts/director_scene_context.md").read_text()
+            assert options.system_prompt == (repo / "prompts/initializer_scene_context.md").read_text()
             assert options.model == role["model"] and options.effort == role["effort"]
             assert options.thinking == {"type": "disabled"}
             assert options.max_turns == 20
@@ -214,7 +214,7 @@ def test_scene_context_session(
             yield AssistantMessage([TextBlock(FINAL)], model="fake")
             yield ResultMessage("success", 100, 90, False, 2, "test-session", usage=USAGE, result=preamble + FINAL)
 
-    monkeypatch.setattr(director, "ClaudeSDKClient", FakeClient)
+    monkeypatch.setattr(initializer, "ClaudeSDKClient", FakeClient)
     args = ARGS.copy()
     args[args.index("--mode") + 1] = mode
     result = CliRunner().invoke(app, args)
@@ -231,7 +231,7 @@ def test_scene_context_session(
     environment_unchanged = dict(os.environ) == inherited_env
     assert environment_unchanged
     retrieval = rows(run_dir / "retrieval.jsonl")
-    assert retrieval == [{"turn": 0, "agent": "director", "tool": "Read", "file": "characters/osvald/osvald.md", "reason": "I need Osvald's history."}]
+    assert retrieval == [{"turn": 0, "agent": "initializer", "tool": "Read", "file": "characters/osvald/osvald.md", "reason": "I need Osvald's history."}]
     trace = rows(run_dir / "trace.jsonl")
     assert [row["type"] for row in trace] == ["run_started", "stage_started", "stage_usage", "stage_finished", "run_finished"]
     assert trace[2]["usage"] == USAGE and trace[2]["stage"] == "scene_context"
@@ -270,7 +270,7 @@ def test_session_failures_mark_meta_failed(repo: Path, monkeypatch: pytest.Monke
                                     if failure == "no_heading" else "test-credential"),
             )
 
-    monkeypatch.setattr(director, "ClaudeSDKClient", FakeClient)
+    monkeypatch.setattr(initializer, "ClaudeSDKClient", FakeClient)
     result = CliRunner().invoke(app, ARGS)
     assert result.exit_code == 1
     run_dir, = (repo / "runs").iterdir()

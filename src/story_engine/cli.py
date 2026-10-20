@@ -9,7 +9,8 @@ from story_engine.eval.pack import pack_runs
 from story_engine.eval.suite import run_suite
 from story_engine.kb import validate_input
 from story_engine.agents.baseline import baseline_writer
-from story_engine.agents.director import scene_context
+from story_engine.agents.initializer import scene_context, starting_state
+from story_engine.world.io import create_world
 from story_engine.agents.sdk import SessionError
 from story_engine.runs import RunInput, create_run, finish_run, read_scene_context
 from story_engine.trace import TraceWriter
@@ -93,10 +94,10 @@ def generate(
                 (run_dir / "scene_context.md").write_bytes(reused_context)
                 trace.write("stage_reused", stage=stage, scene_context_from=scene_context_from)
             else:
-                trace.write("stage_started", stage=stage, agent="director")
+                trace.write("stage_started", stage=stage, agent="initializer")
                 asyncio.run(scene_context(
                     Path.cwd(), run_dir, character_slugs, location_slug, scenario,
-                    models.director, settings.scene_context_max_turns, trace,
+                    models.initializer, settings.scene_context_max_turns, trace,
                 ))
                 trace.write("stage_finished", stage=stage)
             if stop_after == "scene_context":
@@ -184,3 +185,60 @@ def pack(
 
 app.add_typer(kb_app, name="kb")
 app.add_typer(eval_app, name="eval")
+
+
+world_app = typer.Typer(help="Create persistent worlds.")
+app.add_typer(world_app, name="world")
+
+
+@world_app.command("new")
+def world_new(
+    characters: str = typer.Option(...),
+    location: str = typer.Option(...),
+    situation: str = typer.Option(...),
+    dry_run: bool = typer.Option(False),
+) -> None:
+    """Initialize a persistent world."""
+    try:
+        models, settings = load_configs()
+        slugs, place = validate_input(characters, location)
+    except (ConfigError, ValueError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from None
+    run_dir = create_run(slugs, place, situation, "initializer", settings.default_stop,
+                         None, models, status="dry_run" if dry_run else "running")
+    trace = TraceWriter(run_dir)
+    trace.write("run_started", run_id=run_dir.name, mode="initializer")
+    (run_dir / "retrieval.jsonl").touch()
+    if dry_run:
+        trace.write("run_finished", status="dry_run")
+        typer.echo(run_dir)
+        return
+    stage = "scene_context"
+    world_dir = None
+    try:
+        trace.write("stage_started", stage=stage, agent="initializer")
+        asyncio.run(scene_context(Path.cwd(), run_dir, slugs, place, situation,
+                                  models.initializer, settings.scene_context_max_turns, trace))
+        trace.write("stage_finished", stage=stage)
+        stage = "initializer_state"
+        trace.write("stage_started", stage=stage, agent="initializer")
+        state = asyncio.run(starting_state(Path.cwd(), run_dir, slugs, place, situation,
+                                          models.initializer, settings.scene_context_max_turns, trace))
+        trace.write("stage_finished", stage=stage)
+        world_dir = create_world(slugs, place, situation, state, init_run_id=run_dir.name)
+        (world_dir / "scene_context.md").write_bytes((run_dir / "scene_context.md").read_bytes())
+        finish_run(run_dir, "passed")
+    except Exception as error:
+        if world_dir is not None:
+            import shutil
+            shutil.rmtree(world_dir)
+        detail = str(error) if isinstance(error, SessionError) else type(error).__name__
+        summary = f"{stage} failed: {detail}"
+        finish_run(run_dir, "failed", summary)
+        trace.write("stage_failed", stage=stage, error=summary)
+        trace.write("run_finished", status="failed")
+        typer.echo(f"{run_dir}: {summary}", err=True)
+        raise typer.Exit(code=1) from None
+    trace.write("run_finished", status="passed", world_id=world_dir.name)
+    typer.echo(world_dir)

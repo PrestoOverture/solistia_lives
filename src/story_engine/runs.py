@@ -21,7 +21,7 @@ class RunMeta(BaseModel):
     run_id: str
     created_at: str
     input: RunInput
-    mode: Literal["pipeline", "baseline"]
+    mode: Literal["pipeline", "baseline", "initializer"]
     stop: str
     stop_after: Literal["scene_context", "beat_plan", "transcript"] | None
     models: Models
@@ -47,7 +47,7 @@ def create_run(
     characters: list[str],
     location: str,
     scenario: str,
-    mode: Literal["pipeline", "baseline"],
+    mode: Literal["pipeline", "baseline", "initializer"],
     stop: str,
     stop_after: Literal["scene_context", "beat_plan", "transcript"] | None,
     models: Models,

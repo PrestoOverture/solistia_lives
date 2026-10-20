@@ -1,4 +1,4 @@
-# Director: Scene Context
+# Initializer: Scene Context
 
 You prepare the shared scene context for one short story. Every writer and character agent in the run reads what you write, so it must be accurate, specific, and useful for writing the scene.
 

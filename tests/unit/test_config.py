@@ -13,7 +13,7 @@ from story_engine.runs import RunMeta
 ARGS = ["generate", "--dry-run", "--characters", "osvald,temenos", "--location", "new_delsta", "--scenario", "x", "--mode", "baseline"]
 KEYS = [
     ("models.yaml", (role,) if key is None else (role, key))
-    for role in ("director", "character", "rewrite", "baseline", "validator")
+    for role in ("initializer", "character", "rewrite", "baseline", "validator")
     for key in (None, "model", "effort", "thinking")
 ] + [
     ("settings.yaml", path)
@@ -53,8 +53,8 @@ def test_every_missing_key_fails(config_dir: Path, filename: str, path: tuple[st
 
 
 @pytest.mark.parametrize("filename,change,key", [
-    ("models.yaml", ("director", "extra", "x"), "extra"),
-    ("models.yaml", ("director", "effort", "ultra"), "effort"),
+    ("models.yaml", ("initializer", "extra", "x"), "extra"),
+    ("models.yaml", ("initializer", "effort", "ultra"), "effort"),
     ("models.yaml", ("baseline", "thinking", "enabled"), "thinking"),
     ("settings.yaml", ("default_stop", "fixed:0"), "default_stop"),
     ("settings.yaml", ("words", "min", 3000), "words"),

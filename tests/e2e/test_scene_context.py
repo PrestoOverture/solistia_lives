@@ -41,7 +41,7 @@ def test_scene_context(monkeypatch: pytest.MonkeyPatch) -> None:
     for entry in entries:
         assert not Path(entry["file"]).is_absolute()
         assert (root / "kb" / entry["file"]).resolve().is_relative_to(root / "kb")
-        assert entry["turn"] == 0 and entry["agent"] == "director"
+        assert entry["turn"] == 0 and entry["agent"] == "initializer"
     meta = json.loads((run_dir / "meta.json").read_text())
     assert meta["status"] == "stopped"
     assert meta["api_host"] == dotenv_host
