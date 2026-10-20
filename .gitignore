@@ -1,6 +1,7 @@
 docs/
 misc/
 runs/
+worlds/
 kb_raw/
 eval/blind/
 .venv/

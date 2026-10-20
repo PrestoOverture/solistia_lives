@@ -1,0 +1,81 @@
+{
+  "judge": "gpt-6.1-sol, effort high, one Codex session per packet (cwd = packet)",
+  "cases": {
+    "osvald_temenos_2": [
+      {
+        "packet": "4d7a505e8d988f357cf2bcf1b559f169",
+        "job": "256db5b9",
+        "key": "eval/blind/1b56a00cd0a8fe249489adb12e88ed75.json",
+        "A": {
+          "arm": "spike",
+          "run": "20261020-083135-autonomy2-osvald_temenos_2"
+        },
+        "B": {
+          "arm": "baseline",
+          "run": "20261019-131731-dec91f"
+        },
+        "lore": "spike",
+        "voice": "baseline",
+        "readability": "baseline",
+        "overall": "baseline",
+        "reasons": "A has the lore edge: its account of the One True Magic answering Osvald's love for Elena keeps his discovery distinct from Harvey's sacrificial methods, whereas B's claim that Osvald believed for years in a price paid in blood or suffering blurs that distinction, and 'Crick died learning to believe' fits the devout Crick poorly. B gives the characters more distinctive voices through Temenos's wine-bottle 'opening gambit' and the exchange 'You're insufferable' / 'I've been told,' while A often makes them sound like mutually approving lecturers, especially when Temenos praises the mathematical answer to evil. B also reads more smoothly: A repeats 'Not evaluation—incompatibility' almost immediately from thought into speech and has Osvald answer an unspoken claim about mathematics and divine philosophy, while B develops its argument through teasing, disagreement, and the admission of grief over Roi, Crick, and Rita. Although both rely too heavily on dialogue for the requested style, B wins overall because the unopened wine returns meaningfully in the final scene and the friends reach an emotional resolution, whereas A ends with the manuscript that motivated Osvald's visit still awaiting examination."
+      },
+      {
+        "packet": "87757160d8d061305cfd970b951bbb20",
+        "job": "52c0c0a8",
+        "key": "eval/blind/1b56a00cd0a8fe249489adb12e88ed75.json",
+        "A": {
+          "arm": "baseline",
+          "run": "20261019-131731-dec91f"
+        },
+        "B": {
+          "arm": "spike",
+          "run": "20261020-083135-autonomy2-osvald_temenos_2"
+        },
+        "lore": "spike",
+        "voice": "baseline",
+        "readability": "baseline",
+        "overall": "baseline",
+        "reasons": "B wins lore by contrasting Harvey's pursuit of power with Osvald's desire to keep Elena safe, whereas A's claim that Osvald long believed magic demanded 'a price paid in blood or suffering' misattributes Harvey's sacrificial outlook to him. A wins voice through Osvald's clipped correction that he expanded rather than abandoned calculation and the exchange 'You're insufferable' / 'Usually by people who know I'm right,' which distinguish his stubborn precision from Temenos's teasing more effectively than B's shared explanatory register. A also reads better despite its shift from Temenos's perspective into Osvald's: the unopened wine frames a conversation that changes emotional stakes, while B repeatedly duplicates thought in speech ('Not evaluation—incompatibility') and answers an unshown claim with 'As for your claim that mathematics and divine philosophy don't intersect.' Overall, A's exchange about Roi, Crick, Rita, and Elena gives the debate personal weight, and leaving the bottle behind completes the encounter more satisfyingly than B's closing promise that the still-unexamined manuscript will provide an answer."
+      }
+    ],
+    "agnea_throne_2": [
+      {
+        "packet": "018bf5321cd06d1a51c9367ee0868503",
+        "job": "e997ac8d",
+        "key": "eval/blind/a4be54c6134a593fc481f88e7ba1f01c.json",
+        "A": {
+          "arm": "baseline",
+          "run": "20261019-131731-957910"
+        },
+        "B": {
+          "arm": "spike",
+          "run": "20261020-083136-autonomy2-agnea_throne_2"
+        },
+        "lore": "baseline",
+        "voice": "baseline",
+        "readability": "baseline",
+        "overall": "baseline",
+        "reasons": "On lore, A's welcoming visit with Garud is more consistent than B's claim that he 'never once tried to stop me from leaving,' which erases his initial opposition to Agnea's journey. On voice, A pairs Throné's clipped 'He deserved it' with Agnea's tumbling apology over the tart, while B gives both women similarly expansive reassurance about courage, peace, and the dawn. On readability, A's opening 'The raspberry tart was bleeding through its napkin' anchors a clear movement from guarded tasting to the homecoming dance, whereas B stalls through repeated consolations and twice repeats the passage beginning \"Throné's throat tightened\". Overall, A's final 'So am I' earns Throné's tentative belonging through her decision to stay and watch, giving the friendship a more convincing, complete emotional arc than B's prolonged declarations."
+      },
+      {
+        "packet": "3682d8d0d87a899bc9f27eb0caa3cd2b",
+        "job": "0ef61df7",
+        "key": "eval/blind/a4be54c6134a593fc481f88e7ba1f01c.json",
+        "A": {
+          "arm": "spike",
+          "run": "20261020-083136-autonomy2-agnea_throne_2"
+        },
+        "B": {
+          "arm": "baseline",
+          "run": "20261019-131731-957910"
+        },
+        "lore": "tie",
+        "voice": "baseline",
+        "readability": "baseline",
+        "overall": "baseline",
+        "reasons": "Lore is a tie: A's 'We saved the dawn together' and B's recollection of 'Vide's shadow overhead' both place the battle in the past, preserve the travelers' friendship, and keep the present episode local and peaceful. B wins voice because Throné's clipped 'You did drag me here' and 'He deserved it' contrast with Agnea's tumbling explanations, whereas A gives both women similarly expansive reassurances such as 'You're who you chose to become' and 'You honored her by becoming yourself'. B wins readability through its close Throné viewpoint and progression from the leaking tart through Agnea's reluctance to dance to her performance and the walk home; A repeatedly returns to glistening eyes, hand squeezes, and promises of peace, stalling the stage scene. B is my overall choice because Garud's offered chair and Throné staying through the performance make their care concrete before the final 'So am I,' earning the sense of belonging more convincingly than A's repeated declarations."
+      }
+    ]
+  }
+}

@@ -62,7 +62,7 @@ The author broadly agrees with the judge's scores on all three, so the author's 
 | hikari_ochette_1 (`131731-f935b1`) | 3 / 4 / 3 | 3 / 4 / 3 | No separate notes. | None |
 
 **What's odd in osvald_temenos_2 (Claude's diagnosis):**
-- **The dialogue is lopsided:** Temenos speaks about 690 words of dialogue to Osvald's 170, roughly 4 to 1 (counted by paragraph).
-- **Osvald fits neither reading:** he neither engages, as the KB says he would ("relishes intellectual debates"), nor leaves, as the author's reading would have him. He just sits and listens.
+- **The dialogue is lopsided:** Temenos speaks about 860 words of dialogue to Osvald's 420, roughly 2 to 1, in 29 lines each (counted per quoted line on 2026-10-20; an earlier count of 690 to 170 was wrong).
+- **Temenos drives:** he opens nearly every topic, makes the long speeches, and gets the last word. Osvald mostly answers, with short verdicts and a few longer arguments. He neither leads the debate, as the KB's "relishes intellectual debates" suggests, nor drops it, as the author's reading would have him.
 - **Why the writer did this:** the scenario forces a debate, and the card says both "terse" and "turns talkative in a worthy debate". The writer met both by giving the debate to Temenos.
 - **What it suggests for E1:** in pipeline mode Osvald's own character agent decides his turns, which may fix exactly this.
