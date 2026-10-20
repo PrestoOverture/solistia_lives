@@ -7,7 +7,9 @@ from typing import Callable
 
 
 class TraceWriter:
-    def __init__(self, run_dir: Path, clock: Callable[[], datetime] | None = None) -> None:
+    def __init__(self, run_dir: Path, clock: Callable[[], datetime] | None = None,
+                 on_usage: Callable[[float], None] | None = None) -> None:
+        self.on_usage = on_usage
         self.path = run_dir / "trace.jsonl"
         self.clock = clock or (lambda: datetime.now(timezone.utc))
         self._last_ts: datetime | None = None
@@ -21,3 +23,5 @@ class TraceWriter:
         with self.path.open("a", encoding="utf-8") as trace:
             trace.write(json.dumps(event, ensure_ascii=False) + "\n")
             trace.flush()
+        if event_type == "stage_usage" and self.on_usage is not None:
+            self.on_usage(float(fields.get("call_cost_usd") or 0.0))

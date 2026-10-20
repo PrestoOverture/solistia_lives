@@ -53,7 +53,7 @@ def setup_agent(tmp_path, monkeypatch, replies):
     monkeypatch.setattr(character, "ClaudeSDKClient", FakeClient)
     models, settings = load_configs()
     agent = CharacterAgent(ROOT, run, world, "throne", models.character,
-                           settings.turn_cap, TraceWriter(run))
+                           settings.agent_max_turns, TraceWriter(run))
     return agent, instances, requests, lifecycle, run
 
 

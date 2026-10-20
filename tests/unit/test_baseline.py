@@ -85,7 +85,7 @@ def test_baseline_session(repo: Path, monkeypatch: pytest.MonkeyPatch, thinking:
     model_path.write_text(yaml.safe_dump(models))
     settings_path = repo / "config/settings.yaml"
     settings = yaml.safe_load(settings_path.read_text())
-    settings.update(words={"min": 1234, "max": 2345}, turn_cap=7, scene_context_max_turns=9, writer_max_turns=5)
+    settings.update(words={"min": 1234, "max": 2345}, agent_max_turns=7, scene_context_max_turns=9, writer_max_turns=5)
     settings_path.write_text(yaml.safe_dump(settings))
     calls = []
 
@@ -290,7 +290,7 @@ def test_invalid_reuse_creates_no_run(repo: Path, source_run: Path, failure: str
     assert set((repo / "runs").iterdir()) == before
 
 
-@pytest.mark.parametrize("failure", ["startup", "query", "receive", "exit", "error_result", "turn_cap", "empty_result", "missing_result", "no_heading"])
+@pytest.mark.parametrize("failure", ["startup", "query", "receive", "exit", "error_result", "agent_max_turns", "empty_result", "missing_result", "no_heading"])
 def test_failing_writer_has_no_story(repo: Path, monkeypatch: pytest.MonkeyPatch, failure: str) -> None:
     class FakeWriter:
         def __init__(self, **kwargs):
@@ -315,7 +315,7 @@ def test_failing_writer_has_no_story(repo: Path, monkeypatch: pytest.MonkeyPatch
             if failure == "missing_result":
                 return
             yield ResultMessage(
-                "error_max_turns" if failure == "turn_cap" else "success",
+                "error_max_turns" if failure == "agent_max_turns" else "success",
                 1, 1, failure == "error_result", 1, "writer", usage=USAGE,
                 errors=["test-secret\nprivate diagnostic"] if failure == "error_result" else None,
                 result="" if failure == "empty_result" else "Inline # title\n## Not a title" if failure == "no_heading" else STORY,

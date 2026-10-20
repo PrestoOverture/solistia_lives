@@ -53,7 +53,9 @@ class Settings(StrictModel):
         if value != ["morning", "afternoon", "evening", "night"]:
             raise ValueError("parts_of_day must follow morning, afternoon, evening, night")
         return value
-    turn_cap: int
+    max_cost_usd: float = Field(gt=0)
+    scene_cap: int = Field(gt=0)
+    agent_max_turns: int = Field(gt=0)
     validation_rounds: int
     default_stop: str
     scene_context_max_turns: int = Field(gt=0)

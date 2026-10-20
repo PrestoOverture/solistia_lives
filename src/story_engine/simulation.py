@@ -1,5 +1,7 @@
 """One part-of-day tick; sessions are owned by a day's async context."""
 
+import json
+
 from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Self
@@ -7,9 +9,14 @@ from typing import Self
 from story_engine.agents.character import CharacterAgent
 from story_engine.agents.world import WorldAgent
 from story_engine.config import load_configs
+from story_engine.kb import normalize_slug
 from story_engine.trace import TraceWriter
 from story_engine.world.io import append_event, load_state, read_events, save_state
 from story_engine.world.models import Clock, Event, WorldState
+
+
+class CostCapReached(RuntimeError):
+    """The run exceeded its configured simulation cost cap."""
 
 
 class TickSession:
@@ -22,23 +29,40 @@ class TickSession:
     async def __aenter__(self) -> Self:
         models, self.settings = load_configs(self.root / 'config/models.yaml')
         self.day = load_state(self.world_dir).clock.day
-        self.trace = TraceWriter(self.run_dir)
+        self.spend_usd = 0.0
+        trace_path = self.run_dir / "trace.jsonl"
+        if trace_path.exists():
+            self.spend_usd = sum(
+                row.get("call_cost_usd", 0.0) or 0.0
+                for line in trace_path.read_text().splitlines()
+                if (row := json.loads(line))["type"] == "stage_usage")
+        self.trace = TraceWriter(self.run_dir, on_usage=self._record_cost)
+        self._record_cost(0.0)
         self.stack = AsyncExitStack()
         await self.stack.__aenter__()
         try:
+            self.scene_notes = {}
             self.characters = {}
             for slug in load_state(self.world_dir).characters:
                 self.characters[slug] = await self.stack.enter_async_context(CharacterAgent(
                     self.root, self.run_dir, self.world_dir, slug, models.character,
-                    self.settings.turn_cap, self.trace))
+                    self.settings.agent_max_turns, self.trace))
             self.world = await self.stack.enter_async_context(WorldAgent(
                 self.root, self.run_dir, self.world_dir, models.world,
-                self.settings.turn_cap, self.trace))
+                self.settings.agent_max_turns, self.trace))
         except BaseException:
             await self.stack.aclose()
             raise
         self.active = True
         return self
+
+    def _record_cost(self, cost: float) -> None:
+        self.spend_usd += cost
+        if self.spend_usd > self.settings.max_cost_usd:
+            self.trace.write("cost_cap_reached", spend_usd=self.spend_usd,
+                             max_cost_usd=self.settings.max_cost_usd)
+            raise CostCapReached(f"Run spend ${self.spend_usd:.6f} exceeds "
+                                 f"${self.settings.max_cost_usd:.6f}")
 
     async def __aexit__(self, *args):
         self.active = False
@@ -46,7 +70,7 @@ class TickSession:
 
 
 async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> WorldState:
-    """Resolve one tick using the world's open day session; no scene or memory work."""
+    """Resolve one tick using the world's open day session; including scenes before advancing the clock."""
     if not session.active or (session.world_dir, session.run_dir) != (world_dir, run_dir):
         raise ValueError('run_tick requires an open session for this world and run')
     state = load_state(world_dir)
@@ -69,6 +93,13 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
         state, {slug: action.model_dump() for slug, action in choices.items()}, read_events(world_dir))
     for event in events:
         append_event(world_dir, event)
+    groups = {}
+    for slug, character in updated.characters.items():
+        groups.setdefault(character.where, []).append(slug)
+    for place, present in groups.items():
+        present = [slug for slug in present if updated.characters[slug].where == place]
+        if len(present) >= 2:
+            updated = await run_scene(world_dir, session, updated, place, present)
     parts = session.settings.parts_of_day
     index = parts.index(state.clock.part) + 1
     updated.clock = Clock(day=state.clock.day + (index == len(parts)),
@@ -77,3 +108,74 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
     session.trace.write('situation_notes', day=state.clock.day, part=state.clock.part,
                         situation_notes=notes)
     return updated
+
+
+def choose_floor(moves, addressee, last_act):
+    """Select an act without consulting an agent; stable order breaks equal recency."""
+    acts = [slug for slug, move in moves.items() if move.move == 'act']
+    if not acts:
+        return None, 'nobody'
+    if addressee in acts:
+        cutters = [slug for slug in acts if slug != addressee
+                   and moves[slug].urge == 3 and moves[addressee].urge < 3]
+        if not cutters:
+            return addressee, 'addressee'
+        acts, reason = cutters, 'interrupt'
+    else:
+        reason = 'only bid' if len(acts) == 1 else 'urge'
+    top = max(moves[slug].urge for slug in acts)
+    tied = [slug for slug in acts if moves[slug].urge == top]
+    if len(tied) > 1 and reason == 'urge':
+        reason = 'tie-break'
+    return min(tied, key=lambda slug: last_act.get(slug, -1)), reason
+
+
+async def run_scene(world_dir, session, state, place, present):
+    last_act, notes = {}, session.scene_notes
+    addressee, quiet = None, 0
+    reason = 'scene_cap_reached'
+    for round_number in range(1, session.settings.scene_cap + 1):
+        before = read_events(world_dir)
+        moves = {}
+        for slug in present:
+            moves[slug] = await session.characters[slug].act(before, note=notes.pop(slug, None))
+        winner, floor = choose_floor(moves, addressee, last_act)
+        session.trace.write('scene_round', round=round_number, place=place,
+                            moves={slug: move.model_dump() for slug, move in moves.items()},
+                            winner=winner, floor=floor)
+        happened = {}
+        for slug, move in moves.items():
+            if move.move == 'act' and slug != winner:
+                notes[slug] = f"Your move didn't happen: {winner} took the floor."
+                continue
+            if move.move == 'wait' and not move.action.strip():
+                continue
+            happened[slug] = move.model_dump()
+            content = ' '.join(value for value in (move.action, move.say if move.move != 'wait' else '') if value)
+            if move.move == 'leave':
+                content = (content + f' {slug} leaves.').strip()
+            append_event(world_dir, Event(
+                id=0, **state.clock.model_dump(), place=place, actor=slug,
+                type='speech' if move.move == 'act' and move.say else 'action',
+                content=content, intent=move.intent, perceived_by=list(present)))
+        if winner:
+            last_act[winner] = round_number
+            target = normalize_slug(moves[winner].to or '')
+            addressee = target if target in present else None
+        elif not any(move.move == 'leave' for move in moves.values()):
+            addressee = None
+        events, state, _ = await session.world.resolve(
+            state, happened, read_events(world_dir), scene_round=True)
+        for event in events:
+            append_event(world_dir, event)
+        present = [slug for slug in present if moves[slug].move != 'leave'
+                   and state.characters[slug].where == place]
+        quiet = 0 if winner else quiet + 1
+        if len(present) <= 1:
+            reason = 'one_left' if present else 'dispersed'
+            break
+        if quiet >= 2:
+            reason = 'quiet'
+            break
+    session.trace.write('scene_ended', place=place, reason=reason, rounds=round_number)
+    return state

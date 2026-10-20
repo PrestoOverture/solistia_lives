@@ -8,7 +8,7 @@ from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from story_engine.agents.sdk import (
-    KBHooks, SessionError, ThinkingUsage, json_object, session_error, session_options,
+    KBHooks, SessionCost, SessionError, ThinkingUsage, json_object, session_error, session_options,
 )
 from story_engine.config import Role
 from story_engine.trace import TraceWriter
@@ -52,6 +52,7 @@ class CharacterAgent:
         self.client = None
         self.opened = False
         self.turn = 0
+        self.cost = SessionCost()
         self.seen: set[int] = set()
 
     async def __aenter__(self) -> Self:
@@ -85,10 +86,11 @@ class CharacterAgent:
     async def choose(self, part: PartOfDay, perceived: list[Event]) -> Action:
         return await self._action(perceived, part)
 
-    async def act(self, perceived: list[Event]) -> Action:
-        return await self._action(perceived)
+    async def act(self, perceived: list[Event], note: str | None = None) -> Action:
+        return await self._action(perceived, note=note)
 
-    async def _action(self, perceived: list[Event], part: PartOfDay | None = None) -> Action:
+    async def _action(self, perceived: list[Event], part: PartOfDay | None = None,
+                      note: str | None = None) -> Action:
         if self.client is None:
             raise SessionError("CharacterAgent must be opened as an async context manager")
         self.turn += 1
@@ -99,6 +101,7 @@ class CharacterAgent:
                 events.append(event.model_dump(exclude={"intent", "perceived_by"}))
                 self.seen.add(event.id)
         request = json.dumps({**(self.opening if self.turn == 1 else {}), "perceived": events,
+                              **({"note": note} if note else {}),
                               **({"part": part, "call": "part_of_day"} if part else {})},
                              ensure_ascii=False)
         for attempt in range(2):
@@ -113,6 +116,7 @@ class CharacterAgent:
                         "stage_usage", stage="character_action", agent=self.slug,
                         turn=self.turn, attempt=attempt + 1, usage=message.usage or {},
                         num_turns=message.num_turns, total_cost_usd=message.total_cost_usd,
+                        call_cost_usd=self.cost.delta(message.total_cost_usd),
                         thinking_blocks=thinking.thinking_blocks, thinking_chars=thinking.thinking_chars,
                     )
                     if message.is_error or message.subtype != "success":

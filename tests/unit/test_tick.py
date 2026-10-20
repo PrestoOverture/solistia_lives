@@ -32,6 +32,7 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
                  situation_notes={s.id: 'Preparations continue.' for s in state.situations})
     for char in reply['state']['characters'].values():
         char['where'] = 'cropdale'
+    reply['state']['characters']['throne']['where'] = 'festival_grounds'
     invalid = copy.deepcopy(reply)
     invalid['events'][0]['actor'] = 'agnea'
     world_replies = iter([invalid, reply] if bad_actor else [reply])
@@ -144,11 +145,15 @@ def test_world_final_validation_error(tmp_path, monkeypatch, failure, reason):
 
     async def exercise():
         async with world_agent.WorldAgent(ROOT, run, world, models.world,
-                                         settings.turn_cap, TraceWriter(run)) as agent:
+                                         settings.agent_max_turns, TraceWriter(run)) as agent:
             await agent.resolve(state, {}, [])
 
     with pytest.raises(SessionError, match=reason):
         asyncio.run(exercise())
+    failures = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()
+                if json.loads(line)['type'] == 'world_validation_failed']
+    assert len(failures) == 2
+    assert all(reason in row['error'] and json.loads(row['raw_reply']) == reply for row in failures)
     assert len(requests) == 2 and reason in requests[1]
     assert load_state(world) == state
     assert read_events(world) == []

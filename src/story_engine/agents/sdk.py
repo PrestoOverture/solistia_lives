@@ -33,6 +33,20 @@ class ThinkingUsage:
                     self.thinking_chars += len(block.thinking)
 
 
+@dataclass
+class SessionCost:
+    """Convert the SDK's session cumulative cost into per-call spend."""
+
+    total: float = 0.0
+
+    def delta(self, total: float | None) -> float:
+        if total is None:
+            return 0.0
+        cost = total - self.total
+        self.total = total
+        return cost
+
+
 class SessionError(RuntimeError):
     """A session failure whose diagnostic has been scrubbed of credentials."""
 

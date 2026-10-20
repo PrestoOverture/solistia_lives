@@ -17,7 +17,7 @@ KEYS = [
     for key in (None, "model", "effort", "thinking")
 ] + [
     ("settings.yaml", path)
-    for path in (("words",), ("words", "min"), ("words", "max"), ("turn_cap",), ("validation_rounds",), ("default_stop",), ("scene_context_max_turns",), ("writer_max_turns",), ("suite_parallel",))
+    for path in (("words",), ("words", "min"), ("words", "max"), ("agent_max_turns",), ("scene_cap",), ("validation_rounds",), ("default_stop",), ("scene_context_max_turns",), ("writer_max_turns",), ("suite_parallel",))
 ]
 
 

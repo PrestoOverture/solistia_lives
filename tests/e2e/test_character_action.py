@@ -21,7 +21,7 @@ def test_character_action(monkeypatch):
 
     async def exercise():
         async with CharacterAgent(root, run, world, "throne", models.character,
-                                  settings.turn_cap, TraceWriter(run)) as agent:
+                                  settings.agent_max_turns, TraceWriter(run)) as agent:
             return await agent.act([])
 
     action = asyncio.run(exercise())
