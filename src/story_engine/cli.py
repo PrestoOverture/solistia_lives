@@ -269,20 +269,88 @@ def world_run(
         trace.write("run_finished", status="dry_run")
         typer.echo(run_dir)
         return
+    stage = "day"
     try:
         trace.write("stage_started", stage="day")
         asyncio.run(run_day(world_dir, run_dir))
         trace.write("stage_finished", stage="day")
+        if stop_after is None:
+            stage = "curate"
+            _curate_day(world_dir, run_dir, state.clock.day, info, models, trace)
         status = "stopped" if stop_after else "passed"
         finish_run(run_dir, status)
     except BaseException as error:
         status = "stopped" if isinstance(error, CostCapReached) else "failed"
         detail = str(error) if isinstance(error, (SessionError, CostCapReached)) else type(error).__name__
-        reason = f"day stopped: {detail}" if status == "stopped" else f"day failed: {detail}"
+        reason = f"{stage} stopped: {detail}" if status == "stopped" else f"{stage} failed: {detail}"
         finish_run(run_dir, status, reason)
-        trace.write("stage_failed", stage="day", error=reason)
+        trace.write("stage_failed", stage=stage, error=reason)
         trace.write("run_finished", status=status, error=reason)
         typer.echo(f"{run_dir}: {reason}", err=True)
         raise typer.Exit(code=1) from None
+    trace.write("run_finished", status=status)
+    typer.echo(run_dir)
+
+
+
+def _curate_day(world_dir, run_dir, day, info, models, trace):
+    from story_engine.agents.curator import curate
+    from story_engine.world.io import read_events, read_scenes
+
+    _, settings = load_configs()
+    events = [event for event in read_events(world_dir) if event.day == day]
+    scenes = [scene for scene in read_scenes(world_dir) if scene.day == day]
+    trace.write("stage_started", stage="curate", agent="curator")
+    asyncio.run(curate(Path.cwd(), run_dir, events, scenes, info.characters,
+                       models.curator, settings.agent_max_turns, trace))
+    trace.write("stage_finished", stage="curate")
+
+
+@world_app.command("tell")
+def world_tell(
+    world_id: str = typer.Argument(...),
+    day: int | None = typer.Option(None),
+    stop_after: Literal["curate"] | None = typer.Option(None),
+) -> None:
+    """Curate an episode from a completed day (latest by default)."""
+    from story_engine.world.io import load_state, read_events, read_scenes
+    from story_engine.world.models import WorldInfo
+
+    try:
+        if Path(world_id).name != world_id or world_id in ("", ".", ".."):
+            raise ValueError("world_id must be a world ID")
+        world_dir = Path("worlds") / world_id
+        state = load_state(world_dir)
+        info = WorldInfo.model_validate_json((world_dir / "world.json").read_bytes())
+        day = state.clock.day - 1 if day is None else day
+        if day >= state.clock.day:
+            raise ValueError(f"Day {day} is not yet completed (current day: {state.clock.day})")
+        if not any(event.day == day for event in read_events(world_dir)):
+            raise ValueError(f"Day {day} has no events to curate")
+        if not any(scene.day == day for scene in read_scenes(world_dir)):
+            raise ValueError(f"Day {day} has no scene records")
+        context = (world_dir / "scene_context.md").read_bytes()
+        models, _ = load_configs()
+    except (OSError, ValueError, ConfigError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from None
+    run_dir = create_run(info.characters, info.location, info.situation, "simulation",
+                         stop_after, models, status="running", world_id=world_id, day=day)
+    trace = TraceWriter(run_dir)
+    trace.write("run_started", run_id=run_dir.name, mode="simulation", world_id=world_id, day=day)
+    (run_dir / "scene_context.md").write_bytes(context)
+    (run_dir / "retrieval.jsonl").touch()
+    try:
+        _curate_day(world_dir, run_dir, day, info, models, trace)
+    except Exception as error:
+        detail = str(error) if isinstance(error, SessionError) else type(error).__name__
+        reason = f"curate failed: {detail}"
+        finish_run(run_dir, "failed", reason)
+        trace.write("stage_failed", stage="curate", error=reason)
+        trace.write("run_finished", status="failed", error=reason)
+        typer.echo(f"{run_dir}: {reason}", err=True)
+        raise typer.Exit(code=1) from None
+    status = "stopped" if stop_after else "passed"
+    finish_run(run_dir, status)
     trace.write("run_finished", status=status)
     typer.echo(run_dir)

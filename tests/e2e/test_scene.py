@@ -28,4 +28,4 @@ def test_morning_scene(monkeypatch):
                for row in trace)
     endings = [row for row in trace if row['type'] == 'scene_ended'
                and row['place'] == 'festival_grounds']
-    assert endings and all(row['reason'] != 'scene_cap_reached' for row in endings)
+    assert endings and all(row['reason'] != 'part_over' for row in endings)

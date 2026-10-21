@@ -7,7 +7,7 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .models import Event, WorldInfo, WorldState
+from .models import Event, SceneRecord, WorldInfo, WorldState
 
 
 def _unique_object(pairs: list[tuple[str, object]]) -> dict:
@@ -65,6 +65,7 @@ def create_world(
     _atomic_write(world_dir / "world.json", info.model_dump_json(indent=2))
     _atomic_write(world_dir / "state.json", state.model_dump_json(indent=2))
     (world_dir / "events.jsonl").touch()
+    (world_dir / "scenes.jsonl").touch()
     return world_dir
 
 
@@ -108,6 +109,25 @@ def append_event(world_dir: Path, event: Event) -> Event:
     with (world_dir / "events.jsonl").open("a", encoding="utf-8") as stream:
         stream.write(event.model_dump_json() + "\n")
     return event
+
+
+def read_scenes(world_dir: Path) -> list[SceneRecord]:
+    path = world_dir / "scenes.jsonl"
+    if not path.exists():
+        return []
+    scenes = []
+    with path.open(encoding="utf-8") as stream:
+        for line in stream:
+            if line.strip():
+                scenes.append(SceneRecord.model_validate_json(line))
+    return scenes
+
+
+def append_scene(world_dir: Path, scene: SceneRecord) -> SceneRecord:
+    """Scenes are appended as-is; the caller assigns the scene id."""
+    with (world_dir / "scenes.jsonl").open("a", encoding="utf-8") as stream:
+        stream.write(scene.model_dump_json() + "\n")
+    return scene
 
 
 def _memory_path(world_dir: Path, character: str) -> Path:

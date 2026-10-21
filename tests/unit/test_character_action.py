@@ -16,7 +16,8 @@ from story_engine.world.io import load_state
 from story_engine.world.models import Event
 
 ROOT = Path(__file__).resolve().parents[2]
-VALID = dict(intent="Find some quiet", move="act", urge=2, action="Throné checks the doorway.", say="")
+VALID = dict(call="action", intent="Find some quiet", move="act", urge=2,
+            action="Throné checks the doorway.", say="")
 
 
 def setup_agent(tmp_path, monkeypatch, replies):
@@ -186,3 +187,79 @@ def test_character_subject_check(tmp_path, monkeypatch, text, rejected):
     assert result.action == ('Agnea waits.' if rejected else text)
     if rejected:
         assert 'subject check' in requests[1]
+
+
+def test_structured_output_only_reply_is_accepted(tmp_path, monkeypatch):
+    """A reply delivered only via `structured_output`, with `result` empty, is accepted."""
+    world = tmp_path / "world"
+    shutil.copytree(ROOT / "tests/fixtures/worlds/agnea_throne", world)
+    run = tmp_path / "run"
+    run.mkdir()
+
+    class FakeClient:
+        def __init__(self, *, options):
+            self.options = options
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def query(self, request):
+            pass
+
+        async def receive_response(self):
+            yield ResultMessage("success", 1, 1, False, 1, "fake", result="", structured_output=VALID)
+
+    monkeypatch.setattr(character, "ClaudeSDKClient", FakeClient)
+    models, settings = load_configs()
+    agent = CharacterAgent(ROOT, run, world, "throne", models.character,
+                           settings.agent_max_turns, TraceWriter(run))
+
+    async def exercise():
+        async with agent:
+            return await agent.act([])
+
+    assert asyncio.run(exercise()) == Action(**VALID)
+
+
+def test_summarize_from_structured_end_of_day_reply(tmp_path, monkeypatch):
+    """`summarize` returns the `summary` string from an `end_of_day` structured reply and writes it to memory."""
+    world = tmp_path / "world"
+    shutil.copytree(ROOT / "tests/fixtures/worlds/agnea_throne", world)
+    run = tmp_path / "run"
+    run.mkdir()
+    summary = "# Today\nWalked the festival grounds.\n## Changed\nNothing yet.\n## Wants\nQuiet."
+
+    class FakeClient:
+        def __init__(self, *, options):
+            self.options = options
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def query(self, request):
+            pass
+
+        async def receive_response(self):
+            yield ResultMessage("success", 1, 1, False, 1, "fake", result="",
+                               structured_output={"call": "end_of_day", "summary": summary})
+
+    monkeypatch.setattr(character, "ClaudeSDKClient", FakeClient)
+    models, settings = load_configs()
+    agent = CharacterAgent(ROOT, run, world, "throne", models.character,
+                           settings.agent_max_turns, TraceWriter(run))
+
+    async def exercise():
+        async with agent:
+            return await agent.summarize([])
+
+    result = asyncio.run(exercise())
+    assert result == summary
+    from story_engine.world.io import write_memory
+    write_memory(world, "throne", result)
+    assert (world / "memory/throne.md").read_text() == summary

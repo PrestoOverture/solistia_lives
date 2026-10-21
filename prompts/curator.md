@@ -1,0 +1,3 @@
+Pick the day's scenes worth telling, in order, its POV character, and why they are worth telling: for example, a situation that opens and resolves, a choice with consequences, or a change between two characters. Quiet stretches are normal; leave them out.
+
+Choose a self-contained episode: a reunion, a conversation, or a small new incident that begins and ends within the story. Stakes stay local: a puzzle, a hunt, a rival, a performance gone wrong. No world-level threats, no returning enemies from the game, and nothing left open for a sequel. New minor characters and places are fine, but canon facts about the travelers and the world must hold. The episode is for a 2,000-3,000 word story.

@@ -53,9 +53,9 @@ def rows(run):
 @pytest.mark.parametrize('kind', ['world', 'character', 'initializer'])
 def test_cumulative_cost_and_world_event_delta(tmp_path, monkeypatch, kind):
     state = load_state(ROOT / 'tests/fixtures/worlds/agnea_throne')
-    resolution = dict(events=[], state=state.model_dump(exclude={'clock'}),
+    resolution = dict(call='part_of_day', events=[], state=state.model_dump(exclude={'clock'}),
                       situation_notes={s.id: 'Unchanged.' for s in state.situations})
-    action = dict(intent='Wait', move='wait', urge=0, action='', say='')
+    action = dict(call='action', intent='Wait', move='wait', urge=0, action='', say='')
     module = {'world': world_agent, 'character': character, 'initializer': initializer}[kind]
     valid = resolution if kind == 'world' else action
     outputs = [(valid, .10), (valid, .25)]
@@ -100,11 +100,11 @@ def test_cumulative_cost_and_world_event_delta(tmp_path, monkeypatch, kind):
 
 @pytest.mark.parametrize('payer', ['character', 'world'])
 def test_scene_cost_cap_stops_immediately(tmp_path, monkeypatch, payer):
-    action = dict(intent='Wait', move='wait', urge=0, action='', say='')
+    action = dict(call='action', intent='Wait', move='wait', urge=0, action='', say='')
     world, run, requests, closed = setup(tmp_path, monkeypatch, character,
                                         [(action, .10), (action, .15)])
     state = load_state(world)
-    resolution = dict(events=[], state=state.model_dump(exclude={'clock'}))
+    resolution = dict(call='scene_round', outcome=None, minor_moves={})
     if payer == 'world':
         # Character calls total exactly the cap; the World call crosses it.
         class WorldClient:
@@ -122,7 +122,7 @@ def test_scene_cost_cap_stops_immediately(tmp_path, monkeypatch, payer):
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.max_cost_usd = .2 if payer == 'character' else .25
             with pytest.raises(CostCapReached):
-                await run_scene(world, session, state, 'festival_grounds', list(state.characters))
+                await run_scene(world, session, state, 'festival_grounds', list(state.characters), [])
             assert session.spend_usd == pytest.approx(.25 if payer == 'character' else .26)
 
     asyncio.run(exercise())

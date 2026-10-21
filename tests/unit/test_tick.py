@@ -26,7 +26,8 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     state.clock.part = part
     save_state(world, state)
     requests, clients = [], []
-    reply = dict(events=[dict(place='cropdale', actor='world', type='world',
+    reply = dict(call='part_of_day',
+                 events=[dict(place='cropdale', actor='world', type='world',
                              content='The stalls open.', intent=None, perceived_by=list(state.characters))],
                  state=state.model_dump(exclude={'clock'}),
                  situation_notes={s.id: 'Preparations continue.' for s in state.situations})
@@ -54,7 +55,7 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
 
         async def receive_response(self):
             data = next(world_replies) if self.is_world else dict(
-                intent='Visit the stalls', move='act', urge=2,
+                call='action', intent='Visit the stalls', move='act', urge=2,
                 action='Heads to Cropdale.', say='Good morning!')
             yield ResultMessage('success', 1, 1, False, 1, 'fake',
                                 usage={'input_tokens': 3}, result=json.dumps(data))
@@ -104,7 +105,7 @@ def test_world_final_validation_error(tmp_path, monkeypatch, failure, reason):
     state = load_state(world)
     event = dict(place='festival_grounds', actor='world', type='world',
                  content='The wind rises.', intent=None, perceived_by=['agnea'])
-    reply = dict(events=[event], state=state.model_dump(exclude={'clock'}),
+    reply = dict(call='part_of_day', events=[event], state=state.model_dump(exclude={'clock'}),
                  situation_notes={s.id: 'Unchanged.' for s in state.situations})
     if failure == 'actor':
         event['actor'] = 'agnea'

@@ -3,13 +3,14 @@
 import json
 import re
 from pathlib import Path
-from typing import Literal, Self
+from typing import Annotated, Literal, Self, Union
 
 from claude_agent_sdk import ClaudeSDKClient, ResultMessage
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from story_engine.agents.sdk import (
-    KBHooks, SessionCost, SessionError, ThinkingUsage, json_object, session_error, session_options,
+    KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
+    session_options, structured_reply,
 )
 from story_engine.agents.subjects import fold, main_names, sentences, starts_with_name
 from story_engine.config import Role
@@ -21,6 +22,7 @@ from story_engine.world.models import Event, PartOfDay
 class Action(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    call: Literal["action"]
     intent: str
     move: Literal["act", "wait", "leave"]
     urge: int
@@ -40,6 +42,22 @@ class Action(BaseModel):
         elif self.urge != 0:
             raise ValueError("wait and leave urge must be 0")
         return self
+
+
+class EndOfDay(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    call: Literal["end_of_day"]
+    summary: str
+
+    @model_validator(mode="after")
+    def valid_summary(self) -> Self:
+        if not self.summary.strip():
+            raise ValueError("memory summary must be non-empty")
+        return self
+
+
+CharacterReply = Annotated[Union[Action, EndOfDay], Field(discriminator="call")]
 
 
 class CharacterAgent:
@@ -78,7 +96,8 @@ class CharacterAgent:
         prompt = "\n\n".join(path.read_text(encoding="utf-8") for path in sources)
         self.hooks = KBHooks(self.root, self.run_dir, agent=self.slug, turn=1)
         self.options = session_options(self.root, self.run_dir, self.role, prompt,
-                                       self.max_turns, self.hooks)
+                                       self.max_turns, self.hooks,
+                                       output_format=json_schema_output(CharacterReply))
         self.context = ClaudeSDKClient(options=self.options)
         self.client = await self.context.__aenter__()
         return self
@@ -112,13 +131,14 @@ class CharacterAgent:
                 self.seen.add(event.id)
         request = json.dumps({**(self.opening if self.turn == 1 else {}), "perceived": events,
                               **({"note": note} if note else {}),
-                              **({"call": "end_of_day", "reply": "Markdown: what happened, what changed, what you want now"} if summary else {}),
+                              **({"call": "end_of_day", "reply": "JSON {call: 'end_of_day', summary: 'Markdown: what happened, what changed, what you want now'}"} if summary else {}),
                               **({"part": part, "call": "part_of_day"} if part else {})},
                              ensure_ascii=False)
         for attempt in range(2):
             thinking = ThinkingUsage()
             await self.client.query(request)
             result = None
+            structured_output = None
             async for message in self.client.receive_response():
                 self.hooks.observe(message)
                 thinking.observe(message)
@@ -134,14 +154,12 @@ class CharacterAgent:
                         raise session_error(f"Character session {message.subtype}: "
                                             + ("; ".join(message.errors or []) or message.result or "unspecified SDK error"), self.options.env)
                     result = message.result
+                    structured_output = message.structured_output
             try:
-                if result is None:
-                    raise ValueError("character session returned no final text")
+                payload = structured_reply(result, structured_output)
                 if summary:
-                    if not result.strip():
-                        raise ValueError("memory summary must be non-empty")
-                    return result
-                action = Action.model_validate(json_object(result))
+                    return EndOfDay.model_validate(payload).summary
+                action = Action.model_validate(payload)
                 for sentence in sentences(action.action):
                     invalid = starts_with_name(sentence, self.other_names)
                     start = fold(sentence.lstrip())
@@ -155,5 +173,5 @@ class CharacterAgent:
             except ValueError as error:
                 if attempt:
                     raise SessionError(f"Character action validation failed after one retry: {error}") from None
-                request = f"Reply validation failed: {error}\nReturn " + ("non-empty Markdown." if summary else "corrected JSON.")
+                request = f"Reply validation failed: {error}\nReturn corrected JSON."
         raise AssertionError("unreachable")

@@ -85,7 +85,7 @@ def test_valid_world(repo, state, monkeypatch):
     assert result.exit_code == 0, result.output
     world = Path(result.output.strip())
     assert {p.name for p in world.iterdir()} == {
-        "world.json", "state.json", "events.jsonl", "memory", "scene_context.md"}
+        "world.json", "state.json", "events.jsonl", "scenes.jsonl", "memory", "scene_context.md"}
     info = json.loads((world / "world.json").read_text())
     run = repo / "runs" / info["init_run_id"]
     assert {"meta.json", "trace.jsonl", "retrieval.jsonl", "scene_context.md"} <= {p.name for p in run.iterdir()}
@@ -100,7 +100,9 @@ def test_valid_world(repo, state, monkeypatch):
     assert len(sessions) == 2
     request = json.loads(sessions[1].queries[0])
     assert request["situation"] == ARGS[-1]
-    assert "schema" in request
+    assert "schema" not in request
+    assert sessions[1].options.output_format["type"] == "json_schema"
+    assert "clock" not in sessions[1].options.output_format["schema"]["properties"]
     for name in ("agnea", "throne"):
         assert (repo / f"cards/{name}.md").read_text() in sessions[1].options.system_prompt
     assert "## Location\nCropdale" in sessions[1].options.system_prompt

@@ -19,6 +19,7 @@ class Models(StrictModel):
     initializer: Role
     character: Role
     world: Role
+    curator: Role
     rewrite: Role
     baseline: Role
     validator: Role

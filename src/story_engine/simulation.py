@@ -8,12 +8,15 @@ from pathlib import Path
 from typing import Self
 
 from story_engine.agents.character import CharacterAgent
+from story_engine.agents.subjects import fold
 from story_engine.agents.world import WorldAgent
 from story_engine.config import load_configs
 from story_engine.kb import normalize_slug
 from story_engine.trace import TraceWriter
-from story_engine.world.io import append_event, load_state, read_events, save_state, write_memory
-from story_engine.world.models import Clock, Event, WorldState
+from story_engine.world.io import (
+    append_event, append_scene, load_state, read_events, read_scenes, save_state, write_memory,
+)
+from story_engine.world.models import Clock, Event, SceneRecord, WorldState
 
 
 class CostCapReached(RuntimeError):
@@ -90,17 +93,19 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
             intent=action.intent,
             perceived_by=[name for name, character in state.characters.items()
                           if character.where == place]))
-    events, updated, notes = await session.world.resolve(
+    events, updated, notes, encounters = await session.world.resolve(
         state, {slug: action.model_dump() for slug, action in choices.items()}, read_events(world_dir))
     for event in events:
         append_event(world_dir, event)
     groups = {}
     for slug, character in updated.characters.items():
         groups.setdefault(character.where, []).append(slug)
+    minors_by_place = {encounter.place: encounter.minor for encounter in encounters}
     for place, present in groups.items():
         present = [slug for slug in present if updated.characters[slug].where == place]
-        if len(present) >= 2:
-            updated = await run_scene(world_dir, session, updated, place, present)
+        minors = list(minors_by_place.get(place, []))
+        if len(present) >= 2 or (len(present) == 1 and minors):
+            updated = await run_scene(world_dir, session, updated, place, present, minors)
     parts = session.settings.parts_of_day
     index = parts.index(state.clock.part) + 1
     updated.clock = Clock(day=state.clock.day + (index == len(parts)),
@@ -113,78 +118,128 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
 
 def choose_floor(moves, addressee, last_act):
     """Select an act without consulting an agent; stable order breaks equal recency."""
-    acts = [slug for slug, move in moves.items() if move.move == 'act']
+    acts = [key for key, move in moves.items() if move.move == 'act']
     if not acts:
         return None, 'nobody'
     if addressee in acts:
-        cutters = [slug for slug in acts if slug != addressee
-                   and moves[slug].urge == 3 and moves[addressee].urge < 3]
+        cutters = [key for key in acts if key != addressee
+                   and moves[key].urge == 3 and moves[addressee].urge < 3]
         if not cutters:
             return addressee, 'addressee'
         acts, reason = cutters, 'interrupt'
     else:
         reason = 'only bid' if len(acts) == 1 else 'urge'
-    top = max(moves[slug].urge for slug in acts)
-    tied = [slug for slug in acts if moves[slug].urge == top]
+    top = max(moves[key].urge for key in acts)
+    tied = [key for key in acts if moves[key].urge == top]
     if len(tied) > 1 and reason == 'urge':
         reason = 'tie-break'
-    return min(tied, key=lambda slug: last_act.get(slug, -1)), reason
+    return min(tied, key=lambda key: last_act.get(key, -1)), reason
 
 
-async def run_scene(world_dir, session, state, place, present):
+def resolve_addressee(to, main_present, minor_present):
+    """Match a spoken-to name against present main characters (by slug/alias) or minors (by name)."""
+    if not to:
+        return None
+    slug = normalize_slug(to)
+    if slug in main_present:
+        return slug
+    for name in minor_present:
+        if fold(name) == fold(to):
+            return name
+    return None
+
+
+async def run_scene(world_dir, session, state, place, main_present, minor_present):
+    scene_id = str(len(read_scenes(world_dir)) + 1)
+    main_present, minor_present = list(main_present), list(minor_present)
+    all_participants = list(main_present) + [name for name in minor_present if name not in main_present]
     last_act, notes = {}, session.scene_notes
-    addressee, quiet = None, 0
-    reason = 'scene_cap_reached'
+    pending_to, quiet, last_winner = None, 0, None
+    first_event_id, last_event_id = None, None
+    reason = 'part_over'
+
+    def log(event):
+        nonlocal first_event_id, last_event_id
+        saved = append_event(world_dir, event.model_copy(update={'scene': scene_id}))
+        first_event_id = first_event_id if first_event_id is not None else saved.id
+        last_event_id = saved.id
+        return saved
+
     for round_number in range(1, session.settings.scene_cap + 1):
         before = read_events(world_dir)
-        moves = {}
-        for slug in present:
-            moves[slug] = await session.characters[slug].act(before, note=notes.pop(slug, None))
+        main_moves = {}
+        for slug in main_present:
+            main_moves[slug] = await session.characters[slug].act(before, note=notes.pop(slug, None))
+        outcome, minor_moves = await session.world.round(
+            state, before, place=place, main_present=main_present, minor_present=minor_present,
+            last_winner=last_winner)
+        if outcome:
+            log(outcome)
+        # A minor joins only when the World brings them in with a move here; an
+        # unresolved `to` from the previous round's winner never creates one.
+        for name, move in minor_moves.items():
+            if move.move != 'leave' and name not in minor_present:
+                minor_present.append(name)
+                all_participants.append(name)
+        # Re-resolve who was addressed against the now-current participants: the
+        # World may have just brought in the very name that was spoken to.
+        addressee = resolve_addressee(pending_to, main_present, minor_present)
+        moves = {**main_moves, **minor_moves}
         winner, floor = choose_floor(moves, addressee, last_act)
-        session.trace.write('scene_round', round=round_number, place=place,
-                            moves={slug: move.model_dump() for slug, move in moves.items()},
+        session.trace.write('scene_round', round=round_number, place=place, scene=scene_id,
+                            moves={key: move.model_dump() for key, move in moves.items()},
                             winner=winner, floor=floor)
         happened = {}
-        for slug, move in moves.items():
-            if move.move == 'act' and slug != winner:
-                notes[slug] = f"Your move didn't happen: {winner} took the floor."
+        for key, move in moves.items():
+            is_main = key in main_present
+            if move.move == 'act' and key != winner:
+                if is_main:
+                    notes[key] = f"Your move didn't happen: {winner} took the floor."
                 continue
             if move.move == 'wait' and not move.action.strip():
                 continue
-            happened[slug] = move.model_dump()
+            happened[key] = move.model_dump()
             content = ' '.join(value for value in (move.action, move.say if move.move != 'wait' else '') if value)
             if move.move == 'leave':
-                content = (content + f' {slug} leaves.').strip()
-            append_event(world_dir, Event(
-                id=0, **state.clock.model_dump(), place=place, actor=slug,
+                content = (content + f' {key} leaves.').strip()
+            log(Event(
+                id=0, **state.clock.model_dump(), place=place, actor=key,
                 type='speech' if move.move == 'act' and move.say else 'action',
-                content=content, intent=move.intent, perceived_by=list(present)))
+                content=content, intent=move.intent if is_main else None, perceived_by=list(main_present)))
         if winner:
             last_act[winner] = round_number
-            target = normalize_slug(moves[winner].to or '')
-            addressee = target if target in present else None
-        elif not any(move.move == 'leave' for move in moves.values()):
-            addressee = None
-        events, state, _ = await session.world.resolve(
-            state, happened, read_events(world_dir), scene_round=True)
-        for event in events:
-            append_event(world_dir, event)
-        present = [slug for slug in present if moves[slug].move != 'leave'
-                   and state.characters[slug].where == place]
+            pending_to = moves[winner].to
+            last_winner = {'actor': winner, **moves[winner].model_dump()}
+        else:
+            last_winner = None
+            if not any(move.move == 'leave' for move in moves.values()):
+                pending_to = None
+        main_present = [slug for slug in main_present if moves[slug].move != 'leave'
+                        and state.characters[slug].where == place]
+        minor_present = [name for name in minor_present
+                         if name not in moves or moves[name].move != 'leave']
         quiet = 0 if winner else quiet + 1
-        if len(present) <= 1:
-            reason = 'one_left' if present else 'dispersed'
+        total = len(main_present) + len(minor_present)
+        if not main_present:
+            reason = 'no_main'
+            break
+        if total <= 1:
+            reason = 'one_left' if total else 'dispersed'
             break
         if quiet >= 2:
             reason = 'quiet'
             break
-    session.trace.write('scene_ended', place=place, reason=reason, rounds=round_number)
+    session.trace.write('scene_ended', place=place, scene=scene_id, reason=reason, rounds=round_number)
+    append_scene(world_dir, SceneRecord(
+        id=scene_id, day=state.clock.day, part=state.clock.part, place=place,
+        participants=all_participants, first_event_id=first_event_id or 0,
+        last_event_id=last_event_id or 0, rounds=round_number, end=reason))
     return state
 
 
 def _copy_world(source: Path, destination: Path) -> None:
     destination.mkdir(parents=True, exist_ok=True)
-    for name in ("state.json", "events.jsonl", "memory"):
+    for name in ("state.json", "events.jsonl", "scenes.jsonl", "memory"):
         target = destination / name
         if target.is_dir():
             shutil.rmtree(target)

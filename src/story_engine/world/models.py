@@ -83,7 +83,21 @@ class Event(WorldModel):
     part: PartOfDay
     place: str
     actor: str
+    of: str | None = None
     type: Literal["speech", "action", "world", "state_change"]
     content: str
     intent: str | None = None
     perceived_by: list[str]
+    scene: str | None = None
+
+
+class SceneRecord(WorldModel):
+    id: str
+    day: int
+    part: PartOfDay
+    place: str
+    participants: list[str]
+    first_event_id: int
+    last_event_id: int
+    rounds: int
+    end: str

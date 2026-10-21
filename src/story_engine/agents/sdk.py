@@ -65,6 +65,17 @@ def json_object(reply: str) -> dict:
     return data
 
 
+def structured_reply(result: str | None, structured_output: object) -> dict:
+    """Prefer the SDK's parsed structured output; fall back to parsing `result`."""
+    if isinstance(structured_output, dict):
+        if set(structured_output) == {"reply"} and isinstance(structured_output["reply"], dict):
+            return structured_output["reply"]  # a union wrapped by json_schema_output
+        return structured_output
+    if result is None:
+        raise ValueError("session returned no final text")
+    return json_object(result)
+
+
 def session_error(error: object, env: dict[str, str]) -> SessionError:
     message = str(error)
     sensitive = [value for key, value in {**os.environ, **env}.items()
@@ -157,6 +168,9 @@ class KBHooks:
         return key, path
 
     async def pre_tool_use(self, data: dict, tool_use_id: str | None, context: dict) -> dict:
+        if data["tool_name"] == "StructuredOutput":
+            # The SDK delivers output_format replies through this built-in tool.
+            return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "allow"}}
         try:
             key, path = self.checked_path(data["tool_name"], data["tool_input"])
         except (ValueError, OSError, RuntimeError):
@@ -171,6 +185,8 @@ class KBHooks:
         }}
 
     async def post_tool_use(self, data: dict, tool_use_id: str | None, context: dict) -> dict:
+        if data["tool_name"] == "StructuredOutput":
+            return {}
         _, path = self.checked_path(data["tool_name"], data["tool_input"])
         entry = Retrieval(
             turn=self.turn, agent=self.agent, tool=data["tool_name"],
@@ -183,7 +199,8 @@ class KBHooks:
 
 
 def session_options(
-    root: Path, run_dir: Path, role: Role, system_prompt: str, max_turns: int, hooks: KBHooks,
+    root: Path, run_dir: Path, role: Role, system_prompt: str, max_turns: int, hooks: KBHooks, *,
+    tools: list[str] | None = None, output_format: dict | None = None,
 ) -> ClaudeAgentOptions:
     env = session_environment(root)
     # Keep SDK bookkeeping inside this run, without persisting conversations.
@@ -191,9 +208,11 @@ def session_options(
     return ClaudeAgentOptions(
         cwd=root, system_prompt=system_prompt, model=role.model, effort=role.effort,
         thinking={"type": "disabled"} if role.thinking == "off" else {"type": "adaptive"},
-        max_turns=max_turns, tools=KB_TOOLS.copy(), allowed_tools=KB_TOOLS.copy(),
+        max_turns=max_turns, tools=KB_TOOLS.copy() if tools is None else tools,
+        allowed_tools=KB_TOOLS.copy() if tools is None else tools,
         setting_sources=[], strict_mcp_config=True, env=env,
         verbatim_prompts=True, extra_args={"no-session-persistence": None},
+        output_format=output_format,
         # SDK diagnostics may contain relay credentials; never forward them to logs.
         stderr=lambda line: None,
         hooks={
@@ -201,3 +220,27 @@ def session_options(
             "PostToolUse": [HookMatcher(hooks=[hooks.post_tool_use])],
         },
     )
+
+
+def json_schema_output(model: type) -> dict:
+    """Build an `output_format` dict from a Pydantic model or TypeAdapter-compatible type."""
+    from pydantic import TypeAdapter
+
+    schema = _strip_discriminator(TypeAdapter(model).json_schema())
+    variants = schema.pop("oneOf", None) or schema.pop("anyOf", None)
+    if variants is not None:
+        # The CLI accepts a union only nested under an object root.
+        schema = {"type": "object", "$defs": schema.get("$defs", {}),
+                  "properties": {"reply": {"anyOf": variants}},
+                  "required": ["reply"], "additionalProperties": False}
+    return {"type": "json_schema", "schema": schema}
+
+
+def _strip_discriminator(node):
+    """The CLI's strict JSON Schema check rejects OpenAPI's `discriminator`; each
+    variant's `call` const already tells the variants apart."""
+    if isinstance(node, dict):
+        return {key: _strip_discriminator(value) for key, value in node.items() if key != "discriminator"}
+    if isinstance(node, list):
+        return [_strip_discriminator(value) for value in node]
+    return node

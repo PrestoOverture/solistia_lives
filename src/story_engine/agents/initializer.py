@@ -6,7 +6,10 @@ from pathlib import Path
 
 from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 
-from story_engine.agents.sdk import KBHooks, SessionCost, SessionError, ThinkingUsage, json_object, session_error, session_options
+from story_engine.agents.sdk import (
+    KBHooks, SessionCost, SessionError, ThinkingUsage, session_error, session_options,
+    structured_reply,
+)
 from story_engine.config import Role
 from story_engine.runs import record_api_host
 from story_engine.trace import TraceWriter
@@ -68,13 +71,14 @@ async def starting_state(
                *(root / "cards" / f"{slug}.md" for slug in characters),
                run_dir / "scene_context.md"]
     prompt = "\n\n".join(path.read_text(encoding="utf-8") for path in sources)
-    options = session_options(root, run_dir, role, prompt, max_turns, hooks)
-    record_api_host(run_dir, options.env.get("ANTHROPIC_BASE_URL"))
     schema = WorldState.model_json_schema()
     del schema["properties"]["clock"]
     schema["required"].remove("clock")
+    options = session_options(root, run_dir, role, prompt, max_turns, hooks,
+                              output_format={"type": "json_schema", "schema": schema})
+    record_api_host(run_dir, options.env.get("ANTHROPIC_BASE_URL"))
     request = json.dumps({"characters": characters, "location": location,
-                          "situation": situation, "schema": schema,
+                          "situation": situation,
                           "kb_path": str((root / "kb").resolve())}, ensure_ascii=False)
     places = {path.stem for path in (root / "kb/locations").rglob("*.md") if path.is_file()}
     cost = SessionCost()
@@ -83,6 +87,7 @@ async def starting_state(
             thinking = ThinkingUsage()
             await client.query(request)
             result = None
+            structured_output = None
             async for message in client.receive_response():
                 hooks.observe(message)
                 thinking.observe(message)
@@ -98,10 +103,9 @@ async def starting_state(
                         raise session_error(f"Initializer state session {message.subtype}: "
                                             + ("; ".join(message.errors or []) or message.result or "unspecified SDK error"), options.env)
                     result = message.result
-            if result is None:
-                raise SessionError("Initializer state session ended without a result")
+                    structured_output = message.structured_output
             try:
-                data = json_object(result)
+                data = structured_reply(result, structured_output)
                 data["clock"] = {"day": 1, "part": "morning"}
                 state = WorldState.model_validate(data)
                 if set(state.characters) != set(characters):
