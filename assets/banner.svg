@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="1200" height="400" role="img" aria-label="Yet Another Story of Solistia">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1330"/>
+      <stop offset="0.55" stop-color="#2a2350"/>
+      <stop offset="1" stop-color="#8a4b3c"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe9b0"/>
+      <stop offset="0.45" stop-color="#f6b45a" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#f6b45a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c9a24a"/>
+      <stop offset="0.5" stop-color="#f3dc95"/>
+      <stop offset="1" stop-color="#c9a24a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="400" fill="url(#sky)"/>
+
+  <!-- dawn after the long night -->
+  <circle cx="600" cy="400" r="230" fill="url(#sun)"/>
+
+  <!-- eight stars, one per traveler -->
+  <g fill="#f3dc95">
+    <circle cx="140" cy="70" r="2.6"/><circle cx="265" cy="120" r="1.8"/>
+    <circle cx="390" cy="55" r="2.2"/><circle cx="505" cy="95" r="1.6"/>
+    <circle cx="700" cy="60" r="2.4"/><circle cx="830" cy="110" r="1.8"/>
+    <circle cx="955" cy="50" r="2.2"/><circle cx="1075" cy="100" r="2.6"/>
+  </g>
+  <g fill="#ffffff" opacity="0.35">
+    <circle cx="200" cy="170" r="1"/><circle cx="330" cy="30" r="1"/><circle cx="450" cy="150" r="1"/>
+    <circle cx="610" cy="30" r="1"/><circle cx="760" cy="160" r="1"/><circle cx="900" cy="140" r="1"/>
+    <circle cx="1010" cy="180" r="1"/><circle cx="1140" cy="40" r="1"/><circle cx="60" cy="130" r="1"/>
+  </g>
+
+  <!-- distant hills and a small town -->
+  <path d="M0 330 Q150 290 300 315 T600 305 T900 318 T1200 300 V400 H0Z" fill="#1b1730" opacity="0.85"/>
+  <path d="M0 360 Q200 335 420 352 T820 345 T1200 355 V400 H0Z" fill="#120f22"/>
+  <g fill="#120f22">
+    <rect x="540" y="318" width="22" height="30"/><path d="M536 320 L551 304 L566 320Z"/>
+    <rect x="572" y="312" width="16" height="36"/><path d="M569 314 L580 298 L591 314Z"/>
+    <rect x="598" y="322" width="26" height="26"/><path d="M594 324 L611 309 L628 324Z"/>
+    <rect x="634" y="296" width="10" height="52"/><path d="M631 298 L639 280 L647 298Z"/>
+  </g>
+  <g fill="#f6c46a">
+    <rect x="547" y="328" width="4" height="5"/><rect x="577" y="322" width="4" height="5"/>
+    <rect x="607" y="331" width="4" height="5"/>
+  </g>
+
+  <!-- title -->
+  <text x="600" y="190" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-size="62" font-style="italic" fill="url(#gold)" letter-spacing="1">Yet Another Story of Solistia</text>
+  <line x1="390" y1="214" x2="810" y2="214" stroke="#c9a24a" stroke-width="1.2" opacity="0.8"/>
+  <text x="600" y="246" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-size="20" fill="#e8dcc0" letter-spacing="4">AFTER THE LONG NIGHT, THE TRAVELERS LIVE ON</text>
+</svg>

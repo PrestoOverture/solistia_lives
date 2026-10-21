@@ -35,14 +35,6 @@ class Words(StrictModel):
         return self
 
 
-def valid_stop(value: str) -> str:
-    if value == "director":
-        return value
-    if value.startswith("fixed:") and value[6:].isdigit() and int(value[6:]) >= 1:
-        return value
-    raise ValueError("must be director or fixed:N with N >= 1")
-
-
 class Settings(StrictModel):
     words: Words
     parts_of_day: list[Literal["morning", "afternoon", "evening", "night"]]
@@ -57,16 +49,10 @@ class Settings(StrictModel):
     scene_cap: int = Field(gt=0)
     agent_max_turns: int = Field(gt=0)
     validation_rounds: int
-    default_stop: str
     scene_context_max_turns: int = Field(gt=0)
     writer_max_turns: int = Field(gt=0)
     suite_parallel: int = Field(gt=0)
     blind_root: Path = Path("~/blind_packets")
-
-    @field_validator("default_stop")
-    @classmethod
-    def check_stop(cls, value: str) -> str:
-        return valid_stop(value)
 
 
 class ConfigError(Exception):

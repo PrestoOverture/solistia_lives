@@ -1,6 +1,7 @@
 """One character's persistent session for a single day."""
 
 import json
+import re
 from pathlib import Path
 from typing import Literal, Self
 
@@ -10,9 +11,10 @@ from pydantic import BaseModel, ConfigDict, model_validator
 from story_engine.agents.sdk import (
     KBHooks, SessionCost, SessionError, ThinkingUsage, json_object, session_error, session_options,
 )
+from story_engine.agents.subjects import fold, main_names, sentences, starts_with_name
 from story_engine.config import Role
 from story_engine.trace import TraceWriter
-from story_engine.world.io import load_state
+from story_engine.world.io import load_state, read_events
 from story_engine.world.models import Event, PartOfDay
 
 
@@ -60,6 +62,10 @@ class CharacterAgent:
             raise SessionError("CharacterAgent context can only be opened once")
         self.opened = True
         state = load_state(self.world_dir)
+        self.other_names = main_names(self.root, (slug for slug in state.characters if slug != self.slug))
+        self.own_names = main_names(self.root, [self.slug])
+        self.prior_events = [event for event in read_events(self.world_dir)
+                             if event.day == state.clock.day]
         character = state.characters[self.slug]
         self.opening = {"clock": state.clock.model_dump(), "place": character.where,
                         "goals": character.goals,
@@ -89,19 +95,24 @@ class CharacterAgent:
     async def act(self, perceived: list[Event], note: str | None = None) -> Action:
         return await self._action(perceived, note=note)
 
+    async def summarize(self, perceived: list[Event]) -> str:
+        """Summarize the day in this character's existing session."""
+        return await self._action(perceived, summary=True)
+
     async def _action(self, perceived: list[Event], part: PartOfDay | None = None,
-                      note: str | None = None) -> Action:
+                      note: str | None = None, summary: bool = False) -> Action | str:
         if self.client is None:
             raise SessionError("CharacterAgent must be opened as an async context manager")
         self.turn += 1
         self.hooks.turn = self.turn
         events = []
-        for event in perceived:
+        for event in (self.prior_events if self.turn == 1 else []) + perceived:
             if self.slug in event.perceived_by and event.id not in self.seen:
                 events.append(event.model_dump(exclude={"intent", "perceived_by"}))
                 self.seen.add(event.id)
         request = json.dumps({**(self.opening if self.turn == 1 else {}), "perceived": events,
                               **({"note": note} if note else {}),
+                              **({"call": "end_of_day", "reply": "Markdown: what happened, what changed, what you want now"} if summary else {}),
                               **({"part": part, "call": "part_of_day"} if part else {})},
                              ensure_ascii=False)
         for attempt in range(2):
@@ -113,7 +124,7 @@ class CharacterAgent:
                 thinking.observe(message)
                 if isinstance(message, ResultMessage):
                     self.trace.write(
-                        "stage_usage", stage="character_action", agent=self.slug,
+                        "stage_usage", stage="character_summary" if summary else "character_action", agent=self.slug,
                         turn=self.turn, attempt=attempt + 1, usage=message.usage or {},
                         num_turns=message.num_turns, total_cost_usd=message.total_cost_usd,
                         call_cost_usd=self.cost.delta(message.total_cost_usd),
@@ -126,9 +137,23 @@ class CharacterAgent:
             try:
                 if result is None:
                     raise ValueError("character session returned no final text")
-                return Action.model_validate(json_object(result))
+                if summary:
+                    if not result.strip():
+                        raise ValueError("memory summary must be non-empty")
+                    return result
+                action = Action.model_validate(json_object(result))
+                for sentence in sentences(action.action):
+                    invalid = starts_with_name(sentence, self.other_names)
+                    start = fold(sentence.lstrip())
+                    for name in self.own_names:
+                        match = re.match(re.escape(name) + r"(?!\w)\s+(?:and|&)\s+", start)
+                        if match and starts_with_name(start[match.end():], self.other_names):
+                            invalid = True
+                    if invalid:
+                        raise ValueError(f"Character subject check: {sentence!r} describes another main character")
+                return action
             except ValueError as error:
                 if attempt:
                     raise SessionError(f"Character action validation failed after one retry: {error}") from None
-                request = f"Action validation failed: {error}\nReturn corrected JSON."
+                request = f"Reply validation failed: {error}\nReturn " + ("non-empty Markdown." if summary else "corrected JSON.")
         raise AssertionError("unreachable")

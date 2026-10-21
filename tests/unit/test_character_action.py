@@ -160,3 +160,29 @@ def test_context_is_required_and_cannot_be_reopened(tmp_path, monkeypatch):
 
     asyncio.run(exercise())
     assert len(instances) == 1
+
+
+@pytest.mark.parametrize("text,rejected", [
+    ('Throné follows her out.', True),
+    ('Agnea and Throné leave together.', True),
+    ('"Throné, wait!" Agnea calls.', False),
+    ('Agnea hands Throné a plate.', False),
+    ("THRONE’S eyes narrow.", True),
+    ('Agnea waits. throne follows.', True),
+    ('Agnea and THRONE’s friends leave.', True),
+])
+def test_character_subject_check(tmp_path, monkeypatch, text, rejected):
+    good = {**VALID, 'action': 'Agnea waits.'}
+    agent, _, requests, _, _ = setup_agent(
+        tmp_path, monkeypatch, iter([json.dumps({**good, 'action': text}), json.dumps(good)]))
+    agent.slug = 'agnea'
+
+    async def exercise():
+        async with agent:
+            return await agent.act([])
+
+    result = asyncio.run(exercise())
+    assert len(requests) == (2 if rejected else 1)
+    assert result.action == ('Agnea waits.' if rejected else text)
+    if rejected:
+        assert 'subject check' in requests[1]

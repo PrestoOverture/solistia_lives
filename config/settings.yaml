@@ -1,9 +1,8 @@
 words: {min: 2000, max: 3000}
 scene_cap: 20
-max_cost_usd: 3.0
+max_cost_usd: 10.0
 agent_max_turns: 40
 validation_rounds: 3
-default_stop: director
 scene_context_max_turns: 20
 writer_max_turns: 20
 suite_parallel: 5

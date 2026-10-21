@@ -38,11 +38,11 @@ def pack_workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     runs = {}
     for mode, story in (
         ("baseline", "# Lanterns\r\nThroné watched the lanterns.\r\n"),
-        ("pipeline", "# The Scholar\nOsvald lifted his cup.\n"),
+        ("simulation", "# The Scholar\nOsvald lifted his cup.\n"),
     ):
         run_dir = create_run(
             ["osvald", "temenos"], "new_delsta", "A quiet evening", mode,
-            "director", None, models,
+            None, models,
         )
         (run_dir / "story.md").write_bytes(story.encode("utf-8"))
         finish_run(run_dir, "passed")
@@ -66,7 +66,7 @@ def assert_blind(packet: Path, repo: Path, run_ids):
         content = file.read_text().lower()
         assert all(run_id not in content for run_id in run_ids)
         assert "baseline" not in content
-        assert "pipeline" not in content
+        assert "simulation" not in content
         for run_id in run_ids:
             meta = json.loads((repo / "runs" / run_id / "meta.json").read_bytes())
             assert meta["created_at"].split("T")[0] not in content
@@ -183,7 +183,7 @@ def test_expands_home_and_defaults(pack_workspace, configured):
     assert packets[0].parent == expected
 
 
-@pytest.mark.parametrize("identifier", ["run_id", "date", "baseline", "PIPELINE"])
+@pytest.mark.parametrize("identifier", ["run_id", "date", "baseline", "SIMULATION"])
 def test_rejects_identifying_content_without_writes(pack_workspace, identifier):
     repo, _, runs = pack_workspace
     run_id = next(iter(runs))

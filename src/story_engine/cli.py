@@ -4,7 +4,7 @@ from pathlib import Path
 import typer
 from typing import Literal
 
-from story_engine.config import ConfigError, load_configs, valid_stop
+from story_engine.config import ConfigError, load_configs
 from story_engine.eval.pack import pack_runs
 from story_engine.eval.suite import run_suite
 from story_engine.kb import validate_input
@@ -25,9 +25,8 @@ def generate(
     characters: str = typer.Option(..., help="Comma-separated character slugs"),
     location: str = typer.Option(...),
     scenario: str = typer.Option(...),
-    mode: Literal["pipeline", "baseline"] = typer.Option(...),
-    stop: str | None = typer.Option(None),
-    stop_after: Literal["scene_context", "beat_plan", "transcript"] | None = typer.Option(None),
+    mode: Literal["baseline"] = typer.Option(...),
+    stop_after: Literal["scene_context"] | None = typer.Option(None),
     dry_run: bool = typer.Option(False),
     scene_context_from: str | None = typer.Option(None, help="Reuse scene context from this run ID"),
     models_file: Path = typer.Option(Path("config/models.yaml"), "--models", help="Models YAML file"),
@@ -39,17 +38,9 @@ def generate(
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1)
     try:
-        resolved_stop = valid_stop(stop if stop is not None else settings.default_stop)
-    except ValueError as error:
-        typer.echo(f"--stop: {error}", err=True)
-        raise typer.Exit(code=1)
-    try:
         character_slugs, location_slug = validate_input(characters, location)
     except ValueError as error:
         typer.echo(str(error), err=True)
-        raise typer.Exit(code=1)
-    if mode == "baseline" and stop_after in ("beat_plan", "transcript"):
-        typer.echo(f"--stop-after {stop_after} is not available in baseline mode", err=True)
         raise typer.Exit(code=1)
     reused_context = None
     if scene_context_from is not None:
@@ -70,7 +61,6 @@ def generate(
             location_slug,
             scenario,
             mode,
-            resolved_stop,
             stop_after,
             models,
             scene_context_from=scene_context_from, models_file=str(models_file),
@@ -82,7 +72,7 @@ def generate(
         return
     if stop_after == "scene_context" or (mode == "baseline" and stop_after is None):
         run_dir = create_run(
-            character_slugs, location_slug, scenario, mode, resolved_stop, stop_after,
+            character_slugs, location_slug, scenario, mode, stop_after,
             models, status="running",
             scene_context_from=scene_context_from, models_file=str(models_file),
         )
@@ -143,13 +133,13 @@ def evaluate() -> None:
 
 @eval_app.command("run-suite")
 def run_suite_command(
-    mode: Literal["baseline", "pipeline"] = typer.Option(...),
+    mode: Literal["baseline", "simulation"] = typer.Option(...),
     models_file: Path = typer.Option(Path("config/models.yaml"), "--models", help="Models YAML file"),
     dry_run: bool = typer.Option(False),
 ) -> None:
     """Run every case in eval/test_suite.yaml."""
-    if mode == "pipeline":
-        typer.echo("pipeline mode is not implemented", err=True)
+    if mode == "simulation":
+        typer.echo("simulation mode is not implemented", err=True)
         raise typer.Exit(code=1)
     try:
         _, settings = load_configs(models_file)
@@ -205,7 +195,7 @@ def world_new(
     except (ConfigError, ValueError) as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1) from None
-    run_dir = create_run(slugs, place, situation, "initializer", settings.default_stop,
+    run_dir = create_run(slugs, place, situation, "initializer",
                          None, models, status="dry_run" if dry_run else "running")
     trace = TraceWriter(run_dir)
     trace.write("run_started", run_id=run_dir.name, mode="initializer")
@@ -242,3 +232,57 @@ def world_new(
         raise typer.Exit(code=1) from None
     trace.write("run_finished", status="passed", world_id=world_dir.name)
     typer.echo(world_dir)
+
+
+@world_app.command("run")
+def world_run(
+    world_id: str = typer.Argument(...),
+    stop_after: Literal["day"] | None = typer.Option(None),
+    dry_run: bool = typer.Option(False),
+) -> None:
+    """Simulate through the current day's night and save character memories."""
+    from story_engine.simulation import CostCapReached, run_day
+    from story_engine.world.io import load_state, read_events
+    from story_engine.world.models import WorldInfo
+
+    try:
+        if Path(world_id).name != world_id or world_id in ("", ".", ".."):
+            raise ValueError("world_id must be a world ID")
+        world_dir = Path("worlds") / world_id
+        state = load_state(world_dir)
+        info = WorldInfo.model_validate_json((world_dir / "world.json").read_bytes())
+        read_events(world_dir)
+        context = (world_dir / "scene_context.md").read_bytes()
+        models, _ = load_configs()
+    except (OSError, ValueError, ConfigError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from None
+    run_dir = create_run(info.characters, info.location, info.situation, "simulation",
+                         stop_after, models, status="dry_run" if dry_run else "running",
+                         world_id=world_id, day=state.clock.day)
+    trace = TraceWriter(run_dir)
+    trace.write("run_started", run_id=run_dir.name, mode="simulation",
+                world_id=world_id, day=state.clock.day)
+    (run_dir / "retrieval.jsonl").touch()
+    (run_dir / "scene_context.md").write_bytes(context)
+    if dry_run:
+        trace.write("run_finished", status="dry_run")
+        typer.echo(run_dir)
+        return
+    try:
+        trace.write("stage_started", stage="day")
+        asyncio.run(run_day(world_dir, run_dir))
+        trace.write("stage_finished", stage="day")
+        status = "stopped" if stop_after else "passed"
+        finish_run(run_dir, status)
+    except BaseException as error:
+        status = "stopped" if isinstance(error, CostCapReached) else "failed"
+        detail = str(error) if isinstance(error, (SessionError, CostCapReached)) else type(error).__name__
+        reason = f"day stopped: {detail}" if status == "stopped" else f"day failed: {detail}"
+        finish_run(run_dir, status, reason)
+        trace.write("stage_failed", stage="day", error=reason)
+        trace.write("run_finished", status=status, error=reason)
+        typer.echo(f"{run_dir}: {reason}", err=True)
+        raise typer.Exit(code=1) from None
+    trace.write("run_finished", status=status)
+    typer.echo(run_dir)

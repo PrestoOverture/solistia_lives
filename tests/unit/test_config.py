@@ -17,7 +17,7 @@ KEYS = [
     for key in (None, "model", "effort", "thinking")
 ] + [
     ("settings.yaml", path)
-    for path in (("words",), ("words", "min"), ("words", "max"), ("agent_max_turns",), ("scene_cap",), ("validation_rounds",), ("default_stop",), ("scene_context_max_turns",), ("writer_max_turns",), ("suite_parallel",))
+    for path in (("words",), ("words", "min"), ("words", "max"), ("agent_max_turns",), ("scene_cap",), ("validation_rounds",), ("scene_context_max_turns",), ("writer_max_turns",), ("suite_parallel",))
 ]
 
 
@@ -56,7 +56,6 @@ def test_every_missing_key_fails(config_dir: Path, filename: str, path: tuple[st
     ("models.yaml", ("initializer", "extra", "x"), "extra"),
     ("models.yaml", ("initializer", "effort", "ultra"), "effort"),
     ("models.yaml", ("baseline", "thinking", "enabled"), "thinking"),
-    ("settings.yaml", ("default_stop", "fixed:0"), "default_stop"),
     ("settings.yaml", ("words", "min", 3000), "words"),
     ("settings.yaml", ("scene_context_max_turns", 0), "scene_context_max_turns"),
     ("settings.yaml", ("writer_max_turns", 0), "writer_max_turns"),
@@ -84,10 +83,9 @@ def test_valid_dry_run(config_dir: Path) -> None:
     args[args.index("--scenario") + 1] = scenario
     expected_models = yaml.safe_load((config_dir / "models.yaml").read_text())
     assert all(role["thinking"] == "off" for role in expected_models.values())
-    default_stop = yaml.safe_load((config_dir / "settings.yaml").read_text())["default_stop"]
     run_dirs = []
-    for extra, expected_stop in (([], default_stop), (["--stop", "fixed:6"], "fixed:6")):
-        result = CliRunner().invoke(app, args + extra)
+    for _ in range(2):
+        result = CliRunner().invoke(app, args)
         assert result.exit_code == 0
         run_dir = Path(result.output.strip())
         assert run_dir.parent == Path("runs")
@@ -103,7 +101,7 @@ def test_valid_dry_run(config_dir: Path) -> None:
         assert meta.models.model_dump() == expected_models
         assert meta.models_file == "config/models.yaml"
         assert meta.scene_context_from is None
-        assert meta.stop == expected_stop
+        assert "stop" not in json.loads(raw)
         assert meta.prompt_hashes == {}
         run_dirs.append(run_dir)
     assert run_dirs[0] != run_dirs[1]

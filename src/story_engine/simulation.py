@@ -1,6 +1,7 @@
 """One part-of-day tick; sessions are owned by a day's async context."""
 
 import json
+import shutil
 
 from contextlib import AsyncExitStack
 from pathlib import Path
@@ -11,7 +12,7 @@ from story_engine.agents.world import WorldAgent
 from story_engine.config import load_configs
 from story_engine.kb import normalize_slug
 from story_engine.trace import TraceWriter
-from story_engine.world.io import append_event, load_state, read_events, save_state
+from story_engine.world.io import append_event, load_state, read_events, save_state, write_memory
 from story_engine.world.models import Clock, Event, WorldState
 
 
@@ -178,4 +179,41 @@ async def run_scene(world_dir, session, state, place, present):
             reason = 'quiet'
             break
     session.trace.write('scene_ended', place=place, reason=reason, rounds=round_number)
+    return state
+
+
+def _copy_world(source: Path, destination: Path) -> None:
+    destination.mkdir(parents=True, exist_ok=True)
+    for name in ("state.json", "events.jsonl", "memory"):
+        target = destination / name
+        if target.is_dir():
+            shutil.rmtree(target)
+        else:
+            target.unlink(missing_ok=True)
+        origin = source / name
+        if origin.is_dir():
+            shutil.copytree(origin, target)
+        elif origin.exists():
+            shutil.copy2(origin, target)
+
+
+async def run_day(world_dir: Path, run_dir: Path) -> WorldState:
+    """Commit completed parts; roll back the failing part after preserving evidence."""
+    checkpoint = run_dir / "world_before"
+    _copy_world(world_dir, checkpoint)
+    try:
+        async with TickSession(world_dir, run_dir) as session:
+            state = load_state(world_dir)
+            while state.clock.day == session.day:
+                _copy_world(world_dir, checkpoint)
+                state = await run_tick(world_dir, run_dir, session=session)
+            memories = {slug: await agent.summarize(read_events(world_dir))
+                        for slug, agent in session.characters.items()}
+            for slug, memory in memories.items():
+                write_memory(world_dir, slug, memory)
+            save_state(world_dir, state)
+    except BaseException:
+        _copy_world(world_dir, run_dir / "world_failed")
+        _copy_world(checkpoint, world_dir)
+        raise
     return state

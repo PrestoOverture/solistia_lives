@@ -13,7 +13,7 @@ from story_engine.runs import RunMeta
 
 class StorySource(BaseModel):
     run_id: str
-    mode: Literal["pipeline", "baseline"]
+    mode: Literal["simulation", "baseline"]
 
 
 class PacketKey(RootModel[dict[str, dict[str, StorySource]]]):
@@ -49,7 +49,7 @@ def pack_runs(run_ids: list[str], blind_root: Path) -> tuple[list[Path], Path]:
     for content in [*stories, prompt]:
         text = content.decode("utf-8")
         if any(value in text for value in identifiers) or re.search(
-            r"\b(?:baseline|pipeline)\b", text, re.IGNORECASE,
+            r"\b(?:baseline|simulation)\b", text, re.IGNORECASE,
         ):
             raise ValueError("Packet input contains run-identifying content")
 

@@ -139,7 +139,7 @@ def test_reasons_follow_tool_ids_and_do_not_leak_between_turns(hooks: KBHooks) -
     assert [row["reason"] for row in rows(hooks.log)] == ["Second reason.", "First reason.", None]
 
 
-@pytest.mark.parametrize("mode", ["baseline", "pipeline"])
+@pytest.mark.parametrize("mode", ["baseline"])
 @pytest.mark.parametrize("preamble", ["", "Here is the scene context.\n# Summary\nInline ## heading\n\n"])
 @pytest.mark.parametrize("base_source,expected_host", [
     ("dotenv", "relay.invalid"),
@@ -289,29 +289,18 @@ def test_session_failures_mark_meta_failed(repo: Path, monkeypatch: pytest.Monke
     assert events[-2]["type"] == "stage_failed" and events[-1]["status"] == "failed"
 
 
-@pytest.mark.parametrize("stage", [None, "beat_plan", "transcript"])
-def test_pipeline_stages_stay_unimplemented(repo: Path, stage: str | None) -> None:
-    args = ARGS.copy()
-    args[args.index("--mode") + 1] = "pipeline"
-    index = args.index("--stop-after")
-    args[index:index + 2] = [] if stage is None else ["--stop-after", stage]
-    result = CliRunner().invoke(app, args)
-    assert result.exit_code == 1 and result.output.strip() == "not implemented"
-    assert not (repo / "runs").exists()
-
-
 @pytest.mark.parametrize("stage", ["beat_plan", "transcript"])
 @pytest.mark.parametrize("dry_run", [False, True])
 def test_baseline_rejects_pipeline_stops(repo: Path, stage: str, dry_run: bool) -> None:
     args = ARGS.copy()
     args[args.index("--stop-after") + 1] = stage
     result = CliRunner().invoke(app, args + (["--dry-run"] if dry_run else []))
-    assert result.exit_code == 1
-    assert f"--stop-after {stage} is not available in baseline mode" in result.output
+    assert result.exit_code == 2
+    assert "Invalid value" in result.output
     assert not (repo / "runs").exists()
 
 
-@pytest.mark.parametrize("mode", ["baseline", "pipeline"])
+@pytest.mark.parametrize("mode", ["baseline"])
 @pytest.mark.parametrize("stop_after", [None, "scene_context"])
 def test_dry_run_does_not_start_sdk(repo: Path, mode: str, stop_after: str | None) -> None:
     args = ARGS.copy()

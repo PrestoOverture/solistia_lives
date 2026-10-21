@@ -1,38 +1,20 @@
 """The world's persistent resolving session for one day."""
 
 import json
-import re
-import unicodedata
 from pathlib import Path
 from typing import Self
 
 from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 from pydantic import BaseModel, ConfigDict, Field
-import yaml
 
 from story_engine.agents.sdk import (
     KBHooks, SessionCost, SessionError, ThinkingUsage, json_object, session_error, session_options,
 )
+from story_engine.agents.subjects import main_names, sentences, starts_with_name
 from story_engine.config import Role
 from story_engine.trace import TraceWriter
 from story_engine.world.io import validate_state
 from story_engine.world.models import Event, WorldState
-
-
-def _fold(value: str) -> str:
-    return "".join(char for char in unicodedata.normalize("NFKD", value.casefold())
-                   if not unicodedata.combining(char))
-
-
-def _main_names(root: Path, characters) -> set[str]:
-    names = set()
-    for slug in characters:
-        text = (root / "kb" / "characters" / slug / f"{slug}.md").read_text(encoding="utf-8")
-        metadata = yaml.safe_load(text.split("---", 2)[1])
-        names.update(_fold(name) for name in [metadata["name"], *metadata.get("aliases", [])])
-        card = (root / "cards" / f"{slug}.md").read_text(encoding="utf-8")
-        names.update(_fold(name.strip()) for name in re.findall(r"^# (.+)$", card, re.MULTILINE))
-    return names
 
 
 class Resolution(BaseModel):
@@ -84,7 +66,7 @@ class WorldAgent:
         request = json.dumps({"state": state.model_dump(), "choices": choices,
                               "call": "scene_round" if scene_round else "part_of_day",
                               "events": [event.model_dump() for event in new_events]}, ensure_ascii=False)
-        names = _main_names(self.root, state.characters)
+        names = main_names(self.root, state.characters)
         for attempt in range(2):
             thinking = ThinkingUsage()
             await self.client.query(request)
@@ -129,11 +111,10 @@ class WorldAgent:
                         raise ValueError("World event place must be in new state's places")
                     if set(event.perceived_by) - state.characters.keys():
                         raise ValueError("perceived_by must contain only main characters")
-                    unquoted = re.sub(r'"[^"]*"|“[^”]*”', '', event.content)
-                    for sentence in re.split(r'(?<=[.!?])\s+|\n+', unquoted):
-                        start = _fold(sentence.lstrip(' \t\r\"“”‘’'))
-                        if any(re.match(re.escape(name) + r"(?!\w)", start) for name in names):
-                            raise ValueError(f"M2 subject check: event index {index}, sentence {sentence!r} begins with a main character name or alias")
+                    if event.type != "speech":
+                        for sentence in sentences(event.content):
+                            if starts_with_name(sentence, names):
+                                raise ValueError(f"M2 subject check: event index {index}, sentence {sentence!r} begins with a main character name or alias")
                     resolved.append(event)
                 required = {s.id for s in state.situations if s.status == "open"}
                 if not scene_round and required - reply.situation_notes.keys():

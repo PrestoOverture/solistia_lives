@@ -87,7 +87,7 @@ def fake_generate(monkeypatch, cases, parallel, *, failed=None, status=None, lau
                 final_status = "failed"
             run_dir = create_run(
                 case["characters"], case["location"], case["scenario"],
-                options["--mode"], "director", None, models,
+                options["--mode"], None, models,
                 models_file=options["--models"],
             )
             trace = TraceWriter(run_dir)
@@ -203,7 +203,7 @@ def test_unexpected_final_status_exits_one(suite_workspace, monkeypatch, dry_run
 
 
 @pytest.mark.parametrize("dry_run", [False, True])
-def test_pipeline_rejected_before_dispatch_or_config_loading(tmp_path, monkeypatch, dry_run):
+def test_simulation_rejected_before_dispatch_or_config_loading(tmp_path, monkeypatch, dry_run):
     monkeypatch.chdir(tmp_path)
 
     def unexpected(*args, **kwargs):
@@ -212,10 +212,10 @@ def test_pipeline_rejected_before_dispatch_or_config_loading(tmp_path, monkeypat
     monkeypatch.setattr("story_engine.cli.load_configs", unexpected)
     monkeypatch.setattr("story_engine.cli.run_suite", unexpected)
     monkeypatch.setattr(suite_module.subprocess, "run", unexpected)
-    args = ["eval", "run-suite", "--mode", "pipeline"]
+    args = ["eval", "run-suite", "--mode", "simulation"]
     if dry_run:
         args.append("--dry-run")
     result = CliRunner().invoke(app, args)
     assert result.exit_code == 1
-    assert "pipeline mode is not implemented" in result.output
+    assert "simulation mode is not implemented" in result.output
     assert not Path("runs").exists()

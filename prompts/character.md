@@ -31,3 +31,5 @@ Reply with one JSON object and nothing else:
 
 ## A part of the day
 A `part_of_day` call asks where you go and what you set out to do with the named part of the day, rather than your next move in a scene. Return the same Action JSON; put your destination and undertaking in `action`.
+
+An end_of_day summary call asks for Markdown instead of Action JSON: summarize what happened, what changed, and what you want now.

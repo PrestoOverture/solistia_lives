@@ -17,23 +17,26 @@ from story_engine.world.io import load_state
 ROOT = Path(__file__).resolve().parents[2]
 
 
-@pytest.mark.parametrize('case,scene,choices,content,error', [
-    ('locked', True, {'throne': {'move': 'leave'}}, 'The wind rises.', 'M1'),
-    ('missing_move', True, {}, 'The wind rises.', 'M1'),
-    ('tick', False, {}, 'The wind rises.', None),
-    ('leave', True, {'agnea': {'move': 'leave'}}, 'The wind rises.', None),
-    ('subject', True, {}, 'Throné rises.', 'Throné rises.'),
-    ('subject', True, {}, "throne's hands move.", "throne's hands move."),
-    ('subject', True, {}, 'Agnea nods.', 'Agnea nods.'),
-    ('subject', True, {}, 'The Dancer smiles.', 'The Dancer smiles.'),
-    ('subject', True, {}, 'The wind rises. Throné’s hands move.', 'Throné’s hands move.'),
-    ('quoted', True, {}, '"Agnea! Over here," the boy calls.', None),
-    ('quoted', True, {}, '“Agnea! Over here,” the boy calls.', None),
-    ('subject', True, {}, '"Hello," Agnea nods.', 'Agnea nods.'),
-    ('object', True, {}, 'Gus hands Agnea a basket.', None),
+@pytest.mark.parametrize('case,scene,choices,content,error,event_type', [
+    ('locked', True, {'throne': {'move': 'leave'}}, 'The wind rises.', 'M1', 'world'),
+    ('missing_move', True, {}, 'The wind rises.', 'M1', 'world'),
+    ('tick', False, {}, 'The wind rises.', None, 'world'),
+    ('leave', True, {'agnea': {'move': 'leave'}}, 'The wind rises.', None, 'world'),
+    ('subject', True, {}, 'Throné rises.', 'Throné rises.', 'world'),
+    ('subject', True, {}, "throne's hands move.", "throne's hands move.", 'world'),
+    ('subject', True, {}, 'Agnea nods.', 'Agnea nods.', 'world'),
+    ('subject', True, {}, 'The Dancer smiles.', 'The Dancer smiles.', 'world'),
+    ('subject', True, {}, 'The wind rises. Throné’s hands move.', 'Throné’s hands move.', 'world'),
+    ('quoted', True, {}, '"Agnea! Over here," the boy calls.', None, 'world'),
+    ('quoted', True, {}, '“Agnea! Over here,” the boy calls.', None, 'world'),
+    ('subject', True, {}, '"Hello," Agnea nods.', 'Agnea nods.', 'world'),
+    ('object', True, {}, 'Gus hands Agnea a basket.', None, 'world'),
+    ('speech', True, {}, 'Agnea! There you are!', None, 'speech'),
+    ('subject', True, {}, 'Agnea nods.', 'M2 subject check', 'action'),
+    ('subject', True, {}, 'Throné looks up.', 'M2 subject check', 'world'),
 ])
 @pytest.mark.parametrize('actor', ['world', 'Gus'])
-def test_world_d2_validation(tmp_path, monkeypatch, case, scene, choices, content, error, actor):
+def test_world_d2_validation(tmp_path, monkeypatch, case, scene, choices, content, error, event_type, actor):
     world, run = tmp_path / 'world', tmp_path / 'run'
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     run.mkdir()
@@ -44,6 +47,7 @@ def test_world_d2_validation(tmp_path, monkeypatch, case, scene, choices, conten
                 situation_notes={s.id: 'Unchanged.' for s in state.situations})
     first = copy.deepcopy(good)
     first['events'][0]['content'] = content
+    first['events'][0]['type'] = event_type
     if case in ('locked', 'missing_move', 'tick', 'leave'):
         first['state']['characters']['agnea']['where'] = 'cropdale'
     replies = iter([json.dumps(first), json.dumps(good)])

@@ -21,15 +21,16 @@ class RunMeta(BaseModel):
     run_id: str
     created_at: str
     input: RunInput
-    mode: Literal["pipeline", "baseline", "initializer"]
-    stop: str
-    stop_after: Literal["scene_context", "beat_plan", "transcript"] | None
+    mode: Literal["simulation", "baseline", "initializer"]
+    stop_after: Literal["scene_context", "day"] | None
     models: Models
     scene_context_from: str | None = None
     models_file: str = "config/models.yaml"
     prompt_hashes: dict[str, str]
     status: Literal["dry_run", "running", "passed", "failed", "stopped"]
     api_host: str = "api.anthropic.com"
+    world_id: str | None = None
+    day: int | None = None
     error: str | None = None
 
 
@@ -47,13 +48,14 @@ def create_run(
     characters: list[str],
     location: str,
     scenario: str,
-    mode: Literal["pipeline", "baseline", "initializer"],
-    stop: str,
-    stop_after: Literal["scene_context", "beat_plan", "transcript"] | None,
+    mode: Literal["simulation", "baseline", "initializer"],
+    stop_after: Literal["scene_context", "day"] | None,
     models: Models,
     status: Literal["dry_run", "running"] = "dry_run",
     scene_context_from: str | None = None,
     models_file: str = "config/models.yaml",
+    world_id: str | None = None,
+    day: int | None = None,
 ) -> Path:
     now = datetime.now(timezone.utc)
     run_id = f"{now:%Y%m%d-%H%M%S}-{secrets.token_hex(3)}"
@@ -62,7 +64,8 @@ def create_run(
         created_at=now.isoformat(),
         input=RunInput(characters=characters, location=location, scenario=scenario),
         mode=mode,
-        stop=stop,
+        world_id=world_id,
+        day=day,
         stop_after=stop_after,
         models=models,
         scene_context_from=scene_context_from,
