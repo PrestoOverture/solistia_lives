@@ -126,6 +126,6 @@ def test_scene_cost_cap_stops_immediately(tmp_path, monkeypatch, payer):
 
     asyncio.run(exercise())
     assert len(requests) == (2 if payer == 'character' else 3)
-    assert len(closed) == 3
+    assert len(closed) == 4
     assert rows(run)[-1]['type'] == 'cost_cap_reached'
     assert rows(run)[-1]['spend_usd'] == pytest.approx(.25 if payer == 'character' else .26)

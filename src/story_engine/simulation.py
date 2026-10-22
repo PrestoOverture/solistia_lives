@@ -9,7 +9,7 @@ from typing import Self
 
 from story_engine.agents.character import CharacterAgent
 from story_engine.agents.subjects import fold
-from story_engine.agents.world import WorldAgent
+from story_engine.agents.world import OffscreenAgent, WorldAgent
 from story_engine.config import load_configs
 from story_engine.kb import normalize_slug
 from story_engine.trace import TraceWriter
@@ -24,7 +24,7 @@ class CostCapReached(RuntimeError):
 
 
 class TickSession:
-    """Keep one session per character and one World session for this world/day."""
+    """Keep character, World, and isolated off-screen sessions for this world/day."""
 
     def __init__(self, world_dir: Path, run_dir: Path, *, root: Path = Path('.')):
         self.world_dir, self.run_dir, self.root = world_dir, run_dir, root
@@ -52,6 +52,9 @@ class TickSession:
                     self.root, self.run_dir, self.world_dir, slug, models.character,
                     self.settings.agent_max_turns, self.trace))
             self.world = await self.stack.enter_async_context(WorldAgent(
+                self.root, self.run_dir, self.world_dir, models.world,
+                self.settings.agent_max_turns, self.trace))
+            self.offscreen = await self.stack.enter_async_context(OffscreenAgent(
                 self.root, self.run_dir, self.world_dir, models.world,
                 self.settings.agent_max_turns, self.trace))
         except BaseException:
@@ -92,7 +95,8 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
             id=0, **state.clock.model_dump(), place=place, actor=slug,
             type='plan', content=plan.aim, intent=plan.intent, perceived_by=[slug]))
     events, updated, notes, encounters, statuses = await session.world.resolve(
-        state, {slug: plan.model_dump() for slug, plan in plans.items()}, read_events(world_dir))
+        state, {slug: plan.model_dump() for slug, plan in plans.items()}, read_events(world_dir),
+        offscreen=session.offscreen)
     for event in events:
         append_event(world_dir, event)
     groups = {}
@@ -276,9 +280,19 @@ async def run_day(world_dir: Path, run_dir: Path) -> WorldState:
     try:
         async with TickSession(world_dir, run_dir) as session:
             state = load_state(world_dir)
+            day_started = (state.clock.day >= 2
+                           and state.clock.part == session.settings.parts_of_day[0])
+            if day_started:
+                for slug, agent in session.characters.items():
+                    state.characters[slug].goals = await agent.day_start()
+                    save_state(world_dir, state)
+                state = await session.world.day_start(state, read_events(world_dir))
             while state.clock.day == session.day:
-                _copy_world(world_dir, checkpoint)
+                # Day start and its first tick share the pre-day-start checkpoint.
+                if not day_started:
+                    _copy_world(world_dir, checkpoint)
                 state = await run_tick(world_dir, run_dir, session=session)
+                day_started = False
             memories = {slug: await agent.summarize(read_events(world_dir))
                         for slug, agent in session.characters.items()}
             for slug, memory in memories.items():

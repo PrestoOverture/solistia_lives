@@ -10,7 +10,7 @@ from typer.testing import CliRunner
 
 from story_engine.agents import character, curator, initializer, world as world_agent
 from story_engine.agents.character import Action, CharacterAgent, CharacterReply, EndOfDay
-from story_engine.agents.world import WorldAgent, WorldReply
+from story_engine.agents.world import OffscreenAgent, OffscreenReply, WorldAgent, WorldReply
 from story_engine.cli import app
 from story_engine.config import load_configs
 from story_engine.trace import TraceWriter
@@ -64,9 +64,11 @@ def test_world_output_format_accepts_all_call_variants(tmp_path, monkeypatch):
     async def exercise():
         async with WorldAgent(ROOT, run, world, models.world,
                               settings.agent_max_turns, TraceWriter(run)) as agent:
-            return agent.options
+            async with OffscreenAgent(ROOT, run, world, models.world,
+                                      settings.agent_max_turns, TraceWriter(run)) as offscreen:
+                return agent.options, offscreen.options
 
-    options = asyncio.run(exercise())
+    options, offscreen_options = asyncio.run(exercise())
     assert options.output_format['type'] == 'json_schema'
     schema = options.output_format['schema']
     state = load_state(world)
@@ -75,12 +77,14 @@ def test_world_output_format_accepts_all_call_variants(tmp_path, monkeypatch):
                                            where='cropdale', spot=None) for slug in state.characters},
                       encounters=[])
     offscreen = dict(call='offscreen', events=[], people={},
-                     situations=[s.model_dump() for s in state.situations],
+                     situations=[s.model_dump(include={"id", "status", "next", "due", "people"}) for s in state.situations],
                      places=[p.model_dump() for p in state.places],
                      situation_notes={s.id: 'Unchanged.' for s in state.situations})
     scene_round = dict(call='scene_round', outcome=None, minor_moves={})
     _assert_schema_accepts(schema, adjudicate, WorldReply)
-    _assert_schema_accepts(schema, offscreen, WorldReply)
+    _assert_schema_accepts(offscreen_options.output_format['schema'], offscreen, OffscreenReply)
+    _assert_schema_accepts(schema, dict(call='day_start', situations=[
+        state.situations[0].model_dump()]), WorldReply)
     _assert_schema_accepts(schema, scene_round, WorldReply)
 
 
@@ -106,6 +110,7 @@ def test_character_output_format_accepts_both_call_variants(tmp_path, monkeypatc
     end_of_day = dict(call='end_of_day', summary='# Today\nNothing much.')
     _assert_schema_accepts(schema, action, CharacterReply)
     _assert_schema_accepts(schema, end_of_day, CharacterReply)
+    _assert_schema_accepts(schema, dict(call='day_start', goals=['Find a quiet home']), CharacterReply)
     assert Action.model_validate(action)
     assert EndOfDay.model_validate(end_of_day)
 

@@ -34,7 +34,7 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     offscreen_reply = dict(
         call='offscreen',
         events=[dict(place='cropdale', actor='world', type='world', content='The stalls open.', intent=None)],
-        people={}, situations=[s.model_dump() for s in state.situations],
+        people={}, situations=[s.model_dump(include={"id", "status", "next", "due", "people"}) for s in state.situations],
         places=[p.model_dump() for p in state.places],
         situation_notes={s.id: 'Preparations continue.' for s in state.situations})
     invalid_offscreen = copy.deepcopy(offscreen_reply)
@@ -91,7 +91,7 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     assert offscreen_event.of is None
     assert offscreen_event.content == 'The stalls open.' and offscreen_event.place == 'cropdale'
     assert offscreen_event.perceived_by == ['agnea']  # only agnea ended up at cropdale
-    assert len(clients) == 3
+    assert len(clients) == 4
     character_requests = [json.loads(request) for is_world, request in requests if not is_world]
     assert all(request['perceived'] == [] and request['part'] == part for request in character_requests)
     if bad_actor:
@@ -118,7 +118,7 @@ def test_offscreen_validation_error(tmp_path, monkeypatch, failure, reason):
     event = dict(place='festival_grounds', actor='world', type='world',
                  content='The wind rises.', intent=None)
     reply = dict(call='offscreen', events=[event],
-                people={}, situations=[s.model_dump() for s in state.situations],
+                people={}, situations=[s.model_dump(include={"id", "status", "next", "due", "people"}) for s in state.situations],
                 places=[p.model_dump() for p in state.places],
                 situation_notes={s.id: 'Unchanged.' for s in state.situations})
     if failure == 'actor':
@@ -153,9 +153,9 @@ def test_offscreen_validation_error(tmp_path, monkeypatch, failure, reason):
     models, settings = load_configs()
 
     async def exercise():
-        async with world_agent.WorldAgent(ROOT, run, world, models.world,
+        async with world_agent.OffscreenAgent(ROOT, run, world, models.world,
                                          settings.agent_max_turns, TraceWriter(run)) as agent:
-            await agent.offscreen(state, [], {s.id for s in state.situations if s.status == 'open'})
+            await agent.offscreen(state, {s.id for s in state.situations if s.status == 'open'})
 
     with pytest.raises(SessionError, match=reason):
         asyncio.run(exercise())

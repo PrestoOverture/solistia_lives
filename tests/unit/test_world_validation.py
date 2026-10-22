@@ -33,7 +33,7 @@ def _adjudicate_reply(verdicts, encounters=None):
 def _offscreen_reply(state, events=None, situation_notes=None):
     return dict(call='offscreen', events=events or [],
                people={name: person.model_dump() for name, person in state.people.items()},
-               situations=[situation.model_dump() for situation in state.situations],
+               situations=[situation.model_dump(include={"id", "status", "next", "due", "people"}) for situation in state.situations],
                places=[place.model_dump() for place in state.places],
                situation_notes=situation_notes or {s.id: 'Unchanged.' for s in state.situations})
 
@@ -67,7 +67,9 @@ def _run_resolve(world, run, monkeypatch, state, choices, replies):
     async def exercise():
         async with world_agent.WorldAgent(ROOT, run, world, models.world,
                                          settings.agent_max_turns, TraceWriter(run)) as agent:
-            return await agent.resolve(state, choices, [])
+            async with world_agent.OffscreenAgent(ROOT, run, world, models.world,
+                                                  settings.agent_max_turns, TraceWriter(run)) as offscreen:
+                return await agent.resolve(state, choices, [], offscreen=offscreen)
 
     return asyncio.run(exercise()), requests
 
@@ -137,13 +139,14 @@ def test_world_content_accepted_with_no_text_judgment(tmp_path, monkeypatch, cas
     models, settings = load_configs()
 
     async def exercise():
-        async with world_agent.WorldAgent(ROOT, run, world, models.world,
-                                         settings.agent_max_turns, TraceWriter(run)) as agent:
+        agent_type = world_agent.WorldAgent if scene else world_agent.OffscreenAgent
+        async with agent_type(ROOT, run, world, models.world,
+                              settings.agent_max_turns, TraceWriter(run)) as agent:
             if scene:
                 return await agent.round(state, [], place='festival_grounds',
                                          main_present=['agnea', 'throne'], minor_present=[],
                                          last_winner=last_winner)
-            return await agent.offscreen(state, [], {s.id for s in state.situations if s.status == 'open'})
+            return await agent.offscreen(state, {s.id for s in state.situations if s.status == 'open'})
 
     result = asyncio.run(exercise())
     failures = [row for row in map(json.loads, (run / 'trace.jsonl').read_text().splitlines())
@@ -201,8 +204,7 @@ def test_adjudicate_staged_verdict_with_outcome_fails_schema():
 
 
 def test_offscreen_request_has_no_main_character_plan_or_intent(tmp_path, monkeypatch):
-    """The off-screen request carries places/people/situations/clock and the settled
-    outcomes' text only — never a main character's plan or intent (D28)."""
+    """The off-screen request carries only off-screen state and call metadata (D29)."""
     world, run = tmp_path / 'world', tmp_path / 'run'
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     run.mkdir()
@@ -219,8 +221,9 @@ def test_offscreen_request_has_no_main_character_plan_or_intent(tmp_path, monkey
         world, run, monkeypatch, state, choices, [adjudicate, offscreen])
     assert len(requests) == 2
     offscreen_request = json.loads(requests[1])
-    assert set(offscreen_request) == {'call', 'clock', 'places', 'people', 'situations', 'outcomes'}
-    assert offscreen_request['outcomes'] == ['Throné finds nothing unusual.']
+    assert set(offscreen_request) == {'call', 'reply', 'clock', 'places', 'people', 'situations'}
+    assert 'Throné finds nothing unusual.' not in requests[1]
+    assert all('touches' not in item for item in offscreen_request['situations'])
     assert 'Secretly follow Tam' not in requests[1]
     assert 'Catch the thief' not in requests[1]
 
@@ -233,7 +236,7 @@ def test_offscreen_reply_omitting_people_keeps_them(tmp_path, monkeypatch):
     state = load_state(world)
     state.people['Gus'] = Person(where='festival_grounds', wants=['Save the contest'], commitments=[])
     reply = dict(call='offscreen', events=[], people={},
-                situations=[situation.model_dump() for situation in state.situations],
+                situations=[situation.model_dump(include={"id", "status", "next", "due", "people"}) for situation in state.situations],
                 places=[place.model_dump() for place in state.places],
                 situation_notes={s.id: 'Unchanged.' for s in state.situations})
     requests = []
@@ -241,9 +244,9 @@ def test_offscreen_reply_omitting_people_keeps_them(tmp_path, monkeypatch):
     models, settings = load_configs()
 
     async def exercise():
-        async with world_agent.WorldAgent(ROOT, run, world, models.world,
-                                         settings.agent_max_turns, TraceWriter(run)) as agent:
-            return await agent.offscreen(state, [], {s.id for s in state.situations if s.status == 'open'})
+        async with world_agent.OffscreenAgent(ROOT, run, world, models.world,
+                                             settings.agent_max_turns, TraceWriter(run)) as agent:
+            return await agent.offscreen(state, {s.id for s in state.situations if s.status == 'open'})
 
     _events, updated, _notes = asyncio.run(exercise())
     assert updated.people['Gus'].wants == ['Save the contest']
@@ -273,7 +276,9 @@ def test_encounter_mains_at_different_spots_rejected(tmp_path, monkeypatch):
     async def exercise():
         async with world_agent.WorldAgent(ROOT, run, world, models.world,
                                          settings.agent_max_turns, TraceWriter(run)) as agent:
-            return await agent.resolve(state, {'agnea': {}, 'throne': {}}, [])
+            async with world_agent.OffscreenAgent(ROOT, run, world, models.world,
+                                                  settings.agent_max_turns, TraceWriter(run)) as offscreen:
+                return await agent.resolve(state, {'agnea': {}, 'throne': {}}, [], offscreen=offscreen)
 
     _events, updated, _notes, encounters, _statuses = asyncio.run(exercise())
     assert len(requests) == 3

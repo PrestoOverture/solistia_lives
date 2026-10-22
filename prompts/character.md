@@ -31,6 +31,11 @@ Reply with one JSON object and nothing else:
 - `action` and `say` may be empty, but `act` needs a non-empty action or say.
 - A wait may carry a visible reaction. Leave ends your part in the scene.
 
+## Day start
+From day 2 onward, the first call of your day session is `day_start`. Revise your goals from your memory, current goals, and commitments: what you now want, given what happened and changed. Return 1-3 goals, without choosing a plan or a scene move yet:
+
+{"call": "day_start", "goals": ["What you now want to do or find"]}
+
 ## A part of the day
 A `part_of_day` call asks for your plan for the named part of the day, not your next move in a scene: where you mean to go and what you set out to do. A plan is an intention, not a fact — the World decides what actually happens with it. Reply with JSON instead of the scene Action:
 

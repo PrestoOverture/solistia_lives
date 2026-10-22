@@ -75,7 +75,14 @@ class EndOfDay(BaseModel):
         return self
 
 
-CharacterReply = Annotated[Union[Action, Plan, EndOfDay], Field(discriminator="call")]
+class DayStart(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    call: Literal["day_start"]
+    goals: list[str] = Field(min_length=1, max_length=3)
+
+
+CharacterReply = Annotated[Union[Action, Plan, EndOfDay, DayStart], Field(discriminator="call")]
 
 
 class CharacterAgent:
@@ -134,8 +141,13 @@ class CharacterAgent:
         """Summarize the day in this character's existing session."""
         return await self._action(perceived, summary=True)
 
+    async def day_start(self) -> list[str]:
+        """Revise goals from the opening memory before making any plans."""
+        return await self._action([], day_start=True)
+
     async def _action(self, perceived: list[Event], part: PartOfDay | None = None,
-                      note: str | None = None, summary: bool = False) -> Action | Plan | str:
+                      note: str | None = None, summary: bool = False,
+                      day_start: bool = False) -> Action | Plan | str | list[str]:
         if self.client is None:
             raise SessionError("CharacterAgent must be opened as an async context manager")
         self.turn += 1
@@ -148,10 +160,11 @@ class CharacterAgent:
         request = json.dumps({**(self.opening if self.turn == 1 else {}), "perceived": events,
                               **({"note": note} if note else {}),
                               **({"call": "end_of_day", "reply": "JSON {call: 'end_of_day', summary: 'Markdown: what happened, what changed, what you want now'}"} if summary else {}),
+                              **({"call": "day_start", "reply": "JSON with call: 'day_start' and 1-3 revised goals"} if day_start else {}),
                               **({"part": part, "call": "part_of_day", "reply": "JSON with call: 'plan'"} if part else {}),
-                              # A scene move names its reply type too: the session's schema allows all three.
+                              # Each request names its reply type in the shared schema.
                               **({"call": "scene_move", "reply": "JSON with call: 'action'"}
-                                 if not part and not summary else {})},
+                                 if not part and not summary and not day_start else {})},
                              ensure_ascii=False)
         for attempt in range(2):
             thinking = ThinkingUsage()
@@ -163,7 +176,8 @@ class CharacterAgent:
                 thinking.observe(message)
                 if isinstance(message, ResultMessage):
                     self.trace.write(
-                        "stage_usage", stage="character_summary" if summary else "character_action", agent=self.slug,
+                        "stage_usage", stage=("character_summary" if summary else
+                                              "character_day_start" if day_start else "character_action"), agent=self.slug,
                         turn=self.turn, attempt=attempt + 1, usage=message.usage or {},
                         num_turns=message.num_turns, total_cost_usd=message.total_cost_usd,
                         call_cost_usd=self.cost.delta(message.total_cost_usd),
@@ -176,6 +190,8 @@ class CharacterAgent:
                     structured_output = message.structured_output
             try:
                 payload = structured_reply(result, structured_output)
+                if day_start:
+                    return DayStart.model_validate(payload).goals
                 if summary:
                     return EndOfDay.model_validate(payload).summary
                 if part:

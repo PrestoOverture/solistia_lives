@@ -97,7 +97,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
                                    where='festival_grounds', spot=None)))
                 else:
                     data = dict(call='offscreen', events=[], people={},
-                               situations=[s.model_dump() for s in state.situations],
+                               situations=[s.model_dump(include={"id", "status", "next", "due", "people"}) for s in state.situations],
                                places=[p.model_dump() for p in state.places],
                                situation_notes={s.id: 'Unchanged.' for s in state.situations})
                 reply = json.dumps(data)
@@ -170,7 +170,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
         assert {(e.day, e.part) for e in read_events(world)} == {
             (1, p) for p in ('morning', 'afternoon', 'evening', 'night')}
         assert load_state(world).clock.model_dump() == dict(day=2, part='morning')
-        assert len(clients) == (3 if stop_after else 6)
+        assert len(clients) == (4 if stop_after else 7)
         assert (run / "episode.json").exists() == (not stop_after)
         for client, slug in zip(clients[:2], ('agnea', 'throne')):
             assert [r['call'] for r in client.calls] == ['part_of_day'] * 4 + ['end_of_day']
