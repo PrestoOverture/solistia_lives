@@ -13,7 +13,7 @@ from story_engine.world.io import append_event, append_scene, load_state, save_s
 from story_engine.world.models import Event, SceneRecord
 
 ROOT = Path(__file__).resolve().parents[2]
-VALID = dict(scenes=['2', '3'], pov='throne', why='A choice resolved.')
+VALID = dict(acts=[{'scene': '2', 'pov': 'agnea'}, {'scene': '3', 'pov': 'throne'}], why='A choice resolved.')
 
 
 @pytest.fixture
@@ -102,10 +102,10 @@ def test_valid_reply(world, monkeypatch):
 
 
 @pytest.mark.parametrize('change,reason', [
-    ({'scenes': ['2', '99']}, 'unknown scene id'),
-    ({'scenes': ['2', '2']}, 'not repeat'),
-    ({'scenes': ['3', '2']}, 'chronological order'),
-    ({'pov': 'shopkeeper'}, 'main character'),
+    ({'acts': [{'scene': '2', 'pov': 'agnea'}, {'scene': '99', 'pov': 'throne'}]}, 'unknown scene id'),
+    ({'acts': [{'scene': '2', 'pov': 'agnea'}, {'scene': '2', 'pov': 'agnea'}]}, 'not repeat'),
+    ({'acts': [{'scene': '3', 'pov': 'throne'}, {'scene': '2', 'pov': 'agnea'}]}, 'chronological order'),
+    ({'acts': [{'scene': '2', 'pov': 'shopkeeper'}, {'scene': '3', 'pov': 'throne'}]}, 'main character'),
 ])
 def test_retry(world, monkeypatch, change, reason):
     calls, options, _ = fake(monkeypatch, [json.dumps(VALID | change), json.dumps(VALID)])
@@ -116,17 +116,47 @@ def test_retry(world, monkeypatch, change, reason):
     assert [row['call_cost_usd'] for row in trace if row['type'] == 'stage_usage'] == [.1, .1]
 
 
-def test_pov_not_participant_of_any_chosen_scene(world, monkeypatch):
-    calls, _, _ = fake(monkeypatch, [json.dumps(VALID | {'scenes': ['2']}), json.dumps(VALID)])
+def test_act_pov_not_participant_of_its_scene(world, monkeypatch):
+    invalid = VALID | {'acts': [{'scene': '2', 'pov': 'throne'}, {'scene': '3', 'pov': 'throne'}]}
+    calls, _, _ = fake(monkeypatch, [json.dumps(invalid), json.dumps(VALID)])
     result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1', '--stop-after', 'curate'])
     assert result.exit_code == 0, result.output
-    assert 'participant of at least one chosen scene' in calls[1]
+    assert 'participant of scene 2' in calls[1]
+
+
+def test_unbroken_chain(monkeypatch, tmp_path):
+    for name in ('config', 'prompts'):
+        shutil.copytree(ROOT / name, tmp_path / name)
+    world = tmp_path / 'worlds/test'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    for scene_id in ('1', '2', '3', '4'):
+        event_id = int(scene_id)
+        append_event(world, Event(id=event_id, day=1, part='morning', place='cropdale', scene=scene_id,
+                                 actor='agnea', type='action', content=f'Scene {scene_id}.',
+                                 intent='Act', perceived_by=['agnea', 'throne']))
+        append_scene(world, SceneRecord(id=scene_id, day=1, part='morning', place='cropdale',
+                                        participants=['agnea', 'throne'], first_event_id=event_id,
+                                        last_event_id=event_id, rounds=1, end='one_left'))
+    state = load_state(world)
+    state.clock.day = 2
+    save_state(world, state)
+    monkeypatch.chdir(tmp_path)
+    rejected = dict(acts=[{'scene': '1', 'pov': 'agnea'}, {'scene': '3', 'pov': 'agnea'},
+                          {'scene': '4', 'pov': 'agnea'}], why='A broken chain.')
+    accepted = dict(acts=[{'scene': '2', 'pov': 'agnea'}, {'scene': '3', 'pov': 'throne'}], why='A choice resolved.')
+    calls, _, _ = fake(monkeypatch, [json.dumps(rejected), json.dumps(accepted)])
+    result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1', '--stop-after', 'curate'])
+    assert result.exit_code == 0, result.output
+    assert 'unbroken chain' in calls[1]
+    episode = curator.Episode.model_validate_json((Path(result.output.strip()) / 'episode.json').read_bytes())
+    assert [act.scene for act in episode.acts] == ['2', '3']
 
 
 def test_absent_pov_final_error(world, monkeypatch):
-    calls, _, _ = fake(monkeypatch, [json.dumps(VALID | {'scenes': ['2']})] * 2)
+    invalid = VALID | {'acts': [{'scene': '2', 'pov': 'throne'}, {'scene': '3', 'pov': 'throne'}]}
+    calls, _, _ = fake(monkeypatch, [json.dumps(invalid)] * 2)
     result = CliRunner().invoke(app, ['world', 'tell', 'test'])
-    assert result.exit_code == 1 and 'participant of at least one chosen scene' in result.output
+    assert result.exit_code == 1 and 'participant of scene 2' in result.output
     assert len(calls) == 2
     run = next(Path('runs').iterdir())
     assert not (run / 'episode.json').exists()
@@ -160,14 +190,21 @@ def test_day_with_no_scene_records_exits_1(tmp_path, monkeypatch):
 
 
 def test_pov_display_name_normalized():
-    from story_engine.agents.curator import Episode
-    assert Episode(scenes=['1'], pov='Throné', why='x').pov == 'throne'
+    from story_engine.agents.curator import Act
+    assert Act(scene='1', pov='Throné').pov == 'throne'
 
 
 def test_pov_full_name_resolves_to_slug():
-    from story_engine.agents.curator import Episode, validate_episode
+    from story_engine.agents.curator import Act, Episode, validate_episode
     from story_engine.world.models import SceneRecord
-    scene = SceneRecord(id='1', day=1, part='morning', place='cropdale', participants=['agnea', 'throne'],
-                        first_event_id=1, last_event_id=2, rounds=1, end='quiet')
-    episode = validate_episode(Episode(scenes=['1'], pov='Throné Anguis', why='x'), [scene], ['agnea', 'throne'])
-    assert episode.pov == 'throne'
+    scenes = [
+        SceneRecord(id='1', day=1, part='morning', place='cropdale', participants=['agnea', 'throne'],
+                   first_event_id=1, last_event_id=2, rounds=1, end='quiet'),
+        SceneRecord(id='2', day=1, part='afternoon', place='cropdale', participants=['agnea', 'throne'],
+                   first_event_id=3, last_event_id=4, rounds=1, end='quiet'),
+    ]
+    episode = validate_episode(
+        Episode(acts=[Act(scene='1', pov='Throné Anguis'), Act(scene='2', pov='agnea')], why='x'),
+        scenes, ['agnea', 'throne'],
+    )
+    assert episode.acts[0].pov == 'throne'

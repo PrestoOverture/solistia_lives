@@ -25,7 +25,8 @@ def test_curator(monkeypatch):
     info = WorldInfo.model_validate_json((world / 'world.json').read_bytes())
     validate_episode(episode, scenes, info.characters)
     by_id = {scene.id: scene for scene in scenes}
-    assert all(scene_id in by_id for scene_id in episode.scenes)
-    chosen = [by_id[scene_id] for scene_id in episode.scenes]
-    assert episode.pov in info.characters
-    assert any(episode.pov in scene.participants for scene in chosen)
+    assert 2 <= len(episode.acts) <= 4
+    assert all(act.scene in by_id for act in episode.acts)
+    for act in episode.acts:
+        assert act.pov in info.characters
+        assert act.pov in by_id[act.scene].participants

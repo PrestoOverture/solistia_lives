@@ -57,10 +57,7 @@
         "agnea",
         "throne"
       ],
-      "people": [
-        "Garud Bristarni",
-        "unknown thief"
-      ],
+      "people": [],
       "status": "open",
       "next": "If no one recovers the textiles, Garud will be unable to display his craft revival at the evening festival showcase, and the rare pieces will be lost to collectors",
       "due": {
@@ -70,15 +67,12 @@
     },
     {
       "id": "raspberry_contest_sabotage",
+      "kind": "occasion",
       "summary": "Someone has tampered with the raspberry supplies for the baking contest, mixing in sour berries that will ruin the pies",
       "touches": [
         "agnea"
       ],
-      "people": [
-        "Gus",
-        "festival contestants",
-        "unknown saboteur"
-      ],
+      "people": [],
       "status": "open",
       "next": "If the tainted berries are used, the baking contest will be ruined and the festival's centerpiece tradition will end in disappointment and accusations",
       "due": {
@@ -92,10 +86,7 @@
       "touches": [
         "agnea"
       ],
-      "people": [
-        "festival organizers",
-        "Agnea"
-      ],
+      "people": [],
       "status": "open",
       "next": "If the stage is not repaired or replaced before evening performances begin, it could collapse during Agnea's show, injuring performers and audience members",
       "due": {

@@ -31,3 +31,8 @@ def sentences(text: str) -> list[str]:
 def starts_with_name(text: str, names: set[str]) -> bool:
     start = fold(text.lstrip(' \t\r\"“”‘’'))
     return any(re.match(re.escape(name) + r"(?!\w)", start) for name in names)
+
+
+def word_count(text: str) -> int:
+    """Word count = whitespace-split tokens (D23)."""
+    return len(text.split())

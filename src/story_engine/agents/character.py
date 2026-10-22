@@ -12,7 +12,7 @@ from story_engine.agents.sdk import (
     KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
     session_options, structured_reply,
 )
-from story_engine.agents.subjects import fold, main_names, sentences, starts_with_name
+from story_engine.agents.subjects import fold, main_names, sentences, starts_with_name, word_count
 from story_engine.config import Role
 from story_engine.trace import TraceWriter
 from story_engine.world.io import load_state, read_events
@@ -34,6 +34,10 @@ class Action(BaseModel):
     def valid_action(self) -> Self:
         if not self.intent.strip():
             raise ValueError("intent must be non-empty")
+        if word_count(self.action) > 25:
+            raise ValueError("action must be at most 25 words")
+        if word_count(self.say) > 60:
+            raise ValueError("say must be at most 60 words")
         if self.move == "act":
             if not 1 <= self.urge <= 3:
                 raise ValueError("act urge must be 1-3")

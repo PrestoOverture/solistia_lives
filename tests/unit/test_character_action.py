@@ -87,6 +87,36 @@ def test_valid_action(tmp_path, monkeypatch, fenced):
     assert retrieval["agent"] == "throne" and retrieval["turn"] == 1
 
 
+def test_overlong_action_rejected_then_retried(tmp_path, monkeypatch):
+    """A 26-word action fails the length cap (D23) and is rejected, then retried."""
+    too_long = " ".join(f"word{i}" for i in range(26))
+    bad = json.dumps({**VALID, "action": too_long})
+    agent, instances, requests, lifecycle, run = setup_agent(
+        tmp_path, monkeypatch, iter([bad, json.dumps(VALID)]))
+
+    async def exercise():
+        async with agent:
+            return await agent.act([])
+
+    assert asyncio.run(exercise()) == Action(**VALID)
+    assert len(requests) == 2 and "at most 25 words" in requests[1]
+
+
+def test_overlong_say_rejected_then_retried(tmp_path, monkeypatch):
+    """A 61-word say fails the length cap (D23) and is rejected, then retried."""
+    too_long = " ".join(f"word{i}" for i in range(61))
+    bad = json.dumps({**VALID, "action": "", "say": too_long})
+    agent, instances, requests, lifecycle, run = setup_agent(
+        tmp_path, monkeypatch, iter([bad, json.dumps(VALID)]))
+
+    async def exercise():
+        async with agent:
+            return await agent.act([])
+
+    assert asyncio.run(exercise()) == Action(**VALID)
+    assert len(requests) == 2 and "at most 60 words" in requests[1]
+
+
 @pytest.mark.parametrize("second_valid", [True, False])
 def test_retry(tmp_path, monkeypatch, second_valid):
     bad = json.dumps({**VALID, "intent": " "})

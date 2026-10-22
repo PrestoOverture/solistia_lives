@@ -165,8 +165,7 @@ def test_baseline_session(repo: Path, monkeypatch: pytest.MonkeyPatch, thinking:
     assert result.exit_code == 0, result.output
     run_dir = Path(result.output.strip())
     assert calls == [(role, event) for role in ("initializer", "baseline") for event in ("init", "enter", "query", "exit")]
-    assert (run_dir / "draft.md").read_text() == STORY
-    assert (run_dir / "story.md").read_bytes() == (run_dir / "draft.md").read_bytes()
+    assert (run_dir / "story.md").read_text() == STORY
     meta = RunMeta.model_validate_json((run_dir / "meta.json").read_text())
     assert meta.status == "passed" and meta.error is None
     assert meta.models.model_dump() == models

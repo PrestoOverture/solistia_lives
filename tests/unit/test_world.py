@@ -21,9 +21,12 @@ def state_data():
                                        "day": 1, "part": "evening"}]},
             "throne": {"where": "cropdale", "goals": ["Find quiet"], "commitments": []},
         },
-        "situations": [{"id": "book", "summary": "A book is missing", "touches": ["agnea"],
-                        "people": ["keeper"], "status": "open", "next": "Contest cancelled",
-                        "due": {"day": 1, "part": "evening"}}],
+        "people": {
+            "keeper": {"where": "cropdale", "wants": ["Find the book"], "commitments": []},
+        },
+        "situations": [{"id": "book", "kind": "trouble", "summary": "A book is missing",
+                        "touches": ["agnea"], "people": ["keeper"], "status": "open",
+                        "next": "Contest cancelled", "due": {"day": 1, "part": "evening"}}],
     }
 
 
@@ -66,6 +69,7 @@ def test_round_trip_and_event_reopening(tmp_path, state_data):
 @pytest.mark.parametrize("invalid", [
     "part", "where", "missing", "extra", "goals", "situation_id",
     "touches_empty", "touches_minor", "status", "commitment_part", "due_part",
+    "situation_people_unknown", "person_name_main_character", "person_where_invalid",
 ])
 def test_reject_invalid_state(tmp_path, state_data, invalid):
     world = make_world(tmp_path, state_data)
@@ -82,6 +86,10 @@ def test_reject_invalid_state(tmp_path, state_data, invalid):
         case "status": state_data["situations"][0]["status"] = "pending"
         case "commitment_part": state_data["characters"]["agnea"]["commitments"][0]["part"] = "dawn"
         case "due_part": state_data["situations"][0]["due"]["part"] = "dawn"
+        case "situation_people_unknown": state_data["situations"][0]["people"] = ["ghost"]
+        case "person_name_main_character":
+            state_data["people"]["Throné"] = {"where": "cropdale", "wants": ["Something"], "commitments": []}
+        case "person_where_invalid": state_data["people"]["keeper"]["where"] = "unknown"
     with pytest.raises(ValueError):
         save_state(world, WorldState.model_validate(state_data))
     assert (world / "state.json").read_bytes() == original

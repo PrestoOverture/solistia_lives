@@ -105,19 +105,28 @@ async def starting_state(
                     result = message.result
                     structured_output = message.structured_output
             try:
-                data = structured_reply(result, structured_output)
+                data = _normalize_place_paths(structured_reply(result, structured_output))
                 data["clock"] = {"day": 1, "part": "morning"}
                 state = WorldState.model_validate(data)
                 if set(state.characters) != set(characters):
                     raise ValueError("state characters must match input characters exactly")
                 if location not in {place.slug for place in state.places}:
                     raise ValueError("input location must be in places")
-                if any(place.slug not in places for place in state.places):
-                    raise ValueError("every places slug must be a file under kb/locations/")
+                unknown = [place.slug for place in state.places if place.slug not in places]
+                if unknown:
+                    raise ValueError(
+                        f"places {unknown} are not KB location slugs. Use slugs of files under "
+                        f"kb/locations/ (such as {location!r}); put a spot inside a place, like a "
+                        "house or a stall, in that place's details instead")
                 if any(item.due.day < state.clock.day for item in state.situations):
                     raise ValueError("situation due must not precede the starting clock")
                 if not 1 <= len(state.situations) <= 3 or any(item.status != "open" for item in state.situations):
                     raise ValueError("starting state must contain 1-3 open situations")
+                if len(state.situations) >= 2:
+                    if len({item.kind for item in state.situations}) <= 1:
+                        raise ValueError("a starting state with two or more situations must have more than one kind")
+                    if len({item.due.part for item in state.situations}) <= 1:
+                        raise ValueError("a starting state with two or more situations must not have all the same due part")
                 return state
             except ValueError as error:
                 trace.write(
@@ -128,3 +137,19 @@ async def starting_state(
                     raise SessionError(f"Initializer state validation failed after one retry: {error}") from None
                 request = f"State validation failed: {error}\nReturn corrected JSON."
     raise SessionError("Initializer state session ended without a state")
+
+
+def _normalize_place_paths(data: dict) -> dict:
+    """Accept path-form slugs ("leaflands/towns/cropdale") as their file stem ("cropdale")."""
+    def stem(value):
+        return value.rsplit("/", 1)[-1].removesuffix(".md") if isinstance(value, str) else value
+    for place in data.get("places") or []:
+        if isinstance(place, dict):
+            place["slug"] = stem(place.get("slug"))
+    for entry in [*(data.get("characters") or {}).values(), *(data.get("people") or {}).values()]:
+        if isinstance(entry, dict):
+            entry["where"] = stem(entry.get("where"))
+            for commitment in entry.get("commitments") or []:
+                if isinstance(commitment, dict):
+                    commitment["where"] = stem(commitment.get("where"))
+    return data

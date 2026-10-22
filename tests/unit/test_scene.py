@@ -187,7 +187,8 @@ def test_minor_joins_by_address_and_wins_floor(tmp_path, monkeypatch):
                 data = dict(call='scene_round', outcome=None, minor_moves={})
             else:
                 data = dict(call='scene_round', outcome=None, minor_moves={
-                    'Gus': dict(move='act', urge=1, to=None, action='Waves back.', say='There you are!')})
+                    'Gus': dict(move='act', urge=1, to=None, action='Waves back.', say='There you are!')},
+                    new_people={'Gus': dict(where='festival_grounds', wants=['Greet old friends'], commitments=[])})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
@@ -343,6 +344,82 @@ def test_round_rejects_extra_events_and_caps_logged_events(tmp_path, monkeypatch
     scene_events = [event for event in read_events(world) if event.scene is not None]
     # At most: the floor winner (agnea), one visible wait (throne), and one outcome event.
     assert len(scene_events) <= 3
+
+
+def test_scene_events_carry_round_and_outcome_resolves_previous_round(tmp_path, monkeypatch):
+    """Scene events get the round they happened in; an outcome event gets the round of the
+    move it resolves (the previous round), not the round it was produced in."""
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    slugs = iter(['agnea', 'throne'])
+
+    class CharClient:
+        def __init__(self, *, options):
+            self.slug = next(slugs)
+            self.round = 0
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def query(self, request):
+            pass
+
+        async def receive_response(self):
+            self.round += 1
+            if self.round == 1:
+                data = (move(urge=2, action='Waves.', say='Hello.') if self.slug == 'agnea'
+                       else move('wait', 0, action='Looks on.', say=''))
+            else:
+                data = (move('wait', 0, action='', say='') if self.slug == 'agnea'
+                       else move('leave', 0, action='', say=''))
+            yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
+
+    class WorldClient:
+        def __init__(self, *, options):
+            self.round = 0
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def query(self, request):
+            pass
+
+        async def receive_response(self):
+            self.round += 1
+            if self.round == 1:
+                data = dict(call='scene_round', outcome=None, minor_moves={})
+            else:
+                outcome = dict(place='festival_grounds', actor='world', of='agnea',
+                               type='world', content="Agnea's wave is seen.", perceived_by=['agnea', 'throne'])
+                data = dict(call='scene_round', outcome=outcome, minor_moves={})
+            yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
+
+    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+
+    from story_engine.world.io import load_state
+
+    async def exercise():
+        state = load_state(world)
+        async with TickSession(world, run, root=ROOT) as session:
+            session.settings.scene_cap = 2
+            return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
+
+    asyncio.run(exercise())
+    rounds_by_content = {event.content: event.round for event in read_events(world) if event.scene is not None}
+    assert rounds_by_content['Waves. Hello.'] == 1
+    assert rounds_by_content['Looks on.'] == 1
+    outcome_event = next(event for event in read_events(world) if event.actor == 'world')
+    assert outcome_event.round == 1  # resolves round 1's winning move, even though produced in round 2
+    leave_event = next(event for event in read_events(world) if 'leaves.' in event.content)
+    assert leave_event.round == 2
 
 
 def test_scene_recorded_in_scenes_jsonl(tmp_path, monkeypatch):

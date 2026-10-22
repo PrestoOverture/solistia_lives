@@ -12,7 +12,8 @@ from claude_agent_sdk import ResultMessage
 from story_engine.agents import world as world_agent
 from story_engine.config import load_configs
 from story_engine.trace import TraceWriter
-from story_engine.world.io import load_state
+from story_engine.world.io import load_state, save_state
+from story_engine.world.models import Person
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -31,6 +32,8 @@ ROOT = Path(__file__).resolve().parents[2]
     ('speech', True, None, 'Agnea! There you are!', None, 'speech'),
     ('subject', True, None, 'Agnea nods.', 'M2 subject check', 'action'),
     ('subject', True, None, 'Throné looks up.', 'M2 subject check', 'world'),
+    ('long', False, None, ' '.join(f'w{i}' for i in range(41)), 'at most 40 words', 'world'),
+    ('long', True, None, ' '.join(f'w{i}' for i in range(41)), 'at most 40 words', 'world'),
 ])
 @pytest.mark.parametrize('actor', ['world', 'Gus'])
 def test_world_d2_validation(tmp_path, monkeypatch, case, scene, last_winner, content, error, event_type, actor):
@@ -91,7 +94,7 @@ def test_world_d2_validation(tmp_path, monkeypatch, case, scene, last_winner, co
     else:
         assert len(requests) == 1 and not failures
         if scene:
-            outcome, _minor_moves = result
+            outcome, _minor_moves, _state = result
             assert outcome.content == content
         else:
             events, updated, _notes, _encounters = result
@@ -248,9 +251,77 @@ def test_world_of_scene_round_accepted_for_previous_winner(tmp_path, monkeypatch
     reply = dict(call='scene_round', outcome=event, minor_moves={})
     result, requests = _run_round(world, run, monkeypatch, state,
                                   {'actor': 'throne', 'move': 'act'}, reply)
-    outcome, _minor_moves = result
+    outcome, _minor_moves, _state = result
     assert len(requests) == 1
     assert outcome.of == 'throne'
+
+
+def test_round_rejects_minor_move_without_known_person(tmp_path, monkeypatch):
+    """A minor_moves name that is neither an existing people entry here nor in new_people is rejected and retried."""
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    state = load_state(world)
+    bad = dict(call='scene_round', outcome=None,
+              minor_moves={'Mystery': dict(move='act', urge=1, to=None, action='Waves.', say='Hello!')})
+    good = dict(call='scene_round', outcome=None, minor_moves={})
+    requests = []
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient',
+                        _fake_client(iter([json.dumps(bad), json.dumps(good)]), requests))
+    models, settings = load_configs()
+
+    async def exercise():
+        async with world_agent.WorldAgent(ROOT, run, world, models.world,
+                                         settings.agent_max_turns, TraceWriter(run)) as agent:
+            return await agent.round(state, [], place='festival_grounds',
+                                     main_present=['agnea', 'throne'], minor_present=[],
+                                     last_winner=None)
+
+    outcome, minor_moves, result_state = asyncio.run(exercise())
+    assert outcome is None and minor_moves == {}
+    assert result_state == state
+    assert len(requests) == 2
+    failures = [row for row in map(json.loads, (run / 'trace.jsonl').read_text().splitlines())
+                if row['type'] == 'world_validation_failed']
+    assert len(failures) == 1
+    assert 'Mystery' in failures[0]['error']
+    assert load_state(world) == state
+
+
+def test_round_new_people_entry_persists_to_state_json(tmp_path, monkeypatch):
+    """A minor who joins with a new_people entry is added to the world's people and saved."""
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    state = load_state(world)
+    reply = dict(call='scene_round', outcome=None,
+                minor_moves={'Gus': dict(move='act', urge=1, to=None, action='Waves.', say='Hello!')},
+                new_people={'Gus': dict(where='festival_grounds', wants=['Catch up with Agnea'], commitments=[])})
+    result, requests = _run_round(world, run, monkeypatch, state, None, reply)
+    outcome, minor_moves, result_state = result
+    assert len(requests) == 1
+    assert 'Gus' in minor_moves
+    assert result_state.people['Gus'].where == 'festival_grounds'
+    saved = load_state(world)
+    assert saved.people['Gus'].where == 'festival_grounds'
+    assert saved.people['Gus'].wants == ['Catch up with Agnea']
+
+
+def test_round_request_includes_present_minor_people_entries(tmp_path, monkeypatch):
+    """The scene-round request carries the people entries of the minor participants present."""
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    state = load_state(world)
+    state.people['Tam'] = Person(where='festival_grounds', wants=['Find a quiet corner'], commitments=[])
+    save_state(world, state)
+    state = load_state(world)
+    reply = dict(call='scene_round', outcome=None, minor_moves={})
+    result, requests = _run_round(world, run, monkeypatch, state, None, reply)
+    assert len(requests) == 1
+    request = json.loads(requests[0])
+    assert request['people'] == {'Tam': {'where': 'festival_grounds',
+                                         'wants': ['Find a quiet corner'], 'commitments': []}}
 
 
 def test_world_of_scene_round_rejects_non_winner(tmp_path, monkeypatch):
@@ -276,3 +347,19 @@ def test_world_of_scene_round_rejects_non_winner(tmp_path, monkeypatch):
 
     with pytest.raises(world_agent.SessionError, match='World event of must name'):
         asyncio.run(exercise())
+
+
+def test_part_of_day_reply_omitting_people_keeps_them(tmp_path, monkeypatch):
+    """People persist (D21): a part_of_day reply that leaves someone out doesn't erase them."""
+    from story_engine.world.models import Person
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    state = load_state(world)
+    state.people['Gus'] = Person(where='festival_grounds', wants=['Save the contest'], commitments=[])
+    reply_state = state.model_dump(exclude={'clock'})
+    reply_state.pop('people')
+    reply = dict(call='part_of_day', events=[], state=reply_state,
+                 situation_notes={s.id: 'Unchanged.' for s in state.situations})
+    (_events, updated, _notes, _encounters), _requests = _run_resolve(world, run, monkeypatch, state, {}, reply)
+    assert updated.people['Gus'].wants == ['Save the contest']

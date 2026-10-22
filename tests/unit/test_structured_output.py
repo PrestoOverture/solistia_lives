@@ -116,6 +116,12 @@ def test_curator_output_format_is_json_schema(tmp_path, monkeypatch):
     append_scene(world, SceneRecord(id='1', day=1, part='morning', place='cropdale',
                                     participants=['agnea'], first_event_id=1, last_event_id=1,
                                     rounds=1, end='one_left'))
+    append_event(world, Event(id=2, day=1, part='evening', place='cropdale', scene='2',
+                             actor='agnea', type='action', content='Agnea resolves it.',
+                             intent='Resolve', perceived_by=['agnea']))
+    append_scene(world, SceneRecord(id='2', day=1, part='evening', place='cropdale',
+                                    participants=['agnea'], first_event_id=2, last_event_id=2,
+                                    rounds=1, end='one_left'))
     state = load_state(world)
     state.clock.day = 2
     save_state(world, state)
@@ -137,8 +143,9 @@ def test_curator_output_format_is_json_schema(tmp_path, monkeypatch):
 
         async def receive_response(self):
             from claude_agent_sdk import ResultMessage
-            yield ResultMessage('success', 1, 1, False, 1, 'fake',
-                                result=json.dumps(dict(scenes=['1'], pov='agnea', why='A choice.')))
+            episode = dict(acts=[{'scene': '1', 'pov': 'agnea'}, {'scene': '2', 'pov': 'agnea'}],
+                           why='A choice.')
+            yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(episode))
 
     monkeypatch.setattr(curator, 'ClaudeSDKClient', Client)
     result = CliRunner().invoke(app, ['world', 'tell', 'test', '--stop-after', 'curate'])
@@ -147,7 +154,10 @@ def test_curator_output_format_is_json_schema(tmp_path, monkeypatch):
     assert options[0].output_format['type'] == 'json_schema'
     schema = options[0].output_format['schema']
     if jsonschema is not None:
-        jsonschema.validate({'scenes': ['1'], 'pov': 'agnea', 'why': 'A choice.'}, schema)
+        jsonschema.validate(
+            {'acts': [{'scene': '1', 'pov': 'agnea'}, {'scene': '2', 'pov': 'agnea'}], 'why': 'A choice.'},
+            schema,
+        )
 
 
 def test_initializer_state_session_output_format_is_json_schema(tmp_path, monkeypatch):

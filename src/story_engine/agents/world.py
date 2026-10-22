@@ -11,11 +11,11 @@ from story_engine.agents.sdk import (
     KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
     session_options, structured_reply,
 )
-from story_engine.agents.subjects import main_names, sentences, starts_with_name
+from story_engine.agents.subjects import main_names, sentences, starts_with_name, word_count
 from story_engine.config import Role
 from story_engine.trace import TraceWriter
-from story_engine.world.io import validate_state
-from story_engine.world.models import Event, WorldState
+from story_engine.world.io import save_state, validate_state
+from story_engine.world.models import Event, Person, WorldState
 
 
 class PartResolution(BaseModel):
@@ -45,6 +45,10 @@ class MinorMove(BaseModel):
 
     @model_validator(mode="after")
     def valid_move(self) -> Self:
+        if word_count(self.action) > 25:
+            raise ValueError("action must be at most 25 words")
+        if word_count(self.say) > 60:
+            raise ValueError("say must be at most 60 words")
         if self.move == "act":
             if not 1 <= self.urge <= 3:
                 raise ValueError("act urge must be 1-3")
@@ -60,6 +64,7 @@ class RoundResolution(BaseModel):
     call: Literal["scene_round"]
     outcome: dict | None = None
     minor_moves: dict[str, MinorMove] = Field(default_factory=dict)
+    new_people: dict[str, Person] = Field(default_factory=dict)
 
 
 WorldReply = Annotated[Union[PartResolution, RoundResolution], Field(discriminator="call")]
@@ -129,8 +134,8 @@ class WorldAgent:
 
     def _build_event(self, raw: dict, state: WorldState, places: set[str],
                      names: set[str], valid_of: set[str]) -> Event:
-        if {"id", "day", "part", "scene"} & raw.keys():
-            raise ValueError("event id/day/part/scene are assigned by code")
+        if {"id", "day", "part", "scene", "round"} & raw.keys():
+            raise ValueError("event id/day/part/scene/round are assigned by code")
         event = Event.model_validate({"id": 0, **state.clock.model_dump(), **raw})
         if event.actor in state.characters:
             raise ValueError("World event actor must not be a main character")
@@ -142,6 +147,8 @@ class WorldAgent:
             raise ValueError("perceived_by must contain only main characters")
         if event.of is not None and event.of not in valid_of:
             raise ValueError("World event of must name a main character whose attempt this call resolves")
+        if word_count(event.content) > 40:
+            raise ValueError("World event content must be at most 40 words")
         if event.type != "speech":
             check_names = (main_names(self.root, (slug for slug in state.characters if slug != event.of))
                           if event.of is not None else names)
@@ -170,8 +177,11 @@ class WorldAgent:
                 reply = PartResolution.model_validate(structured_reply(result, structured_output))
                 if "clock" in reply.state:
                     raise ValueError("World state must omit clock")
+                # People persist (D21): the reply updates or adds people; anyone it omits is kept.
+                people = {name: person.model_dump() for name, person in state.people.items()}
+                people.update(reply.state.get("people") or {})
                 new_state = validate_state(self.world_dir, WorldState.model_validate(
-                    {**reply.state, "clock": state.clock.model_dump()}))
+                    {**reply.state, "people": people, "clock": state.clock.model_dump()}))
                 valid_of = set(choices.keys()) & state.characters.keys()
                 places = {place.slug for place in new_state.places}
                 resolved = [self._build_event(raw, state, places, names, valid_of) for raw in reply.events]
@@ -200,14 +210,18 @@ class WorldAgent:
     async def round(self, state: WorldState, events: list[Event],
                     *, place: str, main_present: list[str], minor_present: list[str],
                     last_winner: dict | None):
-        """One scene round: the previous winning move's outcome, and this round's minor moves."""
+        """One scene round: the previous winning move's outcome, this round's minor moves, and
+        any new_people the World brings into the scene — the only state change a round may make."""
         if self.client is None:
             raise SessionError("WorldAgent must be opened as an async context manager")
         self.turn += 1
         self.hooks.turn = self.turn
         new_events = self._new_events(state, events)
+        minor_people = {name: state.people[name].model_dump()
+                       for name in minor_present if name in state.people}
         request = json.dumps({"state": state.model_dump(), "call": "scene_round",
                               "place": place, "participants": {"main": main_present, "minor": minor_present},
+                              "people": minor_people,
                               "last_winner": last_winner,
                               "events": [event.model_dump() for event in new_events]}, ensure_ascii=False)
         names = main_names(self.root, state.characters)
@@ -225,11 +239,22 @@ class WorldAgent:
                           if reply.outcome is not None else None)
                 minor_moves = {}
                 for name, move in reply.minor_moves.items():
+                    if name not in reply.new_people:
+                        person = state.people.get(name)
+                        if person is None or person.where != place:
+                            raise ValueError(
+                                f"minor_moves name {name!r} must be a people entry at this place, "
+                                "or in this round's new_people")
                     for sentence in sentences(move.action):
                         if starts_with_name(sentence, names):
                             raise ValueError(f"M2 subject check: minor {name!r} action {sentence!r} begins with a main character name or alias")
                     minor_moves[name] = move
-                return outcome, minor_moves
+                new_state = state
+                if reply.new_people:
+                    new_state = validate_state(self.world_dir, state.model_copy(
+                        update={"people": {**state.people, **reply.new_people}}))
+                    save_state(self.world_dir, new_state)
+                return outcome, minor_moves, new_state
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
                                  turn=self.turn, attempt=attempt + 1)

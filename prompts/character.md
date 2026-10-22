@@ -26,7 +26,9 @@ Reply with one JSON object and nothing else:
 - `move` is `act`, `wait`, or `leave`.
 - `urge` is 1-3 for `act`: 1 (only if no one else does), 2 (you want to), or 3 (you would interrupt). Otherwise it is 0.
 - `to` is who you speak to, if anyone; it may be omitted or null.
-- `action` and `say` are strings and may be empty, but `act` needs a non-empty action or say.
+- `action` is one short sentence of what the character does, not scenery or feelings: at most 25 words.
+- `say` is what is said aloud: at most 60 words, one breath, not a speech.
+- `action` and `say` may be empty, but `act` needs a non-empty action or say.
 - A wait may carry a visible reaction. Leave ends your part in the scene.
 
 ## A part of the day

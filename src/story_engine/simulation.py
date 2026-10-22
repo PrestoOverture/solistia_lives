@@ -158,9 +158,9 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
     first_event_id, last_event_id = None, None
     reason = 'part_over'
 
-    def log(event):
+    def log(event, round_number):
         nonlocal first_event_id, last_event_id
-        saved = append_event(world_dir, event.model_copy(update={'scene': scene_id}))
+        saved = append_event(world_dir, event.model_copy(update={'scene': scene_id, 'round': round_number}))
         first_event_id = first_event_id if first_event_id is not None else saved.id
         last_event_id = saved.id
         return saved
@@ -170,11 +170,12 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
         main_moves = {}
         for slug in main_present:
             main_moves[slug] = await session.characters[slug].act(before, note=notes.pop(slug, None))
-        outcome, minor_moves = await session.world.round(
+        outcome, minor_moves, state = await session.world.round(
             state, before, place=place, main_present=main_present, minor_present=minor_present,
             last_winner=last_winner)
         if outcome:
-            log(outcome)
+            # The outcome resolves the previous round's winning move.
+            log(outcome, round_number - 1 if round_number > 1 else None)
         # A minor joins only when the World brings them in with a move here; an
         # unresolved `to` from the previous round's winner never creates one.
         for name, move in minor_moves.items():
@@ -205,7 +206,8 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
             log(Event(
                 id=0, **state.clock.model_dump(), place=place, actor=key,
                 type='speech' if move.move == 'act' and move.say else 'action',
-                content=content, intent=move.intent if is_main else None, perceived_by=list(main_present)))
+                content=content, intent=move.intent if is_main else None, perceived_by=list(main_present)),
+                round_number)
         if winner:
             last_act[winner] = round_number
             pending_to = moves[winner].to

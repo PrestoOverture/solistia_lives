@@ -15,7 +15,7 @@ Also return the **encounters**: who meets whom, and where. An encounter names a 
 Reply only with JSON:
 ```
 {"call": "part_of_day",
- "events": [{"place": "place_slug", "actor": "world or a minor person", "of": null, "type": "world", "content": "Visible change", "intent": null, "perceived_by": ["main_character_slug"]}],
+ "events": [{"place": "place_slug", "actor": "world or a minor person", "of": null, "type": "world", "content": "Visible change: one short fact, at most 40 words", "intent": null, "perceived_by": ["main_character_slug"]}],
  "state": {"places": [], "characters": {}, "situations": []},
  "situation_notes": {"situation_id": "One sentence explaining how this situation developed or stayed unchanged."},
  "encounters": [{"place": "place_slug", "minor": ["Name"]}]}
@@ -32,12 +32,14 @@ A scene is one encounter, played turn by turn. Each call gives you `place`, the 
 Reply only with JSON:
 ```
 {"call": "scene_round",
- "outcome": {"place": "place_slug", "actor": "world or a minor person", "of": null, "type": "world", "content": "The result of last_winner's attempt, if it isn't obvious already", "intent": null, "perceived_by": ["main_character_slug"]},
- "minor_moves": {"Name": {"move": "act", "urge": 2, "to": null, "action": "What others see them do", "say": "What they say aloud"}}}
+ "outcome": {"place": "place_slug", "actor": "world or a minor person", "of": null, "type": "world", "content": "The result of last_winner's attempt, if it isn't obvious already: one short fact, at most 40 words", "intent": null, "perceived_by": ["main_character_slug"]},
+ "minor_moves": {"Name": {"move": "act", "urge": 2, "to": null, "action": "What others see them do, in third person, as one short sentence (at most 25 words)", "say": "What they say aloud (at most 60 words: one breath, not a speech)"}},
+ "new_people": {"Name": {"where": "place_slug", "wants": ["What they want"], "commitments": []}}}
 ```
 
 - `outcome` is at most one event, resolving `last_winner`'s attempt — omit it (null) when nothing needs saying, or on round 1. It never has a main character as actor or subject, except when `last_winner` is a main character: then `outcome` may set `of` to that character's slug and say what their own attempt achieved or found, never anything further.
-- `minor_moves` plays every minor participant as a participant, one move each, in the same form as a character's move (`move`: act, wait, or leave; `urge` 1-3 for act, otherwise 0; `to`, who they address, if anyone; `action`; `say`). A new name you add here joins the scene; this is the only way a minor joins — if the events show a main character addressing or bringing in someone not yet present, and that person would plausibly answer, bring them in here with a move of their own. `leave` removes a minor from it. These moves compete for the floor alongside the main characters' moves, under the same rules: the one just addressed answers first, anyone else only interrupts at urge 3, ties go to whoever acted least recently.
+- `minor_moves` plays every minor participant as a participant, one move each, in the same form as a character's move (`move`: act, wait, or leave; `urge` 1-3 for act, otherwise 0; `to`, who they address, if anyone; `action`; `say`), each played from that person's `people` entry (what they want, what they've promised, where they are), given to you under `people`. `leave` removes a minor from it. These moves compete for the floor alongside the main characters' moves, under the same rules: the one just addressed answers first, anyone else only interrupts at urge 3, ties go to whoever acted least recently.
+- A new name you add to `minor_moves` joins the scene; this is the only way a minor joins — if the events show a main character addressing or bringing in someone not yet present, and that person would plausibly answer, bring them in here with a move of their own. Give anyone joining who isn't already in `people` a `new_people` entry (whereabouts, what they want, commitments); code adds it to the world's `people`.
 - You do not know the main characters' moves for this round; decide the minor moves from what happened before the round only, the same as everyone else.
 - The world state never changes here: time has not moved, you have no situation clocks or pacing to advance, and a main character who leaves simply exits the scene — their whereabouts are settled at the next part_of_day call. Never reply with a `state` field.
 - Code assigns event IDs, time, and scene; omit them.

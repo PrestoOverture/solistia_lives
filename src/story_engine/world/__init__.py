@@ -5,12 +5,12 @@ from .io import (
     write_memory,
 )
 from .models import (
-    CharacterState, Clock, Commitment, Event, PartOfDay, Place, Situation,
+    CharacterState, Clock, Commitment, Event, PartOfDay, Person, Place, Situation,
     WorldInfo, WorldState,
 )
 
 __all__ = [
-    "CharacterState", "Clock", "Commitment", "Event", "PartOfDay", "Place",
+    "CharacterState", "Clock", "Commitment", "Event", "PartOfDay", "Person", "Place",
     "Situation", "WorldInfo", "WorldState", "append_event", "create_world",
     "load_state", "read_events", "read_memory", "save_state", "write_memory",
 ]

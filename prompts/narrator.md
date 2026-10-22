@@ -8,14 +8,14 @@ After this prompt come, in order:
 2. **An identity card for each main character in the world.**
 3. **The scene context:** what the knowledge base (KB) says about the place, the characters, and their shared history.
 
-The first message gives either a whole episode or a single act to write:
-- **Whole episode:** the events, in order, the POV character, and the target length.
-- **One act:** that scene's events, the part-of-day events since the previous act (for at most a sentence of transition), the previous acts' approved text (joining them makes the story so far), the POV character, and the target length.
+The first message gives one act to write: that scene's events grouped into **beats**, one beat per round, in round order; the part-of-day events since the previous act (for at most a sentence of transition); the previous acts' approved text (joining them makes the story so far); the POV character; and the target length.
+
+A beat's events — the floor-holder's move, any visible waits, and the outcome — all happen at the same moment. Within a beat you may merge, reorder, or leave out events; you may not split one beat's events across different moments, or imply that one beat's events happened before or after another beat's except in round order.
 
 Only the POV character's private intent is included; everyone else's intent is withheld.
 
 ## Tell it from the POV character
-Write from the POV character's point of view. Writing one act, use the part-of-day events for at most a sentence of transition into the scene; don't dwell on them.
+Write from the POV character's point of view. Use the part-of-day events for at most a sentence of transition into the scene; don't dwell on them. Keep continuous with the previous acts' text, but write only this act — do not repeat or rewrite earlier acts.
 
 ## What you may do
 - Select and compress: you don't have to show every event.
@@ -27,6 +27,9 @@ Write from the POV character's point of view. Writing one act, use the part-of-d
 - Add events or exchanges that aren't in the log.
 - Change who did or said what.
 - Voice a move that never happened.
+
+## Cite your sources
+End every paragraph with a hidden marker naming what it tells: the rounds of this act's scene it draws on, written `<!-- r:N -->` for one round or `<!-- r:N-M -->` for a span (e.g. `<!-- r:3-5 -->`), and/or the part-of-day event ids it draws on, written `<!-- e:12,15 -->`. A paragraph may need both kinds; write them one after another, e.g. `<!-- r:2-3 --><!-- e:14 -->`. Every paragraph needs at least one marker, even if it isn't otherwise about an event. If a paragraph has dialogue (quoted speech), cite a round or event that contains a speech event. Write the marker(s) as the last thing in the paragraph; they are a production note, not part of the prose, and won't appear in the finished story.
 
 ## Checking facts
 The KB is canon. Before you state a fact your materials and the log don't cover, check it in the KB with Read, using an absolute path inside the KB, and say in one short line why you're checking.

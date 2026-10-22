@@ -26,7 +26,6 @@ def test_baseline(monkeypatch: pytest.MonkeyPatch) -> None:
     story = (run_dir / "story.md").read_text(encoding="utf-8")
     assert story.startswith("# ")
     assert 1800 <= len(story.split()) <= 3300
-    assert (run_dir / "story.md").read_bytes() == (run_dir / "draft.md").read_bytes()
     meta = json.loads((run_dir / "meta.json").read_text())
     assert meta["status"] == "passed" and meta["error"] is None
     assert meta["api_host"] == urlsplit(relay).hostname

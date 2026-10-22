@@ -41,9 +41,14 @@ def state():
         "places": [{"slug": "cropdale", "details": ["festival"]}],
         "characters": {slug: {"where": "cropdale", "goals": ["Visit the festival"], "commitments": []}
                        for slug in ("agnea", "throne")},
-        "situations": [{"id": "festival", "summary": "A festival", "touches": ["agnea"],
-                        "people": [], "status": "open", "next": "The dancing begins",
-                        "due": {"day": 1, "part": "evening"}}],
+        "situations": [
+            {"id": "festival", "kind": "occasion", "summary": "A festival", "touches": ["agnea"],
+             "people": [], "status": "open", "next": "The dancing begins",
+             "due": {"day": 1, "part": "evening"}},
+            {"id": "lost_coin", "kind": "trouble", "summary": "A coin is lost", "touches": ["agnea"],
+             "people": [], "status": "open", "next": "The coin stays lost",
+             "due": {"day": 1, "part": "night"}},
+        ],
     }
 
 
@@ -135,7 +140,8 @@ def test_invalid_replies_are_traced_and_reported(repo, monkeypatch, last_reply):
     assert "Initializer state validation failed after one retry:" in result.output
 
 
-@pytest.mark.parametrize("failure", ["pydantic", "place", "input_place", "due", "characters"])
+@pytest.mark.parametrize("failure", ["pydantic", "place", "input_place", "due", "characters",
+                                    "same_kind", "same_due_part"])
 @pytest.mark.parametrize("recover", [True, False])
 def test_validation_retry(repo, state, monkeypatch, failure, recover):
     bad = copy.deepcopy(state)
@@ -149,6 +155,10 @@ def test_validation_retry(repo, state, monkeypatch, failure, recover):
             character["where"] = "unknown"
     elif failure == "due":
         bad["situations"][0]["due"]["day"] = 0
+    elif failure == "same_kind":
+        bad["situations"][1]["kind"] = bad["situations"][0]["kind"]
+    elif failure == "same_due_part":
+        bad["situations"][1]["due"]["part"] = bad["situations"][0]["due"]["part"]
     else:
         del bad["characters"]["throne"]
     sessions = fake_sdk(monkeypatch, [bad, state if recover else bad])
@@ -185,3 +195,17 @@ def test_unknown_location(repo):
     assert result.exit_code == 1
     assert not (repo / "runs").exists()
     assert not (repo / "worlds").exists()
+
+
+def test_path_form_place_slugs_are_normalized():
+    from story_engine.agents.initializer import _normalize_place_paths
+    data = {"places": [{"slug": "leaflands/towns/cropdale", "details": []}],
+            "characters": {"agnea": {"where": "leaflands/towns/cropdale", "goals": ["x"],
+                                     "commitments": [{"what": "y", "where": "leaflands/towns/cropdale.md",
+                                                      "day": 1, "part": "evening"}]}},
+            "people": {"Gus": {"where": "leaflands/towns/cropdale", "wants": ["z"], "commitments": []}}}
+    out = _normalize_place_paths(data)
+    assert out["places"][0]["slug"] == "cropdale"
+    assert out["characters"]["agnea"]["where"] == "cropdale"
+    assert out["characters"]["agnea"]["commitments"][0]["where"] == "cropdale"
+    assert out["people"]["Gus"]["where"] == "cropdale"

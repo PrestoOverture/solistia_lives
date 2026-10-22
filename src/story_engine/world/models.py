@@ -4,7 +4,10 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from story_engine.kb import normalize_slug
+
 PartOfDay = Literal["morning", "afternoon", "evening", "night"]
+SituationKind = Literal["trouble", "occasion", "promise", "wish", "reunion"]
 
 
 class WorldModel(BaseModel):
@@ -48,8 +51,15 @@ class CharacterState(WorldModel):
     commitments: list[Commitment]
 
 
+class Person(WorldModel):
+    where: str
+    wants: list[str] = Field(min_length=1)
+    commitments: list[Commitment]
+
+
 class Situation(WorldModel):
     id: str
+    kind: SituationKind = "trouble"
     summary: str
     touches: list[str] = Field(min_length=1)
     people: list[str]
@@ -62,6 +72,7 @@ class WorldState(WorldModel):
     clock: Clock
     places: list[Place]
     characters: dict[str, CharacterState]
+    people: dict[str, Person] = Field(default_factory=dict)
     situations: list[Situation]
 
     @model_validator(mode="after")
@@ -69,11 +80,19 @@ class WorldState(WorldModel):
         places = {place.slug for place in self.places}
         if any(character.where not in places for character in self.characters.values()):
             raise ValueError("character where must name a slug in places")
+        main_slugs = set(self.characters)
+        for name, person in self.people.items():
+            if normalize_slug(name) in main_slugs:
+                raise ValueError("a person's name must not be a main character's")
+            if person.where not in places:
+                raise ValueError("person where must name a slug in places")
         ids = [situation.id for situation in self.situations]
         if len(ids) != len(set(ids)):
             raise ValueError("situation ids must be unique")
         if any(set(situation.touches) - self.characters.keys() for situation in self.situations):
             raise ValueError("situation touches must name only main characters")
+        if any(set(situation.people) - self.people.keys() for situation in self.situations):
+            raise ValueError("situation people must name entries in people")
         return self
 
 
@@ -89,6 +108,7 @@ class Event(WorldModel):
     intent: str | None = None
     perceived_by: list[str]
     scene: str | None = None
+    round: int | None = None
 
 
 class SceneRecord(WorldModel):

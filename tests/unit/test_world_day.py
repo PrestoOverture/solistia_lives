@@ -9,8 +9,8 @@ from typer.testing import CliRunner
 from story_engine.agents import character, curator, narrator, world as world_agent
 from story_engine.cli import app
 from story_engine.runs import RunMeta
-from story_engine.world.io import append_scene, load_state, read_events, save_state
-from story_engine.world.models import SceneRecord
+from story_engine.world.io import append_event, append_scene, load_state, read_events, save_state
+from story_engine.world.models import Event, SceneRecord
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -33,10 +33,19 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     (world / 'memory/agnea.md').write_bytes(b'Previous memory\r\n')
     # The World fake keeps agnea and throne apart to exercise day orchestration, so no
-    # encounter produces a scene; inject one so the curator (which now picks scenes) has
-    # something to choose from.
+    # encounter produces a scene; inject two (with a backing event each, for the narrator's
+    # grounding check) so the curator (which now picks scenes) has something to choose from.
+    append_event(world, Event(id=0, day=1, part='morning', place='cropdale', scene='1', round=1,
+                              actor='agnea', type='action', content='Agnea arrives at the festival.',
+                              intent='Explore', perceived_by=['agnea']))
+    append_event(world, Event(id=0, day=1, part='morning', place='cropdale', scene='2', round=1,
+                              actor='agnea', type='action', content='Agnea settles for the evening.',
+                              intent='Explore', perceived_by=['agnea']))
     append_scene(world, SceneRecord(id='1', day=1, part='morning', place='cropdale',
                                     participants=['agnea'], first_event_id=1, last_event_id=1,
+                                    rounds=1, end='one_left'))
+    append_scene(world, SceneRecord(id='2', day=1, part='evening', place='cropdale',
+                                    participants=['agnea'], first_event_id=2, last_event_id=2,
                                     rounds=1, end='one_left'))
     before = files(world)
     monkeypatch.chdir(tmp_path)
@@ -64,9 +73,16 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
         async def receive_response(self):
             state = load_state(world)
             if self.is_curator:
-                reply = json.dumps(dict(scenes=['1'], pov='agnea', why='A choice.'))
+                reply = json.dumps(dict(
+                    acts=[{'scene': '1', 'pov': 'agnea'}, {'scene': '2', 'pov': 'agnea'}], why='A choice.'))
             elif self.is_narrator:
-                reply = '# Agnea at the Festival\n\nAgnea looked around.\n'
+                beats = self.request['beats']
+                if beats:
+                    cites = f"<!-- r:{beats[0]['round']} -->"
+                else:
+                    ids = [e['id'] for e in self.request['part_of_day_events']]
+                    cites = f"<!-- e:{','.join(map(str, ids))} -->"
+                reply = f'# Agnea at the Festival{cites}\n\nAgnea looked around.{cites}\n'
             elif self.is_world:
                 if failure == 'error' and state.clock.part == 'afternoon':
                     raise RuntimeError('fake error')
@@ -142,7 +158,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
         assert {(e.day, e.part) for e in read_events(world)} == {
             (1, p) for p in ('morning', 'afternoon', 'evening', 'night')}
         assert load_state(world).clock.model_dump() == dict(day=2, part='morning')
-        assert len(clients) == (3 if stop_after else 5)
+        assert len(clients) == (3 if stop_after else 6)
         assert (run / "episode.json").exists() == (not stop_after)
         for client, slug in zip(clients[:2], ('agnea', 'throne')):
             assert [r['call'] for r in client.calls] == ['part_of_day'] * 4 + ['end_of_day']

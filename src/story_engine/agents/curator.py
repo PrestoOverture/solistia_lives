@@ -1,4 +1,4 @@
-"""Select an episode (one or more scenes) from one completed day's events."""
+"""Select an episode (a 2-4 act, unbroken chain of scenes) from one completed day's events."""
 
 import json
 from pathlib import Path
@@ -17,12 +17,11 @@ from story_engine.trace import TraceWriter
 from story_engine.world.models import Event, SceneRecord
 
 
-class Episode(BaseModel):
+class Act(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    scenes: list[str] = Field(min_length=1)
+    scene: str
     pov: str
-    why: str
 
     @field_validator("pov")
     @classmethod
@@ -30,26 +29,61 @@ class Episode(BaseModel):
         return normalize_slug(value)  # the model may write "Throné" for the slug "throne"
 
 
+class Episode(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    acts: list[Act] = Field(min_length=2, max_length=4)
+    why: str
+
+
+def _resolve_pov(pov: str, characters: list[str]) -> str:
+    if pov in characters:
+        return pov
+    # A full name such as "Throné Anguis" folds to "throne_anguis"; match its first-name slug.
+    matches = [slug for slug in characters if slug in pov.split("_")]
+    if len(matches) != 1:
+        raise ValueError(f"pov {pov!r} must be a main character slug: {', '.join(characters)}")
+    return matches[0]
+
+
 def validate_episode(episode: Episode, scenes: list[SceneRecord], characters: list[str]) -> Episode:
     by_id = {scene.id: scene for scene in scenes}
-    if len(set(episode.scenes)) != len(episode.scenes):
-        raise ValueError("scenes must not repeat")
-    unknown = [scene_id for scene_id in episode.scenes if scene_id not in by_id]
+    scene_ids = [act.scene for act in episode.acts]
+    if len(set(scene_ids)) != len(scene_ids):
+        raise ValueError("acts must not repeat a scene")
+    unknown = [scene_id for scene_id in scene_ids if scene_id not in by_id]
     if unknown:
         raise ValueError(f"unknown scene id(s) for this day: {', '.join(unknown)}")
-    order = {scene.id: index for index, scene in enumerate(sorted(scenes, key=lambda scene: scene.first_event_id))}
-    indices = [order[scene_id] for scene_id in episode.scenes]
+    day_scenes = sorted(scenes, key=lambda scene: scene.first_event_id)
+    order = {scene.id: index for index, scene in enumerate(day_scenes)}
+    indices = [order[scene_id] for scene_id in scene_ids]
     if indices != sorted(indices):
-        raise ValueError("scenes must be listed in chronological order")
-    if episode.pov not in characters:
-        # A full name such as "Throné Anguis" folds to "throne_anguis"; match its first-name slug.
-        matches = [slug for slug in characters if slug in episode.pov.split("_")]
-        if len(matches) != 1:
-            raise ValueError(f"pov {episode.pov!r} must be a main character slug: {', '.join(characters)}")
-        episode = episode.model_copy(update={"pov": matches[0]})
-    chosen = [by_id[scene_id] for scene_id in episode.scenes]
-    if not any(episode.pov in scene.participants for scene in chosen):
-        raise ValueError("pov must be a participant of at least one chosen scene")
+        raise ValueError("acts must be listed in chronological order")
+
+    resolved_acts = []
+    for act in episode.acts:
+        scene = by_id[act.scene]
+        pov = _resolve_pov(act.pov, characters)
+        if pov not in scene.participants:
+            raise ValueError(f"act pov {pov!r} must be a participant of scene {act.scene}")
+        resolved_acts.append(act.model_copy(update={"pov": pov}))
+    episode = episode.model_copy(update={"acts": resolved_acts})
+
+    chosen_ids = set(scene_ids)
+    chosen_characters = {
+        participant
+        for scene_id in chosen_ids
+        for participant in by_id[scene_id].participants
+        if participant in characters
+    }
+    lower, upper = min(indices), max(indices)
+    for scene in day_scenes[lower:upper + 1]:
+        if scene.id in chosen_ids:
+            continue
+        if any(participant in chosen_characters for participant in scene.participants if participant in characters):
+            raise ValueError(
+                f"unbroken chain: scene {scene.id} shares a main character with a chosen scene and must be chosen"
+            )
     return episode
 
 
@@ -93,7 +127,7 @@ async def curate(
     record_api_host(run_dir, options.env.get("ANTHROPIC_BASE_URL"))
     payload = _build_payload(events, scenes, characters)
     request = json.dumps({"characters": characters, "events": payload,
-                          "reply": "JSON {scenes, pov, why}"}, ensure_ascii=False)
+                          "reply": "JSON {acts: [{scene, pov}, ...], why}"}, ensure_ascii=False)
     cost = SessionCost()
     async with ClaudeSDKClient(options=options) as client:
         for attempt in range(2):

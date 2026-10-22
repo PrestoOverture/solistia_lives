@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
+from story_engine.agents.narrator import strip_markers
 from story_engine.cli import app
 
 WORLD_ID = os.environ.get('STORY_ENGINE_WORLD')
@@ -22,5 +23,5 @@ def test_act(monkeypatch):
     ])
     assert result.exit_code == 0, result.output
     run_dir = Path(result.output.strip())
-    act = (run_dir / 'acts' / 'act_1.md').read_text(encoding='utf-8')
+    act = strip_markers((run_dir / 'acts' / 'act_1.md').read_text(encoding='utf-8'))
     assert 500 <= len(act.split()) <= 1100
