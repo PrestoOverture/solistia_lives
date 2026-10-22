@@ -1,4 +1,4 @@
-"""Run the author-written suite through the ordinary generate command."""
+"""Run the author-written suite through the ordinary CLI commands."""
 
 from concurrent.futures import ThreadPoolExecutor
 import json
@@ -12,11 +12,14 @@ from typing import Literal
 from pydantic import BaseModel, RootModel
 import yaml
 
-from story_engine.runs import RunInput, RunMeta
+from story_engine.runs import RunMeta
 
 
-class SuiteCase(RunInput):
+class SuiteCase(BaseModel):
     id: str
+    characters: list[str]
+    location: str
+    situation: str
 
 
 class TestSuite(BaseModel):
@@ -25,12 +28,14 @@ class TestSuite(BaseModel):
 
 class CaseResult(BaseModel):
     run_id: str | None = None
+    world_id: str | None = None
+    init_run_id: str | None = None
     status: Literal["dry_run", "running", "passed", "failed", "stopped"] = "failed"
     total_cost_usd: float | None = None
 
 
 class SuiteManifest(RootModel[dict[str, CaseResult]]):
-    """Case ID -> ordinary run ID, final status, and SDK cost in USD."""
+    """Case ID -> world/run identifiers, final status, and total SDK cost in USD."""
 
 
 def _sdk_cost(run_dir: Path, dry_run: bool) -> float | None:
@@ -38,7 +43,7 @@ def _sdk_cost(run_dir: Path, dry_run: bool) -> float | None:
     for line in (run_dir / "trace.jsonl").read_text(encoding="utf-8").splitlines():
         event = json.loads(line)
         if event["type"] == "stage_usage":
-            cost = event.get("total_cost_usd")
+            cost = event.get("call_cost_usd", event.get("total_cost_usd"))
             if cost is None:
                 return None
             costs.append(cost)
@@ -49,7 +54,7 @@ def _generate_case(case: SuiteCase, models_file: Path, dry_run: bool) -> CaseRes
     command = [
         sys.executable, "-c", "from story_engine.cli import app; app()", "generate",
         "--characters", ",".join(case.characters),
-        "--location", case.location, "--scenario", case.scenario,
+        "--location", case.location, "--scenario", case.situation,
         "--mode", "baseline", "--models", str(models_file),
     ]
     if dry_run:
@@ -75,13 +80,66 @@ def _generate_case(case: SuiteCase, models_file: Path, dry_run: bool) -> CaseRes
     return result
 
 
+def _simulate_case(case: SuiteCase, dry_run: bool) -> CaseResult:
+    prefix = [sys.executable, "-c", "from story_engine.cli import app; app()", "world"]
+    command = prefix + [
+        "new", "--characters", ",".join(case.characters),
+        "--location", case.location, "--situation", case.situation,
+    ]
+    if dry_run:
+        command.append("--dry-run")
+    result = CaseResult()
+    try:
+        process = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                 text=True, check=False)
+        if process.returncode == 0 and not dry_run:
+            match = re.search(r"^worlds/([\w-]+)\r?$", process.stdout, re.MULTILINE)
+            if match is None:
+                return result
+            result.world_id = match[1]
+            info = json.loads((Path("worlds") / result.world_id / "world.json").read_text())
+            result.init_run_id = info["init_run_id"]
+        else:
+            match = re.search(r"^runs/([\w-]+)(?=[:\r\n]|$)", process.stdout, re.MULTILINE)
+            if match is None:
+                return result
+            result.init_run_id = match[1]
+        init_dir = Path("runs") / result.init_run_id
+        meta = RunMeta.model_validate_json((init_dir / "meta.json").read_bytes())
+        result.total_cost_usd = _sdk_cost(init_dir, dry_run)
+        if process.returncode != 0:
+            return result
+        if dry_run:
+            result.status = meta.status
+            return result
+        if meta.status != "passed":
+            return result
+        process = subprocess.run(prefix + ["run", result.world_id], stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT, text=True, check=False)
+        match = re.search(r"^runs/([\w-]+)(?=[:\r\n]|$)", process.stdout, re.MULTILINE)
+        if match is None:
+            result.total_cost_usd = None
+            return result
+        result.run_id = match[1]
+        run_dir = Path("runs") / result.run_id
+        meta = RunMeta.model_validate_json((run_dir / "meta.json").read_bytes())
+        cost = _sdk_cost(run_dir, False)
+        result.total_cost_usd = (result.total_cost_usd + cost
+                                 if result.total_cost_usd is not None and cost is not None else None)
+        result.status = meta.status if process.returncode == 0 else "failed"
+    except (OSError, ValueError, KeyError, TypeError):
+        result.status = "failed"
+    return result
+
+
 def run_suite(
-    models_file: Path, dry_run: bool, suite_parallel: int,
+    models_file: Path, dry_run: bool, suite_parallel: int, mode: Literal["baseline", "simulation"] = "baseline",
 ) -> tuple[SuiteManifest, Path]:
     suite = TestSuite.model_validate(yaml.safe_load(Path("eval/test_suite.yaml").read_text()))
     with ThreadPoolExecutor(max_workers=suite_parallel) as executor:
         results = list(executor.map(
-            lambda case: _generate_case(case, models_file, dry_run), suite.cases,
+            lambda case: (_generate_case(case, models_file, dry_run) if mode == "baseline"
+                          else _simulate_case(case, dry_run)), suite.cases,
         ))
     manifest = SuiteManifest({case.id: result for case, result in zip(suite.cases, results)})
     directory = Path("runs/suites")

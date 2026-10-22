@@ -20,6 +20,27 @@ from story_engine.trace import TraceWriter
 REPO = Path(__file__).resolve().parents[2]
 
 
+def test_sdk_cost_sums_per_call_deltas_for_one_session(tmp_path):
+    trace = TraceWriter(tmp_path)
+    for call_cost, total_cost in [(0.1, 0.1), (0.2, 0.3), (0.3, 0.6)]:
+        trace.write("stage_usage", session_id="one-session",
+                    call_cost_usd=call_cost, total_cost_usd=total_cost)
+
+    assert suite_module._sdk_cost(tmp_path, False) == pytest.approx(0.6)
+
+
+@pytest.mark.parametrize("usage,expected", [
+    ({"total_cost_usd": 0.2}, 0.2),
+    ({"call_cost_usd": 0.0, "total_cost_usd": 0.2}, 0.0),
+    ({}, None),
+    ({"call_cost_usd": None, "total_cost_usd": 0.2}, None),
+])
+def test_sdk_cost_fallback_and_missing_cost(tmp_path, usage, expected):
+    TraceWriter(tmp_path).write("stage_usage", **usage)
+
+    assert suite_module._sdk_cost(tmp_path, False) == expected
+
+
 def test_author_suite_validates_against_real_kb(monkeypatch):
     repo = Path(__file__).resolve().parents[2]
     monkeypatch.chdir(repo)
@@ -29,7 +50,15 @@ def test_author_suite_validates_against_real_kb(monkeypatch):
     groups = Counter(tuple(sorted(case["characters"])) for case in cases)
     assert len(groups) == 5
     assert set(groups.values()) == {2}
+    prd = (repo / "docs/prd.md").read_text().split("### 6.4 Test Suite", 1)[1].split("### 6.5", 1)[0]
+    situations = [line.split("|")[-2].strip() for line in prd.splitlines() if line.startswith("| ")][1:]
+    group_keys = [("osvald", "temenos"), ("agnea", "throne"), ("hikari", "ochette"),
+                  ("castti", "partitio"), ("agnea", "osvald", "temenos")]
+    assert set(groups) == set(group_keys)
     for case in cases:
+        group = group_keys.index(tuple(sorted(case["characters"])))
+        assert case["situation"] == situations[group]
+        assert "scenario" not in case
         characters, location = validate_input(
             ",".join(case["characters"]), case["location"],
         )
@@ -68,7 +97,7 @@ def fake_generate(monkeypatch, cases, parallel, *, failed=None, status=None, lau
         case = next(case for case in cases if (
             ",".join(case["characters"]) == options["--characters"]
             and case["location"] == options["--location"]
-            and case["scenario"] == options["--scenario"]
+            and case["situation"] == options["--scenario"]
         ))
         with lock:
             state["calls"].append(command)
@@ -86,7 +115,7 @@ def fake_generate(monkeypatch, cases, parallel, *, failed=None, status=None, lau
             if case["id"] == failed:
                 final_status = "failed"
             run_dir = create_run(
-                case["characters"], case["location"], case["scenario"],
+                case["characters"], case["location"], case["situation"],
                 options["--mode"], None, models,
                 models_file=options["--models"],
             )
@@ -159,7 +188,7 @@ def test_dispatches_all_cases_with_bounded_concurrency(suite_workspace, monkeypa
         assert entry["status"] == ("dry_run" if dry_run else "passed")
         assert entry["total_cost_usd"] == pytest.approx(expected["total_cost_usd"])
         meta = RunMeta.model_validate_json((Path("runs") / entry["run_id"] / "meta.json").read_bytes())
-        assert meta.input.model_dump() == {key: case[key] for key in ("characters", "location", "scenario")}
+        assert meta.input.model_dump() == {"characters": case["characters"], "location": case["location"], "scenario": case["situation"]}
         assert meta.models_file == str(alternate)
         assert meta.mode == "baseline"
         assert meta.stop_after is None
@@ -183,7 +212,7 @@ def test_failure_is_recorded_and_other_cases_finish(suite_workspace, monkeypatch
     for case in cases:
         entry = manifest[case["id"]]
         if case["id"] == failed_id and failure == "launch_error":
-            assert entry == {"run_id": None, "status": "failed", "total_cost_usd": None}
+            assert entry == {"run_id": None, "world_id": None, "init_run_id": None, "status": "failed", "total_cost_usd": None}
         else:
             assert entry["run_id"] == state["results"][case["id"]]["run_id"]
             assert entry["total_cost_usd"] == pytest.approx(state["results"][case["id"]]["total_cost_usd"])
@@ -202,20 +231,52 @@ def test_unexpected_final_status_exits_one(suite_workspace, monkeypatch, dry_run
     assert {entry["status"] for entry in manifest.values()} == {status}
 
 
-@pytest.mark.parametrize("dry_run", [False, True])
-def test_simulation_rejected_before_dispatch_or_config_loading(tmp_path, monkeypatch, dry_run):
-    monkeypatch.chdir(tmp_path)
+@pytest.mark.parametrize("failed", [False, True])
+def test_simulation_dispatch_and_manifest(suite_workspace, monkeypatch, failed):
+    cases = suite_workspace
+    models, _ = load_configs()
+    calls = []
+    expected = {}
+    lock = Lock()
 
-    def unexpected(*args, **kwargs):
-        pytest.fail("Pipeline must not load config or dispatch cases")
+    def child(command, **kwargs):
+        assert command[:4] == [sys.executable, "-c", "from story_engine.cli import app; app()", "world"]
+        assert kwargs == dict(stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, check=False)
+        assert "--stop-after" not in command
+        with lock:
+            calls.append(command)
+        if command[4] == "new":
+            options = dict(zip(command[5::2], command[6::2]))
+            case = next(c for c in cases if c["location"] == options["--location"]
+                        and ",".join(c["characters"]) == options["--characters"])
+            assert options["--situation"] == case["situation"]
+            run = create_run(case["characters"], case["location"], case["situation"], "initializer", None, models)
+            TraceWriter(run).write("stage_usage", total_cost_usd=0.25)
+            is_failed = failed and case == cases[0]
+            finish_run(run, "failed" if is_failed else "passed")
+            world_id = "world-" + case["id"]
+            expected[case["id"]] = dict(world_id=None if is_failed else world_id,
+                                             init_run_id=run.name, run_id=None,
+                                             status="failed" if is_failed else "passed",
+                                             total_cost_usd=0.25 if is_failed else 1.0)
+            if is_failed:
+                return subprocess.CompletedProcess(command, 1, stdout=f"{run}: initializer failed\n")
+            world = Path("worlds") / world_id
+            world.mkdir(parents=True)
+            (world / "world.json").write_text(json.dumps({"init_run_id": run.name}))
+            return subprocess.CompletedProcess(command, 0, stdout=f"{world}\n")
+        assert command[4] == "run" and len(command) == 6
+        case = next(c for c in cases if "world-" + c["id"] == command[5])
+        assert not (failed and case == cases[0])
+        assert expected[case["id"]]["init_run_id"]
+        run = create_run(case["characters"], case["location"], case["situation"], "simulation", None, models)
+        TraceWriter(run).write("stage_usage", total_cost_usd=0.75)
+        finish_run(run, "passed")
+        expected[case["id"]]["run_id"] = run.name
+        return subprocess.CompletedProcess(command, 0, stdout=f"{run}\n")
 
-    monkeypatch.setattr("story_engine.cli.load_configs", unexpected)
-    monkeypatch.setattr("story_engine.cli.run_suite", unexpected)
-    monkeypatch.setattr(suite_module.subprocess, "run", unexpected)
-    args = ["eval", "run-suite", "--mode", "simulation"]
-    if dry_run:
-        args.append("--dry-run")
-    result = CliRunner().invoke(app, args)
-    assert result.exit_code == 1
-    assert "simulation mode is not implemented" in result.output
-    assert not Path("runs").exists()
+    monkeypatch.setattr(suite_module.subprocess, "run", child)
+    result = CliRunner().invoke(app, ["eval", "run-suite", "--mode", "simulation"])
+    assert result.exit_code == (1 if failed else 0), result.output
+    assert len(calls) == (19 if failed else 20)
+    assert read_manifest(result, cases) == expected

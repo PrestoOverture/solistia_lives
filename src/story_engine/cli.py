@@ -140,12 +140,9 @@ def run_suite_command(
     dry_run: bool = typer.Option(False),
 ) -> None:
     """Run every case in eval/test_suite.yaml."""
-    if mode == "simulation":
-        typer.echo("simulation mode is not implemented", err=True)
-        raise typer.Exit(code=1)
     try:
         _, settings = load_configs(models_file)
-        manifest, path = run_suite(models_file, dry_run, settings.suite_parallel)
+        manifest, path = run_suite(models_file, dry_run, settings.suite_parallel, mode)
     except (ConfigError, OSError, ValueError) as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1) from None

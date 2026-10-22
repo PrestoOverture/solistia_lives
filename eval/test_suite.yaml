@@ -1,47 +1,47 @@
 # The 10-case test suite (prd §6.4): 5 groups, 2 cases each.
-# The two cases in a group share characters and scenario but differ in location.
+# The two cases in a group share characters and situation but differ in location.
 cases:
   - id: osvald_temenos_1
     characters: [osvald, temenos]
     location: montwise
-    scenario: Debating faith and reason over drinks
+    situation: Osvald comes to town on scholarly business; Temenos is there between investigations
   - id: osvald_temenos_2
     characters: [osvald, temenos]
     location: flamechurch
-    scenario: Debating faith and reason over drinks
+    situation: Osvald comes to town on scholarly business; Temenos is there between investigations
 
   - id: agnea_throne_1
     characters: [agnea, throne]
     location: merry_hills
-    scenario: Agnea drags Throné to a festival
+    situation: Agnea has brought Throné to a festival here
   - id: agnea_throne_2
     characters: [agnea, throne]
     location: cropdale
-    scenario: Agnea drags Throné to a festival
+    situation: Agnea has brought Throné to a festival here
 
   - id: hikari_ochette_1
     characters: [hikari, ochette]
     location: southern_oresrush_wilds
-    scenario: Hunting together in the Wildlands
+    situation: Ochette is hunting here; Hikari has joined her for a few days away from Ku
   - id: hikari_ochette_2
     characters: [hikari, ochette]
     location: western_crackridge_wilds
-    scenario: Hunting together in the Wildlands
+    situation: Ochette is hunting here; Hikari has joined her for a few days away from Ku
 
   - id: castti_partitio_1
     characters: [castti, partitio]
     location: oresrush
-    scenario: Treating patients in an underserved town
+    situation: A sickness is spreading in town; Castti has come to treat it, and Partitio is here on business
   - id: castti_partitio_2
     characters: [castti, partitio]
     location: crackridge
-    scenario: Treating patients in an underserved town
+    situation: A sickness is spreading in town; Castti has come to treat it, and Partitio is here on business
 
   - id: osvald_temenos_agnea_1
     characters: [osvald, temenos, agnea]
     location: new_delsta
-    scenario: Agnea performing, the other two in the audience
+    situation: Agnea performs here tonight; Osvald and Temenos are in town
   - id: osvald_temenos_agnea_2
     characters: [osvald, temenos, agnea]
     location: merry_hills
-    scenario: Agnea performing, the other two in the audience
+    situation: Agnea performs here tonight; Osvald and Temenos are in town
