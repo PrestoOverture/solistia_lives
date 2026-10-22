@@ -148,7 +148,10 @@ class CharacterAgent:
         request = json.dumps({**(self.opening if self.turn == 1 else {}), "perceived": events,
                               **({"note": note} if note else {}),
                               **({"call": "end_of_day", "reply": "JSON {call: 'end_of_day', summary: 'Markdown: what happened, what changed, what you want now'}"} if summary else {}),
-                              **({"part": part, "call": "part_of_day"} if part else {})},
+                              **({"part": part, "call": "part_of_day", "reply": "JSON with call: 'plan'"} if part else {}),
+                              # A scene move names its reply type too: the session's schema allows all three.
+                              **({"call": "scene_move", "reply": "JSON with call: 'action'"}
+                                 if not part and not summary else {})},
                              ensure_ascii=False)
         for attempt in range(2):
             thinking = ThinkingUsage()

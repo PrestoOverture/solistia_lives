@@ -76,7 +76,8 @@ def test_valid_action(tmp_path, monkeypatch, fenced):
     assert opening == {"clock": state.clock.model_dump(), "place": state.characters["throne"].where,
                        "goals": state.characters["throne"].goals,
                        "commitments": [item.model_dump() for item in state.characters["throne"].commitments],
-                       "memory": "Yesterday I arrived.", "perceived": []}
+                       "memory": "Yesterday I arrived.", "perceived": [],
+                       "call": "scene_move", "reply": "JSON with call: 'action'"}
     expected_prompt = "\n\n".join(path.read_text() for path in [
         ROOT / "prompts/character.md", ROOT / "cards/throne.md", agent.world_dir / "scene_context.md"])
     assert instances[0].options.system_prompt == expected_prompt
@@ -154,7 +155,8 @@ def test_two_calls_share_session_and_only_send_new_perceptions(tmp_path, monkeyp
     asyncio.run(exercise())
     assert len(instances) == 1 and lifecycle == ["enter", "exit"]
     assert "memory" not in json.loads(requests[0])
-    assert json.loads(requests[1]) == {"perceived": [new.model_dump(exclude={"intent", "perceived_by"})]}
+    assert json.loads(requests[1]) == {"perceived": [new.model_dump(exclude={"intent", "perceived_by"})],
+                                       "call": "scene_move", "reply": "JSON with call: 'action'"}
     assert "private" not in requests[0] and "Hello!" not in requests[1]
     assert [json.loads(line)["turn"] for line in (run / "retrieval.jsonl").read_text().splitlines()] == [1, 2]
 
@@ -341,3 +343,40 @@ def test_plan_aim_over_max_length_rejected_then_retried(tmp_path, monkeypatch):
 
     assert asyncio.run(exercise()) == character.Plan(**good)
     assert len(requests) == 2 and "at most 140 characters" in requests[1]
+
+
+def test_scene_move_request_names_its_reply_type(tmp_path, monkeypatch):
+    """The character session allows plan|action|end_of_day; a scene move must ask for an action."""
+    world = tmp_path / "world"
+    shutil.copytree(ROOT / "tests/fixtures/worlds/agnea_throne", world)
+    run = tmp_path / "run"
+    run.mkdir()
+    requests = []
+
+    class FakeClient:
+        def __init__(self, *, options):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def query(self, request):
+            requests.append(json.loads(request))
+
+        async def receive_response(self):
+            yield ResultMessage("success", 1, 1, False, 1, "fake", result="", structured_output=VALID)
+
+    monkeypatch.setattr(character, "ClaudeSDKClient", FakeClient)
+    models, settings = load_configs()
+
+    async def exercise():
+        async with CharacterAgent(ROOT, run, world, "throne", models.character,
+                                  settings.agent_max_turns, TraceWriter(run)) as agent:
+            await agent.act([])
+
+    asyncio.run(exercise())
+    assert requests[0]["call"] == "scene_move"
+    assert "'action'" in requests[0]["reply"]
