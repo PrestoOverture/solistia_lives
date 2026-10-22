@@ -22,7 +22,7 @@ class RunMeta(BaseModel):
     created_at: str
     input: RunInput
     mode: Literal["simulation", "baseline", "initializer"]
-    stop_after: Literal["scene_context", "day", "curate"] | None
+    stop_after: Literal["scene_context", "day", "curate", "narrate"] | None
     models: Models
     scene_context_from: str | None = None
     models_file: str = "config/models.yaml"
@@ -49,7 +49,7 @@ def create_run(
     location: str,
     scenario: str,
     mode: Literal["simulation", "baseline", "initializer"],
-    stop_after: Literal["scene_context", "day", "curate"] | None,
+    stop_after: Literal["scene_context", "day", "curate", "narrate"] | None,
     models: Models,
     status: Literal["dry_run", "running"] = "dry_run",
     scene_context_from: str | None = None,

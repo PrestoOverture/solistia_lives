@@ -76,16 +76,15 @@ def fake(monkeypatch, replies):
     return calls, options, lifecycle
 
 
-@pytest.mark.parametrize('stop', [False, True])
-def test_valid_reply(world, monkeypatch, stop):
+def test_valid_reply(world, monkeypatch):
     calls, options, lifecycle = fake(monkeypatch, [json.dumps(VALID)])
-    result = CliRunner().invoke(app, ['world', 'tell', 'test'] + (['--stop-after', 'curate'] if stop else []))
+    result = CliRunner().invoke(app, ['world', 'tell', 'test', '--stop-after', 'curate'])
     assert result.exit_code == 0, result.output
     run = Path(result.output.strip())
     assert curator.Episode.model_validate_json((run / 'episode.json').read_bytes()).model_dump() == VALID
     meta = RunMeta.model_validate_json((run / 'meta.json').read_bytes())
     assert (meta.mode, meta.world_id, meta.day) == ('simulation', 'test', 1)
-    assert meta.status == ('stopped' if stop else 'passed')
+    assert meta.status == 'stopped'
     assert len(options) == 1 and lifecycle == ['enter', 'exit']
     assert options[0].tools == options[0].allowed_tools == []
     assert options[0].thinking == {'type': 'disabled'} and options[0].effort == 'medium'
@@ -110,7 +109,7 @@ def test_valid_reply(world, monkeypatch, stop):
 ])
 def test_retry(world, monkeypatch, change, reason):
     calls, options, _ = fake(monkeypatch, [json.dumps(VALID | change), json.dumps(VALID)])
-    result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1'])
+    result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1', '--stop-after', 'curate'])
     assert result.exit_code == 0, result.output
     assert reason in calls[1] and len(options) == 1
     trace = [json.loads(line) for line in (Path(result.output.strip()) / 'trace.jsonl').read_text().splitlines()]
@@ -119,7 +118,7 @@ def test_retry(world, monkeypatch, change, reason):
 
 def test_pov_not_participant_of_any_chosen_scene(world, monkeypatch):
     calls, _, _ = fake(monkeypatch, [json.dumps(VALID | {'scenes': ['2']}), json.dumps(VALID)])
-    result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1'])
+    result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1', '--stop-after', 'curate'])
     assert result.exit_code == 0, result.output
     assert 'participant of at least one chosen scene' in calls[1]
 

@@ -20,7 +20,7 @@ class Models(StrictModel):
     character: Role
     world: Role
     curator: Role
-    rewrite: Role
+    narrator: Role
     baseline: Role
     validator: Role
 
@@ -38,6 +38,7 @@ class Words(StrictModel):
 
 class Settings(StrictModel):
     words: Words
+    act_words: Words
     parts_of_day: list[Literal["morning", "afternoon", "evening", "night"]]
 
     @field_validator("parts_of_day")

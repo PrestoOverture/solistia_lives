@@ -1,6 +1,6 @@
 initializer: {model: claude-sonnet-4-6, effort: high, thinking: "off"}
 character: {model: claude-sonnet-4-6, effort: medium, thinking: "off"}
-rewrite: {model: claude-opus-4-6, effort: high, thinking: "off"}
+narrator: {model: claude-opus-4-6, effort: high, thinking: "off"}
 baseline: {model: claude-opus-4-6, effort: high, thinking: "off"}
 validator: {model: claude-sonnet-4-6, effort: high, thinking: "off"}
 world: {model: claude-sonnet-4-6, effort: high, thinking: "off"}

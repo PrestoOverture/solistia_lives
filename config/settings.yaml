@@ -1,5 +1,6 @@
 words: {min: 2000, max: 3000}
-scene_cap: 20
+act_words: {min: 600, max: 1000}
+scene_cap: 12
 max_cost_usd: 10.0
 agent_max_turns: 40
 validation_rounds: 3

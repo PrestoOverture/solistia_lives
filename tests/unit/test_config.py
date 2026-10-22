@@ -13,11 +13,11 @@ from story_engine.runs import RunMeta
 ARGS = ["generate", "--dry-run", "--characters", "osvald,temenos", "--location", "new_delsta", "--scenario", "x", "--mode", "baseline"]
 KEYS = [
     ("models.yaml", (role,) if key is None else (role, key))
-    for role in ("initializer", "character", "rewrite", "baseline", "validator")
+    for role in ("initializer", "character", "narrator", "baseline", "validator")
     for key in (None, "model", "effort", "thinking")
 ] + [
     ("settings.yaml", path)
-    for path in (("words",), ("words", "min"), ("words", "max"), ("agent_max_turns",), ("scene_cap",), ("validation_rounds",), ("scene_context_max_turns",), ("writer_max_turns",), ("suite_parallel",))
+    for path in (("words",), ("words", "min"), ("words", "max"), ("act_words",), ("act_words", "min"), ("act_words", "max"), ("agent_max_turns",), ("scene_cap",), ("validation_rounds",), ("scene_context_max_turns",), ("writer_max_turns",), ("suite_parallel",))
 ]
 
 

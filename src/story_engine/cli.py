@@ -1,3 +1,4 @@
+import json
 import asyncio
 from pathlib import Path
 
@@ -12,7 +13,7 @@ from story_engine.agents.baseline import baseline_writer
 from story_engine.agents.initializer import scene_context, starting_state
 from story_engine.world.io import create_world
 from story_engine.agents.sdk import SessionError
-from story_engine.runs import RunInput, create_run, finish_run, read_scene_context
+from story_engine.runs import RunInput, RunMeta, create_run, finish_run, read_scene_context
 from story_engine.trace import TraceWriter
 
 app = typer.Typer(help="Generate Octopath Traveler II stories.")
@@ -237,10 +238,10 @@ def world_new(
 @world_app.command("run")
 def world_run(
     world_id: str = typer.Argument(...),
-    stop_after: Literal["day"] | None = typer.Option(None),
+    stop_after: Literal["day", "curate", "narrate"] | None = typer.Option(None),
     dry_run: bool = typer.Option(False),
 ) -> None:
-    """Simulate through the current day's night and save character memories."""
+    """Simulate through the current day's night, then curate and narrate one story."""
     from story_engine.simulation import CostCapReached, run_day
     from story_engine.world.io import load_state, read_events
     from story_engine.world.models import WorldInfo
@@ -253,7 +254,7 @@ def world_run(
         info = WorldInfo.model_validate_json((world_dir / "world.json").read_bytes())
         read_events(world_dir)
         context = (world_dir / "scene_context.md").read_bytes()
-        models, _ = load_configs()
+        models, settings = load_configs()
     except (OSError, ValueError, ConfigError) as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1) from None
@@ -274,9 +275,12 @@ def world_run(
         trace.write("stage_started", stage="day")
         asyncio.run(run_day(world_dir, run_dir))
         trace.write("stage_finished", stage="day")
-        if stop_after is None:
+        if stop_after != "day":
             stage = "curate"
             _curate_day(world_dir, run_dir, state.clock.day, info, models, trace)
+            if stop_after != "curate":
+                stage = "narrate"
+                _narrate_day(world_dir, run_dir, state.clock.day, info, models, settings, trace)
         status = "stopped" if stop_after else "passed"
         finish_run(run_dir, status)
     except BaseException as error:
@@ -306,31 +310,107 @@ def _curate_day(world_dir, run_dir, day, info, models, trace):
     trace.write("stage_finished", stage="curate")
 
 
+def _narrate_day(world_dir, run_dir, day, info, models, settings, trace):
+    from story_engine.agents.curator import Episode
+    from story_engine.agents.narrator import narrate
+    from story_engine.world.io import read_events, read_scenes
+
+    episode = Episode.model_validate_json((run_dir / "episode.json").read_bytes())
+    events = [event for event in read_events(world_dir) if event.day == day]
+    scenes = [scene for scene in read_scenes(world_dir) if scene.day == day]
+    trace.write("stage_started", stage="narrate", agent="narrator")
+    asyncio.run(narrate(Path.cwd(), run_dir, events, scenes, episode, info.characters,
+                       models.narrator, settings.words, settings.writer_max_turns, trace))
+    draft = (run_dir / "draft.md").read_bytes()
+    (run_dir / "story.md").write_bytes(draft)
+    trace.write("stage_finished", stage="narrate", word_count=len(draft.decode("utf-8").split()))
+
+
+def _narrate_act(world_dir, run_dir, day, scene, pov, info, models, settings, trace):
+    from story_engine.agents.narrator import narrate_act
+    from story_engine.world.io import read_events, read_scenes
+
+    events = [event for event in read_events(world_dir) if event.day == day]
+    scenes = [other for other in read_scenes(world_dir) if other.day == day]
+    trace.write("stage_started", stage="narrate_act", agent="narrator")
+    asyncio.run(narrate_act(Path.cwd(), run_dir, events, scenes, scene, pov, info.characters,
+                            models.narrator, settings.act_words, settings.writer_max_turns, trace))
+    draft = (run_dir / "acts" / "act_1.md").read_bytes()
+    trace.write("stage_finished", stage="narrate_act", word_count=len(draft.decode("utf-8").split()))
+
+
+def _read_episode(episode_from: str, world_id: str) -> tuple[int, bytes]:
+    """Validate a source run and read its episode before reusing it, skipping the curator."""
+    if not episode_from or Path(episode_from).name != episode_from or episode_from in (".", ".."):
+        raise ValueError("--episode-from must be a run ID")
+    source = Path("runs") / episode_from
+    try:
+        # Read only the fields needed: older runs' meta may predate today's RunMeta schema.
+        meta = json.loads((source / "meta.json").read_bytes())
+        episode_bytes = (source / "episode.json").read_bytes()
+    except (OSError, ValueError):
+        raise ValueError(
+            f"--episode-from {episode_from}: cannot read episode.json or meta.json"
+        ) from None
+    if meta.get("world_id") != world_id or meta.get("day") is None:
+        raise ValueError(f"--episode-from {episode_from}: world_id or day differ")
+    return int(meta["day"]), episode_bytes
+
+
 @world_app.command("tell")
 def world_tell(
     world_id: str = typer.Argument(...),
     day: int | None = typer.Option(None),
-    stop_after: Literal["curate"] | None = typer.Option(None),
+    stop_after: Literal["curate", "narrate"] | None = typer.Option(None),
+    episode_from: str | None = typer.Option(
+        None, "--episode-from", help="Reuse this run's episode.json, skipping the curator",
+    ),
+    act: str | None = typer.Option(
+        None, "--act", help="Narrate only this scene id as acts/act_1.md, skipping the curator",
+    ),
+    pov: str | None = typer.Option(None, "--pov", help="POV character for --act"),
 ) -> None:
-    """Curate an episode from a completed day (latest by default)."""
+    """Curate and narrate an episode from a completed day (latest by default)."""
     from story_engine.world.io import load_state, read_events, read_scenes
     from story_engine.world.models import WorldInfo
 
     try:
         if Path(world_id).name != world_id or world_id in ("", ".", ".."):
             raise ValueError("world_id must be a world ID")
+        if (act is None) != (pov is None):
+            raise ValueError("--act and --pov must be given together")
+        if act is not None and episode_from is not None:
+            raise ValueError("--act cannot be combined with --episode-from")
+        if act is not None and stop_after is not None:
+            raise ValueError("--act cannot be combined with --stop-after")
         world_dir = Path("worlds") / world_id
         state = load_state(world_dir)
         info = WorldInfo.model_validate_json((world_dir / "world.json").read_bytes())
-        day = state.clock.day - 1 if day is None else day
-        if day >= state.clock.day:
-            raise ValueError(f"Day {day} is not yet completed (current day: {state.clock.day})")
-        if not any(event.day == day for event in read_events(world_dir)):
-            raise ValueError(f"Day {day} has no events to curate")
-        if not any(scene.day == day for scene in read_scenes(world_dir)):
-            raise ValueError(f"Day {day} has no scene records")
+        reused_episode = None
+        act_scene = None
+        if episode_from is not None:
+            if day is not None:
+                raise ValueError("--day cannot be combined with --episode-from")
+            day, episode_bytes = _read_episode(episode_from, world_id)
+            reused_episode = episode_bytes
+        else:
+            day = state.clock.day - 1 if day is None else day
+            if day >= state.clock.day:
+                raise ValueError(f"Day {day} is not yet completed (current day: {state.clock.day})")
+            if not any(event.day == day for event in read_events(world_dir)):
+                raise ValueError(f"Day {day} has no events to curate")
+            day_scenes = [scene for scene in read_scenes(world_dir) if scene.day == day]
+            if not day_scenes:
+                raise ValueError(f"Day {day} has no scene records")
+            if act is not None:
+                matches = [scene for scene in day_scenes if scene.id == act]
+                if not matches:
+                    raise ValueError(f"--act {act}: no such scene for day {day}")
+                act_scene = matches[0]
+                if pov not in act_scene.participants:
+                    raise ValueError(f"--pov {pov}: not a participant of scene {act}")
         context = (world_dir / "scene_context.md").read_bytes()
-        models, _ = load_configs()
+        models, settings = load_configs()
     except (OSError, ValueError, ConfigError) as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1) from None
@@ -340,17 +420,43 @@ def world_tell(
     trace.write("run_started", run_id=run_dir.name, mode="simulation", world_id=world_id, day=day)
     (run_dir / "scene_context.md").write_bytes(context)
     (run_dir / "retrieval.jsonl").touch()
+    if act_scene is not None:
+        stage = "narrate_act"
+        try:
+            _narrate_act(world_dir, run_dir, day, act_scene, pov, info, models, settings, trace)
+            finish_run(run_dir, "passed")
+        except Exception as error:
+            detail = str(error) if isinstance(error, SessionError) else type(error).__name__
+            reason = f"{stage} failed: {detail}"
+            finish_run(run_dir, "failed", reason)
+            trace.write("stage_failed", stage=stage, error=reason)
+            trace.write("run_finished", status="failed", error=reason)
+            typer.echo(f"{run_dir}: {reason}", err=True)
+            raise typer.Exit(code=1) from None
+        trace.write("run_finished", status="passed")
+        typer.echo(run_dir)
+        return
+    stage = "curate"
     try:
-        _curate_day(world_dir, run_dir, day, info, models, trace)
+        if reused_episode is not None:
+            (run_dir / "episode.json").write_bytes(reused_episode)
+            trace.write("stage_reused", stage=stage, episode_from=episode_from)
+        else:
+            _curate_day(world_dir, run_dir, day, info, models, trace)
+        if stop_after == "curate":
+            status = "stopped"
+        else:
+            stage = "narrate"
+            _narrate_day(world_dir, run_dir, day, info, models, settings, trace)
+            status = "stopped" if stop_after == "narrate" else "passed"
+        finish_run(run_dir, status)
     except Exception as error:
         detail = str(error) if isinstance(error, SessionError) else type(error).__name__
-        reason = f"curate failed: {detail}"
+        reason = f"{stage} failed: {detail}"
         finish_run(run_dir, "failed", reason)
-        trace.write("stage_failed", stage="curate", error=reason)
+        trace.write("stage_failed", stage=stage, error=reason)
         trace.write("run_finished", status="failed", error=reason)
         typer.echo(f"{run_dir}: {reason}", err=True)
         raise typer.Exit(code=1) from None
-    status = "stopped" if stop_after else "passed"
-    finish_run(run_dir, status)
     trace.write("run_finished", status=status)
     typer.echo(run_dir)

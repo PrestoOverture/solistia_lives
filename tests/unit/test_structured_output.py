@@ -141,7 +141,7 @@ def test_curator_output_format_is_json_schema(tmp_path, monkeypatch):
                                 result=json.dumps(dict(scenes=['1'], pov='agnea', why='A choice.')))
 
     monkeypatch.setattr(curator, 'ClaudeSDKClient', Client)
-    result = CliRunner().invoke(app, ['world', 'tell', 'test'])
+    result = CliRunner().invoke(app, ['world', 'tell', 'test', '--stop-after', 'curate'])
     assert result.exit_code == 0, result.output
     assert len(options) == 1
     assert options[0].output_format['type'] == 'json_schema'

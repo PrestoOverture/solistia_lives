@@ -1,6 +1,6 @@
 # Experiment E3 (roadmap 2.7): config/models.yaml with baseline.thinking adaptive.
 initializer: {model: claude-sonnet-4-6, effort: high, thinking: "off"}
 character: {model: claude-sonnet-4-6, effort: medium, thinking: "off"}
-rewrite: {model: claude-opus-4-6, effort: high, thinking: "off"}
+narrator: {model: claude-opus-4-6, effort: high, thinking: "off"}
 baseline: {model: claude-opus-4-6, effort: high, thinking: "adaptive"}
 validator: {model: claude-sonnet-4-6, effort: high, thinking: "off"}

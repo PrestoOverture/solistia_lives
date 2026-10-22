@@ -6,7 +6,7 @@ import pytest
 from claude_agent_sdk import ResultMessage
 from typer.testing import CliRunner
 
-from story_engine.agents import character, curator, world as world_agent
+from story_engine.agents import character, curator, narrator, world as world_agent
 from story_engine.cli import app
 from story_engine.runs import RunMeta
 from story_engine.world.io import append_scene, load_state, read_events, save_state
@@ -46,6 +46,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
         def __init__(self, *, options):
             assert failure != 'dry_run', 'dry run opened an SDK session'
             self.is_curator = options.tools == []
+            self.is_narrator = options.tools == ['Read']
             self.is_world = options.system_prompt.startswith('# World')
             self.calls = []
             clients.append(self)
@@ -64,6 +65,8 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
             state = load_state(world)
             if self.is_curator:
                 reply = json.dumps(dict(scenes=['1'], pov='agnea', why='A choice.'))
+            elif self.is_narrator:
+                reply = '# Agnea at the Festival\n\nAgnea looked around.\n'
             elif self.is_world:
                 if failure == 'error' and state.clock.part == 'afternoon':
                     raise RuntimeError('fake error')
@@ -86,6 +89,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
                                 total_cost_usd=cost, usage={'cache_read_input_tokens': 10})
 
     monkeypatch.setattr(curator, 'ClaudeSDKClient', FakeClient)
+    monkeypatch.setattr(narrator, 'ClaudeSDKClient', FakeClient)
     monkeypatch.setattr(character, 'ClaudeSDKClient', FakeClient)
     monkeypatch.setattr(world_agent, 'ClaudeSDKClient', FakeClient)
     args = ['world', 'run', 'test'] + (['--stop-after', 'day'] if stop_after else [])
@@ -138,7 +142,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
         assert {(e.day, e.part) for e in read_events(world)} == {
             (1, p) for p in ('morning', 'afternoon', 'evening', 'night')}
         assert load_state(world).clock.model_dump() == dict(day=2, part='morning')
-        assert len(clients) == (3 if stop_after else 4)
+        assert len(clients) == (3 if stop_after else 5)
         assert (run / "episode.json").exists() == (not stop_after)
         for client, slug in zip(clients[:2], ('agnea', 'throne')):
             assert [r['call'] for r in client.calls] == ['part_of_day'] * 4 + ['end_of_day']
