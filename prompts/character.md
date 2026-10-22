@@ -32,6 +32,12 @@ Reply with one JSON object and nothing else:
 - A wait may carry a visible reaction. Leave ends your part in the scene.
 
 ## A part of the day
-A `part_of_day` call asks where you go and what you set out to do with the named part of the day, rather than your next move in a scene. Return the same Action JSON (`"call": "action"`); put your destination and undertaking in `action`.
+A `part_of_day` call asks for your plan for the named part of the day, not your next move in a scene: where you mean to go and what you set out to do. A plan is an intention, not a fact — the World decides what actually happens with it. Reply with JSON instead of the scene Action:
+
+{"call": "plan", "intent": "What you want right now and why; private", "where": "place_slug", "spot": "a spot within that place, or null for nowhere particular", "aim": "What you set out to do, not its result"}
+
+- `where` is the KB slug of the place you mean to be for this part of the day.
+- `spot` names a spot within that place ("the tavern's upper floor", "by the stage"), or is null.
+- `aim` is the undertaking itself, not how it turns out: at most 20 words.
 
 An `end_of_day` summary call asks for JSON instead: `{"call": "end_of_day", "summary": "Markdown: what happened, what changed, and what you want now"}`.

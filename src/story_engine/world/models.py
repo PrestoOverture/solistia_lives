@@ -47,12 +47,14 @@ class Commitment(WorldModel):
 
 class CharacterState(WorldModel):
     where: str
+    spot: str | None = None
     goals: list[str] = Field(min_length=1)
     commitments: list[Commitment]
 
 
 class Person(WorldModel):
     where: str
+    spot: str | None = None
     wants: list[str] = Field(min_length=1)
     commitments: list[Commitment]
 
@@ -103,7 +105,7 @@ class Event(WorldModel):
     place: str
     actor: str
     of: str | None = None
-    type: Literal["speech", "action", "world", "state_change"]
+    type: Literal["speech", "action", "world", "state_change", "plan"]
     content: str
     intent: str | None = None
     perceived_by: list[str]
@@ -116,6 +118,7 @@ class SceneRecord(WorldModel):
     day: int
     part: PartOfDay
     place: str
+    spot: str | None = None
     participants: list[str]
     first_event_id: int
     last_event_id: int

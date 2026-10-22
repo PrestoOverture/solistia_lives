@@ -78,25 +78,37 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
             elif self.is_narrator:
                 beats = self.request['beats']
                 if beats:
-                    cites = f"<!-- r:{beats[0]['round']} -->"
+                    rounds, events = [beats[0]['round']], []
                 else:
-                    ids = [e['id'] for e in self.request['part_of_day_events']]
-                    cites = f"<!-- e:{','.join(map(str, ids))} -->"
-                reply = f'# Agnea at the Festival{cites}\n\nAgnea looked around.{cites}\n'
+                    rounds, events = [], [e['id'] for e in self.request['part_of_day_events']]
+                reply = json.dumps(dict(paragraphs=[
+                    {'text': '# Agnea at the Festival', 'rounds': rounds, 'events': events},
+                    {'text': 'Agnea looked around.', 'rounds': rounds, 'events': events},
+                ]))
             elif self.is_world:
                 if failure == 'error' and state.clock.part == 'afternoon':
                     raise RuntimeError('fake error')
-                data = dict(call='part_of_day', events=[], state=state.model_dump(exclude={'clock'}),
-                            situation_notes={s.id: 'Unchanged.' for s in state.situations})
-                # Keep the characters apart so this test exercises the day orchestration.
-                data['state']['characters']['agnea']['where'] = 'cropdale'
-                data['state']['characters']['throne']['where'] = 'festival_grounds'
+                if self.request['call'] == 'adjudicate':
+                    # Keep the characters apart so this test exercises the day orchestration.
+                    data = dict(call='adjudicate', encounters=[], verdicts=dict(
+                        agnea=dict(status='settled', outcome='Agnea looks around Cropdale.',
+                                  where='cropdale', spot=None),
+                        throne=dict(status='settled', outcome='Throné stays at the festival grounds.',
+                                   where='festival_grounds', spot=None)))
+                else:
+                    data = dict(call='offscreen', events=[], people={},
+                               situations=[s.model_dump() for s in state.situations],
+                               places=[p.model_dump() for p in state.places],
+                               situation_notes={s.id: 'Unchanged.' for s in state.situations})
                 reply = json.dumps(data)
             elif self.request.get('call') == 'end_of_day':
                 if failure == 'summary' and self is clients[1]:
                     raise RuntimeError('summary failed')
                 reply = json.dumps(dict(call='end_of_day',
                                         summary='# Today\nVisited the stalls.\n## Changed\nFound a plan.\n## Wants\nRest.'))
+            elif self.request.get('call') == 'part_of_day':
+                reply = json.dumps(dict(call='plan', intent='Explore', where='cropdale',
+                                        spot=None, aim='Look around the stalls.'))
             else:
                 reply = json.dumps(dict(call='action', intent='Explore', move='act', urge=2,
                                         action='Looks around.', say=''))

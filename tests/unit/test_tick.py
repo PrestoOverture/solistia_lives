@@ -26,17 +26,21 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     state.clock.part = part
     save_state(world, state)
     requests, clients = [], []
-    reply = dict(call='part_of_day',
-                 events=[dict(place='cropdale', actor='world', type='world',
-                             content='The stalls open.', intent=None, perceived_by=list(state.characters))],
-                 state=state.model_dump(exclude={'clock'}),
-                 situation_notes={s.id: 'Preparations continue.' for s in state.situations})
-    for char in reply['state']['characters'].values():
-        char['where'] = 'cropdale'
-    reply['state']['characters']['throne']['where'] = 'festival_grounds'
-    invalid = copy.deepcopy(reply)
-    invalid['events'][0]['actor'] = 'agnea'
-    world_replies = iter([invalid, reply] if bad_actor else [reply])
+    adjudicate_reply = dict(call='adjudicate', verdicts={
+        'agnea': dict(status='settled', outcome='Agnea heads into Cropdale.', where='cropdale', spot=None),
+        'throne': dict(status='settled', outcome='Throné stays at the festival grounds.',
+                      where='festival_grounds', spot=None),
+    }, encounters=[])
+    offscreen_reply = dict(
+        call='offscreen',
+        events=[dict(place='cropdale', actor='world', type='world', content='The stalls open.', intent=None)],
+        people={}, situations=[s.model_dump() for s in state.situations],
+        places=[p.model_dump() for p in state.places],
+        situation_notes={s.id: 'Preparations continue.' for s in state.situations})
+    invalid_offscreen = copy.deepcopy(offscreen_reply)
+    invalid_offscreen['events'][0]['actor'] = 'agnea'
+    world_replies = iter([adjudicate_reply] +
+                        ([invalid_offscreen, offscreen_reply] if bad_actor else [offscreen_reply]))
 
     class FakeClient:
         def __init__(self, *, options):
@@ -55,8 +59,8 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
 
         async def receive_response(self):
             data = next(world_replies) if self.is_world else dict(
-                call='action', intent='Visit the stalls', move='act', urge=2,
-                action='Heads to Cropdale.', say='Good morning!')
+                call='plan', intent='Visit the stalls', where='cropdale', spot=None,
+                aim='Heads to the stalls.')
             yield ResultMessage('success', 1, 1, False, 1, 'fake',
                                 usage={'input_tokens': 3}, result=json.dumps(data))
 
@@ -71,56 +75,60 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     assert load_state(world) == result
     assert (result.clock.day, result.clock.part) == (day, next_part)
     events = read_events(world)
-    assert [event.actor for event in events] == ['agnea', 'throne', 'world']
-    assert [event.id for event in events] == [1, 2, 3]
+    assert [event.actor for event in events] == ['agnea', 'throne', 'world', 'world', 'world']
+    assert [event.id for event in events] == [1, 2, 3, 4, 5]
     assert all(event.part == part and event.day == 1 for event in events)
     for event in events[:2]:
         assert event.place == 'festival_grounds'
-        assert event.perceived_by == ['agnea', 'throne']
-        assert event.type == 'speech' and event.intent == 'Visit the stalls'
-        assert event.content == 'Heads to Cropdale. Good morning!'
+        assert event.perceived_by == [event.actor]
+        assert event.type == 'plan' and event.intent == 'Visit the stalls'
+        assert event.content == 'Heads to the stalls.'
+    outcomes = {event.of: event for event in events if event.of}
+    assert outcomes['agnea'].content == 'Agnea heads into Cropdale.' and outcomes['agnea'].place == 'cropdale'
+    assert (outcomes['throne'].content == 'Throné stays at the festival grounds.'
+            and outcomes['throne'].place == 'festival_grounds')
+    offscreen_event = events[-1]
+    assert offscreen_event.of is None
+    assert offscreen_event.content == 'The stalls open.' and offscreen_event.place == 'cropdale'
+    assert offscreen_event.perceived_by == ['agnea']  # only agnea ended up at cropdale
     assert len(clients) == 3
     character_requests = [json.loads(request) for is_world, request in requests if not is_world]
     assert all(request['perceived'] == [] and request['part'] == part for request in character_requests)
     if bad_actor:
         assert 'must not be a main character' in requests[-1][1]
     trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
-    assert trace[-1]['situation_notes'] == reply['situation_notes']
-    assert len([row for row in trace if row['type'] == 'stage_usage']) == 3 + bad_actor
+    assert trace[-1]['situation_notes'] == offscreen_reply['situation_notes']
+    assert len([row for row in trace if row['type'] == 'stage_usage']) == 4 + bad_actor
+
 
 @pytest.mark.parametrize('failure,reason', [
     ('actor', 'must not be a main character'),
     ('intent', 'intent must be null'),
-    ('place', "place must be in new state's places"),
-    ('perceiver', 'only main characters'),
-    ('characters', 'match world.json exactly'),
+    ('place', 'place must be in places'),
     ('notes', 'cover every situation'),
-    ('clock', 'must omit clock'),
 ])
-def test_world_final_validation_error(tmp_path, monkeypatch, failure, reason):
+def test_offscreen_validation_error(tmp_path, monkeypatch, failure, reason):
+    """Off-screen events are checked the same way as before: actor, intent, place
+    references, and situation_notes coverage (D27, D28)."""
     world = tmp_path / 'world'
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     run = tmp_path / 'run'
     run.mkdir()
     state = load_state(world)
     event = dict(place='festival_grounds', actor='world', type='world',
-                 content='The wind rises.', intent=None, perceived_by=['agnea'])
-    reply = dict(call='part_of_day', events=[event], state=state.model_dump(exclude={'clock'}),
-                 situation_notes={s.id: 'Unchanged.' for s in state.situations})
+                 content='The wind rises.', intent=None)
+    reply = dict(call='offscreen', events=[event],
+                people={}, situations=[s.model_dump() for s in state.situations],
+                places=[p.model_dump() for p in state.places],
+                situation_notes={s.id: 'Unchanged.' for s in state.situations})
     if failure == 'actor':
         event['actor'] = 'agnea'
     elif failure == 'intent':
         event['intent'] = 'Secret'
     elif failure == 'place':
         event['place'] = 'missing'
-    elif failure == 'perceiver':
-        event['perceived_by'] = ['stranger']
-    elif failure == 'characters':
-        reply['state']['characters']['stranger'] = copy.deepcopy(reply['state']['characters']['agnea'])
-    elif failure == 'notes':
-        reply['situation_notes'] = {}
     else:
-        reply['state']['clock'] = state.clock.model_dump()
+        reply['situation_notes'] = {}
     requests = []
 
     class FakeClient:
@@ -147,7 +155,7 @@ def test_world_final_validation_error(tmp_path, monkeypatch, failure, reason):
     async def exercise():
         async with world_agent.WorldAgent(ROOT, run, world, models.world,
                                          settings.agent_max_turns, TraceWriter(run)) as agent:
-            await agent.resolve(state, {}, [])
+            await agent.offscreen(state, [], {s.id for s in state.situations if s.status == 'open'})
 
     with pytest.raises(SessionError, match=reason):
         asyncio.run(exercise())

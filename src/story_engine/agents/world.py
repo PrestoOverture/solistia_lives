@@ -11,26 +11,77 @@ from story_engine.agents.sdk import (
     KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
     session_options, structured_reply,
 )
-from story_engine.agents.subjects import main_names, sentences, starts_with_name, word_count
 from story_engine.config import Role
+from story_engine.agents.subjects import fold
 from story_engine.trace import TraceWriter
 from story_engine.world.io import save_state, validate_state
-from story_engine.world.models import Event, Person, WorldState
+from story_engine.world.models import Event, Person, Place, Situation, WorldState
 
 
-class PartResolution(BaseModel):
+class WorldEvent(BaseModel):
+    """A World-written event as it appears in a scene_round reply; code assigns id, time,
+    scene, and round."""
     model_config = ConfigDict(extra="forbid")
-    call: Literal["part_of_day"]
-    events: list[dict]
-    state: dict
-    situation_notes: dict[str, str] = Field(default_factory=dict)
-    encounters: list[dict] = Field(default_factory=list)
+    place: str
+    actor: str
+    type: Literal["speech", "action", "world", "state_change"]
+    content: str = Field(max_length=280)
+    of: str | None = None
+    intent: str | None = None
+    perceived_by: list[str] = Field(default_factory=list)
+
+
+class OffscreenEvent(BaseModel):
+    """An off-screen event: no `of` (off-screen life never resolves a main character's
+    attempt) and no `perceived_by` (code computes it from who is at `place`/`spot`)."""
+    model_config = ConfigDict(extra="forbid")
+    place: str
+    actor: str
+    type: Literal["speech", "action", "world", "state_change"]
+    content: str = Field(max_length=280)
+    intent: str | None = None
+    spot: str | None = None
+
+
+class Settled(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    status: Literal["settled"]
+    outcome: str = Field(max_length=280)
+    where: str
+    spot: str | None = None
+
+
+class Staged(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    status: Literal["staged"]
+    where: str
+    spot: str | None = None
+
+
+Verdict = Annotated[Union[Settled, Staged], Field(discriminator="status")]
 
 
 class Encounter(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    place: str
+    mains: list[str] = Field(min_length=1)
     minor: list[str] = Field(default_factory=list)
+
+
+class AdjudicateReply(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    call: Literal["adjudicate"]
+    verdicts: dict[str, Verdict]
+    encounters: list[dict] = Field(default_factory=list)
+
+
+class OffscreenReply(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    call: Literal["offscreen"]
+    events: list[OffscreenEvent] = Field(default_factory=list)
+    people: dict[str, Person] = Field(default_factory=dict)
+    situations: list[Situation] = Field(default_factory=list)
+    places: list[Place] = Field(default_factory=list)
+    situation_notes: dict[str, str] = Field(default_factory=dict)
 
 
 class MinorMove(BaseModel):
@@ -40,15 +91,11 @@ class MinorMove(BaseModel):
     move: Literal["act", "wait", "leave"]
     urge: int = 0
     to: str | None = None
-    action: str = ""
-    say: str = ""
+    action: str = Field(default="", max_length=180)
+    say: str = Field(default="", max_length=400)
 
     @model_validator(mode="after")
     def valid_move(self) -> Self:
-        if word_count(self.action) > 25:
-            raise ValueError("action must be at most 25 words")
-        if word_count(self.say) > 60:
-            raise ValueError("say must be at most 60 words")
         if self.move == "act":
             if not 1 <= self.urge <= 3:
                 raise ValueError("act urge must be 1-3")
@@ -62,12 +109,13 @@ class MinorMove(BaseModel):
 class RoundResolution(BaseModel):
     model_config = ConfigDict(extra="forbid")
     call: Literal["scene_round"]
-    outcome: dict | None = None
+    outcome: WorldEvent | None = None
     minor_moves: dict[str, MinorMove] = Field(default_factory=dict)
     new_people: dict[str, Person] = Field(default_factory=dict)
 
 
-WorldReply = Annotated[Union[PartResolution, RoundResolution], Field(discriminator="call")]
+WorldReply = Annotated[Union[AdjudicateReply, OffscreenReply, RoundResolution],
+                       Field(discriminator="call")]
 
 
 class WorldAgent:
@@ -132,11 +180,8 @@ class WorldAgent:
                 structured_output = message.structured_output
         return result, structured_output, usage_fields
 
-    def _build_event(self, raw: dict, state: WorldState, places: set[str],
-                     names: set[str], valid_of: set[str]) -> Event:
-        if {"id", "day", "part", "scene", "round"} & raw.keys():
-            raise ValueError("event id/day/part/scene/round are assigned by code")
-        event = Event.model_validate({"id": 0, **state.clock.model_dump(), **raw})
+    def _build_event(self, raw: "WorldEvent", state: WorldState, places: set[str], valid_of: set[str]) -> Event:
+        event = Event.model_validate({"id": 0, **state.clock.model_dump(), **raw.model_dump()})
         if event.actor in state.characters:
             raise ValueError("World event actor must not be a main character")
         if event.intent is not None:
@@ -147,58 +192,60 @@ class WorldAgent:
             raise ValueError("perceived_by must contain only main characters")
         if event.of is not None and event.of not in valid_of:
             raise ValueError("World event of must name a main character whose attempt this call resolves")
-        if word_count(event.content) > 40:
-            raise ValueError("World event content must be at most 40 words")
-        if event.type != "speech":
-            check_names = (main_names(self.root, (slug for slug in state.characters if slug != event.of))
-                          if event.of is not None else names)
-            for sentence in sentences(event.content):
-                if starts_with_name(sentence, check_names):
-                    raise ValueError(f"M2 subject check: sentence {sentence!r} begins with a main character name or alias")
         return event
 
-    async def resolve(self, state: WorldState, choices: dict, events: list[Event]):
-        """Part-of-day resolution: settle off-screen life and return the encounters."""
+    def _build_offscreen_event(self, raw: "OffscreenEvent", state: WorldState, places: set[str]) -> Event:
+        data = raw.model_dump()
+        spot = data.pop("spot", None)
+        event = Event.model_validate({"id": 0, **state.clock.model_dump(), **data,
+                                      "of": None, "perceived_by": []})
+        if event.actor in state.characters:
+            raise ValueError("World event actor must not be a main character")
+        if event.intent is not None:
+            raise ValueError("World event intent must be null")
+        if event.place not in places:
+            raise ValueError("World event place must be in places")
+        perceived_by = [slug for slug, character in state.characters.items()
+                        if character.where == event.place and (spot is None or character.spot == spot)]
+        return event.model_copy(update={"perceived_by": perceived_by})
+
+    async def adjudicate(self, state: WorldState, choices: dict, events: list[Event]):
+        """Adjudicate call: settle or stage each main character's plan, and the encounters."""
         if self.client is None:
             raise SessionError("WorldAgent must be opened as an async context manager")
         self.turn += 1
         self.hooks.turn = self.turn
         new_events = self._new_events(state, events)
         request = json.dumps({"state": state.model_dump(), "choices": choices,
-                              "call": "part_of_day",
+                              "call": "adjudicate",
                               "events": [event.model_dump() for event in new_events]}, ensure_ascii=False)
-        names = main_names(self.root, state.characters)
+        valid_of = set(choices.keys()) & state.characters.keys()
+        places = {place.slug for place in state.places}
         for attempt in range(2):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
                 self.trace.write("stage_usage", stage="world", agent="world", turn=self.turn,
                                  attempt=attempt + 1, **usage_fields)
             try:
-                reply = PartResolution.model_validate(structured_reply(result, structured_output))
-                if "clock" in reply.state:
-                    raise ValueError("World state must omit clock")
-                # People persist (D21): the reply updates or adds people; anyone it omits is kept.
-                people = {name: person.model_dump() for name, person in state.people.items()}
-                people.update(reply.state.get("people") or {})
-                new_state = validate_state(self.world_dir, WorldState.model_validate(
-                    {**reply.state, "people": people, "clock": state.clock.model_dump()}))
-                valid_of = set(choices.keys()) & state.characters.keys()
-                places = {place.slug for place in new_state.places}
-                resolved = [self._build_event(raw, state, places, names, valid_of) for raw in reply.events]
-                required = {s.id for s in state.situations if s.status == "open"}
-                if required - reply.situation_notes.keys():
-                    raise ValueError("situation_notes must cover every situation open at tick start")
-                if any(not note.strip() for note in reply.situation_notes.values()):
-                    raise ValueError("situation_notes must be non-empty sentences")
+                reply = AdjudicateReply.model_validate(structured_reply(result, structured_output))
+                if set(reply.verdicts.keys()) != valid_of:
+                    raise ValueError("verdicts must cover exactly the main characters who planned this tick")
+                for slug, verdict in reply.verdicts.items():
+                    if verdict.where not in places:
+                        raise ValueError(f"{slug}'s verdict where must name a place slug")
                 encounters = []
                 for raw in reply.encounters:
                     encounter = Encounter.model_validate(raw)
-                    if encounter.place not in places:
-                        raise ValueError("encounter place must be in state places")
-                    if not any(character.where == encounter.place for character in new_state.characters.values()):
-                        raise ValueError("encounter place must have at least one main character there")
+                    if set(encounter.mains) - reply.verdicts.keys():
+                        raise ValueError("encounter mains must be main characters with a verdict this call")
+                    whereabouts = {slug: (reply.verdicts[slug].where, reply.verdicts[slug].spot)
+                                  for slug in encounter.mains}
+                    if len(set(whereabouts.values())) > 1:
+                        raise ValueError(
+                            "encounter mains must share one place and spot, but "
+                            + ", ".join(f"{slug} is at {where!r}" for slug, where in whereabouts.items()))
                     encounters.append(encounter)
-                return resolved, new_state, reply.situation_notes, encounters
+                return reply.verdicts, encounters
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
                                  turn=self.turn, attempt=attempt + 1)
@@ -206,6 +253,79 @@ class WorldAgent:
                     raise SessionError(f"World validation failed after one retry: {error}") from None
                 request = f"World validation failed: {error}\nReturn corrected JSON."
         raise AssertionError("unreachable")
+
+    async def offscreen(self, state: WorldState, outcomes: list[str], open_situations: set[str]):
+        """Off-screen call: given places, people, situations, and the adjudicated outcomes'
+        text (never a main character's plan or intent), write what everyone else does."""
+        if self.client is None:
+            raise SessionError("WorldAgent must be opened as an async context manager")
+        self.turn += 1
+        self.hooks.turn = self.turn
+        request = json.dumps({"call": "offscreen", "clock": state.clock.model_dump(),
+                              "places": [place.model_dump() for place in state.places],
+                              "people": {name: person.model_dump() for name, person in state.people.items()},
+                              "situations": [situation.model_dump() for situation in state.situations],
+                              "outcomes": outcomes}, ensure_ascii=False)
+        for attempt in range(2):
+            result, structured_output, usage_fields = await self._send(request)
+            if usage_fields is not None:
+                self.trace.write("stage_usage", stage="world", agent="world", turn=self.turn,
+                                 attempt=attempt + 1, **usage_fields)
+            try:
+                reply = OffscreenReply.model_validate(structured_reply(result, structured_output))
+                # People persist (D21): the reply updates or adds people; anyone it omits is kept.
+                people = {name: person.model_dump() for name, person in state.people.items()}
+                people.update({name: person.model_dump() for name, person in reply.people.items()})
+                new_state = validate_state(self.world_dir, WorldState.model_validate({
+                    "clock": state.clock.model_dump(),
+                    "places": [place.model_dump() for place in reply.places],
+                    "characters": {slug: character.model_dump() for slug, character in state.characters.items()},
+                    "people": people,
+                    "situations": [situation.model_dump() for situation in reply.situations],
+                }))
+                places = {place.slug for place in new_state.places}
+                resolved = [self._build_offscreen_event(raw, new_state, places) for raw in reply.events]
+                if open_situations - reply.situation_notes.keys():
+                    raise ValueError("situation_notes must cover every situation open at tick start")
+                if any(not note.strip() for note in reply.situation_notes.values()):
+                    raise ValueError("situation_notes must be non-empty sentences")
+                return resolved, new_state, reply.situation_notes
+            except ValueError as error:
+                self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
+                                 turn=self.turn, attempt=attempt + 1)
+                if attempt:
+                    raise SessionError(f"World validation failed after one retry: {error}") from None
+                request = f"World validation failed: {error}\nReturn corrected JSON."
+        raise AssertionError("unreachable")
+
+    async def resolve(self, state: WorldState, choices: dict, events: list[Event]):
+        """Part-of-day resolution, in two calls (D28): adjudicate the plans, then write
+        off-screen life. Code applies the verdicts in between: it writes each settled
+        outcome's event, moves every verdicted main character, and opens a solo attempt
+        scene for any staged character left out of an encounter."""
+        verdicts, encounters = await self.adjudicate(state, choices, events)
+        characters = dict(state.characters)
+        for slug, verdict in verdicts.items():
+            characters[slug] = characters[slug].model_copy(
+                update={"where": verdict.where, "spot": verdict.spot})
+        moved_state = validate_state(self.world_dir, state.model_copy(update={"characters": characters}))
+        outcome_events = []
+        for slug, verdict in verdicts.items():
+            if verdict.status == "settled":
+                perceived_by = [other for other, character in characters.items()
+                                if (character.where, character.spot) == (verdict.where, verdict.spot)]
+                outcome_events.append(Event(
+                    id=0, **state.clock.model_dump(), place=verdict.where, actor="world", of=slug,
+                    type="world", content=verdict.outcome, perceived_by=perceived_by))
+        encountered_mains = {slug for encounter in encounters for slug in encounter.mains}
+        for slug, verdict in verdicts.items():
+            if verdict.status == "staged" and slug not in encountered_mains:
+                encounters.append(Encounter(mains=[slug], minor=[]))
+        open_situations = {situation.id for situation in state.situations if situation.status == "open"}
+        outcomes = [verdict.outcome for verdict in verdicts.values() if verdict.status == "settled"]
+        off_events, new_state, situation_notes = await self.offscreen(moved_state, outcomes, open_situations)
+        statuses = {slug: verdict.status for slug, verdict in verdicts.items()}
+        return outcome_events + off_events, new_state, situation_notes, encounters, statuses
 
     async def round(self, state: WorldState, events: list[Event],
                     *, place: str, main_present: list[str], minor_present: list[str],
@@ -224,7 +344,6 @@ class WorldAgent:
                               "people": minor_people,
                               "last_winner": last_winner,
                               "events": [event.model_dump() for event in new_events]}, ensure_ascii=False)
-        names = main_names(self.root, state.characters)
         places = {place.slug for place in state.places}
         for attempt in range(2):
             result, structured_output, usage_fields = await self._send(request)
@@ -235,19 +354,20 @@ class WorldAgent:
                 reply = RoundResolution.model_validate(structured_reply(result, structured_output))
                 valid_of = ({last_winner["actor"]} if last_winner is not None
                            and last_winner.get("actor") in state.characters else set())
-                outcome = (self._build_event(reply.outcome, state, places, names, valid_of)
+                outcome = (self._build_event(reply.outcome, state, places, valid_of)
                           if reply.outcome is not None else None)
                 minor_moves = {}
+                # People are data references: match names ignoring case, accents, spaces/underscores.
+                keys = {_key(existing): existing for existing in state.people}
                 for name, move in reply.minor_moves.items():
                     if name not in reply.new_people:
+                        name = keys.get(_key(name), name)
                         person = state.people.get(name)
                         if person is None or person.where != place:
                             raise ValueError(
                                 f"minor_moves name {name!r} must be a people entry at this place, "
-                                "or in this round's new_people")
-                    for sentence in sentences(move.action):
-                        if starts_with_name(sentence, names):
-                            raise ValueError(f"M2 subject check: minor {name!r} action {sentence!r} begins with a main character name or alias")
+                                f"or in this round's new_people (people here: "
+                                f"{sorted(n for n, p in state.people.items() if p.where == place)})")
                     minor_moves[name] = move
                 new_state = state
                 if reply.new_people:
@@ -262,3 +382,7 @@ class WorldAgent:
                     raise SessionError(f"World validation failed after one retry: {error}") from None
                 request = f"World validation failed: {error}\nReturn corrected JSON."
         raise AssertionError("unreachable")
+
+
+def _key(name: str) -> str:
+    return fold(name).replace("_", " ").strip()

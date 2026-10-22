@@ -124,7 +124,8 @@ def test_act_pov_not_participant_of_its_scene(world, monkeypatch):
     assert 'participant of scene 2' in calls[1]
 
 
-def test_unbroken_chain(monkeypatch, tmp_path):
+def test_skipping_a_scene_is_the_curators_call(monkeypatch, tmp_path):
+    """D27: which scenes an arc depends on is a judgment, not a code rule; skipping scene 2 is accepted."""
     for name in ('config', 'prompts'):
         shutil.copytree(ROOT / name, tmp_path / name)
     world = tmp_path / 'worlds/test'
@@ -141,15 +142,14 @@ def test_unbroken_chain(monkeypatch, tmp_path):
     state.clock.day = 2
     save_state(world, state)
     monkeypatch.chdir(tmp_path)
-    rejected = dict(acts=[{'scene': '1', 'pov': 'agnea'}, {'scene': '3', 'pov': 'agnea'},
-                          {'scene': '4', 'pov': 'agnea'}], why='A broken chain.')
-    accepted = dict(acts=[{'scene': '2', 'pov': 'agnea'}, {'scene': '3', 'pov': 'throne'}], why='A choice resolved.')
-    calls, _, _ = fake(monkeypatch, [json.dumps(rejected), json.dumps(accepted)])
+    skipping = dict(acts=[{'scene': '1', 'pov': 'agnea'}, {'scene': '3', 'pov': 'agnea'},
+                          {'scene': '4', 'pov': 'agnea'}], why='The scenes that matter.')
+    calls, _, _ = fake(monkeypatch, [json.dumps(skipping)])
     result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1', '--stop-after', 'curate'])
     assert result.exit_code == 0, result.output
-    assert 'unbroken chain' in calls[1]
+    assert len(calls) == 1
     episode = curator.Episode.model_validate_json((Path(result.output.strip()) / 'episode.json').read_bytes())
-    assert [act.scene for act in episode.acts] == ['2', '3']
+    assert [act.scene for act in episode.acts] == ['1', '3', '4']
 
 
 def test_absent_pov_final_error(world, monkeypatch):

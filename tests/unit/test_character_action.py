@@ -88,8 +88,8 @@ def test_valid_action(tmp_path, monkeypatch, fenced):
 
 
 def test_overlong_action_rejected_then_retried(tmp_path, monkeypatch):
-    """A 26-word action fails the length cap (D23) and is rejected, then retried."""
-    too_long = " ".join(f"word{i}" for i in range(26))
+    """A 181-char action fails the schema length cap and is rejected, then retried."""
+    too_long = "a" * 181
     bad = json.dumps({**VALID, "action": too_long})
     agent, instances, requests, lifecycle, run = setup_agent(
         tmp_path, monkeypatch, iter([bad, json.dumps(VALID)]))
@@ -99,12 +99,12 @@ def test_overlong_action_rejected_then_retried(tmp_path, monkeypatch):
             return await agent.act([])
 
     assert asyncio.run(exercise()) == Action(**VALID)
-    assert len(requests) == 2 and "at most 25 words" in requests[1]
+    assert len(requests) == 2 and "at most 180 characters" in requests[1]
 
 
 def test_overlong_say_rejected_then_retried(tmp_path, monkeypatch):
-    """A 61-word say fails the length cap (D23) and is rejected, then retried."""
-    too_long = " ".join(f"word{i}" for i in range(61))
+    """A 401-char say fails the schema length cap and is rejected, then retried."""
+    too_long = "a" * 401
     bad = json.dumps({**VALID, "action": "", "say": too_long})
     agent, instances, requests, lifecycle, run = setup_agent(
         tmp_path, monkeypatch, iter([bad, json.dumps(VALID)]))
@@ -114,7 +114,7 @@ def test_overlong_say_rejected_then_retried(tmp_path, monkeypatch):
             return await agent.act([])
 
     assert asyncio.run(exercise()) == Action(**VALID)
-    assert len(requests) == 2 and "at most 60 words" in requests[1]
+    assert len(requests) == 2 and "at most 400 characters" in requests[1]
 
 
 @pytest.mark.parametrize("second_valid", [True, False])
@@ -193,19 +193,16 @@ def test_context_is_required_and_cannot_be_reopened(tmp_path, monkeypatch):
     assert len(instances) == 1
 
 
-@pytest.mark.parametrize("text,rejected", [
-    ('Throné follows her out.', True),
-    ('Agnea and Throné leave together.', True),
-    ('"Throné, wait!" Agnea calls.', False),
-    ('Agnea hands Throné a plate.', False),
-    ("THRONE’S eyes narrow.", True),
-    ('Agnea waits. throne follows.', True),
-    ('Agnea and THRONE’s friends leave.', True),
+@pytest.mark.parametrize("text", [
+    'Throné follows her out.',
+    'Agnea and Throné leave together.',
+    '"Throné, wait!" Agnea calls.',
 ])
-def test_character_subject_check(tmp_path, monkeypatch, text, rejected):
-    good = {**VALID, 'action': 'Agnea waits.'}
+def test_character_action_text_not_judged(tmp_path, monkeypatch, text):
+    """D27: code never judges an action's wording, including whether it names another
+    main character as its subject."""
     agent, _, requests, _, _ = setup_agent(
-        tmp_path, monkeypatch, iter([json.dumps({**good, 'action': text}), json.dumps(good)]))
+        tmp_path, monkeypatch, iter([json.dumps({**VALID, 'action': text})]))
     agent.slug = 'agnea'
 
     async def exercise():
@@ -213,10 +210,8 @@ def test_character_subject_check(tmp_path, monkeypatch, text, rejected):
             return await agent.act([])
 
     result = asyncio.run(exercise())
-    assert len(requests) == (2 if rejected else 1)
-    assert result.action == ('Agnea waits.' if rejected else text)
-    if rejected:
-        assert 'subject check' in requests[1]
+    assert len(requests) == 1
+    assert result.action == text
 
 
 def test_structured_output_only_reply_is_accepted(tmp_path, monkeypatch):
@@ -293,3 +288,56 @@ def test_summarize_from_structured_end_of_day_reply(tmp_path, monkeypatch):
     from story_engine.world.io import write_memory
     write_memory(world, "throne", result)
     assert (world / "memory/throne.md").read_text() == summary
+
+
+def test_choose_returns_plan(tmp_path, monkeypatch):
+    """A part-of-day choice is a Plan (D26), not a scene Action."""
+    world = tmp_path / "world"
+    shutil.copytree(ROOT / "tests/fixtures/worlds/agnea_throne", world)
+    run = tmp_path / "run"
+    run.mkdir()
+    plan = dict(call="plan", intent="Find somewhere quiet", where="cropdale",
+               spot="the tavern's upper floor", aim="Walk to the tavern and look around.")
+
+    class FakeClient:
+        def __init__(self, *, options):
+            self.options = options
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def query(self, request):
+            pass
+
+        async def receive_response(self):
+            yield ResultMessage("success", 1, 1, False, 1, "fake", result="", structured_output=plan)
+
+    monkeypatch.setattr(character, "ClaudeSDKClient", FakeClient)
+    models, settings = load_configs()
+
+    async def choose():
+        async with CharacterAgent(ROOT, run, world, "throne", models.character,
+                                  settings.agent_max_turns, TraceWriter(run)) as agent:
+            return await agent.choose("morning", [])
+
+    result = asyncio.run(choose())
+    assert result == character.Plan(**plan)
+
+
+def test_plan_aim_over_max_length_rejected_then_retried(tmp_path, monkeypatch):
+    """`aim` fails its schema length cap at 141 chars and is rejected, then retried."""
+    too_long = "a" * 141
+    bad = dict(call="plan", intent="Find somewhere quiet", where="cropdale", spot=None, aim=too_long)
+    good = dict(call="plan", intent="Find somewhere quiet", where="cropdale", spot=None, aim="Walk to the tavern.")
+    agent, instances, requests, lifecycle, run = setup_agent(
+        tmp_path, monkeypatch, iter([json.dumps(bad), json.dumps(good)]))
+
+    async def exercise():
+        async with agent:
+            return await agent.choose("morning", [])
+
+    assert asyncio.run(exercise()) == character.Plan(**good)
+    assert len(requests) == 2 and "at most 140 characters" in requests[1]

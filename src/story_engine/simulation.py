@@ -81,31 +81,43 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
     if state.clock.day != session.day:
         raise ValueError('Open a new TickSession for the next day')
     before = read_events(world_dir)
-    choices = {}
+    plans = {}
     for slug, agent in session.characters.items():
-        choices[slug] = await agent.choose(state.clock.part, before)
-    for slug, action in choices.items():
+        plans[slug] = await agent.choose(state.clock.part, before)
+    for slug, plan in plans.items():
+        # A plan is an intention, not a fact (D26): it is logged where the character stood
+        # at tick start, and only its maker perceives it.
         place = state.characters[slug].where
         append_event(world_dir, Event(
             id=0, **state.clock.model_dump(), place=place, actor=slug,
-            type='speech' if action.say else 'action',
-            content=' '.join(value for value in (action.action, action.say) if value),
-            intent=action.intent,
-            perceived_by=[name for name, character in state.characters.items()
-                          if character.where == place]))
-    events, updated, notes, encounters = await session.world.resolve(
-        state, {slug: action.model_dump() for slug, action in choices.items()}, read_events(world_dir))
+            type='plan', content=plan.aim, intent=plan.intent, perceived_by=[slug]))
+    events, updated, notes, encounters, statuses = await session.world.resolve(
+        state, {slug: plan.model_dump() for slug, plan in plans.items()}, read_events(world_dir))
     for event in events:
         append_event(world_dir, event)
     groups = {}
     for slug, character in updated.characters.items():
-        groups.setdefault(character.where, []).append(slug)
-    minors_by_place = {encounter.place: encounter.minor for encounter in encounters}
-    for place, present in groups.items():
-        present = [slug for slug in present if updated.characters[slug].where == place]
-        minors = list(minors_by_place.get(place, []))
-        if len(present) >= 2 or (len(present) == 1 and minors):
-            updated = await run_scene(world_dir, session, updated, place, present, minors)
+        groups.setdefault((character.where, character.spot), []).append(slug)
+    minors_by_spot = {}
+    for encounter in encounters:
+        main = encounter.mains[0]
+        key = (updated.characters[main].where, updated.characters[main].spot)
+        # Names are data references to `people`: resolve them to their keys, without duplicates.
+        keys = {_person_key(name): name for name in updated.people}
+        listed = minors_by_spot.setdefault(key, [])
+        for name in encounter.minor:
+            name = keys.get(_person_key(name), name)
+            if name not in listed:
+                listed.append(name)
+    for (place, spot), present in groups.items():
+        present = [slug for slug in present
+                  if (updated.characters[slug].where, updated.characters[slug].spot) == (place, spot)]
+        minors = list(minors_by_spot.get((place, spot), []))
+        # A staged plan opens a scene even alone (D26): the outcome of an uncertain
+        # attempt is never settled off-screen.
+        staged = any(statuses.get(slug) == 'staged' for slug in present)
+        if len(present) >= 2 or (len(present) == 1 and (minors or staged)):
+            updated = await run_scene(world_dir, session, updated, place, present, minors, spot=spot)
     parts = session.settings.parts_of_day
     index = parts.index(state.clock.part) + 1
     updated.clock = Clock(day=state.clock.day + (index == len(parts)),
@@ -149,9 +161,12 @@ def resolve_addressee(to, main_present, minor_present):
     return None
 
 
-async def run_scene(world_dir, session, state, place, main_present, minor_present):
+async def run_scene(world_dir, session, state, place, main_present, minor_present, *, spot=None):
     scene_id = str(len(read_scenes(world_dir)) + 1)
     main_present, minor_present = list(main_present), list(minor_present)
+    # A one-character attempt is a scene with just that main character and the World (§6.2);
+    # it never ends merely for having fewer than two participants.
+    solo_attempt = len(main_present) == 1 and not minor_present
     all_participants = list(main_present) + [name for name in minor_present if name not in main_present]
     last_act, notes = {}, session.scene_notes
     pending_to, quiet, last_winner = None, 0, None
@@ -197,7 +212,7 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
                 if is_main:
                     notes[key] = f"Your move didn't happen: {winner} took the floor."
                 continue
-            if move.move == 'wait' and not move.action.strip():
+            if move.move == 'wait' and (not is_main or not move.action.strip()):
                 continue
             happened[key] = move.model_dump()
             content = ' '.join(value for value in (move.action, move.say if move.move != 'wait' else '') if value)
@@ -225,7 +240,7 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
         if not main_present:
             reason = 'no_main'
             break
-        if total <= 1:
+        if not solo_attempt and total <= 1:
             reason = 'one_left' if total else 'dispersed'
             break
         if quiet >= 2:
@@ -233,7 +248,7 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
             break
     session.trace.write('scene_ended', place=place, scene=scene_id, reason=reason, rounds=round_number)
     append_scene(world_dir, SceneRecord(
-        id=scene_id, day=state.clock.day, part=state.clock.part, place=place,
+        id=scene_id, day=state.clock.day, part=state.clock.part, place=place, spot=spot,
         participants=all_participants, first_event_id=first_event_id or 0,
         last_event_id=last_event_id or 0, rounds=round_number, end=reason))
     return state
@@ -274,3 +289,8 @@ async def run_day(world_dir: Path, run_dir: Path) -> WorldState:
         _copy_world(checkpoint, world_dir)
         raise
     return state
+
+
+def _person_key(name: str) -> str:
+    from story_engine.agents.subjects import fold
+    return fold(name).replace("_", " ").strip()

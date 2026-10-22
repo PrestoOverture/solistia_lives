@@ -1,7 +1,6 @@
 """One character's persistent session for a single day."""
 
 import json
-import re
 from pathlib import Path
 from typing import Annotated, Literal, Self, Union
 
@@ -12,7 +11,6 @@ from story_engine.agents.sdk import (
     KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
     session_options, structured_reply,
 )
-from story_engine.agents.subjects import fold, main_names, sentences, starts_with_name, word_count
 from story_engine.config import Role
 from story_engine.trace import TraceWriter
 from story_engine.world.io import load_state, read_events
@@ -27,17 +25,13 @@ class Action(BaseModel):
     move: Literal["act", "wait", "leave"]
     urge: int
     to: str | None = None
-    action: str
-    say: str
+    action: str = Field(max_length=180)
+    say: str = Field(max_length=400)
 
     @model_validator(mode="after")
     def valid_action(self) -> Self:
         if not self.intent.strip():
             raise ValueError("intent must be non-empty")
-        if word_count(self.action) > 25:
-            raise ValueError("action must be at most 25 words")
-        if word_count(self.say) > 60:
-            raise ValueError("say must be at most 60 words")
         if self.move == "act":
             if not 1 <= self.urge <= 3:
                 raise ValueError("act urge must be 1-3")
@@ -45,6 +39,26 @@ class Action(BaseModel):
                 raise ValueError("act needs a non-empty action or say")
         elif self.urge != 0:
             raise ValueError("wait and leave urge must be 0")
+        return self
+
+
+class Plan(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    call: Literal["plan"]
+    intent: str
+    where: str
+    spot: str | None = None
+    aim: str = Field(max_length=140)
+
+    @model_validator(mode="after")
+    def valid_plan(self) -> Self:
+        if not self.intent.strip():
+            raise ValueError("intent must be non-empty")
+        if not self.where.strip():
+            raise ValueError("where must be non-empty")
+        if not self.aim.strip():
+            raise ValueError("aim must be non-empty")
         return self
 
 
@@ -61,7 +75,7 @@ class EndOfDay(BaseModel):
         return self
 
 
-CharacterReply = Annotated[Union[Action, EndOfDay], Field(discriminator="call")]
+CharacterReply = Annotated[Union[Action, Plan, EndOfDay], Field(discriminator="call")]
 
 
 class CharacterAgent:
@@ -84,8 +98,6 @@ class CharacterAgent:
             raise SessionError("CharacterAgent context can only be opened once")
         self.opened = True
         state = load_state(self.world_dir)
-        self.other_names = main_names(self.root, (slug for slug in state.characters if slug != self.slug))
-        self.own_names = main_names(self.root, [self.slug])
         self.prior_events = [event for event in read_events(self.world_dir)
                              if event.day == state.clock.day]
         character = state.characters[self.slug]
@@ -112,7 +124,7 @@ class CharacterAgent:
         finally:
             self.client = None
 
-    async def choose(self, part: PartOfDay, perceived: list[Event]) -> Action:
+    async def choose(self, part: PartOfDay, perceived: list[Event]) -> Plan:
         return await self._action(perceived, part)
 
     async def act(self, perceived: list[Event], note: str | None = None) -> Action:
@@ -123,7 +135,7 @@ class CharacterAgent:
         return await self._action(perceived, summary=True)
 
     async def _action(self, perceived: list[Event], part: PartOfDay | None = None,
-                      note: str | None = None, summary: bool = False) -> Action | str:
+                      note: str | None = None, summary: bool = False) -> Action | Plan | str:
         if self.client is None:
             raise SessionError("CharacterAgent must be opened as an async context manager")
         self.turn += 1
@@ -163,17 +175,9 @@ class CharacterAgent:
                 payload = structured_reply(result, structured_output)
                 if summary:
                     return EndOfDay.model_validate(payload).summary
-                action = Action.model_validate(payload)
-                for sentence in sentences(action.action):
-                    invalid = starts_with_name(sentence, self.other_names)
-                    start = fold(sentence.lstrip())
-                    for name in self.own_names:
-                        match = re.match(re.escape(name) + r"(?!\w)\s+(?:and|&)\s+", start)
-                        if match and starts_with_name(start[match.end():], self.other_names):
-                            invalid = True
-                    if invalid:
-                        raise ValueError(f"Character subject check: {sentence!r} describes another main character")
-                return action
+                if part:
+                    return Plan.model_validate(payload)
+                return Action.model_validate(payload)
             except ValueError as error:
                 if attempt:
                     raise SessionError(f"Character action validation failed after one retry: {error}") from None

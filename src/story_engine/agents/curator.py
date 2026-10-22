@@ -1,4 +1,4 @@
-"""Select an episode (a 2-4 act, unbroken chain of scenes) from one completed day's events."""
+"""Select an episode (2-4 acts, one scene each) from one completed day's events."""
 
 import json
 from pathlib import Path
@@ -69,21 +69,6 @@ def validate_episode(episode: Episode, scenes: list[SceneRecord], characters: li
         resolved_acts.append(act.model_copy(update={"pov": pov}))
     episode = episode.model_copy(update={"acts": resolved_acts})
 
-    chosen_ids = set(scene_ids)
-    chosen_characters = {
-        participant
-        for scene_id in chosen_ids
-        for participant in by_id[scene_id].participants
-        if participant in characters
-    }
-    lower, upper = min(indices), max(indices)
-    for scene in day_scenes[lower:upper + 1]:
-        if scene.id in chosen_ids:
-            continue
-        if any(participant in chosen_characters for participant in scene.participants if participant in characters):
-            raise ValueError(
-                f"unbroken chain: scene {scene.id} shares a main character with a chosen scene and must be chosen"
-            )
     return episode
 
 

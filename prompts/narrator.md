@@ -29,10 +29,10 @@ Write from the POV character's point of view. Use the part-of-day events for at 
 - Voice a move that never happened.
 
 ## Cite your sources
-End every paragraph with a hidden marker naming what it tells: the rounds of this act's scene it draws on, written `<!-- r:N -->` for one round or `<!-- r:N-M -->` for a span (e.g. `<!-- r:3-5 -->`), and/or the part-of-day event ids it draws on, written `<!-- e:12,15 -->`. A paragraph may need both kinds; write them one after another, e.g. `<!-- r:2-3 --><!-- e:14 -->`. Every paragraph needs at least one marker, even if it isn't otherwise about an event. If a paragraph has dialogue (quoted speech), cite a round or event that contains a speech event. Write the marker(s) as the last thing in the paragraph; they are a production note, not part of the prose, and won't appear in the finished story.
+Reply with structured output: `{"paragraphs": [{"text": ..., "rounds": [...], "events": [...]}, ...]}`. Each paragraph is one item: `text` is its prose, `rounds` lists the round numbers of this act's scene it draws on, and `events` lists the part-of-day event ids it draws on. Every paragraph needs at least one round or event, even if it isn't otherwise about an event; give whichever list doesn't apply as `[]`.
 
 ## Checking facts
 The KB is canon. Before you state a fact your materials and the log don't cover, check it in the KB with Read, using an absolute path inside the KB, and say in one short line why you're checking.
 
 ## What to write
-Reply with the draft and nothing else.
+Reply with the structured paragraphs and nothing else.

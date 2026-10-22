@@ -53,7 +53,7 @@ class _NullClient:
         yield  # pragma: no cover - never reached; makes this an async generator
 
 
-def test_world_output_format_accepts_both_call_variants(tmp_path, monkeypatch):
+def test_world_output_format_accepts_all_call_variants(tmp_path, monkeypatch):
     world = tmp_path / 'world'
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     run = tmp_path / 'run'
@@ -70,10 +70,17 @@ def test_world_output_format_accepts_both_call_variants(tmp_path, monkeypatch):
     assert options.output_format['type'] == 'json_schema'
     schema = options.output_format['schema']
     state = load_state(world)
-    part_of_day = dict(call='part_of_day', events=[], state=state.model_dump(exclude={'clock'}),
-                       situation_notes={s.id: 'Unchanged.' for s in state.situations})
+    adjudicate = dict(call='adjudicate',
+                      verdicts={slug: dict(status='settled', outcome='Did something.',
+                                           where='cropdale', spot=None) for slug in state.characters},
+                      encounters=[])
+    offscreen = dict(call='offscreen', events=[], people={},
+                     situations=[s.model_dump() for s in state.situations],
+                     places=[p.model_dump() for p in state.places],
+                     situation_notes={s.id: 'Unchanged.' for s in state.situations})
     scene_round = dict(call='scene_round', outcome=None, minor_moves={})
-    _assert_schema_accepts(schema, part_of_day, WorldReply)
+    _assert_schema_accepts(schema, adjudicate, WorldReply)
+    _assert_schema_accepts(schema, offscreen, WorldReply)
     _assert_schema_accepts(schema, scene_round, WorldReply)
 
 

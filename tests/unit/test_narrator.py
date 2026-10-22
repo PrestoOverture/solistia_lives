@@ -17,11 +17,19 @@ from story_engine.world.models import Event, SceneRecord
 ROOT = Path(__file__).resolve().parents[2]
 EPISODE = dict(acts=[{'scene': 'A', 'pov': 'agnea'}, {'scene': 'B', 'pov': 'agnea'}], why='A choice resolved.')
 # Scene A's events are 1 (round 1), 2 (round 2); no part-of-day events precede the day's first scene.
-DRAFT = "# A Festival Evening<!-- r:1 -->\n\nAgnea laughed.<!-- r:2 -->\n"
-STORY_PART = "# A Festival Evening\n\nAgnea laughed.\n"
+REPLY_A = json.dumps({'paragraphs': [
+    {'text': '# A Festival Evening', 'rounds': [1], 'events': []},
+    {'text': 'Agnea laughed.', 'rounds': [2], 'events': []},
+]})
+ACT_A = "# A Festival Evening<!-- r:1 -->\n\nAgnea laughed.<!-- r:2 -->\n"
+STORY_A = "# A Festival Evening\n\nAgnea laughed.\n"
 # Scene B's event is 4 (round 1); event 3 is the part-of-day transition since scene A.
-DRAFT2 = "# A Quiet Resolve<!-- e:3 -->\n\nAgnea let the moment settle.<!-- r:1 -->\n"
-STORY_PART2 = "# A Quiet Resolve\n\nAgnea let the moment settle.\n"
+REPLY_B = json.dumps({'paragraphs': [
+    {'text': '# A Quiet Resolve', 'rounds': [], 'events': [3]},
+    {'text': 'Agnea let the moment settle.', 'rounds': [1], 'events': []},
+]})
+ACT_B = "# A Quiet Resolve<!-- e:3 -->\n\nAgnea let the moment settle.<!-- r:1 -->\n"
+STORY_B = "# A Quiet Resolve\n\nAgnea let the moment settle.\n"
 
 
 @pytest.fixture
@@ -83,10 +91,10 @@ def fake_curator(monkeypatch, replies):
     monkeypatch.setattr(curator, 'ClaudeSDKClient', Client)
 
 
-def fake_narrator(monkeypatch, draft=DRAFT):
-    """`draft` is either reused for every call, or a list consumed one draft per call."""
+def fake_narrator(monkeypatch, reply=REPLY_A):
+    """`reply` is either reused for every call, or a list consumed one reply per call."""
     calls, options, lifecycle = [], [], []
-    drafts = iter(draft) if isinstance(draft, list) else itertools.repeat(draft)
+    replies = iter(reply) if isinstance(reply, list) else itertools.repeat(reply)
 
     class Client:
         def __init__(self, **kwargs):
@@ -103,7 +111,7 @@ def fake_narrator(monkeypatch, draft=DRAFT):
             calls.append(request)
 
         async def receive_response(self):
-            yield ResultMessage('success', 1, 1, False, 1, 'fake', result=next(drafts), total_cost_usd=0.2)
+            yield ResultMessage('success', 1, 1, False, 1, 'fake', result=next(replies), total_cost_usd=0.2)
 
     monkeypatch.setattr(narrator, 'ClaudeSDKClient', Client)
     return calls, options, lifecycle
@@ -111,7 +119,7 @@ def fake_narrator(monkeypatch, draft=DRAFT):
 
 def test_two_acts_previous_acts_and_story_join(world, monkeypatch):
     fake_curator(monkeypatch, [json.dumps(EPISODE)])
-    calls, options, lifecycle = fake_narrator(monkeypatch, [DRAFT, DRAFT2])
+    calls, options, lifecycle = fake_narrator(monkeypatch, [REPLY_A, REPLY_B])
     result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1'])
     assert result.exit_code == 0, result.output
     run = Path(result.output.strip())
@@ -123,14 +131,14 @@ def test_two_acts_previous_acts_and_story_join(world, monkeypatch):
     assert [event['id'] for event in request1['beats'][0]['events']] == [1]
     assert [event['id'] for event in request1['beats'][1]['events']] == [2]
     request2 = json.loads(calls[1])
-    assert request2['previous_acts'] == [STORY_PART]
+    assert request2['previous_acts'] == [STORY_A]
     assert [beat['round'] for beat in request2['beats']] == [1]
     assert [event['id'] for event in request2['beats'][0]['events']] == [4]
     assert [event['id'] for event in request2['part_of_day_events']] == [3]
-    assert (run / 'acts/act_1.md').read_text() == DRAFT
-    assert (run / 'acts/act_2.md').read_text() == DRAFT2
+    assert (run / 'acts/act_1.md').read_text() == ACT_A
+    assert (run / 'acts/act_2.md').read_text() == ACT_B
     story = (run / 'story.md').read_text()
-    assert story == STORY_PART + '\n\n---\n\n' + STORY_PART2
+    assert story == STORY_A + '\n\n---\n\n' + STORY_B
     assert '<!--' not in story
     assert not (run / 'draft.md').exists()
     meta = RunMeta.model_validate_json((run / 'meta.json').read_bytes())
@@ -144,8 +152,12 @@ def test_two_acts_previous_acts_and_story_join(world, monkeypatch):
 
 
 def test_act_request_scopes_scene_and_transition_events(world, monkeypatch):
-    draft = '# Agnea resolves it.<!-- e:3 -->\n\nShe smiled.<!-- r:1 -->\n'
-    calls, options, lifecycle = fake_narrator(monkeypatch, draft=draft)
+    reply = json.dumps({'paragraphs': [
+        {'text': '# Agnea resolves it.', 'rounds': [], 'events': [3]},
+        {'text': 'She smiled.', 'rounds': [1], 'events': []},
+    ]})
+    act_text = "# Agnea resolves it.<!-- e:3 -->\n\nShe smiled.<!-- r:1 -->\n"
+    calls, options, lifecycle = fake_narrator(monkeypatch, reply=reply)
     result = CliRunner().invoke(
         app, ['world', 'tell', 'test', '--day', '1', '--act', 'B', '--pov', 'agnea'])
     assert result.exit_code == 0, result.output
@@ -160,29 +172,34 @@ def test_act_request_scopes_scene_and_transition_events(world, monkeypatch):
     assert [event['id'] for event in request['part_of_day_events']] == [3]
     assert [event['intent'] for event in request['part_of_day_events']] == [None]
     assert request['previous_acts'] == []
-    assert (run / 'acts/act_1.md').read_text() == draft
+    assert (run / 'acts/act_1.md').read_text() == act_text
     assert not (run / 'draft.md').exists()
     assert not (run / 'episode.json').exists()
     meta = RunMeta.model_validate_json((run / 'meta.json').read_bytes())
     assert meta.status == 'passed' and meta.day == 1
 
 
-def test_missing_marker_rejected_then_retry_accepted(world, monkeypatch):
-    bad = "# A Festival Evening<!-- r:1 -->\n\nAgnea laughed.\n"  # second paragraph has no marker
-    good = DRAFT
-    calls, _, _ = fake_narrator(monkeypatch, [bad, good])
+def test_paragraph_without_citation_rejected_then_retry_accepted(world, monkeypatch):
+    bad = json.dumps({'paragraphs': [
+        {'text': '# A Festival Evening', 'rounds': [1], 'events': []},
+        {'text': 'Agnea laughed.', 'rounds': [], 'events': []},
+    ]})
+    calls, _, _ = fake_narrator(monkeypatch, [bad, REPLY_A])
     result = CliRunner().invoke(
         app, ['world', 'tell', 'test', '--day', '1', '--act', 'A', '--pov', 'agnea'])
     assert result.exit_code == 0, result.output
     run = Path(result.output.strip())
-    assert len(calls) == 2  # the bad draft, then the retry
+    assert len(calls) == 2  # the bad reply, then the retry
     assert 'Grounding check failed' in calls[1]
-    assert 'paragraph 2' in calls[1]
-    assert (run / 'acts/act_1.md').read_text() == good
+    assert 'cite' in calls[1]
+    assert (run / 'acts/act_1.md').read_text() == ACT_A
 
 
 def test_citation_of_nonexistent_round_rejected(world, monkeypatch):
-    bad = "# A Festival Evening<!-- r:1 -->\n\nAgnea laughed.<!-- r:5 -->\n"  # scene A has rounds 1-2 only
+    bad = json.dumps({'paragraphs': [
+        {'text': '# A Festival Evening', 'rounds': [1], 'events': []},
+        {'text': 'Agnea laughed.', 'rounds': [5], 'events': []},  # scene A has rounds 1-2 only
+    ]})
     calls, _, _ = fake_narrator(monkeypatch, [bad, bad])
     result = CliRunner().invoke(
         app, ['world', 'tell', 'test', '--day', '1', '--act', 'A', '--pov', 'agnea'])
@@ -191,31 +208,35 @@ def test_citation_of_nonexistent_round_rejected(world, monkeypatch):
     assert len(calls) == 2  # one retry, then the final failure
 
 
-def test_round_range_marker_accepted(world, monkeypatch):
-    """`<!-- r:1-2 -->` cites both of scene A's rounds in one marker."""
-    draft = "# A Festival Evening<!-- r:1-2 -->\n\nAgnea laughed.<!-- r:1-2 -->\n"
-    calls, _, _ = fake_narrator(monkeypatch, draft)
+def test_citation_of_nonexistent_event_rejected(world, monkeypatch):
+    bad = json.dumps({'paragraphs': [
+        {'text': '# A Festival Evening', 'rounds': [1], 'events': [99]},  # not a transition event
+        {'text': 'Agnea laughed.', 'rounds': [2], 'events': []},
+    ]})
+    calls, _, _ = fake_narrator(monkeypatch, [bad, bad])
+    result = CliRunner().invoke(
+        app, ['world', 'tell', 'test', '--day', '1', '--act', 'A', '--pov', 'agnea'])
+    assert result.exit_code == 1
+    assert 'paragraph 1' in result.output
+    assert len(calls) == 2
+
+
+def test_multiple_rounds_cited_render_as_range(world, monkeypatch):
+    """Citing rounds [1, 2] in one paragraph renders as the range `<!-- r:1-2 -->`."""
+    reply = json.dumps({'paragraphs': [
+        {'text': '# A Festival Evening', 'rounds': [1, 2], 'events': []},
+        {'text': 'Agnea laughed.', 'rounds': [1, 2], 'events': []},
+    ]})
+    expected = "# A Festival Evening<!-- r:1-2 -->\n\nAgnea laughed.<!-- r:1-2 -->\n"
+    calls, _, _ = fake_narrator(monkeypatch, reply)
     result = CliRunner().invoke(
         app, ['world', 'tell', 'test', '--day', '1', '--act', 'A', '--pov', 'agnea'])
     assert result.exit_code == 0, result.output
     run = Path(result.output.strip())
-    assert (run / 'acts/act_1.md').read_text() == draft
+    assert (run / 'acts/act_1.md').read_text() == expected
     trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     grounding = next(row for row in trace if row['type'] == 'act_grounding')
     assert grounding['cited_rounds'] == [1, 2] and grounding['cited_round_share'] == 1.0
-
-
-def test_dialogue_without_speech_citation_rejected(world, monkeypatch):
-    # Scene B's only round (1) has an action event (4), and the part-of-day event (3) is a
-    # world event: no round or event here contains speech.
-    bad = '# Agnea resolves it.<!-- e:3 -->\n\nShe said, "It is done."<!-- r:1 -->\n'
-    calls, _, _ = fake_narrator(monkeypatch, [bad, bad])
-    result = CliRunner().invoke(
-        app, ['world', 'tell', 'test', '--day', '1', '--act', 'B', '--pov', 'agnea'])
-    assert result.exit_code == 1
-    assert 'paragraph 2' in result.output
-    assert 'dialogue' in result.output
-    assert len(calls) == 2
 
 
 def test_act_only_pov_events_carry_intent(world, monkeypatch):
@@ -254,16 +275,16 @@ def test_episode_from_skips_curator(world, monkeypatch):
     source_run = Path(source.output.strip())
 
     monkeypatch.setattr(curator, 'ClaudeSDKClient', UnexpectedCurator)
-    calls, _, _ = fake_narrator(monkeypatch, [DRAFT, DRAFT2])
+    calls, _, _ = fake_narrator(monkeypatch, [REPLY_A, REPLY_B])
     result = CliRunner().invoke(app, ['world', 'tell', 'test', '--episode-from', source_run.name])
     assert result.exit_code == 0, result.output
     run = Path(result.output.strip())
     assert run != source_run
     assert len(calls) == 2  # the narrator was called, once per act
     assert (run / 'episode.json').read_bytes() == (source_run / 'episode.json').read_bytes()
-    assert (run / 'acts/act_1.md').read_text() == DRAFT
-    assert (run / 'acts/act_2.md').read_text() == DRAFT2
-    assert (run / 'story.md').read_text() == STORY_PART + '\n\n---\n\n' + STORY_PART2
+    assert (run / 'acts/act_1.md').read_text() == ACT_A
+    assert (run / 'acts/act_2.md').read_text() == ACT_B
+    assert (run / 'story.md').read_text() == STORY_A + '\n\n---\n\n' + STORY_B
     meta = RunMeta.model_validate_json((run / 'meta.json').read_bytes())
     assert meta.status == 'passed' and meta.day == 1
 
@@ -283,13 +304,13 @@ def test_episode_from_rejects_old_format(world, monkeypatch):
 
 def test_stop_after_act_then_continue(world, monkeypatch):
     fake_curator(monkeypatch, [json.dumps(EPISODE)])
-    calls, _, _ = fake_narrator(monkeypatch, [DRAFT, DRAFT2])
+    calls, _, _ = fake_narrator(monkeypatch, [REPLY_A, REPLY_B])
     result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1', '--stop-after', 'act:1'])
     assert result.exit_code == 0, result.output
     run = Path(result.output.strip())
     assert len(calls) == 1
     act1_path = run / 'acts/act_1.md'
-    assert act1_path.read_text() == DRAFT
+    assert act1_path.read_text() == ACT_A
     assert not (run / 'acts/act_2.md').exists()
     assert not (run / 'story.md').exists()
     meta = RunMeta.model_validate_json((run / 'meta.json').read_bytes())
@@ -304,7 +325,7 @@ def test_stop_after_act_then_continue(world, monkeypatch):
     assert len(calls) == 2
     assert act1_path.read_bytes() == before_bytes
     assert act1_path.stat().st_mtime_ns == before_mtime
-    assert (run / 'acts/act_2.md').read_text() == DRAFT2
-    assert (run / 'story.md').read_text() == STORY_PART + '\n\n---\n\n' + STORY_PART2
+    assert (run / 'acts/act_2.md').read_text() == ACT_B
+    assert (run / 'story.md').read_text() == STORY_A + '\n\n---\n\n' + STORY_B
     meta = RunMeta.model_validate_json((run / 'meta.json').read_bytes())
     assert meta.status == 'passed'

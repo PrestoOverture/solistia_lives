@@ -53,11 +53,10 @@ def rows(run):
 @pytest.mark.parametrize('kind', ['world', 'character', 'initializer'])
 def test_cumulative_cost_and_world_event_delta(tmp_path, monkeypatch, kind):
     state = load_state(ROOT / 'tests/fixtures/worlds/agnea_throne')
-    resolution = dict(call='part_of_day', events=[], state=state.model_dump(exclude={'clock'}),
-                      situation_notes={s.id: 'Unchanged.' for s in state.situations})
+    adjudicate = dict(call='adjudicate', verdicts={}, encounters=[])
     action = dict(call='action', intent='Wait', move='wait', urge=0, action='', say='')
     module = {'world': world_agent, 'character': character, 'initializer': initializer}[kind]
-    valid = resolution if kind == 'world' else action
+    valid = adjudicate if kind == 'world' else action
     outputs = [(valid, .10), (valid, .25)]
     if kind == 'initializer':
         outputs = [({}, .10), (state.model_dump(exclude={'clock'}), .25)]
@@ -83,8 +82,8 @@ def test_cumulative_cost_and_world_event_delta(tmp_path, monkeypatch, kind):
                                                                   settings.agent_max_turns, TraceWriter(run)))
         async with agent:
             if kind == 'world':
-                await agent.resolve(state, {}, [event.model_copy(update={"id": 99, "day": 0}), event])
-                await agent.resolve(state, {}, [event, new])
+                await agent.adjudicate(state, {}, [event.model_copy(update={"id": 99, "day": 0}), event])
+                await agent.adjudicate(state, {}, [event, new])
             else:
                 await agent.act([event])
                 await agent.act([event, new])
