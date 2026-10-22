@@ -1,0 +1,234 @@
+[
+ {
+  "case": "osvald_temenos_2",
+  "sim": "20261022-191743-b725c6",
+  "base": "20261022-190612-c15306",
+  "judges": [
+   {
+    "lore": "tie",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "49cd55e94670a033ead105bdd58b5f0d",
+    "reasons": "Lore is a tie: both acknowledge the defeated antagonists but reopen the supposedly concluded conspiracy, with A pursuing Warwick and B asserting that Harvey's superior is still at large. B better distinguishes Temenos's teasing inquisitiveness ('the exceedingly devout or the exceedingly desperate') from Osvald's literal scholarly resistance ('reductive'). B also sustains Osvald's close perspective and develops its dusty, beeswax-scented archive into a reflective scene, whereas A switches viewpoints and repeatedly narrates note-taking and cross-referencing, even referring to an unspoken 'both scholars' remark. B wins overall for its characterization and prose, although both endings promise further investigation instead of closing the episode, and A also falls below the requested 2,000-word minimum."
+   },
+   {
+    "lore": "tie",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "b45bdc389b6221d2609ec68856cb2340",
+    "reasons": "Both stories undermine the stipulated post-ending closure by reopening the Moonshade conspiracy: A declares that someone above Harvey is still out there, while B ends by dividing an unfinished investigation between the cathedral and Conning Creek, leaving neither episode self-contained. A better distinguishes Osvald's terse replies from Temenos's teasing skepticism, especially in the exchange where Osvald calls the cleric's explanation of magic 'reductive'; B gives both men lengthy, similarly phrased investigative exposition. A also sustains Osvald's close perspective and grounds the archive in dust, beeswax, and changing light, whereas B switches between Temenos and Osvald and repeatedly restates research findings, including the donation dates and Warwick's visit. Despite its sequel hook, A offers the more engaging encounter and the more satisfying emotional connection between Osvald's scholarship and his love for Elena."
+   }
+  ],
+  "pair": "baseline",
+  "axes": {
+   "lore": "tie",
+   "voice": "baseline",
+   "readability": "baseline"
+  }
+ },
+ {
+  "case": "agnea_throne_1",
+  "sim": "20261022-191755-e32e98",
+  "base": "20261022-190612-a76798",
+  "judges": [
+   {
+    "lore": "baseline",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "b91c6f33da8099fd559975f298b95c1f",
+    "reasons": "A wins lore because B reintroduces the defeated game antagonist La'mani despite the ban on returning enemies, and recasts the theater manager as a young performer seeking Agnea's autograph. A distinguishes Thron\u00e9's clipped 'Three letters, Agnea' and practical judgments about seams and cuts from Agnea's exuberant invitations, whereas B gives Agnea and the organizer repetitive exchanges of praise and thanks. A's dress-shop, fireworks, and overlook scenes build a coherent evening through Thron\u00e9's attention to craft and tentative freedom; B jumps from a canal walk to a performance and then into Thron\u00e9's viewpoint, breaking the requested single viewpoint and weakening the friendship's continuity. Although A repeats its emotional reassurances, its closing request for three more letters gives the friends' shared evening a more satisfying resolution than B's separate retreats to their inns."
+   },
+   {
+    "lore": "baseline",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "50fe7ec41f90117400f5919f9ae7af30",
+    "reasons": "B wins lore because A brings back La'mani despite the prohibition on returning game enemies and recasts the theater manager as a young performer seeking encouragement. B gives the friends more distinct voices through Agnea's breathless invitation and Thron\u00e9's dry replies such as \u2018Three letters, Agnea\u2019 and \u2018Being good at something doesn\u2019t mean you want to keep doing it,\u2019 whereas A repeatedly gives Agnea and the organizer interchangeable effusive thanks. B also sustains Thron\u00e9\u2019s close perspective and connects the dress, fireworks, and final raspberry juice into a coherent evening; A abruptly switches from Agnea\u2019s perspective to Thron\u00e9\u2019s after the performance and falls below the required 2,000-word minimum. Overall, B\u2019s closing recollection of standing beside someone who calls her a friend gives the reunion a more satisfying emotional resolution than A\u2019s largely separate performance and solitary bedtime."
+   }
+  ],
+  "pair": "baseline",
+  "axes": {
+   "lore": "baseline",
+   "voice": "baseline",
+   "readability": "baseline"
+  }
+ },
+ {
+  "case": "agnea_throne_2",
+  "sim": "20261022-191736-c57ca2",
+  "base": "20261022-190612-3f7184",
+  "judges": [
+   {
+    "lore": "tie",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "1ceb9a9323fc2e51101e52f388788b53",
+    "reasons": "Lore is a tie: A treats Vide and Thron\u00e9's former captors as memories, while B's local medicine incident supplies no decisive contradiction of the post-ending setting. A better distinguishes Thron\u00e9's guarded brevity ('It's loud'; 'I said I'd be here') from Agnea's eager warmth, whereas B repeatedly gives its characters explanatory praise and Ren near-identical tearful thanks. A maintains Thron\u00e9's close perspective and develops the tart, performance, and quiet bridge conversation into a completed emotional arc; B switches viewpoints, repeats the medicine rescue, and ends immediately after 'I just needed air.' A is the stronger overall fit for the requested self-contained episode, also meeting the length range at approximately 2,139 words while B falls short at approximately 1,889."
+   },
+   {
+    "lore": "tie",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "cc6c37748cb69de40cc0239f2e08b064",
+    "reasons": "Neither story has a decisive lore advantage: both keep the incident local to Cropdale, and B's references to Claude, Mother, and Father are memories rather than revivals. B better distinguishes Thron\u00e9's guarded brevity ('I said I'd be here') from Agnea's affectionate insistence ('We're a strange family, but we're family'), while A repeatedly explains emotions through similar smiles, tears, and gratitude. B sustains Thron\u00e9's viewpoint and completes her movement from discomfort at the festival to willingly returning arm in arm; A switches between Agnea and Thron\u00e9 and stops at 'I just needed air,' leaving their final exchange and Ren's predicament without a clear resolution. B's garbled nickname exchange ('N\u00e9n\u00e9 calls you that sometimes') briefly disrupts the prose, but its concrete festival details and finished emotional arc make it the stronger reading experience overall."
+   }
+  ],
+  "pair": "baseline",
+  "axes": {
+   "lore": "tie",
+   "voice": "baseline",
+   "readability": "baseline"
+  }
+ },
+ {
+  "case": "hikari_ochette_2",
+  "sim": "20261022-192948-560108",
+  "base": "20261022-190927-b43e5d",
+  "judges": [
+   {
+    "lore": "tie",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "082ab8eb4b57b78bf46eef72034b633c",
+    "reasons": "Neither offers a decisive lore advantage: both preserve Ochette's bond with Tera and Hikari's kingship while keeping the incident local, without reviving a named defeated enemy. A gives the friends more distinctive voices through Ochette's complaint about 'boring dried meat' and Hikari's quiet 'I came because you invited me,' whereas B repeatedly makes their exchanges sound like rescue instructions. A's canyon imagery and Tera's 'The strike was one day. The care is every day' develop a coherent emotional arc; B shifts between Ochette's and Hikari's perspectives and confusingly declares that the tremors continue before explaining that the ground has been still all along. Although A falls short of the required length at 1,928 words while B meets it at 2,529, A's stronger characterization, pacing, and friendship-centered resolution make it the better overall reading experience."
+   },
+   {
+    "lore": "tie",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "1e20c0a7efa921e4d133698ca3e730a1",
+    "reasons": "Lore is a tie: both retain Ochette's bond with Tera and her friendship with Hikari, without reviving a defeated enemy or introducing a world-level threat. B gives their voices and motivations more individuality through Ochette's wish that Hikari could 'just... be Hikarin for a while' and his reserved admission that he came because she invited him, whereas A repeatedly relies on generic tactical exchanges. B also sustains Hikari's viewpoint and connects Tera's daily care of the land to kingship, while A switches between Ochette's and Hikari's thoughts and awkwardly reverses 'The tremors haven't stopped' with 'The earth was quiet. Had been quiet since they'd climbed out.' Although B is slightly below the requested 2,000-word minimum, its coherent emotional arc and affectionate closing race make it the stronger overall choice."
+   }
+  ],
+  "pair": "baseline",
+  "axes": {
+   "lore": "tie",
+   "voice": "baseline",
+   "readability": "baseline"
+  }
+ },
+ {
+  "case": "castti_partitio_1",
+  "sim": "20261022-193555-b0a5d3",
+  "base": "20261022-190936-4aadbc",
+  "judges": [
+   {
+    "lore": "simulation",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "e5f7be2c54bd90faf076d8a2047a54e5",
+    "reasons": "B wins lore because A says the Oresrush foundry belonged to 'that Slaver fellow' and was cleared by Thron\u00e9, wrongly assigning Partitio's local conflict to her storyline. A gives the characters more individual expression: Castti's 'Blame can wait' and Partitio's promise of paid alternative work convey their priorities more naturally than B's repeated instructions and acknowledgments. A also sustains Castti's viewpoint and develops the incident into a resolved episode with the workers recovering and the foundry closed pending repairs. B repeats Partitio's departure to fetch the water sample, shifts into his internal viewpoint, and ends at the Millers' doorway before the child's treatment, making A the stronger reading experience and overall choice."
+   },
+   {
+    "lore": "simulation",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "49473db611a3d5d154a5327e2dc77975",
+    "reasons": "A has the edge on lore because B explicitly gives Castti blonde hair, contradicting her brown hair in the game. B better distinguishes Castti's practical compassion in 'Blame can wait' from Partitio's merchant idealism in 'a fortune ... meant to be spent on what matters,' while A repeatedly reduces their exchanges to instructions and acknowledgments. B sustains Castti's viewpoint and develops the dusty foundry into both a tangible setting and the cause of Partitio's self-examination; A slips into Partitio's thoughts and repeats his departure to collect the water sample. B also resolves its immediate crisis through the miners' recovery and paid alternative work, whereas A ends with another sick child's examination still pending, making B the stronger episode overall."
+   }
+  ],
+  "pair": "baseline",
+  "axes": {
+   "lore": "simulation",
+   "voice": "baseline",
+   "readability": "baseline"
+  }
+ },
+ {
+  "case": "castti_partitio_2",
+  "sim": "20261022-193954-b55a66",
+  "base": "20261022-190942-792637",
+  "judges": [
+   {
+    "lore": "tie",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "0b1cb89ce1f89e1331f8a40cbb18351e",
+    "reasons": "Lore is a tie: both mishandle Tera's fate by depicting the creature as still resting beneath Crackridge, with A describing 'shifting in his ancient rest' and B saying Tera 'slept peacefully' even after mentioning the sacrifice. B gives Partitio a more recognizable mixture of warmth, commercial thinking, and practical generosity in his pitch for railway-supported medicine, while Castti's condition about ventilation and health inspections preserves her professional priorities. B also sustains Castti's viewpoint and moves from bedside treatment through the quarry investigation to recovery and an agreed partnership, whereas A switches into Partitio's viewpoint and repeatedly returns to urgent herbs and worsening symptoms. B is the stronger complete episode: A ends with Ellie's fever still unbroken, critical patients in danger, and the supply problem unresolved."
+   },
+   {
+    "lore": "simulation",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "bec39ac3856bdad340e89c8fce301253",
+    "reasons": "B narrowly wins lore accuracy: A repeatedly calls Tera 'her' and describes an inaccurate 'ancient sacrifice' in which he collapsed a mountain to save others. A better distinguishes the leads through Partitio's 'I'll find the leaves' and Castti's clinical questioning and 'Non-negotiable,' while B's dialogue repeatedly recites symptoms and supply needs. A also has stronger pacing and viewpoint control, progressing from the quarry fissure through investigation to a solution, whereas B switches into Partitio's viewpoint and repeatedly returns to 'Three critical patients' and dwindling herbs. Overall, A provides the more satisfying self-contained episode by identifying the source and arranging repairs; B ends with Ellie's fever, the dangerous quarry, and the supply shortage unresolved."
+   }
+  ],
+  "pair": "baseline",
+  "axes": {
+   "lore": "tie",
+   "voice": "baseline",
+   "readability": "baseline"
+  }
+ },
+ {
+  "case": "osvald_temenos_agnea_1",
+  "sim": "20261022-194406-7cee58",
+  "base": "20261022-190946-087854",
+  "judges": [
+   {
+    "lore": "simulation",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "d0737c96a1996c845bba04fb6b232351",
+    "reasons": "A edges lore accuracy by correctly naming Agnea's Grand Gala victory, whereas B substitutes the Festival of Grace. B gives the characters more distinctive exchanges, particularly Osvald's 'This is a wooden platform with lights' reassurance and Temenos's teasing observation that he is counting. B also sustains Osvald's close third-person viewpoint, while A shifts from Osvald to Agnea to Temenos and repeats Agnea's assurances and gratitude. B's dressing-room stumble pays off in her recovery onstage, giving its self-contained performance episode stronger pacing and emotional shape, which makes it my overall choice."
+   },
+   {
+    "lore": "baseline",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "08e00a55a8a3da309565ed5ea0bc6fbc",
+    "reasons": "A better respects the restriction on returning game enemies: B brings Dolcinaea back as a supporting character, although A also has a questionable reference to Temenos losing 'his own brother'. A gives Osvald and Temenos distinct voices through the dry reassurance 'This is a wooden platform with lights' and the teasing observation that Osvald has 'claimed the position of moral support', while B relies more on repeated, explicit declarations of pride and encouragement. A sustains Osvald's viewpoint and pays off Agnea's fear of tripping with her recovery onstage; B shifts between Osvald, Agnea, and Temenos, adds a disconnected astronomy prelude, and inexplicably moves Gil's charm from Agnea's neck to her wrist. A's closing connection between Agnea's triumph and Osvald seeing Elena in the audience gives its celebration more emotional depth and makes it the stronger overall choice."
+   }
+  ],
+  "pair": "baseline",
+  "axes": {
+   "lore": "tie",
+   "voice": "baseline",
+   "readability": "baseline"
+  }
+ },
+ {
+  "case": "osvald_temenos_agnea_2",
+  "sim": "20261022-194612-4ddf26",
+  "base": "20261022-191036-c6a8a7",
+  "judges": [
+   {
+    "lore": "baseline",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "98eb4ec6fe90c71854e6cf7a7f5bdc60",
+    "reasons": "A grounds its episode in Vide's defeat and Tanzy's death at Arcanette's hands, while B gives an unexplained, still-powerful 'Order' festival funding and heresy quotas, muddying the stipulated post-Order setting. Although A overplays Osvald's analytical reserve and Temenos's aversion to exertion, Osvald's 'distributed across a wider geographic area,' Temenos's teasing response, and Agnea's warm acceptance give them more distinct voices than B's largely interchangeable explanations about faith and art. A sustains Osvald's viewpoint and carries the performance through a companionable evening to a satisfying departure; B switches from Temenos to Agnea, repeatedly restates dialogue in explanatory narration, and leaves the Brother Elwin investigation unresolved. A's concrete theater and tavern details and affectionate closing exchange about the seventh source make it the more satisfying episode for readers who love these characters."
+   },
+   {
+    "lore": "baseline",
+    "voice": "baseline",
+    "readability": "baseline",
+    "overall": "baseline",
+    "pkt": "9cc541ccdd2452608d8619ef7af6044e",
+    "reasons": "B more clearly establishes the post-ending setting through its references to Vide's defeat, Tanzy's death, and Elena in Clarissa's care, whereas A's unexplained references to the 'Order' leave its religious authorities' relationship to the stipulated aftermath unclear. B also gives the speakers more distinct voices, especially Osvald's 'They're accurate' and Temenos's reply that accuracy and warmth are compatible, although the repeated calculations and complaints about exertion become caricatural. B maintains Osvald's viewpoint and brings the evening to a satisfying close, while A switches into Agnea's viewpoint, repeatedly paraphrases the dialogue in its narration, and abandons the promised confrontation with Brother Elwin. Overall I would give readers B for its affectionate reunion and stronger continuity, despite its dialogue-heavy presentation and roughly 3,159 words; A is slightly below the requested minimum at roughly 1,982 words."
+   }
+  ],
+  "pair": "baseline",
+  "axes": {
+   "lore": "baseline",
+   "voice": "baseline",
+   "readability": "baseline"
+  }
+ }
+]
