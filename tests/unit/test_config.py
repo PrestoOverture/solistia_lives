@@ -98,7 +98,8 @@ def test_valid_dry_run(config_dir: Path) -> None:
         assert meta.input.scenario.encode("utf-8") == scenario.encode("utf-8")
         assert meta.input.characters == ["osvald", "temenos"]
         assert meta.status == "dry_run"
-        assert meta.models.model_dump() == expected_models
+        assert meta.models.model_dump() == {name: {**role, "base_url": None, "auth_token_env": None, "retries": 1, "max_turns": None, "timeout_s": None}
+                                        for name, role in expected_models.items()}
         assert meta.models_file == "config/models.yaml"
         assert meta.scene_context_from is None
         assert "stop" not in json.loads(raw)
@@ -258,3 +259,22 @@ def test_location_requires_file_under_locations(config_dir: Path, tree: str) -> 
     assert "Traceback" not in result.output
     assert isinstance(result.exception, SystemExit)
     assert not Path("runs").exists()
+
+
+def test_role_limits_defaults_and_spark():
+    from story_engine.config import load_configs
+    models, _ = load_configs()
+    assert all(role.retries == 1 and role.max_turns is None for role in models.__dict__.values())
+    spark, _ = load_configs('config/models_spark.yaml')
+    assert all(role.retries == 3 and role.max_turns == 60 for role in spark.__dict__.values())
+
+
+@pytest.mark.parametrize('override', [None, 60])
+def test_role_max_turns_overrides_session_setting(tmp_path, override):
+    from story_engine.config import load_configs
+    from story_engine.agents.sdk import KBHooks, session_options
+    models, settings = load_configs()
+    role = models.world.model_copy(update={'max_turns': override})
+    hooks = KBHooks(tmp_path, tmp_path, 'world', 1)
+    options = session_options(tmp_path, tmp_path, role, 'test', settings.agent_max_turns, hooks)
+    assert options.max_turns == (settings.agent_max_turns if override is None else override)

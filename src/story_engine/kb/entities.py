@@ -11,6 +11,7 @@ from story_engine.kb import normalize_slug
 
 
 class EntitySentence(BaseModel):
+    sentence_id: int | None = None
     text: str
     entities: list[str]
 

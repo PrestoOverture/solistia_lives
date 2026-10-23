@@ -1,0 +1,35 @@
+{
+  "source_run": "20261022-190612-3f7184",
+  "plants": [
+    {
+      "text": "Osvald, who had grown up in Flamechurch among the clerics of the Sacred Flame, had once told her that every festival was a ritual with better food.",
+      "type": "canon_fact",
+      "verdict": "contradicted",
+      "kb": "characters/osvald/osvald.md"
+    },
+    {
+      "text": "Even now she still answered to the Blacksnakes, slipping away whenever Mother sent word.",
+      "type": "canon_fact",
+      "verdict": "contradicted",
+      "kb": "characters/throne/throne.md"
+    },
+    {
+      "text": "She bought a cup of cider from Orrin, the bald bartender who had set up a barrel beside the stage.",
+      "type": "invented_detail",
+      "verdict": null,
+      "kb": null
+    },
+    {
+      "text": "Even Hikari had sent a letter from the kingdom of Sai, which he now ruled, wishing Agnea luck tonight.",
+      "type": "canon_fact",
+      "verdict": "contradicted",
+      "kb": "characters/hikari/hikari.md"
+    },
+    {
+      "text": "Lantern light spilled from the Copper Kettle, a little tavern at the edge of the grounds, as she passed.",
+      "type": "invented_detail",
+      "verdict": null,
+      "kb": null
+    }
+  ]
+}

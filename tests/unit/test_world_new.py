@@ -209,3 +209,19 @@ def test_path_form_place_slugs_are_normalized():
     assert out["characters"]["agnea"]["where"] == "cropdale"
     assert out["characters"]["agnea"]["commitments"][0]["where"] == "cropdale"
     assert out["people"]["Gus"]["where"] == "cropdale"
+
+
+@pytest.mark.parametrize('retries', [None, 3])
+@pytest.mark.parametrize('recover', [False, True])
+def test_configured_state_retry_budget(repo, state, monkeypatch, retries, recover):
+    import yaml
+    if retries is not None:
+        path = repo / 'config/models.yaml'
+        config = yaml.safe_load(path.read_text())
+        config['initializer']['retries'] = retries
+        path.write_text(yaml.safe_dump(config))
+    count = 1 if retries is None else retries
+    sessions = fake_sdk(monkeypatch, ['{}'] * count + [state if recover else '{}'])
+    result = CliRunner().invoke(app, ARGS)
+    assert result.exit_code == (0 if recover else 1), result.output
+    assert len(sessions[1].queries) == count + 1

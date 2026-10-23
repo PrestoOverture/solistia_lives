@@ -236,6 +236,7 @@ def test_simulation_dispatch_and_manifest(suite_workspace, monkeypatch, failed):
     cases = suite_workspace
     models, _ = load_configs()
     calls = []
+    Path("alternate.yaml").write_bytes(Path("config/models.yaml").read_bytes())
     expected = {}
     lock = Lock()
 
@@ -250,6 +251,7 @@ def test_simulation_dispatch_and_manifest(suite_workspace, monkeypatch, failed):
             case = next(c for c in cases if c["location"] == options["--location"]
                         and ",".join(c["characters"]) == options["--characters"])
             assert options["--situation"] == case["situation"]
+            assert options["--models"] == "alternate.yaml"
             run = create_run(case["characters"], case["location"], case["situation"], "initializer", None, models)
             TraceWriter(run).write("stage_usage", total_cost_usd=0.25)
             is_failed = failed and case == cases[0]
@@ -265,7 +267,8 @@ def test_simulation_dispatch_and_manifest(suite_workspace, monkeypatch, failed):
             world.mkdir(parents=True)
             (world / "world.json").write_text(json.dumps({"init_run_id": run.name}))
             return subprocess.CompletedProcess(command, 0, stdout=f"{world}\n")
-        assert command[4] == "run" and len(command) == 6
+        assert command[4] == "run" and len(command) == 8
+        assert command[6:] == ["--models", "alternate.yaml"]
         case = next(c for c in cases if "world-" + c["id"] == command[5])
         assert not (failed and case == cases[0])
         assert expected[case["id"]]["init_run_id"]
@@ -276,7 +279,7 @@ def test_simulation_dispatch_and_manifest(suite_workspace, monkeypatch, failed):
         return subprocess.CompletedProcess(command, 0, stdout=f"{run}\n")
 
     monkeypatch.setattr(suite_module.subprocess, "run", child)
-    result = CliRunner().invoke(app, ["eval", "run-suite", "--mode", "simulation"])
+    result = CliRunner().invoke(app, ["eval", "run-suite", "--mode", "simulation", "--models", "alternate.yaml"])
     assert result.exit_code == (1 if failed else 0), result.output
     assert len(calls) == (19 if failed else 20)
     assert read_manifest(result, cases) == expected

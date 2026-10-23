@@ -142,3 +142,39 @@ def test_event_and_memory_rejections(tmp_path, state_data):
     assert read_events(world) == []
     with pytest.raises(ValueError):
         write_memory(world, "../escape", "no")
+
+
+@pytest.mark.parametrize('case,values', [
+    ('characters', ['missing_town', 'lost_town']),
+    ('people_where', ['missing_town', 'lost_town']),
+    ('people_names', ['Ghost', 'Stranger', 'keeper']),
+    ('touches', ['outsider', 'stranger']),
+    ('duplicate_ids', ['book', 'second']),
+    ('main_name', ['Throné']),
+])
+def test_reference_errors_name_values(state_data, case, values):
+    if case == 'characters':
+        for character, where in zip(state_data['characters'].values(), values):
+            character['where'] = where
+    elif case == 'people_where':
+        state_data['people']['keeper']['where'] = values[0]
+        state_data['people']['visitor'] = dict(where=values[1], wants=['Visit'], commitments=[])
+    elif case == 'people_names':
+        state_data['situations'][0]['people'] = values[:2]
+    elif case == 'touches':
+        state_data['situations'][0]['touches'] = values
+    elif case == 'duplicate_ids':
+        second = dict(state_data['situations'][0], id='second')
+        state_data['situations'] += [dict(state_data['situations'][0]), second, dict(second)]
+    else:
+        state_data['people']['Throné'] = dict(where='cropdale', wants=['Visit'], commitments=[])
+    with pytest.raises(ValidationError) as caught:
+        WorldState.model_validate(state_data)
+    message = caught.value.errors(include_input=False)[0]['msg']
+    assert all(value in message for value in values)
+
+
+def test_duplicate_world_characters_names_value():
+    with pytest.raises(ValidationError) as caught:
+        WorldInfo(characters=['agnea', 'agnea'], location='cropdale', situation='Visit', created_at='now')
+    assert 'agnea' in caught.value.errors(include_input=False)[0]['msg']

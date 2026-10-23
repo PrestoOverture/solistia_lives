@@ -80,11 +80,12 @@ def _generate_case(case: SuiteCase, models_file: Path, dry_run: bool) -> CaseRes
     return result
 
 
-def _simulate_case(case: SuiteCase, dry_run: bool) -> CaseResult:
+def _simulate_case(case: SuiteCase, models_file: Path, dry_run: bool) -> CaseResult:
     prefix = [sys.executable, "-c", "from story_engine.cli import app; app()", "world"]
     command = prefix + [
         "new", "--characters", ",".join(case.characters),
         "--location", case.location, "--situation", case.situation,
+        "--models", str(models_file),
     ]
     if dry_run:
         command.append("--dry-run")
@@ -114,7 +115,7 @@ def _simulate_case(case: SuiteCase, dry_run: bool) -> CaseResult:
             return result
         if meta.status != "passed":
             return result
-        process = subprocess.run(prefix + ["run", result.world_id], stdout=subprocess.PIPE,
+        process = subprocess.run(prefix + ["run", result.world_id, "--models", str(models_file)], stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT, text=True, check=False)
         match = re.search(r"^runs/([\w-]+)(?=[:\r\n]|$)", process.stdout, re.MULTILINE)
         if match is None:
@@ -139,7 +140,7 @@ def run_suite(
     with ThreadPoolExecutor(max_workers=suite_parallel) as executor:
         results = list(executor.map(
             lambda case: (_generate_case(case, models_file, dry_run) if mode == "baseline"
-                          else _simulate_case(case, dry_run)), suite.cases,
+                          else _simulate_case(case, models_file, dry_run)), suite.cases,
         ))
     manifest = SuiteManifest({case.id: result for case, result in zip(suite.cases, results)})
     directory = Path("runs/suites")

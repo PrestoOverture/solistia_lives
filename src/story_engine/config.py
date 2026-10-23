@@ -11,8 +11,13 @@ class StrictModel(BaseModel):
 
 class Role(StrictModel):
     model: str
-    effort: Literal["low", "medium", "high", "xhigh", "max"]
-    thinking: Literal["off", "adaptive"]
+    effort: Literal["low", "medium", "high", "xhigh", "max"] | None
+    thinking: Literal["off", "adaptive"] | None
+    retries: int = Field(default=1, ge=0)
+    max_turns: int | None = Field(default=None, gt=0)
+    timeout_s: int | float | None = Field(default=None, gt=0)
+    base_url: str | None = None
+    auth_token_env: str | None = None
 
 
 class Models(StrictModel):

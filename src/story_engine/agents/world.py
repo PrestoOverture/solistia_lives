@@ -8,7 +8,7 @@ from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from story_engine.agents.sdk import (
-    KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
+    run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
     session_options, structured_reply,
 )
 from story_engine.config import Role
@@ -189,27 +189,32 @@ class _WorldSession:
     async def _send(self, request: str):
         """Send one query and return (result_text, trace_fields) for the final reply."""
         thinking = ThinkingUsage()
-        await self.client.query(request)
-        result = None
-        structured_output = None
-        usage_fields = None
-        async for message in self.client.receive_response():
-            self.hooks.observe(message)
-            thinking.observe(message)
-            if isinstance(message, ResultMessage):
-                usage_fields = dict(
-                    usage=message.usage or {}, num_turns=message.num_turns,
-                    total_cost_usd=message.total_cost_usd,
-                    call_cost_usd=self.cost.delta(message.total_cost_usd),
-                    thinking_blocks=thinking.thinking_blocks, thinking_chars=thinking.thinking_chars,
-                )
-                if message.is_error or message.subtype != "success":
-                    raise session_error(f"World session {message.subtype}: " +
-                                        ("; ".join(message.errors or []) or message.result or "unspecified SDK error"),
-                                        self.options.env)
-                result = message.result
-                structured_output = message.structured_output
-        return result, structured_output, usage_fields
+        async def receive_call():
+            await self.client.query(request)
+            result = None
+            structured_output = None
+            usage_fields = None
+            async for message in self.client.receive_response():
+                self.hooks.observe(message)
+                thinking.observe(message)
+                if isinstance(message, ResultMessage):
+                    usage_fields = dict(
+                        usage=message.usage or {}, num_turns=message.num_turns,
+                        total_cost_usd=message.total_cost_usd,
+                        call_cost_usd=self.cost.delta(message.total_cost_usd),
+                        thinking_blocks=thinking.thinking_blocks, thinking_chars=thinking.thinking_chars,
+                    )
+                    if message.is_error or message.subtype != "success":
+                        raise session_error(f"World session {message.subtype}: " +
+                                            ("; ".join(message.errors or []) or message.result or "unspecified SDK error"),
+                                            self.options.env)
+                    result = message.result
+                    structured_output = message.structured_output
+            return result, structured_output, usage_fields
+        return await run_call(
+            receive_call(), role=self.role, trace=self.trace,
+            stage=self.agent_name, agent=self.agent_name,
+        )
 
 
 class WorldAgent(_WorldSession):
@@ -225,7 +230,7 @@ class WorldAgent(_WorldSession):
             "events": [event.model_dump(exclude={"intent"}) for event in events
                        if event.day == state.clock.day - 1 and event.type != "plan"],
         }, ensure_ascii=False)
-        for attempt in range(2):
+        for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
                 self.trace.write("stage_usage", stage="world", agent="world", turn=self.turn,
@@ -246,8 +251,8 @@ class WorldAgent(_WorldSession):
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
                                  turn=self.turn, attempt=attempt + 1)
-                if attempt:
-                    raise SessionError(f"World validation failed after one retry: {error}") from None
+                if attempt == self.role.retries:
+                    raise SessionError(f"World validation failed after {'one retry' if self.role.retries == 1 else str(self.role.retries) + ' retries'}: {error}") from None
                 request = f"World validation failed: {error}\nReturn corrected JSON."
         raise AssertionError("unreachable")
 
@@ -283,7 +288,7 @@ class WorldAgent(_WorldSession):
                               "events": [event.model_dump() for event in new_events]}, ensure_ascii=False)
         valid_of = set(choices.keys()) & state.characters.keys()
         places = {place.slug for place in state.places}
-        for attempt in range(2):
+        for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
                 self.trace.write("stage_usage", stage="world", agent="world", turn=self.turn,
@@ -311,8 +316,8 @@ class WorldAgent(_WorldSession):
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
                                  turn=self.turn, attempt=attempt + 1)
-                if attempt:
-                    raise SessionError(f"World validation failed after one retry: {error}") from None
+                if attempt == self.role.retries:
+                    raise SessionError(f"World validation failed after {'one retry' if self.role.retries == 1 else str(self.role.retries) + ' retries'}: {error}") from None
                 request = f"World validation failed: {error}\nReturn corrected JSON."
         raise AssertionError("unreachable")
 
@@ -366,7 +371,7 @@ class WorldAgent(_WorldSession):
                               "last_winner": last_winner,
                               "events": [event.model_dump() for event in new_events]}, ensure_ascii=False)
         places = {place.slug for place in state.places}
-        for attempt in range(2):
+        for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
                 self.trace.write("stage_usage", stage="world", agent="world", turn=self.turn,
@@ -399,8 +404,8 @@ class WorldAgent(_WorldSession):
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
                                  turn=self.turn, attempt=attempt + 1)
-                if attempt:
-                    raise SessionError(f"World validation failed after one retry: {error}") from None
+                if attempt == self.role.retries:
+                    raise SessionError(f"World validation failed after {'one retry' if self.role.retries == 1 else str(self.role.retries) + ' retries'}: {error}") from None
                 request = f"World validation failed: {error}\nReturn corrected JSON."
         raise AssertionError("unreachable")
 
@@ -438,7 +443,7 @@ class OffscreenAgent(_WorldSession):
                               "people": {name: person.model_dump() for name, person in state.people.items()},
                               "situations": [situation.model_dump(exclude={"touches"})
                                              for situation in state.situations]}, ensure_ascii=False)
-        for attempt in range(2):
+        for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
                 self.trace.write("stage_usage", stage="world_offscreen", agent=self.agent_name, turn=self.turn,
@@ -466,8 +471,8 @@ class OffscreenAgent(_WorldSession):
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
                                  turn=self.turn, attempt=attempt + 1)
-                if attempt:
-                    raise SessionError(f"World validation failed after one retry: {error}") from None
+                if attempt == self.role.retries:
+                    raise SessionError(f"World validation failed after {'one retry' if self.role.retries == 1 else str(self.role.retries) + ' retries'}: {error}") from None
                 # State validation includes main-character data internally. Never echo
                 # Pydantic's input values into this isolated session's retry feedback.
                 feedback = (json.dumps(error.errors(include_input=False, include_context=False,

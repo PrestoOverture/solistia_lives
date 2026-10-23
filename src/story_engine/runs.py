@@ -8,7 +8,7 @@ from urllib.parse import urlsplit
 
 from pydantic import BaseModel
 
-from story_engine.config import Models
+from story_engine.config import Models, Role
 
 
 class RunInput(BaseModel):
@@ -21,9 +21,10 @@ class RunMeta(BaseModel):
     run_id: str
     created_at: str
     input: RunInput
-    mode: Literal["simulation", "baseline", "initializer", "world_eval"]
+    mode: Literal["simulation", "baseline", "initializer", "world_eval", "extract_eval", "validate"]
     stop_after: str | None
-    models: Models
+    # Historical snapshots contain only the roles that existed when the run began.
+    models: Models | dict[str, Role]
     scene_context_from: str | None = None
     models_file: str = "config/models.yaml"
     prompt_hashes: dict[str, str]
@@ -48,7 +49,7 @@ def create_run(
     characters: list[str],
     location: str,
     scenario: str,
-    mode: Literal["simulation", "baseline", "initializer", "world_eval"],
+    mode: Literal["simulation", "baseline", "initializer", "world_eval", "extract_eval", "validate"],
     stop_after: str | None,
     models: Models,
     status: Literal["dry_run", "running"] = "dry_run",

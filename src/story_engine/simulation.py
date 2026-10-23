@@ -23,6 +23,20 @@ class CostCapReached(RuntimeError):
     """The run exceeded its configured simulation cost cap."""
 
 
+class _SimulationTrace(TraceWriter):
+    def __init__(self, run_dir, billed, record_cost):
+        super().__init__(run_dir)
+        self.billed = billed
+        self.record_cost = record_cost
+
+    def write(self, event_type, **fields):
+        if event_type == "stage_usage":
+            fields["billed"] = self.billed(fields)
+        super().write(event_type, **fields)
+        if event_type == "stage_usage" and fields["billed"]:
+            self.record_cost(float(fields.get("call_cost_usd") or 0.0))
+
+
 class TickSession:
     """Keep character, World, and isolated off-screen sessions for this world/day."""
 
@@ -31,7 +45,19 @@ class TickSession:
         self.active = False
 
     async def __aenter__(self) -> Self:
-        models, self.settings = load_configs(self.root / 'config/models.yaml')
+        meta_path = self.run_dir / 'meta.json'
+        models_file = (json.loads(meta_path.read_text()).get('models_file', 'config/models.yaml')
+                       if meta_path.exists() else 'config/models.yaml')
+        models, self.settings = load_configs(self.root / models_file)
+        billed_by_agent = {name: role.base_url is None
+                           for name, role in models}
+        billed_by_agent.update({slug: models.character.base_url is None
+                                for slug in load_state(self.world_dir).characters})
+        billed_by_agent["world_offscreen"] = models.world.base_url is None
+
+        def billed(row):
+            return row.get("billed", billed_by_agent.get(row.get("agent"), True))
+
         self.day = load_state(self.world_dir).clock.day
         self.spend_usd = 0.0
         trace_path = self.run_dir / "trace.jsonl"
@@ -39,8 +65,10 @@ class TickSession:
             self.spend_usd = sum(
                 row.get("call_cost_usd", 0.0) or 0.0
                 for line in trace_path.read_text().splitlines()
-                if (row := json.loads(line))["type"] == "stage_usage")
-        self.trace = TraceWriter(self.run_dir, on_usage=self._record_cost)
+                if (row := json.loads(line))["type"] == "stage_usage" and billed(row))
+        self.trace = _SimulationTrace(
+            self.run_dir, lambda row: billed_by_agent.get(row.get("agent"), True),
+            self._record_cost)
         self._record_cost(0.0)
         self.stack = AsyncExitStack()
         await self.stack.__aenter__()

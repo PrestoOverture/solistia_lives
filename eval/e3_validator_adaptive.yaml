@@ -1,0 +1,8 @@
+initializer: {model: claude-sonnet-4-6, effort: high, thinking: "off"}
+character: {model: claude-sonnet-4-6, effort: medium, thinking: "off"}
+narrator: {model: claude-opus-4-6, effort: high, thinking: "off"}
+baseline: {model: claude-opus-4-6, effort: high, thinking: "off"}
+validator: {model: claude-sonnet-4-6, effort: high, thinking: adaptive}
+world: {model: claude-sonnet-4-6, effort: high, thinking: "off"}
+curator: {model: claude-sonnet-4-6, effort: medium, thinking: "off"}
+world_judge: {model: claude-sonnet-4-6, effort: high, thinking: "off"}

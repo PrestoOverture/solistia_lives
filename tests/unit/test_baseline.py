@@ -168,7 +168,8 @@ def test_baseline_session(repo: Path, monkeypatch: pytest.MonkeyPatch, thinking:
     assert (run_dir / "story.md").read_text() == STORY
     meta = RunMeta.model_validate_json((run_dir / "meta.json").read_text())
     assert meta.status == "passed" and meta.error is None
-    assert meta.models.model_dump() == models
+    assert meta.models.model_dump() == {name: {**role, "base_url": None, "auth_token_env": None, "retries": 1, "max_turns": None, "timeout_s": None}
+                                        for name, role in models.items()}
     assert meta.models_file == (str(model_path) if alternate_models else "config/models.yaml")
     assert meta.scene_context_from is None
     retrieval = rows(run_dir / "retrieval.jsonl")
@@ -335,3 +336,39 @@ def test_failing_writer_has_no_story(repo: Path, monkeypatch: pytest.MonkeyPatch
     trace = rows(run_dir / "trace.jsonl")
     assert trace[-2]["type"] == "stage_failed" and trace[-2]["stage"] == "baseline_writer"
     assert trace[-1]["status"] == "failed"
+
+
+def test_timeout_fails_run_with_meta_error(repo, monkeypatch):
+    import asyncio
+
+    path = repo / 'config/models.yaml'
+    models = yaml.safe_load(path.read_text())
+    models['baseline']['timeout_s'] = 0.05
+    path.write_text(yaml.safe_dump(models))
+
+    class StalledWriter:
+        def __init__(self, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def query(self, request):
+            pass
+
+        async def receive_response(self):
+            await asyncio.Event().wait()
+            yield
+
+    monkeypatch.setattr(baseline, 'ClaudeSDKClient', StalledWriter)
+    result = CliRunner().invoke(app, ARGS)
+    assert result.exit_code != 0
+    run_dir, = (repo / 'runs').iterdir()
+    meta = RunMeta.model_validate_json((run_dir / 'meta.json').read_bytes())
+    assert meta.status == 'failed'
+    assert 'timed out after 0.05s' in meta.error
+    event, = [row for row in rows(run_dir / 'trace.jsonl') if row['type'] == 'call_timeout']
+    assert (event['stage'], event['agent'], event['timeout_s']) == ('baseline_writer', 'baseline', 0.05)

@@ -186,16 +186,18 @@ def world_new(
     location: str = typer.Option(...),
     situation: str = typer.Option(...),
     dry_run: bool = typer.Option(False),
+    models_file: Path = typer.Option(Path("config/models.yaml"), "--models", help="Models YAML file"),
 ) -> None:
     """Initialize a persistent world."""
     try:
-        models, settings = load_configs()
+        models, settings = load_configs(models_file)
         slugs, place = validate_input(characters, location)
     except (ConfigError, ValueError) as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1) from None
     run_dir = create_run(slugs, place, situation, "initializer",
-                         None, models, status="dry_run" if dry_run else "running")
+                         None, models, status="dry_run" if dry_run else "running",
+                         models_file=str(models_file))
     trace = TraceWriter(run_dir)
     trace.write("run_started", run_id=run_dir.name, mode="initializer")
     (run_dir / "retrieval.jsonl").touch()
@@ -238,6 +240,7 @@ def world_run(
     world_id: str = typer.Argument(...),
     stop_after: Literal["day", "curate"] | None = typer.Option(None),
     dry_run: bool = typer.Option(False),
+    models_file: Path = typer.Option(Path("config/models.yaml"), "--models", help="Models YAML file"),
 ) -> None:
     """Simulate through the current day's night, then curate and narrate one story."""
     from story_engine.simulation import CostCapReached, run_day
@@ -252,13 +255,13 @@ def world_run(
         info = WorldInfo.model_validate_json((world_dir / "world.json").read_bytes())
         read_events(world_dir)
         context = (world_dir / "scene_context.md").read_bytes()
-        models, settings = load_configs()
+        models, settings = load_configs(models_file)
     except (OSError, ValueError, ConfigError) as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1) from None
     run_dir = create_run(info.characters, info.location, info.situation, "simulation",
                          stop_after, models, status="dry_run" if dry_run else "running",
-                         world_id=world_id, day=state.clock.day)
+                         world_id=world_id, day=state.clock.day, models_file=str(models_file))
     trace = TraceWriter(run_dir)
     trace.write("run_started", run_id=run_dir.name, mode="simulation",
                 world_id=world_id, day=state.clock.day)
@@ -431,6 +434,7 @@ def world_tell(
         None, "--act", help="Narrate only this scene id as acts/act_1.md, skipping the curator",
     ),
     pov: str | None = typer.Option(None, "--pov", help="POV character for --act"),
+    models_file: Path = typer.Option(Path("config/models.yaml"), "--models", help="Models YAML file"),
 ) -> None:
     """Curate and narrate an episode from a completed day (latest by default)."""
     from story_engine.agents.curator import Episode
@@ -460,7 +464,7 @@ def world_tell(
             raise ValueError("--continue cannot be combined with --stop-after curate")
         world_dir = Path("worlds") / world_id
         info = WorldInfo.model_validate_json((world_dir / "world.json").read_bytes())
-        models, settings = load_configs()
+        models, settings = load_configs(models_file)
 
         if continue_run is not None:
             if Path(continue_run).name != continue_run or continue_run in ("", ".", ".."):
@@ -510,6 +514,9 @@ def world_tell(
         raise typer.Exit(code=1) from None
 
     if continue_run_dir is not None:
+        meta.models = models
+        meta.models_file = str(models_file)
+        (continue_run_dir / "meta.json").write_text(meta.model_dump_json(indent=2), encoding="utf-8")
         run_dir = continue_run_dir
         trace = TraceWriter(run_dir)
         stage = "narrate"
@@ -530,7 +537,8 @@ def world_tell(
         return
 
     run_dir = create_run(info.characters, info.location, info.situation, "simulation",
-                         stop_after, models, status="running", world_id=world_id, day=day)
+                         stop_after, models, status="running", world_id=world_id, day=day,
+                         models_file=str(models_file))
     trace = TraceWriter(run_dir)
     trace.write("run_started", run_id=run_dir.name, mode="simulation", world_id=world_id, day=day)
     (run_dir / "scene_context.md").write_bytes(context)
@@ -582,6 +590,7 @@ def world_tell(
 def eval_world(
     world_ids: list[str] = typer.Argument(..., help='World IDs to evaluate sequentially'),
     day: int | None = typer.Option(None, min=1, help='Day for every world (default: latest or unfinished)'),
+    models_file: Path = typer.Option(Path("config/models.yaml"), "--models", help="Models YAML file"),
 ) -> None:
     """Evaluate world-day data and semantic consistency without changing worlds."""
     from story_engine.eval.world import evaluate_world, summary
@@ -589,7 +598,7 @@ def eval_world(
     failed = False
     for world_id in world_ids:
         try:
-            run_dir, report = asyncio.run(evaluate_world(world_id, day))
+            run_dir, report = asyncio.run(evaluate_world(world_id, day, models_file))
             typer.echo(summary(run_dir, report))
             failed |= report.judge_status == 'failed'
             if report.error:
@@ -599,3 +608,68 @@ def eval_world(
             failed = True
     if failed:
         raise typer.Exit(code=1)
+
+
+@eval_app.command('extract')
+def eval_extract(
+    models: Path = typer.Option(Path('config/models.yaml'), '--models', help='Model configuration file'),
+) -> None:
+    """Extract claims from the validator test set and report type accuracy."""
+    from story_engine.eval.extract import evaluate_extract
+
+    try:
+        run_dir, report, claims = asyncio.run(evaluate_extract(models))
+    except (OSError, ValueError, ConfigError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from None
+    typer.echo(f'{run_dir}: type accuracy={report.type_accuracy:.2%}')
+    item = next((s for s in report.sentences if s.sentence_id == 17), None)
+    typer.echo('Item 17: ' + json.dumps({
+        'score': item.model_dump() if item else None,
+        'claims': [c.model_dump() for c in claims if c.sentence_id == 17],
+    }, ensure_ascii=False))
+    if report.error:
+        typer.echo(report.error, err=True)
+        raise typer.Exit(code=1)
+
+
+@eval_app.command('validate')
+def eval_validate(
+    story_path: Path = typer.Argument(..., exists=True, dir_okay=False),
+    models_file: Path = typer.Option(Path('config/models.yaml'), '--models', help='Model configuration file'),
+) -> None:
+    """Validate a story against the KB in one extraction and verdict round."""
+    from story_engine.agents.sdk import SessionCost
+    from story_engine.agents.validation import CheckedClaim, validate_text
+
+    try:
+        story = story_path.read_bytes()
+        text = story.decode('utf-8')
+        models, settings = load_configs(models_file)
+    except (OSError, ValueError, ConfigError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from None
+    run_dir = create_run([], '', str(story_path), 'validate', None, models, status='running',
+                         models_file=str(models_file))
+    trace = TraceWriter(run_dir)
+    trace.write('run_started', mode='validate')
+    try:
+        (run_dir / 'draft.md').write_bytes(story)
+        report = asyncio.run(validate_text(
+            text, root=Path.cwd(), run_dir=run_dir, role=models.validator,
+            max_turns=settings.agent_max_turns, trace=trace, cost=SessionCost(),
+        ))
+    except Exception as error:
+        detail = str(error) if isinstance(error, SessionError) else type(error).__name__
+        finish_run(run_dir, 'failed', detail)
+        trace.write('run_finished', status='failed', error=detail)
+        typer.echo(f'{run_dir}: {detail}', err=True)
+        raise typer.Exit(code=1) from None
+    finish_run(run_dir, 'passed')
+    trace.write('run_finished', status='passed')
+    round_one = report.rounds[0]
+    typer.echo(f'{run_dir}: contradicted={round_one.contradicted}')
+    for claim in round_one.claims:
+        if isinstance(claim, CheckedClaim) and claim.verdict == 'contradicted':
+            typer.echo(f'{claim.quote} [{claim.source}]')
+    typer.echo(f'not_in_kb={len(round_one.not_in_kb)}')

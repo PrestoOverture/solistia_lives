@@ -7,7 +7,7 @@ from pathlib import Path
 from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 
 from story_engine.agents.sdk import (
-    KBHooks, SessionCost, SessionError, ThinkingUsage, session_error, session_options,
+    run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, session_error, session_options,
     structured_reply,
 )
 from story_engine.config import Role
@@ -31,34 +31,37 @@ async def scene_context(
     thinking = ThinkingUsage()
     cost = SessionCost()
     async with ClaudeSDKClient(options=options) as client:
-        await client.query(request)
-        async for message in client.receive_response():
-            hooks.observe(message)
-            thinking.observe(message)
-            if isinstance(message, ResultMessage):
-                trace.write(
-                    "stage_usage", stage="scene_context", agent="initializer",
-                    usage=message.usage or {}, num_turns=message.num_turns,
-                    total_cost_usd=message.total_cost_usd,
-                    call_cost_usd=cost.delta(message.total_cost_usd),
-                    thinking_blocks=thinking.thinking_blocks,
-                    thinking_chars=thinking.thinking_chars,
-                )
-                if message.is_error or message.subtype != "success":
-                    raise session_error(
-                        f"Initializer session {message.subtype}: "
-                        + ("; ".join(message.errors or []) or message.result or "unspecified SDK error"),
-                        options.env,
+        async def receive_call():
+            await client.query(request)
+            async for message in client.receive_response():
+                hooks.observe(message)
+                thinking.observe(message)
+                if isinstance(message, ResultMessage):
+                    trace.write(
+                        "stage_usage", stage="scene_context", agent="initializer",
+                        usage=message.usage or {}, num_turns=message.num_turns,
+                        total_cost_usd=message.total_cost_usd,
+                        call_cost_usd=cost.delta(message.total_cost_usd),
+                        thinking_blocks=thinking.thinking_blocks,
+                        thinking_chars=thinking.thinking_chars,
                     )
-                if not message.result or not message.result.strip():
-                    raise SessionError("Initializer session returned no final text")
-                heading = re.search(r"^## ", message.result, re.MULTILINE)
-                if heading is None:
-                    raise SessionError("Initializer final text has no '## ' heading")
-                (run_dir / "scene_context.md").write_text(
-                    message.result[heading.start():], encoding="utf-8",
-                )
-                return
+                    if message.is_error or message.subtype != "success":
+                        raise session_error(
+                            f"Initializer session {message.subtype}: "
+                            + ("; ".join(message.errors or []) or message.result or "unspecified SDK error"),
+                            options.env,
+                        )
+                    if not message.result or not message.result.strip():
+                        raise SessionError("Initializer session returned no final text")
+                    heading = re.search(r"^## ", message.result, re.MULTILINE)
+                    if heading is None:
+                        raise SessionError("Initializer final text has no '## ' heading")
+                    (run_dir / "scene_context.md").write_text(
+                        message.result[heading.start():], encoding="utf-8",
+                    )
+                    return True
+        if await run_call(receive_call(), role=role, trace=trace, stage="scene_context", agent="initializer"):
+            return
     raise SessionError("Initializer session ended without a result")
 
 
@@ -83,27 +86,30 @@ async def starting_state(
     places = {path.stem for path in (root / "kb/locations").rglob("*.md") if path.is_file()}
     cost = SessionCost()
     async with ClaudeSDKClient(options=options) as client:
-        for attempt in range(2):
+        for attempt in range(role.retries + 1):
             thinking = ThinkingUsage()
-            await client.query(request)
-            result = None
-            structured_output = None
-            async for message in client.receive_response():
-                hooks.observe(message)
-                thinking.observe(message)
-                if isinstance(message, ResultMessage):
-                    trace.write(
-                        "stage_usage", stage="initializer_state", agent="initializer",
-                        attempt=attempt + 1, usage=message.usage or {},
-                        num_turns=message.num_turns, total_cost_usd=message.total_cost_usd,
-                        call_cost_usd=cost.delta(message.total_cost_usd),
-                        thinking_blocks=thinking.thinking_blocks, thinking_chars=thinking.thinking_chars,
-                    )
-                    if message.is_error or message.subtype != "success":
-                        raise session_error(f"Initializer state session {message.subtype}: "
-                                            + ("; ".join(message.errors or []) or message.result or "unspecified SDK error"), options.env)
-                    result = message.result
-                    structured_output = message.structured_output
+            async def receive_call():
+                await client.query(request)
+                result = None
+                structured_output = None
+                async for message in client.receive_response():
+                    hooks.observe(message)
+                    thinking.observe(message)
+                    if isinstance(message, ResultMessage):
+                        trace.write(
+                            "stage_usage", stage="initializer_state", agent="initializer",
+                            attempt=attempt + 1, usage=message.usage or {},
+                            num_turns=message.num_turns, total_cost_usd=message.total_cost_usd,
+                            call_cost_usd=cost.delta(message.total_cost_usd),
+                            thinking_blocks=thinking.thinking_blocks, thinking_chars=thinking.thinking_chars,
+                        )
+                        if message.is_error or message.subtype != "success":
+                            raise session_error(f"Initializer state session {message.subtype}: "
+                                                + ("; ".join(message.errors or []) or message.result or "unspecified SDK error"), options.env)
+                        result = message.result
+                        structured_output = message.structured_output
+                return result, structured_output
+            result, structured_output = await run_call(receive_call(), role=role, trace=trace, stage="initializer_state", agent="initializer")
             try:
                 data = _normalize_place_paths(structured_reply(result, structured_output))
                 data["clock"] = {"day": 1, "part": "morning"}
@@ -133,8 +139,8 @@ async def starting_state(
                     "state_validation_failed", attempt=attempt + 1,
                     error=str(error), raw_reply=result,
                 )
-                if attempt:
-                    raise SessionError(f"Initializer state validation failed after one retry: {error}") from None
+                if attempt == role.retries:
+                    raise SessionError(f"Initializer state validation failed after {'one retry' if role.retries == 1 else str(role.retries) + ' retries'}: {error}") from None
                 request = f"State validation failed: {error}\nReturn corrected JSON."
     raise SessionError("Initializer state session ended without a state")
 

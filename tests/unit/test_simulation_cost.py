@@ -129,3 +129,65 @@ def test_scene_cost_cap_stops_immediately(tmp_path, monkeypatch, payer):
     assert len(closed) == 4
     assert rows(run)[-1]['type'] == 'cost_cap_reached'
     assert rows(run)[-1]['spend_usd'] == pytest.approx(.25 if payer == 'character' else .26)
+
+
+@pytest.mark.parametrize('character_proxy,world_proxy', [(True, True), (False, False), (True, False), (False, True)])
+def test_provider_cost_accounting(tmp_path, monkeypatch, character_proxy, world_proxy):
+    action = dict(call='action', intent='Wait', move='wait', urge=0, action='', say='')
+    world, run, _, _ = setup(tmp_path, monkeypatch, character, [(action, 1.0)])
+    models, settings = load_configs()
+    for name, role in models:
+        role.base_url = 'https://provider.example' if (
+            character_proxy if name == 'character' else world_proxy) else None
+    settings.max_cost_usd = .5
+    monkeypatch.setattr('story_engine.simulation.load_configs', lambda *args: (models, settings))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', character.ClaudeSDKClient)
+
+    async def exercise():
+        async with TickSession(world, run, root=ROOT) as session:
+            if character_proxy:
+                await session.characters['agnea'].act([])
+            else:
+                with pytest.raises(CostCapReached):
+                    await session.characters['agnea'].act([])
+            # Exercise both World sessions through their shared simulation trace.
+            for agent in ('world', 'world_offscreen'):
+                if world_proxy:
+                    session.trace.write('stage_usage', agent=agent, call_cost_usd=1.0,
+                                        total_cost_usd=1.0)
+                else:
+                    with pytest.raises(CostCapReached):
+                        session.trace.write('stage_usage', agent=agent, call_cost_usd=1.0,
+                                            total_cost_usd=1.0)
+            assert session.spend_usd == (not character_proxy) + 2 * (not world_proxy)
+
+    asyncio.run(exercise())
+    usage = [row for row in rows(run) if row['type'] == 'stage_usage']
+    assert [row['billed'] for row in usage] == [not character_proxy, not world_proxy, not world_proxy]
+    assert [row['call_cost_usd'] for row in usage] == [1.0, 1.0, 1.0]
+
+
+@pytest.mark.parametrize('proxy', [True, False])
+@pytest.mark.parametrize('explicit_billed', [True, False])
+def test_existing_usage_cost_cap(tmp_path, monkeypatch, proxy, explicit_billed):
+    world, run, _, _ = setup(tmp_path, monkeypatch, character, [])
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', character.ClaudeSDKClient)
+    models, settings = load_configs()
+    for _, role in models:
+        role.base_url = 'https://provider.example' if proxy else None
+    settings.max_cost_usd = .5
+    monkeypatch.setattr('story_engine.simulation.load_configs', lambda *args: (models, settings))
+    for agent in ('agnea', 'world', 'world_offscreen', 'initializer'):
+        TraceWriter(run).write('stage_usage', agent=agent, call_cost_usd=1.0,
+                               **({'billed': not proxy} if explicit_billed else {}))
+
+    async def exercise():
+        if proxy:
+            async with TickSession(world, run, root=ROOT) as session:
+                assert session.spend_usd == 0.0
+        else:
+            with pytest.raises(CostCapReached):
+                async with TickSession(world, run, root=ROOT):
+                    pytest.fail('Existing billed spend must stop session startup')
+
+    asyncio.run(exercise())

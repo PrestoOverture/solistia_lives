@@ -8,7 +8,7 @@ from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from story_engine.agents.sdk import (
-    KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
+    run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
     session_options, structured_reply,
 )
 from story_engine.config import Role
@@ -166,28 +166,31 @@ class CharacterAgent:
                               **({"call": "scene_move", "reply": "JSON with call: 'action'"}
                                  if not part and not summary and not day_start else {})},
                              ensure_ascii=False)
-        for attempt in range(2):
+        for attempt in range(self.role.retries + 1):
             thinking = ThinkingUsage()
-            await self.client.query(request)
-            result = None
-            structured_output = None
-            async for message in self.client.receive_response():
-                self.hooks.observe(message)
-                thinking.observe(message)
-                if isinstance(message, ResultMessage):
-                    self.trace.write(
-                        "stage_usage", stage=("character_summary" if summary else
-                                              "character_day_start" if day_start else "character_action"), agent=self.slug,
-                        turn=self.turn, attempt=attempt + 1, usage=message.usage or {},
-                        num_turns=message.num_turns, total_cost_usd=message.total_cost_usd,
-                        call_cost_usd=self.cost.delta(message.total_cost_usd),
-                        thinking_blocks=thinking.thinking_blocks, thinking_chars=thinking.thinking_chars,
-                    )
-                    if message.is_error or message.subtype != "success":
-                        raise session_error(f"Character session {message.subtype}: "
-                                            + ("; ".join(message.errors or []) or message.result or "unspecified SDK error"), self.options.env)
-                    result = message.result
-                    structured_output = message.structured_output
+            async def receive_call():
+                await self.client.query(request)
+                result = None
+                structured_output = None
+                async for message in self.client.receive_response():
+                    self.hooks.observe(message)
+                    thinking.observe(message)
+                    if isinstance(message, ResultMessage):
+                        self.trace.write(
+                            "stage_usage", stage=("character_summary" if summary else
+                                                  "character_day_start" if day_start else "character_action"), agent=self.slug,
+                            turn=self.turn, attempt=attempt + 1, usage=message.usage or {},
+                            num_turns=message.num_turns, total_cost_usd=message.total_cost_usd,
+                            call_cost_usd=self.cost.delta(message.total_cost_usd),
+                            thinking_blocks=thinking.thinking_blocks, thinking_chars=thinking.thinking_chars,
+                        )
+                        if message.is_error or message.subtype != "success":
+                            raise session_error(f"Character session {message.subtype}: "
+                                                + ("; ".join(message.errors or []) or message.result or "unspecified SDK error"), self.options.env)
+                        result = message.result
+                        structured_output = message.structured_output
+                return result, structured_output
+            result, structured_output = await run_call(receive_call(), role=self.role, trace=self.trace, stage=("character_summary" if summary else "character_day_start" if day_start else "character_action"), agent=self.slug)
             try:
                 payload = structured_reply(result, structured_output)
                 if day_start:
@@ -198,7 +201,7 @@ class CharacterAgent:
                     return Plan.model_validate(payload)
                 return Action.model_validate(payload)
             except ValueError as error:
-                if attempt:
-                    raise SessionError(f"Character action validation failed after one retry: {error}") from None
+                if attempt == self.role.retries:
+                    raise SessionError(f"Character action validation failed after {'one retry' if self.role.retries == 1 else str(self.role.retries) + ' retries'}: {error}") from None
                 request = f"Reply validation failed: {error}\nReturn corrected JSON."
         raise AssertionError("unreachable")

@@ -7,7 +7,7 @@ from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from story_engine.agents.sdk import (
-    KBHooks, SessionCost, SessionError, json_schema_output, session_error, session_options,
+    run_call, KBHooks, SessionCost, SessionError, json_schema_output, session_error, session_options,
     structured_reply,
 )
 from story_engine.config import Role
@@ -115,27 +115,30 @@ async def curate(
                           "reply": "JSON {acts: [{scene, pov}, ...], why}"}, ensure_ascii=False)
     cost = SessionCost()
     async with ClaudeSDKClient(options=options) as client:
-        for attempt in range(2):
-            await client.query(request)
-            result = None
-            structured_output = None
-            async for message in client.receive_response():
-                if isinstance(message, ResultMessage):
-                    trace.write("stage_usage", stage="curate", agent="curator", attempt=attempt + 1,
-                                usage=message.usage or {}, num_turns=message.num_turns,
-                                total_cost_usd=message.total_cost_usd,
-                                call_cost_usd=cost.delta(message.total_cost_usd))
-                    if message.is_error or message.subtype != "success":
-                        raise session_error(f"Curator session {message.subtype}: "
-                                            + ("; ".join(message.errors or []) or message.result or "unspecified SDK error"), options.env)
-                    result = message.result
-                    structured_output = message.structured_output
+        for attempt in range(role.retries + 1):
+            async def receive_call():
+                await client.query(request)
+                result = None
+                structured_output = None
+                async for message in client.receive_response():
+                    if isinstance(message, ResultMessage):
+                        trace.write("stage_usage", stage="curate", agent="curator", attempt=attempt + 1,
+                                    usage=message.usage or {}, num_turns=message.num_turns,
+                                    total_cost_usd=message.total_cost_usd,
+                                    call_cost_usd=cost.delta(message.total_cost_usd))
+                        if message.is_error or message.subtype != "success":
+                            raise session_error(f"Curator session {message.subtype}: "
+                                                + ("; ".join(message.errors or []) or message.result or "unspecified SDK error"), options.env)
+                        result = message.result
+                        structured_output = message.structured_output
+                return result, structured_output
+            result, structured_output = await run_call(receive_call(), role=role, trace=trace, stage="curate", agent="curator")
             try:
                 episode = validate_episode(
                     Episode.model_validate(structured_reply(result, structured_output)), scenes, characters)
             except ValueError as error:
-                if attempt:
-                    raise SessionError(f"Curator validation failed after one retry: {error}") from None
+                if attempt == role.retries:
+                    raise SessionError(f"Curator validation failed after {'one retry' if role.retries == 1 else str(role.retries) + ' retries'}: {error}") from None
                 request = f"Reply validation failed: {error}\nReturn corrected JSON."
                 continue
             (run_dir / "episode.json").write_text(episode.model_dump_json(indent=2), encoding="utf-8")

@@ -8,9 +8,9 @@ import yaml
 from typer.testing import CliRunner
 
 from story_engine.cli import app
-from story_engine.config import load_configs
+from story_engine.config import ConfigError, Models, load_configs
 from story_engine.eval import pack as pack_module
-from story_engine.runs import create_run, finish_run
+from story_engine.runs import RunMeta, create_run, finish_run
 
 
 REPO = Path(__file__).resolve().parents[2]
@@ -55,6 +55,47 @@ def invoke_pack(run_ids):
     assert result.exit_code == 0, result.output
     paths = [Path(line) for line in result.output.splitlines()]
     return paths[:-1], paths[-1]
+
+
+@pytest.mark.parametrize("missing_role", Models.model_fields)
+def test_pack_historical_models(pack_workspace, missing_role):
+    repo, _, runs = pack_workspace
+    old_run = next(iter(runs))
+    meta_path = repo / "runs" / old_run / "meta.json"
+    data = json.loads(meta_path.read_bytes())
+    del data["models"][missing_role]
+    for role in data["models"].values():
+        for field in ("base_url", "auth_token_env", "retries", "max_turns"):
+            role.pop(field)
+    meta_path.write_text(json.dumps(data))
+
+    meta = RunMeta.model_validate_json(meta_path.read_bytes())
+    assert set(meta.models) == set(data["models"])
+    for name, role in meta.models.items():
+        assert role.model == data["models"][name]["model"]
+        assert role.base_url is None
+        assert role.auth_token_env is None
+        assert role.retries == 1
+        assert role.max_turns is None
+    assert RunMeta.model_validate_json(meta.model_dump_json()) == meta
+
+    packets, key_path = invoke_pack(runs)
+    assert len(packets) == 2
+    key = json.loads(key_path.read_bytes())
+    for packet in packets:
+        assert_blind(packet, repo, runs)
+        assert {source["run_id"] for source in key[packet.name].values()} == set(runs)
+        for name, source in key[packet.name].items():
+            assert (packet / name).read_bytes() == (
+                repo / "runs" / source["run_id"] / "story.md"
+            ).read_bytes()
+
+    models_path = repo / "config/models.yaml"
+    config = yaml.safe_load(models_path.read_text())
+    del config[missing_role]
+    models_path.write_text(yaml.safe_dump(config))
+    with pytest.raises(ConfigError, match=rf"{missing_role}: Field required"):
+        load_configs()
 
 
 def assert_blind(packet: Path, repo: Path, run_ids):

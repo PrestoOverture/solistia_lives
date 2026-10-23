@@ -1,5 +1,6 @@
 """Shared SDK session configuration and KB access hooks."""
 
+import asyncio
 import json
 import os
 import shlex
@@ -51,6 +52,17 @@ class SessionError(RuntimeError):
     """A session failure whose diagnostic has been scrubbed of credentials."""
 
 
+async def run_call(call, *, role: Role, trace, stage: str, agent: str):
+    """Bound one query and response, retaining unbounded behavior by default."""
+    if role.timeout_s is None:
+        return await call
+    try:
+        return await asyncio.wait_for(call, timeout=role.timeout_s)
+    except TimeoutError:
+        trace.write("call_timeout", stage=stage, agent=agent, timeout_s=role.timeout_s)
+        raise SessionError(f"{stage} ({agent}) timed out after {role.timeout_s}s") from None
+
+
 def json_object(reply: str) -> dict:
     """Extract a JSON object, tolerating fences or surrounding prose."""
     try:
@@ -85,9 +97,10 @@ def session_error(error: object, env: dict[str, str]) -> SessionError:
     return SessionError(" ".join(message.split()))
 
 
-def session_environment(root: Path) -> dict[str, str]:
+def session_environment(root: Path, keys: set[str] | None = None) -> dict[str, str]:
     """Read relay credentials, preferring .env without mutating os.environ."""
-    keys = {"ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL"}
+    if keys is None:
+        keys = {"ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL"}
     env = {key: os.environ[key] for key in keys if key in os.environ}
     path = root / ".env"
     if not path.exists():
@@ -203,12 +216,30 @@ def session_options(
     tools: list[str] | None = None, output_format: dict | None = None,
 ) -> ClaudeAgentOptions:
     env = session_environment(root)
+    if role.base_url:
+        credentials = session_environment(root, {role.auth_token_env} if role.auth_token_env else set())
+        env["ANTHROPIC_BASE_URL"] = role.base_url
+        env["ANTHROPIC_AUTH_TOKEN"] = credentials.get(role.auth_token_env, "")
+        env.pop("ANTHROPIC_API_KEY", None)
+        if role.thinking == "off":
+            # The CLI otherwise omits thinking, letting the provider enable it by default.
+            env["CLAUDE_CODE_EXTRA_BODY"] = '{"thinking":{"type":"disabled"}}'
+        for key in (
+            "ANTHROPIC_MODEL", "ANTHROPIC_SMALL_FAST_MODEL",
+            "ANTHROPIC_DEFAULT_HAIKU_MODEL", "ANTHROPIC_DEFAULT_SONNET_MODEL",
+            "ANTHROPIC_DEFAULT_OPUS_MODEL", "CLAUDE_CODE_SUBAGENT_MODEL",
+        ):
+            env[key] = role.model
+    optional = {}
+    if role.effort is not None:
+        optional["effort"] = role.effort
+    if role.thinking is not None:
+        optional["thinking"] = {"type": "disabled" if role.thinking == "off" else "adaptive"}
     # Keep SDK bookkeeping inside this run, without persisting conversations.
     env["CLAUDE_CONFIG_DIR"] = str((run_dir / ".sdk").resolve())
     return ClaudeAgentOptions(
-        cwd=root, system_prompt=system_prompt, model=role.model, effort=role.effort,
-        thinking={"type": "disabled"} if role.thinking == "off" else {"type": "adaptive"},
-        max_turns=max_turns, tools=KB_TOOLS.copy() if tools is None else tools,
+        cwd=root, system_prompt=system_prompt, model=role.model, **optional,
+        max_turns=role.max_turns if role.max_turns is not None else max_turns, tools=KB_TOOLS.copy() if tools is None else tools,
         allowed_tools=KB_TOOLS.copy() if tools is None else tools,
         setting_sources=[], strict_mcp_config=True, env=env,
         verbatim_prompts=True, extra_args={"no-session-persistence": None},

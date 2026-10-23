@@ -24,7 +24,7 @@ class WorldInfo(WorldModel):
     @model_validator(mode="after")
     def unique_characters(self) -> Self:
         if len(self.characters) != len(set(self.characters)):
-            raise ValueError("world characters must be unique")
+            raise ValueError(f"world characters must be unique: {sorted({name for name in self.characters if self.characters.count(name) > 1})}")
         return self
 
 
@@ -80,21 +80,25 @@ class WorldState(WorldModel):
     @model_validator(mode="after")
     def valid_references(self) -> Self:
         places = {place.slug for place in self.places}
-        if any(character.where not in places for character in self.characters.values()):
-            raise ValueError("character where must name a slug in places")
+        unknown = sorted({character.where for character in self.characters.values() if character.where not in places})
+        if unknown:
+            raise ValueError(f"character where must name a slug in places: {unknown}")
         main_slugs = set(self.characters)
         for name, person in self.people.items():
             if normalize_slug(name) in main_slugs:
-                raise ValueError("a person's name must not be a main character's")
-            if person.where not in places:
-                raise ValueError("person where must name a slug in places")
+                raise ValueError(f"a person's name must not be a main character's: {name!r}")
+        unknown = {name: person.where for name, person in self.people.items() if person.where not in places}
+        if unknown:
+            raise ValueError(f"person where must name a slug in places: {unknown}")
         ids = [situation.id for situation in self.situations]
         if len(ids) != len(set(ids)):
-            raise ValueError("situation ids must be unique")
-        if any(set(situation.touches) - self.characters.keys() for situation in self.situations):
-            raise ValueError("situation touches must name only main characters")
-        if any(set(situation.people) - self.people.keys() for situation in self.situations):
-            raise ValueError("situation people must name entries in people")
+            raise ValueError(f"situation ids must be unique: {sorted({id for id in ids if ids.count(id) > 1})}")
+        unknown = sorted({name for situation in self.situations for name in situation.touches if name not in self.characters})
+        if unknown:
+            raise ValueError(f"situation touches must name only main characters: {unknown}")
+        unknown = sorted({name for situation in self.situations for name in situation.people if name not in self.people})
+        if unknown:
+            raise ValueError(f"situation people must name entries in people: {unknown}; existing people keys: {sorted(self.people)}")
         return self
 
 

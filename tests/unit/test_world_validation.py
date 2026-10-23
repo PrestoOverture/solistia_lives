@@ -411,3 +411,32 @@ def test_round_matches_people_names_ignoring_case(tmp_path, monkeypatch):
                  minor_moves={'Garud': dict(move='wait', urge=0, to=None, action='', say='')})
     (outcome, minor_moves, _state), _requests = _run_round(world, run, monkeypatch, state, None, reply)
     assert list(minor_moves) == ['garud']
+
+
+@pytest.mark.parametrize('retries', [None, 3])
+@pytest.mark.parametrize('recover', [False, True])
+def test_adjudicate_retry_budget(tmp_path, monkeypatch, retries, recover):
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    state = load_state(world)
+    models, settings = load_configs()
+    role = models.world if retries is None else models.world.model_copy(update={'retries': retries})
+    attempts = role.retries + 1
+    good = _adjudicate_reply({'agnea': _staged('cropdale')})
+    replies = ['{}'] * (attempts - 1) + [json.dumps(good) if recover else '{}']
+    requests = []
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', _fake_client(iter(replies), requests))
+
+    async def exercise():
+        async with world_agent.WorldAgent(ROOT, run, world, role,
+                                         settings.agent_max_turns, TraceWriter(run)) as agent:
+            return await agent.adjudicate(state, {'agnea': {}}, [])
+
+    if recover:
+        verdicts, _, _ = asyncio.run(exercise())
+        assert verdicts['agnea'].status == 'staged'
+    else:
+        with pytest.raises(world_agent.SessionError, match='World validation failed after'):
+            asyncio.run(exercise())
+    assert len(requests) == attempts

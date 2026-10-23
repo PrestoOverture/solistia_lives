@@ -1,0 +1,72 @@
+initializer:
+  timeout_s: 600
+  retries: 3
+  max_turns: 60
+  model: spark-x2.6
+  effort: high
+  thinking: 'off'
+  base_url: https://maas-api.cn-huabei-1.xf-yun.com/anthropic
+  auth_token_env: SPARK_API_KEY
+character:
+  timeout_s: 600
+  retries: 3
+  max_turns: 60
+  model: spark-x2.6
+  effort: medium
+  thinking: 'off'
+  base_url: https://maas-api.cn-huabei-1.xf-yun.com/anthropic
+  auth_token_env: SPARK_API_KEY
+narrator:
+  timeout_s: 600
+  retries: 3
+  max_turns: 60
+  model: spark-x2.6
+  effort: high
+  thinking: 'off'
+  base_url: https://maas-api.cn-huabei-1.xf-yun.com/anthropic
+  auth_token_env: SPARK_API_KEY
+baseline:
+  timeout_s: 600
+  retries: 3
+  max_turns: 60
+  model: spark-x2.6
+  effort: high
+  thinking: 'off'
+  base_url: https://maas-api.cn-huabei-1.xf-yun.com/anthropic
+  auth_token_env: SPARK_API_KEY
+validator:
+  timeout_s: 600
+  retries: 3
+  max_turns: 60
+  model: spark-x2.6
+  effort: high
+  thinking: 'off'
+  base_url: https://maas-api.cn-huabei-1.xf-yun.com/anthropic
+  auth_token_env: SPARK_API_KEY
+world:
+  timeout_s: 600
+  retries: 3
+  max_turns: 60
+  model: spark-x2.6
+  effort: high
+  thinking: 'off'
+  base_url: https://maas-api.cn-huabei-1.xf-yun.com/anthropic
+  auth_token_env: SPARK_API_KEY
+curator:
+  timeout_s: 600
+  retries: 3
+  max_turns: 60
+  model: spark-x2.6
+  effort: medium
+  thinking: 'off'
+  base_url: https://maas-api.cn-huabei-1.xf-yun.com/anthropic
+  auth_token_env: SPARK_API_KEY
+world_judge:
+  timeout_s: 600
+  retries: 3
+  max_turns: 60
+  model: spark-x2.6
+  effort: high
+  thinking: 'off'
+  base_url: https://maas-api.cn-huabei-1.xf-yun.com/anthropic
+  auth_token_env: SPARK_API_KEY

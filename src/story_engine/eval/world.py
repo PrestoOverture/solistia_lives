@@ -7,7 +7,7 @@ from typing import Literal, get_args
 from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 
 from story_engine.agents.sdk import (
-    KBHooks, SessionCost, SessionError, json_schema_output, session_error,
+    run_call, KBHooks, SessionCost, SessionError, json_schema_output, session_error,
     session_options, structured_reply,
 )
 from story_engine.config import StrictModel, load_configs
@@ -58,20 +58,23 @@ async def judge(root, run_dir, payload, role, max_turns, trace, cost):
     outcome_ids = {row['id'] for row in payload['outcomes']}
     request = json.dumps(payload, ensure_ascii=False)
     async with ClaudeSDKClient(options=options) as client:
-        for attempt in range(2):
-            await client.query(request)
-            result = structured = None
-            async for message in client.receive_response():
-                hooks.observe(message)
-                if isinstance(message, ResultMessage):
-                    trace.write('stage_usage', stage='world_eval', agent='world_judge',
-                                attempt=attempt + 1, usage=message.usage or {},
-                                num_turns=message.num_turns, total_cost_usd=message.total_cost_usd,
-                                call_cost_usd=cost.delta(message.total_cost_usd))
-                    if message.is_error or message.subtype != 'success':
-                        raise session_error(f'World judge {message.subtype}: '
-                                            + ('; '.join(message.errors or []) or message.result or 'SDK error'), options.env)
-                    result, structured = message.result, message.structured_output
+        for attempt in range(role.retries + 1):
+            async def receive_call():
+                await client.query(request)
+                result = structured = None
+                async for message in client.receive_response():
+                    hooks.observe(message)
+                    if isinstance(message, ResultMessage):
+                        trace.write('stage_usage', stage='world_eval', agent='world_judge',
+                                    attempt=attempt + 1, usage=message.usage or {},
+                                    num_turns=message.num_turns, total_cost_usd=message.total_cost_usd,
+                                    call_cost_usd=cost.delta(message.total_cost_usd))
+                        if message.is_error or message.subtype != 'success':
+                            raise session_error(f'World judge {message.subtype}: '
+                                                + ('; '.join(message.errors or []) or message.result or 'SDK error'), options.env)
+                        result, structured = message.result, message.structured_output
+                return result, structured
+            result, structured = await run_call(receive_call(), role=role, trace=trace, stage="world_eval", agent="world_judge")
             try:
                 reply = Findings.model_validate(structured_reply(result, structured))
                 unknown = {i for f in reply.findings for i in f.event_ids} - allowed_ids
@@ -89,16 +92,17 @@ async def judge(root, run_dir, payload, role, max_turns, trace, cost):
                         raise ValueError('continuity findings are not allowed on day 1')
                 return reply.findings
             except ValueError as error:
-                if attempt:
-                    raise SessionError(f'World judge validation failed after one retry: {error}') from None
+                if attempt == role.retries:
+                    raise SessionError(f'World judge validation failed after {"one retry" if role.retries == 1 else str(role.retries) + " retries"}: {error}') from None
                 request = f'Reply validation failed: {error}\nReturn corrected structured output.'
     raise AssertionError('unreachable')
 
 
-async def evaluate_world(world_id: str, day: int | None = None):
+async def evaluate_world(world_id: str, day: int | None = None,
+                         models_file: Path = Path("config/models.yaml")):
     if Path(world_id).name != world_id or world_id in ('', '.', '..'):
         raise ValueError('world_id must be a world ID')
-    models, settings = load_configs()
+    models, settings = load_configs(models_file)
     world_dir = Path('worlds') / world_id
     current = load_state(world_dir)
     first_part = settings.parts_of_day[0]
@@ -118,7 +122,7 @@ async def evaluate_world(world_id: str, day: int | None = None):
     scenes = [s for s in read_scenes(world_dir) if s.day == day]
     info = WorldInfo.model_validate_json((world_dir / 'world.json').read_bytes())
     run_dir = create_run(info.characters, info.location, info.situation, 'world_eval', None,
-                         models, status='running', world_id=world_id, day=day)
+                         models, status='running', world_id=world_id, day=day, models_file=str(models_file))
     trace = TraceWriter(run_dir)
     trace.write('run_started', mode='world_eval', world_id=world_id, day=day)
     (run_dir / 'retrieval.jsonl').touch()
