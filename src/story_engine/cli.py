@@ -636,11 +636,13 @@ def eval_extract(
 @eval_app.command('validate')
 def eval_validate(
     story_path: Path = typer.Argument(..., exists=True, dir_okay=False),
+    fix: bool = typer.Option(False, '--fix'),
+    rounds: int | None = typer.Option(None, '--rounds', min=0),
     world_id: str | None = typer.Option(None, '--world'),
     scene_id: str | None = typer.Option(None, '--scene'),
     models_file: Path = typer.Option(Path('config/models.yaml'), '--models', help='Model configuration file'),
 ) -> None:
-    """Validate a story against the KB in one extraction and verdict round."""
+    """Validate a story against the KB, optionally fixing contradictions."""
     from story_engine.agents.sdk import SessionCost
     from story_engine.agents.validation import CheckedClaim, validate_text
 
@@ -679,6 +681,19 @@ def eval_validate(
             text, root=Path.cwd(), run_dir=run_dir, role=models.validator,
             max_turns=settings.agent_max_turns, trace=trace, cost=SessionCost(), log_input=log_input,
         ))
+        (run_dir / 'validation.json').write_text(report.model_dump_json(indent=2), encoding='utf-8')
+        if fix:
+            from story_engine.agents.narrator import fix_passages
+
+            limit = settings.validation_rounds if rounds is None else rounds
+            text, report = asyncio.run(fix_passages(
+                text, report=report, rounds=limit, root=Path.cwd(), run_dir=run_dir,
+                role=models.narrator, validator_role=models.validator,
+                max_turns=settings.agent_max_turns, trace=trace, log_input=log_input,
+            ))
+            if report.rounds[-1].contradicted:
+                raise SessionError(f'contradictions remain after {limit} fix rounds')
+            (run_dir / 'story.md').write_text(text, encoding='utf-8')
     except Exception as error:
         detail = str(error) if isinstance(error, SessionError) else type(error).__name__
         finish_run(run_dir, 'failed', detail)
@@ -687,7 +702,7 @@ def eval_validate(
         raise typer.Exit(code=1) from None
     finish_run(run_dir, 'passed')
     trace.write('run_finished', status='passed')
-    round_one = report.rounds[0]
+    round_one = report.rounds[-1]
     typer.echo(f'{run_dir}: contradicted={round_one.contradicted}')
     for claim in round_one.claims:
         if isinstance(claim, CheckedClaim) and claim.verdict == 'contradicted':

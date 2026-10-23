@@ -56,7 +56,7 @@ class Settings(StrictModel):
     max_cost_usd: float = Field(gt=0)
     scene_cap: int = Field(gt=0)
     agent_max_turns: int = Field(gt=0)
-    validation_rounds: int
+    validation_rounds: int = Field(ge=0)
     scene_context_max_turns: int = Field(gt=0)
     writer_max_turns: int = Field(gt=0)
     suite_parallel: int = Field(gt=0)

@@ -112,7 +112,7 @@ def _check_claims(claims, sentences, root):
         raise ValueError(f'unknown entity slugs: {sorted(unknown_entities)}')
 
 
-async def _call(client, request, *, parse, check, hooks, trace, cost, options, stage, role):
+async def _call(client, request, *, parse, check, hooks, trace, cost, options, stage, role, agent="validator"):
     for attempt in range(role.retries + 1):
         async def receive_call():
             await client.query(request)
@@ -120,7 +120,7 @@ async def _call(client, request, *, parse, check, hooks, trace, cost, options, s
             async for message in client.receive_response():
                 hooks.observe(message)
                 if isinstance(message, ResultMessage):
-                    trace.write('stage_usage', stage=stage, agent='validator',
+                    trace.write('stage_usage', stage=stage, agent=agent,
                                 attempt=attempt + 1, usage=message.usage or {},
                                 num_turns=message.num_turns, total_cost_usd=message.total_cost_usd,
                                 call_cost_usd=cost.delta(message.total_cost_usd))
@@ -129,7 +129,7 @@ async def _call(client, request, *, parse, check, hooks, trace, cost, options, s
                                             + ('; '.join(message.errors or []) or message.result or 'SDK error'), options.env)
                     result, structured = message.result, message.structured_output
             return result, structured
-        result, structured = await run_call(receive_call(), role=role, trace=trace, stage=stage, agent="validator")
+        result, structured = await run_call(receive_call(), role=role, trace=trace, stage=stage, agent=agent)
         try:
             reply = parse(structured_reply(result, structured))
             check(reply)
@@ -326,5 +326,4 @@ async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns
         log=log,
         unverified=[c for c in checked if isinstance(c, CheckedClaim) and c.verdict == 'unverified'],
     )])
-    (run_dir / 'validation.json').write_text(report.model_dump_json(indent=2), encoding='utf-8')
     return report

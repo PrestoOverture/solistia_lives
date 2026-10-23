@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Self
 
 from claude_agent_sdk import ClaudeSDKClient, ResultMessage
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 
 from story_engine.agents.sdk import (
     run_call, KBHooks, SessionCost, SessionError, json_schema_output, session_error, session_options,
@@ -219,3 +219,159 @@ async def narrate_act(
             )
             return
     raise AssertionError("unreachable")
+
+
+class FixEdit(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    fixes: list[int]
+    old_string: str
+    new_string: str
+
+
+class FixReply(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    edits: list[FixEdit]
+
+
+class KBFixItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: int
+    quote: str
+    claim: str
+    reason: str
+    evidence: str
+    source: str | None
+
+
+class LogFixItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: int
+    quote: str
+    reason: str
+    scene: str | None
+    paragraph: int
+
+
+class StoredFixEdit(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    round: int
+    fixes: list[KBFixItem | LogFixItem]
+    old_string: str
+    new_string: str
+
+
+class FixEdits(RootModel[list[StoredFixEdit]]):
+    pass
+
+
+def _check_edits(reply: FixReply, text: str, items: list[dict]) -> None:
+    expected = {item['id'] for item in items}
+    covered = {id for edit in reply.edits for id in edit.fixes}
+    problems = []
+    if covered - expected:
+        problems.append(f'unknown fix ids: {sorted(covered - expected)}')
+    if expected - covered:
+        problems.append(f'uncovered fix ids: {sorted(expected - covered)}')
+    spans = []
+    for index, edit in enumerate(reply.edits, 1):
+        starts = [m.start() for m in re.finditer(f'(?={re.escape(edit.old_string)})', text)] if edit.old_string else []
+        if len(starts) != 1:
+            problems.append(f'edit {index}: old_string must be non-empty and occur exactly once (found {len(starts)})')
+        else:
+            spans.append((starts[0], starts[0] + len(edit.old_string), index))
+    for left, right in zip(sorted(spans), sorted(spans)[1:]):
+        if left[1] > right[0]:
+            problems.append(f'edits {left[2]} and {right[2]} overlap')
+    if problems:
+        raise ValueError('; '.join(problems))
+
+
+def _apply_edits(text: str, edits: list[FixEdit]) -> tuple[str, str]:
+    """Apply original-text spans in reply order, then select affected new paragraphs."""
+    spans = [(text.index(e.old_string), text.index(e.old_string) + len(e.old_string)) for e in edits]
+    affected = []
+    for index, edit in enumerate(edits):
+        start, end = spans[index]
+        delta = len(edit.new_string) - (end - start)
+        text = text[:start] + edit.new_string + text[end:]
+        affected = [(a + (delta if a >= end else 0), b + (delta if b >= end else 0))
+                    for a, b in affected]
+        affected.append((start, start + len(edit.new_string)))
+        spans = [(a + (delta if a >= end else 0), b + (delta if b >= end else 0))
+                 for a, b in spans]
+    paragraphs = []
+    start = 0
+    for separator in re.finditer(r'\r?\n[ \t\r]*\n', text):
+        if text[start:separator.start()].strip():
+            paragraphs.append((start, separator.start()))
+        start = separator.end()
+    if text[start:].strip():
+        paragraphs.append((start, len(text)))
+    selected = set()
+    for a, b in affected:
+        for i, (lo, hi) in enumerate(paragraphs):
+            if (a < hi and b > lo) or (a == b and lo <= a <= hi):
+                selected.add(i)
+        if a == b and not any(lo <= a <= hi for lo, hi in paragraphs):
+            before = [i for i, (_, hi) in enumerate(paragraphs) if hi < a]
+            after = [i for i, (lo, _) in enumerate(paragraphs) if lo > a]
+            selected.update(before[-1:] + after[:1])
+    return text, '\n\n'.join(text[lo:hi].strip() for i, (lo, hi) in enumerate(paragraphs) if i in selected)
+
+
+def _fix_items(round):
+    from story_engine.agents.validation import CheckedClaim
+
+    items = [claim.model_dump(include={'quote', 'claim', 'reason', 'evidence', 'source'})
+             for claim in round.claims if isinstance(claim, CheckedClaim) and claim.verdict == 'contradicted']
+    items += [entry.model_dump(include={'quote', 'reason', 'scene', 'paragraph'})
+              for entry in round.log or [] if entry.verdict == 'contradicted']
+    return [dict(id=i, **item) for i, item in enumerate(items, 1)]
+
+
+async def fix_passages(text: str, *, report, rounds: int, root: Path, run_dir: Path,
+                       role: Role, validator_role: Role, max_turns: int, trace,
+                       log_input: dict | None = None):
+    """Keep one narrator session through all fixes; persist every completed round."""
+    from story_engine.agents.validation import _call, validate_text
+    from story_engine.kb import TRAVELERS
+
+    edits = []
+    (run_dir / 'edits.json').write_text('[]', encoding='utf-8')
+    if not report.rounds[-1].contradicted or rounds == 0:
+        return text, report
+    hooks = KBHooks(root, run_dir, 'narrator', 1)
+    travelers = {e for claim in report.rounds[0].claims for e in claim.entities} & TRAVELERS
+    sources = [root / 'prompts' / name for name in ('narrator_fix.md', 'style_spec.md', 'world_premise.md')]
+    sources += [root / 'cards' / f'{slug}.md' for slug in sorted(travelers)]
+    prompt = '\n\n'.join(path.read_text(encoding='utf-8') for path in sources)
+    options = session_options(root, run_dir, role, prompt, max_turns, hooks, tools=['Read'],
+                              output_format=json_schema_output(FixReply))
+    record_api_host(run_dir, options.env.get('ANTHROPIC_BASE_URL'))
+    cost = SessionCost()
+    async with ClaudeSDKClient(options=options) as client:
+        for number in range(1, rounds + 1):
+            items = _fix_items(report.rounds[-1])
+            hooks.turn = number
+            reply = await _call(client, json.dumps(dict(text=text, fixes=items), ensure_ascii=False),
+                                parse=FixReply.model_validate, check=lambda r: _check_edits(r, text, items),
+                                hooks=hooks, trace=trace, cost=cost, options=options,
+                                stage='fix', role=role, agent='narrator')
+            text, changed = _apply_edits(text, reply.edits)
+            for edit in reply.edits:
+                edits.append(StoredFixEdit(round=number, fixes=[item for item in items if item['id'] in edit.fixes],
+                                           old_string=edit.old_string, new_string=edit.new_string))
+            (run_dir / 'edits.json').write_text(FixEdits(edits).model_dump_json(indent=2), encoding='utf-8')
+            checked = await validate_text(changed, root=root, run_dir=run_dir, role=validator_role,
+                                          max_turns=max_turns, trace=trace, cost=SessionCost(), log_input=log_input)
+            checked.rounds[0].round = number + 1
+            report.rounds.extend(checked.rounds)
+            (run_dir / 'validation.json').write_text(report.model_dump_json(indent=2), encoding='utf-8')
+            if not checked.rounds[0].contradicted:
+                break
+    return text, report
