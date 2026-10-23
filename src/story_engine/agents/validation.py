@@ -1,6 +1,7 @@
 """Structured claim extraction with data-reference checks only."""
 
 import json
+from collections import Counter
 import re
 from pathlib import Path
 from typing import Annotated, Literal
@@ -9,6 +10,7 @@ from pydantic import Field, TypeAdapter
 
 from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 
+from story_engine.agents.narrator import strip_markers
 from story_engine.agents.sdk import (
     run_call, KBHooks, SessionCost, SessionError, json_schema_output, session_error,
     session_options, structured_reply,
@@ -50,7 +52,32 @@ class VerdictReply(StrictModel):
     verdicts: list[Verdict]
 
 
+class LogCheck(StrictModel):
+    quote: str
+    actor: str
+    events: list[int]
+    reason: str
+    verdict: Literal['supported', 'contradicted']
+    scene: str | None = None
+
+
+class LogParagraph(StrictModel):
+    id: int
+    lines: list[LogCheck]
+
+
+class LogReply(StrictModel):
+    call: Literal['log']
+    paragraphs: list[LogParagraph]
+
+
+class StoredLogCheck(LogCheck):
+    paragraph: int
+    located: bool
+
+
 ValidatorReply = Annotated[ExtractReply | VerdictReply, Field(discriminator='call')]
+LogValidatorReply = Annotated[ExtractReply | VerdictReply | LogReply, Field(discriminator='call')]
 
 
 class CheckedClaim(Claim):
@@ -67,6 +94,7 @@ class ValidationRound(StrictModel):
     not_in_kb: list[CheckedClaim]
     contradicted: int
     unverified: list[CheckedClaim]
+    log: list[StoredLogCheck] | None = None
 
 
 class Validation(StrictModel):
@@ -107,17 +135,20 @@ async def _call(client, request, *, parse, check, hooks, trace, cost, options, s
             check(reply)
             return reply
         except ValueError as error:
+            trace.write('reply_invalid', stage=stage, attempt=attempt + 1, error=str(error))
             if attempt == role.retries:
                 raise SessionError(f'{stage} validation failed after {"one retry" if role.retries == 1 else str(role.retries) + " retries"}: {error}') from None
             request = f'Reply validation failed for {stage}: {error}\nReturn corrected structured output.'
     raise AssertionError('unreachable')
 
 
-def _options(root, run_dir, role, max_turns, schema, verdicts=False):
+def _options(root, run_dir, role, max_turns, schema, verdicts=False, log=False):
     hooks = KBHooks(root, run_dir, 'validator', 1)
     prompt = (root / 'prompts/validator_extract.md').read_text()
     if verdicts:
         prompt += '\n' + (root / 'prompts/validator_verdict.md').read_text()
+    if log:
+        prompt += '\n' + (root / 'prompts/validator_log.md').read_text()
     options = session_options(root, run_dir, role, prompt, max_turns, hooks,
                               tools=['Read', 'Grep'], output_format=json_schema_output(schema))
     record_api_host(run_dir, options.env.get('ANTHROPIC_BASE_URL'))
@@ -191,13 +222,41 @@ def _normalize_evidence(text):
 
 
 async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns: int,
-                        trace, cost: SessionCost) -> Validation:
+                        trace, cost: SessionCost, log_input: dict | None = None) -> Validation:
     from story_engine.kb.entities import prefilter
 
     sentences = prefilter(text, entity_dictionary(root / 'kb'))
     for i, sentence in enumerate(sentences, 1):
         sentence.sentence_id = i
-    hooks, options = _options(root, run_dir, role, max_turns, ValidatorReply, verdicts=True)
+    schema = LogValidatorReply if log_input is not None else ValidatorReply
+    hooks, options = _options(root, run_dir, role, max_turns, schema, verdicts=True,
+                              log=log_input is not None)
+    log = None
+    paragraphs = [dict(id=i, text=part) for i, part in enumerate(
+        (part.strip() for part in re.split(r"\n[ \t]*\n", strip_markers(text)) if part.strip()), 1)]
+    paragraph_text = {p['id']: _normalize_evidence(p['text']) for p in paragraphs}
+
+    def check_log(reply):
+        if not isinstance(reply, LogReply):
+            raise ValueError('expected call: log')
+        allowed = {event['id'] for beat in log_input['beats'] for event in beat['events']}
+        allowed.update(event['id'] for event in log_input['transition_events'])
+        problems = []
+        counts = Counter(p.id for p in reply.paragraphs)
+        missing = set(paragraph_text) - counts.keys()
+        duplicate = {id for id, count in counts.items() if count > 1}
+        unknown = counts.keys() - set(paragraph_text)
+        for label, ids in (('missing', missing), ('duplicate', duplicate), ('unknown', unknown)):
+            if ids:
+                problems.append(f'{label} paragraph ids: {sorted(ids)}')
+        for entry in (line for p in reply.paragraphs for line in p.lines):
+            outside = set(entry.events) - allowed
+            if outside:
+                problems.append(f"event ids outside this act's log: {entry.quote[:60]!r}: {sorted(outside)}")
+            if entry.verdict == 'supported' and not entry.events:
+                problems.append(f'supported log entry requires at least one event: {entry.quote[:60]!r}')
+        if problems:
+            raise ValueError('; '.join(problems))
 
     def check_extract(reply):
         if not isinstance(reply, ExtractReply):
@@ -206,7 +265,7 @@ async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns
 
     async with ClaudeSDKClient(options=options) as client:
         common = dict(role=role, hooks=hooks, trace=trace, cost=cost, options=options,
-                      parse=TypeAdapter(ValidatorReply).validate_python)
+                      parse=TypeAdapter(schema).validate_python)
         extracted = await _call(client, json.dumps({'call': 'extract', 'sentences': [
             s.model_dump() for s in sentences]}, ensure_ascii=False),
             check=check_extract, stage='extract', **common)
@@ -235,6 +294,26 @@ async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns
                 check=lambda r: _check_verdicts(r, set(failed), root), stage='verdicts', **common)
             by_id.update({v.claim_id: v for v in retry.verdicts})
             failed = _evidence_failures(retry, root, trace)
+        if log_input is not None:
+            hooks.turn += 1
+            reply = await _call(client, json.dumps(dict(call='log', paragraphs=paragraphs, **log_input),
+                                                    ensure_ascii=False),
+                                check=check_log, stage='log', **common)
+            log = []
+            for paragraph in reply.paragraphs:
+                for entry in paragraph.lines:
+                    fragments = [_normalize_evidence(part)
+                                 for part in re.split(r'…|\.{3}', entry.quote)]
+                    fragments = [part for part in fragments if part]
+                    located = bool(fragments) and all(
+                        part in paragraph_text[paragraph.id] for part in fragments)
+                    if not located:
+                        trace.write('log_quote_not_found', quote=entry.quote, verdict=entry.verdict)
+                    log.append(StoredLogCheck(**(entry.model_dump() | {
+                        'paragraph': paragraph.id,
+                        'scene': log_input['scene'] if entry.verdict == 'contradicted' else None,
+                        'located': located,
+                    })))
     checked = [CheckedClaim(**c.model_dump(), **(by_id[i].model_dump(exclude={'claim_id'}) |
                            (dict(verdict='unverified', claimed_verdict=by_id[i].verdict)
                             if i in failed else {})))
@@ -242,7 +321,9 @@ async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns
     report = Validation(rounds=[ValidationRound(
         round=1, claims=checked,
         not_in_kb=[c for c in checked if isinstance(c, CheckedClaim) and c.verdict == 'not_in_kb'],
-        contradicted=sum(isinstance(c, CheckedClaim) and c.verdict == 'contradicted' for c in checked),
+        contradicted=sum(isinstance(c, CheckedClaim) and c.verdict == 'contradicted' for c in checked)
+        + sum(entry.verdict == 'contradicted' for entry in log or []),
+        log=log,
         unverified=[c for c in checked if isinstance(c, CheckedClaim) and c.verdict == 'unverified'],
     )])
     (run_dir / 'validation.json').write_text(report.model_dump_json(indent=2), encoding='utf-8')

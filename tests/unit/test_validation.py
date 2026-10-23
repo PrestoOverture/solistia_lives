@@ -63,7 +63,7 @@ def test_round_cli_and_single_session(workspace, monkeypatch):
     for i, v in [(0, verdict()), (2, verdict(2, 'not_in_kb', None)), (4, verdict(4, 'supported'))]:
         expected[i] |= {k: value for k, value in v.items() if k != 'claim_id'}
         expected[i]['claimed_verdict'] = None
-    assert data == dict(rounds=[dict(round=1, claims=expected, not_in_kb=[expected[2]], contradicted=1, unverified=[])])
+    assert data == dict(rounds=[dict(round=1, claims=expected, not_in_kb=[expected[2]], contradicted=1, unverified=[], log=None)])
     assert Validation.model_validate(data).model_dump() == data
     meta = json.loads((run / 'meta.json').read_text())
     assert meta['mode'] == 'validate' and meta['status'] == 'passed'
@@ -349,3 +349,252 @@ def test_all_evidence_failures_collected(workspace, monkeypatch):
     assert len(report['unverified']) == 2
     events = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     assert [row['claim_id'] for row in events if row['type'] == 'evidence_check_failed'] == [0, 1, 0, 1]
+
+
+@pytest.fixture
+def log_world(workspace):
+    from story_engine.world.models import Event, SceneRecord
+
+    directory = Path('worlds/tiny')
+    directory.mkdir(parents=True)
+    events = [Event(id=i, day=1, part='morning', place='cropdale', actor='temenos',
+                    type='action', content=f'Action {i}.', perceived_by=['temenos'],
+                    scene='chosen' if i in (2, 3) else 'other' if i == 4 else None,
+                    round=None) for i in range(1, 5)]
+    scene = SceneRecord(id='chosen', day=1, part='morning', place='cropdale',
+                        participants=['temenos'], first_event_id=2, last_event_id=3,
+                        rounds=0, end='done')
+    (directory / 'events.jsonl').write_text(''.join(e.model_dump_json() + '\n' for e in events))
+    (directory / 'scenes.jsonl').write_text(scene.model_dump_json() + '\n')
+    Path('input.md').write_text('Temenos waited.\n\n“Hello,” he said.\nNo entities here.')
+    return events
+
+
+def log_entry(**changes):
+    return dict(quote='No entities here.', actor='temenos', events=[2],
+                reason='Same action.', verdict='supported') | changes
+
+
+def log_reply(*entries, paragraph=2):
+    count = len([p for p in Path('input.md').read_text().strip().split('\n\n') if p.strip()])
+    return dict(call='log', paragraphs=[
+        dict(id=i, lines=list(entries) if i == paragraph else []) for i in range(1, count + 1)])
+
+
+def log_replies(entry):
+    return [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[]),
+            log_reply(entry, paragraph=1 if '\n\n' not in Path('input.md').read_text() else 2)]
+
+
+def run_log(*options):
+    return CliRunner().invoke(app, ['eval', 'validate', 'input.md',
+                                  *(options or ('--world', 'tiny', '--scene', 'chosen'))])
+
+
+def test_log_input_single_session_and_legacy_rounds(log_world, monkeypatch):
+    from story_engine.agents.narrator import act_beats, act_scene_events
+
+    calls, options, life = fake(monkeypatch, log_replies(log_entry(events=[1, 2, 3])))
+    result = run_log()
+    assert result.exit_code == 0, result.output
+    assert len(calls) == 3 and len(options) == 1 and life == ['enter', 'exit']
+    request = json.loads(calls[2])
+    assert request == dict(call='log', paragraphs=[dict(id=1, text='Temenos waited.'),
+                          dict(id=2, text='“Hello,” he said.\nNo entities here.')], scene='chosen',
+                          beats=act_beats(act_scene_events(log_world, 'chosen'), pov=''),
+                          transition_events=[log_world[0].model_dump(exclude={'intent'})])
+    assert len(request['beats']) == 1
+    assert 'located' not in options[0].output_format['schema']['$defs']['LogCheck']['properties']
+    assert request['beats'][0]['round'] is None
+    assert [e['id'] for e in request['beats'][0]['events']] == [2, 3]
+    assert Path('prompts/validator_log.md').read_text() in options[0].system_prompt
+    assert 'log_contradicted=0' in result.output
+
+
+@pytest.mark.parametrize('entry,error', [
+    (log_entry(events=[4]), "outside this act's log"),
+    (log_entry(events=[]), 'requires at least one event'),
+])
+@pytest.mark.parametrize('recover', [False, True])
+def test_log_whole_reply_retry(log_world, monkeypatch, entry, error, recover):
+    replies = log_replies(entry) + [log_reply(log_entry() if recover else entry)]
+    calls, options, life = fake(monkeypatch, replies)
+    result = run_log()
+    assert result.exit_code == (0 if recover else 1), result.output
+    assert len(calls) == 4 and error in calls[3]
+    assert len(options) == 1 and life == ['enter', 'exit']
+    run = next(Path('runs').iterdir())
+    assert (run / 'validation.json').exists() == recover
+    trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
+    invalid = [row for row in trace if row['type'] == 'reply_invalid']
+    assert [row['attempt'] for row in invalid] == ([1] if recover else [1, 2])
+    assert all(row['stage'] == 'log' and error in row['error'] for row in invalid)
+    if not recover:
+        assert 'after one retry' in result.output
+        assert json.loads((run / 'meta.json').read_text())['status'] == 'failed'
+
+
+def test_log_contradiction_count_scene_and_print(log_world, monkeypatch):
+    entry = log_entry(verdict='contradicted', events=[])
+    calls, _, _ = fake(monkeypatch, log_replies(entry))
+    result = run_log()
+    assert result.exit_code == 0, result.output
+    assert len(calls) == 3
+    assert 'contradicted=1' in result.output
+    assert 'log_contradicted=1' in result.output
+    assert 'No entities here. [scene chosen]' in result.output
+    run = next(Path('runs').iterdir())
+    report = Validation.model_validate_json((run / 'validation.json').read_text()).rounds[0]
+    assert report.contradicted == 1
+    assert report.log[0].model_dump() == entry | dict(scene='chosen', located=True, paragraph=2)
+
+
+@pytest.mark.parametrize('args,message', [
+    (('--world', 'tiny'), 'provided together'),
+    (('--scene', 'chosen'), 'provided together'),
+    (('--world', 'missing', '--scene', 'chosen'), 'Unknown world: missing'),
+    (('--world', 'tiny', '--scene', 'missing'), 'Unknown scene: missing'),
+])
+def test_log_invalid_context_before_model(log_world, monkeypatch, args, message):
+    calls, options, _ = fake(monkeypatch, [])
+    result = run_log(*args)
+    assert result.exit_code == 1 and message in result.output
+    assert calls == options == []
+
+
+def test_no_log_prompt_and_null(workspace, monkeypatch):
+    calls, options, _ = fake(monkeypatch, [dict(call='extract', claims=[]),
+                                         dict(call='verdicts', verdicts=[])])
+    result = run_story()
+    assert result.exit_code == 0, result.output
+    assert len(calls) == 2
+    assert options[0].system_prompt == (Path('prompts/validator_extract.md').read_text()
+                                        + '\n' + Path('prompts/validator_verdict.md').read_text())
+    run = next(Path('runs').iterdir())
+    assert json.loads((run / 'validation.json').read_text())['rounds'][0]['log'] is None
+
+
+def test_log_quote_normalization(log_world, monkeypatch):
+    calls, _, _ = fake(monkeypatch, log_replies(log_entry(quote='"Hello," he said.')))
+    result = run_log()
+    assert result.exit_code == 0, result.output
+    assert len(calls) == 3
+
+
+def test_log_retry_collects_all_problems(log_world, monkeypatch):
+    first = 'First missing quote ' + 'a' * 70
+    second = 'Second missing quote ' + 'b' * 70
+    bad = log_reply(log_entry(quote=first, events=[999]),
+                    log_entry(quote=second, events=[]))
+    calls, _, _ = fake(monkeypatch, log_replies(log_entry())[:2]
+                        + [bad, log_reply(log_entry())])
+    result = run_log()
+    assert result.exit_code == 0, result.output
+    assert len(calls) == 4
+    retry = calls[3]
+    assert f"event ids outside this act's log: {first[:60]!r}: [999]" in retry
+    assert 'log quote not found' not in retry
+    assert f'supported log entry requires at least one event: {second[:60]!r}' in retry
+    assert first not in retry and second not in retry
+
+
+@pytest.mark.parametrize('ellipsis', ['…', '...'])
+def test_log_interrupted_quote_located(log_world, monkeypatch, ellipsis):
+    Path('input.md').write_text('"And second," Gus continued, "I was sorting"')
+    entry = log_entry(quote=f'And second, {ellipsis} I was sorting')
+    calls, _, _ = fake(monkeypatch, log_replies(entry))
+    result = run_log()
+    assert result.exit_code == 0, result.output
+    assert len(calls) == 3
+    run = next(Path('runs').iterdir())
+    report = json.loads((run / 'validation.json').read_text())['rounds'][0]
+    assert report['log'][0] == entry | dict(scene=None, located=True, paragraph=1)
+    trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
+    assert not any(row['type'] in ('reply_invalid', 'log_quote_not_found') for row in trace)
+
+
+@pytest.mark.parametrize('quote', ['Absent quote.', '', '… ...', 'No entities here. … Absent.'])
+@pytest.mark.parametrize('verdict', ['supported', 'contradicted'])
+def test_missing_log_quote_kept(log_world, monkeypatch, quote, verdict):
+    entry = log_entry(quote=quote, verdict=verdict)
+    calls, _, _ = fake(monkeypatch, log_replies(entry))
+    result = run_log()
+    assert result.exit_code == 0, result.output
+    assert len(calls) == 3
+    run = next(Path('runs').iterdir())
+    assert json.loads((run / 'meta.json').read_text())['status'] == 'passed'
+    report = json.loads((run / 'validation.json').read_text())['rounds'][0]
+    assert report['log'][0] == entry | dict(
+        scene='chosen' if verdict == 'contradicted' else None, located=False, paragraph=2)
+    trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
+    missing = [row for row in trace if row['type'] == 'log_quote_not_found']
+    assert len(missing) == 1
+    assert missing[0]['quote'] == quote and missing[0]['verdict'] == verdict
+    assert not any(row['type'] == 'reply_invalid' for row in trace)
+
+
+def test_log_transition_events_exclude_intent(log_world, monkeypatch):
+    log_world[0].intent = 'Private transition intent.'
+    directory = Path('worlds/tiny')
+    (directory / 'events.jsonl').write_text(
+        ''.join(event.model_dump_json() + '\n' for event in log_world))
+    calls, _, _ = fake(monkeypatch, log_replies(log_entry()))
+    result = run_log()
+    assert result.exit_code == 0, result.output
+    transitions = json.loads(calls[2])['transition_events']
+    assert [event['id'] for event in transitions] == [1]
+    assert all('intent' not in event for event in transitions)
+
+
+def test_log_request_marker_free_blank_line_paragraphs(log_world, monkeypatch):
+    Path('input.md').write_text('\n<!-- r:1 -->\n\nFirst line.\nStill first.<!-- e:1 -->\n \t\n\nSecond.\n\n<!-- r:2 -->\n')
+    reply = dict(call='log', paragraphs=[dict(id=1, lines=[]), dict(id=2, lines=[])])
+    calls, _, _ = fake(monkeypatch, log_replies(log_entry())[:2] + [reply])
+    result = run_log()
+    assert result.exit_code == 0, result.output
+    request = json.loads(calls[2])
+    assert 'text' not in request
+    assert request['paragraphs'] == [dict(id=1, text='First line.\nStill first.'),
+                                     dict(id=2, text='Second.')]
+
+
+@pytest.mark.parametrize('recover', [False, True])
+def test_log_missing_paragraph_retries(log_world, monkeypatch, recover):
+    bad = dict(call='log', paragraphs=[dict(id=1, lines=[])])
+    calls, _, _ = fake(monkeypatch, log_replies(log_entry())[:2] + [
+        bad, log_reply(log_entry()) if recover else bad])
+    result = run_log()
+    assert result.exit_code == (0 if recover else 1), result.output
+    assert len(calls) == 4
+    assert 'missing paragraph ids: [2]' in calls[3]
+    if not recover:
+        assert 'after one retry' in result.output
+        assert 'missing paragraph ids: [2]' in result.output
+
+
+def test_log_paragraph_and_event_problems_collected(log_world, monkeypatch):
+    bad = dict(call='log', paragraphs=[dict(id=1, lines=[log_entry(events=[999]),
+                                                         log_entry(events=[])]),
+                                       dict(id=1, lines=[]), dict(id=9, lines=[])])
+    calls, _, _ = fake(monkeypatch, log_replies(log_entry())[:2] + [bad, bad])
+    assert run_log().exit_code == 1
+    assert len(calls) == 4
+    for error in ('missing paragraph ids: [2]', 'duplicate paragraph ids: [1]',
+                  'unknown paragraph ids: [9]', "event ids outside this act's log",
+                  'supported log entry requires at least one event'):
+        assert error in calls[3]
+
+
+@pytest.mark.parametrize('paragraph,located', [(1, True), (2, False)])
+def test_log_quote_location_is_paragraph_local(log_world, monkeypatch, paragraph, located):
+    entry = log_entry(quote='Temenos waited.')
+    calls, _, _ = fake(monkeypatch, log_replies(entry)[:2] + [
+        log_reply(entry, paragraph=paragraph)])
+    result = run_log()
+    assert result.exit_code == 0, result.output
+    assert len(calls) == 3
+    run = next(Path('runs').iterdir())
+    report = json.loads((run / 'validation.json').read_text())['rounds'][0]
+    assert report['log'] == [entry | dict(paragraph=paragraph, located=located, scene=None)]
+    trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
+    assert sum(row['type'] == 'log_quote_not_found' for row in trace) == int(not located)

@@ -636,13 +636,33 @@ def eval_extract(
 @eval_app.command('validate')
 def eval_validate(
     story_path: Path = typer.Argument(..., exists=True, dir_okay=False),
+    world_id: str | None = typer.Option(None, '--world'),
+    scene_id: str | None = typer.Option(None, '--scene'),
     models_file: Path = typer.Option(Path('config/models.yaml'), '--models', help='Model configuration file'),
 ) -> None:
     """Validate a story against the KB in one extraction and verdict round."""
     from story_engine.agents.sdk import SessionCost
     from story_engine.agents.validation import CheckedClaim, validate_text
 
+    log_input = None
     try:
+        if (world_id is None) != (scene_id is None):
+            raise ValueError('--world and --scene must be provided together')
+        if world_id is not None:
+            from story_engine.agents.narrator import act_beats, act_scene_events, act_transition_events
+            from story_engine.world.io import read_events, read_scenes
+
+            world_dir = Path('worlds') / world_id
+            if world_id in ('.', '..') or Path(world_id).name != world_id or not world_dir.is_dir():
+                raise ValueError(f'Unknown world: {world_id}')
+            scenes = read_scenes(world_dir)
+            scene = next((item for item in scenes if item.id == scene_id), None)
+            if scene is None:
+                raise ValueError(f'Unknown scene: {scene_id} in world {world_id}')
+            events = read_events(world_dir)
+            log_input = dict(scene=scene_id, beats=act_beats(act_scene_events(events, scene_id), pov=''),
+                             transition_events=[event.model_dump(exclude={'intent'}) for event in
+                                                act_transition_events(events, scenes, scene)])
         story = story_path.read_bytes()
         text = story.decode('utf-8')
         models, settings = load_configs(models_file)
@@ -657,7 +677,7 @@ def eval_validate(
         (run_dir / 'draft.md').write_bytes(story)
         report = asyncio.run(validate_text(
             text, root=Path.cwd(), run_dir=run_dir, role=models.validator,
-            max_turns=settings.agent_max_turns, trace=trace, cost=SessionCost(),
+            max_turns=settings.agent_max_turns, trace=trace, cost=SessionCost(), log_input=log_input,
         ))
     except Exception as error:
         detail = str(error) if isinstance(error, SessionError) else type(error).__name__
@@ -672,6 +692,11 @@ def eval_validate(
     for claim in round_one.claims:
         if isinstance(claim, CheckedClaim) and claim.verdict == 'contradicted':
             typer.echo(f'{claim.quote} [{claim.source}]')
+    if round_one.log is not None:
+        log_contradicted = [entry for entry in round_one.log if entry.verdict == 'contradicted']
+        typer.echo(f'log_contradicted={len(log_contradicted)}')
+        for entry in log_contradicted:
+            typer.echo(f'{entry.quote} [scene {entry.scene}]')
     typer.echo(f'not_in_kb={len(round_one.not_in_kb)}')
     typer.echo(f'unverified={len(round_one.unverified)}')
     for claim in round_one.unverified:
