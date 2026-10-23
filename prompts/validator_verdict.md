@@ -5,7 +5,8 @@ cards, while keeping the time asserted by historical claims.
 Return call: verdicts and a verdicts list with exactly one entry per supplied
 claim_id (the zero-based position in the extracted claims list).
 Each entry has claim_id, evidence, reason, verdict, source, in that order.
-Evidence is a verbatim excerpt from the cited source. Give a reason for every verdict.
+Evidence is a verbatim excerpt from the cited source.
+Copy evidence verbatim from the source, not paraphrased. Give a reason for every verdict.
 - supported: canon supports the claim; a source is required.
 - contradicted: canon contradicts the claim; a source is required.
 - not_in_kb: canon does not establish the claim; use null for source and an empty

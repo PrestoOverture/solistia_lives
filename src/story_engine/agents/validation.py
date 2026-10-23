@@ -54,9 +54,10 @@ ValidatorReply = Annotated[ExtractReply | VerdictReply, Field(discriminator='cal
 
 
 class CheckedClaim(Claim):
+    claimed_verdict: Literal['supported', 'contradicted', 'not_in_kb'] | None = None
     evidence: str
     reason: str
-    verdict: Literal['supported', 'contradicted', 'not_in_kb']
+    verdict: Literal['supported', 'contradicted', 'not_in_kb', 'unverified']
     source: str | None
 
 
@@ -65,6 +66,7 @@ class ValidationRound(StrictModel):
     claims: list[CheckedClaim | Claim]
     not_in_kb: list[CheckedClaim]
     contradicted: int
+    unverified: list[CheckedClaim]
 
 
 class Validation(StrictModel):
@@ -135,10 +137,9 @@ async def extract_claims(sentences: list[EntitySentence], *, root: Path, run_dir
     return reply.claims
 
 
-def _check_verdicts(reply, claims, root, trace):
+def _check_verdicts(reply, expected, root):
     if not isinstance(reply, VerdictReply):
         raise ValueError('expected call: verdicts')
-    expected = {i for i, c in enumerate(claims) if c.type == 'canon_fact'}
     ids = [v.claim_id for v in reply.verdicts]
     if set(ids) != expected or len(ids) != len(expected):
         raise ValueError(f'exactly one verdict required for each canon_fact claim: {sorted(expected)}; got {ids}')
@@ -159,17 +160,27 @@ def _check_verdicts(reply, claims, root, trace):
         if raw.is_absolute() or '..' in raw.parts or not allowed or not path.is_file():
             raise ValueError(f'source must name an existing repo-relative file under kb/, '
                              f'cards/<traveler>.md, or prompts/world_premise.md: {verdict.source}')
+
+
+def _evidence_failures(reply, root, trace):
+    failed = {}
+    for verdict in reply.verdicts:
+        if verdict.source is None:
+            continue
+        path = root / verdict.source
         fragments = [_normalize_evidence(part) for part in re.split(r'…|\.{3}', verdict.evidence)]
         fragments = [part for part in fragments if part]
         source = _normalize_evidence(path.read_text(encoding='utf-8'))
         if not fragments or any(part not in source for part in fragments):
             trace.write('evidence_check_failed', claim_id=verdict.claim_id,
                         source=verdict.source, evidence=verdict.evidence)
-            raise ValueError(f'evidence does not appear in source: {verdict.source}')
+            failed[verdict.claim_id] = verdict.source
+    return failed
 
 
 def _normalize_evidence(text):
     text = re.sub(r'\[([^\]]+)\]\([^)]*\)', r'\1', text)
+    text = re.sub(r'\[([^\]]+)\](?!\()', r'\1', text)
     text = text.translate(str.maketrans({'“': '"', '”': '"', '‘': "'", '’': "'"}))
     text = re.sub(r'(?m)^[ \t]*(?:#{1,6}|[-*]|\d+\.)[ \t]+', '', text)
     # Remove paired emphasis, preserving literal markers such as snake_case.
@@ -205,17 +216,34 @@ async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns
         for slug in sorted({e for c in claims for e in c.entities} & TRAVELERS):
             name = f'cards/{slug}.md'
             sources[name] = (root / name).read_text()
+        expected = {i for i, c in enumerate(claims) if c.type == 'canon_fact'}
         verdicts = await _call(client, json.dumps({'call': 'verdicts', 'sources': sources, 'claims': [
             dict(claim_id=i, **c.model_dump()) for i, c in enumerate(claims)
             if c.type == 'canon_fact']}, ensure_ascii=False),
-            check=lambda r: _check_verdicts(r, claims, root, trace), stage='verdicts', **common)
-    by_id = {v.claim_id: v for v in verdicts.verdicts}
-    checked = [CheckedClaim(**c.model_dump(), **by_id[i].model_dump(exclude={'claim_id'}))
+            check=lambda r: _check_verdicts(r, expected, root), stage='verdicts', **common)
+        by_id = {v.claim_id: v for v in verdicts.verdicts}
+        failed = _evidence_failures(verdicts, root, trace)
+        if failed:
+            hooks.turn = 3
+            retry = await _call(client, json.dumps({
+                'call': 'verdicts',
+                'claims': [dict(claim_id=i, **claims[i].model_dump()) for i in sorted(failed)],
+                'errors': [dict(claim_id=i, source=source,
+                                error=f'Evidence was not found in {source}. Return a corrected verdict.')
+                           for i, source in sorted(failed.items())],
+            }, ensure_ascii=False),
+                check=lambda r: _check_verdicts(r, set(failed), root), stage='verdicts', **common)
+            by_id.update({v.claim_id: v for v in retry.verdicts})
+            failed = _evidence_failures(retry, root, trace)
+    checked = [CheckedClaim(**c.model_dump(), **(by_id[i].model_dump(exclude={'claim_id'}) |
+                           (dict(verdict='unverified', claimed_verdict=by_id[i].verdict)
+                            if i in failed else {})))
                if i in by_id else c for i, c in enumerate(claims)]
     report = Validation(rounds=[ValidationRound(
         round=1, claims=checked,
         not_in_kb=[c for c in checked if isinstance(c, CheckedClaim) and c.verdict == 'not_in_kb'],
-        contradicted=sum(v.verdict == 'contradicted' for v in verdicts.verdicts),
+        contradicted=sum(isinstance(c, CheckedClaim) and c.verdict == 'contradicted' for c in checked),
+        unverified=[c for c in checked if isinstance(c, CheckedClaim) and c.verdict == 'unverified'],
     )])
     (run_dir / 'validation.json').write_text(report.model_dump_json(indent=2), encoding='utf-8')
     return report

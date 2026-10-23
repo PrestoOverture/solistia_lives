@@ -62,7 +62,8 @@ def test_round_cli_and_single_session(workspace, monkeypatch):
     expected = extracted()['claims']
     for i, v in [(0, verdict()), (2, verdict(2, 'not_in_kb', None)), (4, verdict(4, 'supported'))]:
         expected[i] |= {k: value for k, value in v.items() if k != 'claim_id'}
-    assert data == dict(rounds=[dict(round=1, claims=expected, not_in_kb=[expected[2]], contradicted=1)])
+        expected[i]['claimed_verdict'] = None
+    assert data == dict(rounds=[dict(round=1, claims=expected, not_in_kb=[expected[2]], contradicted=1, unverified=[])])
     assert Validation.model_validate(data).model_dump() == data
     meta = json.loads((run / 'meta.json').read_text())
     assert meta['mode'] == 'validate' and meta['status'] == 'passed'
@@ -157,19 +158,33 @@ def test_missing_evidence_retries_once_then_fails(workspace, monkeypatch, kind, 
                                    dict(call='verdicts', verdicts=[invalid]),
                                    dict(call='verdicts', verdicts=[invalid])])
     result = run_story()
-    assert result.exit_code == 1
+    assert result.exit_code == 0, result.output
+    assert 'unverified=1' in result.output
+    assert f'claimed_verdict={kind}' in result.output
+    assert claim(1, 'canon_fact')['claim'] in result.output
     assert len(calls) == 3
-    assert 'evidence does not appear in source: kb/temenos.md' in calls[2]
+    request = json.loads(calls[2])
+    assert request['call'] == 'verdicts'
+    assert request['claims'] == [dict(claim_id=0, **claim(1, 'canon_fact'))]
+    assert request['errors'][0]['source'] == 'kb/temenos.md'
+    assert 'Evidence was not found in kb/temenos.md' in calls[2]
     run = next(Path('runs').iterdir())
-    assert 'after one retry' in json.loads((run / 'meta.json').read_text())['error']
-    assert not (run / 'validation.json').exists()
+    assert json.loads((run / 'meta.json').read_text())['status'] == 'passed'
+    report = json.loads((run / 'validation.json').read_text())['rounds'][0]
+    checked = report['claims'][0]
+    assert checked['verdict'] == 'unverified'
+    assert checked['claimed_verdict'] == kind
+    assert checked['evidence'] == evidence
+    assert checked['reason'] == invalid['reason']
+    assert checked['source'] == invalid['source']
+    assert report['contradicted'] == 0
+    assert report['unverified'] == [checked]
     events = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     failures = [row for row in events if row['type'] == 'evidence_check_failed']
     assert len(failures) == 2
     assert all({key: row[key] for key in ('claim_id', 'source', 'evidence')} ==
                dict(claim_id=0, source='kb/temenos.md', evidence=evidence) for row in failures)
-    assert events.index(failures[0]) < next(i for i, row in enumerate(events)
-                                         if row.get('attempt') == 2)
+    assert events.index(failures[0]) < events.index(failures[1])
 
 
 @pytest.mark.parametrize('formatted,plain', [
@@ -191,6 +206,22 @@ def test_markdown_evidence_passes(workspace, monkeypatch, formatted, plain, reve
     result = run_story()
     assert result.exit_code == 0, result.output
     assert len(calls) == 2
+
+
+def test_bare_bracket_evidence_passes(workspace, monkeypatch):
+    path = Path('kb/temenos.md')
+    path.write_text(path.read_text() + '\n- [Mother](../../characters/throne/mother.md) – Co-leader and administrator')
+    reply = verdict() | dict(evidence='[Mother] – Co-leader and administrator')
+    calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=[claim(1, 'canon_fact')]),
+                                   dict(call='verdicts', verdicts=[reply])])
+    result = run_story()
+    assert len(calls) == 2
+    assert result.exit_code == 0, result.output
+    run = next(Path('runs').iterdir())
+    checked = json.loads((run / 'validation.json').read_text())['rounds'][0]['claims'][0]
+    assert checked == claim(1, 'canon_fact') | {
+        k: v for k, v in reply.items() if k != 'claim_id'
+    } | dict(claimed_verdict=None)
 
 
 @pytest.mark.parametrize('ellipsis', ['…', '...'])
@@ -252,3 +283,69 @@ def test_only_claim_entity_traveler_cards_supplied(workspace, monkeypatch, offse
     sources = json.loads(calls[1])['sources']
     assert sources == {name: Path(name).read_text() for name in
                        ['prompts/world_premise.md', *[f'cards/{s}.md' for s in selected + ['temenos']]]}
+
+
+@pytest.mark.parametrize('recover', [True, False])
+def test_evidence_reask_only_failing_claim(workspace, monkeypatch, recover):
+    claims = [claim(1, 'canon_fact'), claim(1, 'canon_fact')]
+    invalid = verdict(1) | dict(evidence='Absent evidence.')
+    replacement = verdict(1, 'supported') if recover else invalid
+    calls, options, life = fake(monkeypatch, [
+        dict(call='extract', claims=claims),
+        dict(call='verdicts', verdicts=[verdict(0), invalid]),
+        dict(call='verdicts', verdicts=[replacement]),
+    ])
+    result = run_story()
+    assert result.exit_code == 0, result.output
+    assert len(calls) == 3
+    assert len(options) == 1 and life == ['enter', 'exit']
+    assert json.loads(calls[2])['claims'] == [dict(claim_id=1, **claims[1])]
+    run = next(Path('runs').iterdir())
+    report = json.loads((run / 'validation.json').read_text())['rounds'][0]
+    assert report['claims'][0] == claims[0] | {
+        k: v for k, v in verdict(0).items() if k != 'claim_id'
+    } | dict(claimed_verdict=None)
+    assert report['contradicted'] == 1
+    checked = report['claims'][1]
+    assert checked['verdict'] == ('supported' if recover else 'unverified')
+    assert checked['claimed_verdict'] == (None if recover else 'contradicted')
+    assert checked['evidence'] == replacement['evidence']
+    assert report['unverified'] == ([] if recover else [checked])
+
+
+@pytest.mark.parametrize('bad', [[], [verdict(file='missing.md')],
+                                 [verdict() | dict(verdict='unverified')]])
+@pytest.mark.parametrize('recover', [True, False])
+def test_evidence_reask_schema_and_source_retry(workspace, monkeypatch, bad, recover):
+    invalid = verdict() | dict(evidence='Absent evidence.')
+    bad_reply = dict(call='verdicts', verdicts=bad)
+    calls, _, _ = fake(monkeypatch, [
+        dict(call='extract', claims=[claim(1, 'canon_fact')]),
+        dict(call='verdicts', verdicts=[invalid]), bad_reply,
+        dict(call='verdicts', verdicts=[verdict()]) if recover else bad_reply,
+    ])
+    result = run_story()
+    assert result.exit_code == (0 if recover else 1), result.output
+    assert len(calls) == 4
+    assert 'Reply validation failed for verdicts' in calls[3]
+    run = next(Path('runs').iterdir())
+    assert (run / 'validation.json').exists() == recover
+
+
+def test_all_evidence_failures_collected(workspace, monkeypatch):
+    claims = [claim(1, 'canon_fact'), claim(1, 'canon_fact')]
+    invalid = [verdict(i) | dict(evidence='Absent evidence.') for i in range(2)]
+    calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=claims),
+                                   dict(call='verdicts', verdicts=invalid),
+                                   dict(call='verdicts', verdicts=invalid)])
+    result = run_story()
+    assert result.exit_code == 0, result.output
+    assert len(calls) == 3
+    request = json.loads(calls[2])
+    assert request['claims'] == [dict(claim_id=i, **c) for i, c in enumerate(claims)]
+    assert [error['claim_id'] for error in request['errors']] == [0, 1]
+    run = next(Path('runs').iterdir())
+    report = json.loads((run / 'validation.json').read_text())['rounds'][0]
+    assert len(report['unverified']) == 2
+    events = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
+    assert [row['claim_id'] for row in events if row['type'] == 'evidence_check_failed'] == [0, 1, 0, 1]

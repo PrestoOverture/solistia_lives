@@ -673,3 +673,6 @@ def eval_validate(
         if isinstance(claim, CheckedClaim) and claim.verdict == 'contradicted':
             typer.echo(f'{claim.quote} [{claim.source}]')
     typer.echo(f'not_in_kb={len(round_one.not_in_kb)}')
+    typer.echo(f'unverified={len(round_one.unverified)}')
+    for claim in round_one.unverified:
+        typer.echo(f'{claim.claim} [claimed_verdict={claim.claimed_verdict}]')
