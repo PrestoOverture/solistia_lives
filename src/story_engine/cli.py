@@ -576,3 +576,26 @@ def world_tell(
         raise typer.Exit(code=1) from None
     trace.write("run_finished", status=status)
     typer.echo(run_dir)
+
+
+@eval_app.command('world')
+def eval_world(
+    world_ids: list[str] = typer.Argument(..., help='World IDs to evaluate sequentially'),
+    day: int | None = typer.Option(None, min=1, help='Day for every world (default: latest or unfinished)'),
+) -> None:
+    """Evaluate world-day data and semantic consistency without changing worlds."""
+    from story_engine.eval.world import evaluate_world, summary
+
+    failed = False
+    for world_id in world_ids:
+        try:
+            run_dir, report = asyncio.run(evaluate_world(world_id, day))
+            typer.echo(summary(run_dir, report))
+            failed |= report.judge_status == 'failed'
+            if report.error:
+                typer.echo(report.error, err=True)
+        except (OSError, ValueError, ConfigError) as error:
+            typer.echo(f'{world_id}: {error}', err=True)
+            failed = True
+    if failed:
+        raise typer.Exit(code=1)

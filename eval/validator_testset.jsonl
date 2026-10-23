@@ -1,0 +1,26 @@
+{"id": 1, "category": "narrator_fact", "text": "Osvald had spent more than five years imprisoned on Frigit Isle before his escape.", "type": "canon_fact", "verdict": "supported", "kb": "characters/osvald/osvald.md"}
+{"id": 2, "category": "narrator_fact", "text": "Agnea had grown up in Cropdale, the daughter of Garud Bristarni.", "type": "canon_fact", "verdict": "supported", "kb": "characters/agnea/agnea.md"}
+{"id": 3, "category": "narrator_fact", "text": "Castti had once led Eir's Apothecaries, though for a time she had forgotten it.", "type": "canon_fact", "verdict": "supported", "kb": "characters/castti/castti.md"}
+{"id": 4, "category": "narrator_fact", "text": "Hikari's half-brother, General Mugen, had seized Ku in a coup.", "type": "canon_fact", "verdict": "supported", "kb": "characters/hikari/hikari.md"}
+{"id": 5, "category": "narrator_fact", "text": "Ochette came from Beasting Village on the island of Toto'haha.", "type": "canon_fact", "verdict": "supported", "kb": "characters/ochette/ochette.md"}
+{"id": 6, "category": "narrator_fact", "text": "Throné's old collar had been locked with two keys, one held by Mother and one by Father.", "type": "canon_fact", "verdict": "supported", "kb": "characters/throne/throne.md"}
+{"id": 7, "category": "narrator_fact", "text": "Osvald had grown up in Flamechurch, among the clerics of the Sacred Flame.", "type": "canon_fact", "verdict": "contradicted", "kb": "characters/osvald/osvald.md"}
+{"id": 8, "category": "narrator_fact", "text": "Partitio had been born in Montwise, the city of scholars.", "type": "canon_fact", "verdict": "contradicted", "kb": "characters/partitio/partitio.md"}
+{"id": 9, "category": "narrator_fact", "text": "Partitio had never once beaten his father Papp at cards.", "type": "canon_fact", "verdict": "not_in_kb", "kb": null}
+{"id": 10, "category": "canon_dialogue", "text": "\"Harvey burned my home and let the world call me a murderer,\" Osvald said.", "type": "canon_fact", "verdict": "supported", "kb": "characters/osvald/osvald.md"}
+{"id": 11, "category": "canon_dialogue", "text": "\"Pontiff Jörg was my adoptive father, whatever the Church liked to call him,\" said Temenos.", "type": "canon_fact", "verdict": "supported", "kb": "characters/temenos/temenos.md"}
+{"id": 12, "category": "canon_dialogue", "text": "\"Trousseau was one of us once, an apothecary of Eir's,\" Castti said quietly.", "type": "canon_fact", "verdict": "supported", "kb": "characters/castti/trousseau.md"}
+{"id": 13, "category": "canon_dialogue", "text": "\"My father, King Jigo, chose me as his heir,\" Hikari said.", "type": "canon_fact", "verdict": "supported", "kb": "characters/hikari/hikari.md"}
+{"id": 14, "category": "canon_dialogue", "text": "\"Mama passed away, but I still dance to follow in her footsteps,\" Agnea said.", "type": "canon_fact", "verdict": "supported", "kb": "characters/agnea/agnea.md"}
+{"id": 15, "category": "canon_dialogue", "text": "\"When I woke in New Delsta with no memory, all I had was my satchel,\" Castti said.", "type": "canon_fact", "verdict": "contradicted", "kb": "characters/castti/castti.md"}
+{"id": 16, "category": "canon_dialogue", "text": "\"Akalā is a lājackal, and he's been like a brother to me,\" Ochette said.", "type": "canon_fact", "verdict": "supported", "kb": "characters/ochette/akala.md"}
+{"id": 17, "category": "joke_irony", "text": "\"Frigit Isle? I hear the prison islands are lovely this time of year,\" Temenos said. \"All that sea air.\"", "type": "opinion_or_joke", "verdict": null, "kb": null}
+{"id": 18, "category": "joke_irony", "text": "\"Oh, certainly,\" Throné said. \"Every Blacksnake I ever knew was a perfect gentleman.\"", "type": "opinion_or_joke", "verdict": null, "kb": null}
+{"id": 19, "category": "joke_irony", "text": "\"Golts make the best business partners in Oresrush,\" Partitio said. \"They never haggle.\"", "type": "opinion_or_joke", "verdict": null, "kb": null}
+{"id": 20, "category": "joke_irony", "text": "Osvald regarded Agnea over his spectacles. \"I suspect you could talk a golt into dancing.\"", "type": "opinion_or_joke", "verdict": null, "kb": null}
+{"id": 21, "category": "mistaken_belief", "text": "Ochette had only heard it secondhand, but she was sure Osvald had been a pirate before he was a scholar.", "type": "opinion_or_joke", "verdict": null, "kb": null}
+{"id": 22, "category": "mistaken_belief", "text": "Pala insisted, wrongly, that Throné was a famous dancer from New Delsta.", "type": "opinion_or_joke", "verdict": null, "kb": null}
+{"id": 23, "category": "mistaken_belief", "text": "The innkeeper took Hikari for a wandering sellsword and charged him double.", "type": "opinion_or_joke", "verdict": null, "kb": null}
+{"id": 24, "category": "invented_detail", "text": "The bartender at the Cropdale tavern, a gray-bearded man named Hollis, wiped the same mug for the third time.", "type": "invented_detail", "verdict": null, "kb": null}
+{"id": 25, "category": "invented_detail", "text": "They took a table at the Gilded Golt, the newest inn in Oresrush.", "type": "invented_detail", "verdict": null, "kb": null}
+{"id": 26, "category": "invented_detail", "text": "A Flamechurch acolyte named Brother Tobin brought Temenos a stack of unanswered letters.", "type": "invented_detail", "verdict": null, "kb": null}

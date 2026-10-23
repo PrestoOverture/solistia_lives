@@ -8,6 +8,7 @@ dependencies = [
     "pydantic",
     "pyyaml",
     "claude-agent-sdk>=0.2.168",
+    "python-frontmatter>=1.3.0",
 ]
 
 [project.scripts]

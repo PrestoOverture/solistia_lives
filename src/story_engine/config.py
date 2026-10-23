@@ -23,6 +23,7 @@ class Models(StrictModel):
     narrator: Role
     baseline: Role
     validator: Role
+    world_judge: Role
 
 
 class Words(StrictModel):
