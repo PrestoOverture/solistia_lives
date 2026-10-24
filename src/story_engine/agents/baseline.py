@@ -56,7 +56,7 @@ async def baseline_writer(
                     heading = re.search(r"^# ", message.result, re.MULTILINE)
                     if heading is None:
                         raise SessionError("Baseline final text has no '# ' heading")
-                    (run_dir / "story.md").write_text(
+                    (run_dir / "draft.md").write_text(
                         message.result[heading.start():], encoding="utf-8",
                     )
                     return True

@@ -9,6 +9,7 @@ from claude_agent_sdk import ResultMessage
 from typer.testing import CliRunner
 
 from story_engine.agents import curator, narrator
+from test_extract import fake
 from story_engine.cli import app
 from story_engine.runs import RunMeta
 from story_engine.world.io import append_event, append_scene, load_state, save_state
@@ -65,6 +66,9 @@ def world(tmp_path, monkeypatch):
     state = load_state(world)
     state.clock.day = 2
     save_state(world, state)
+    (tmp_path / 'kb').mkdir()
+    (tmp_path / 'kb/agnea.md').write_text('---\nname: Agnea\naliases: []\n---\n')
+    fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])])
     monkeypatch.chdir(tmp_path)
     return world
 
@@ -118,11 +122,12 @@ def fake_narrator(monkeypatch, reply=REPLY_A):
 
 
 def test_two_acts_previous_acts_and_story_join(world, monkeypatch):
+    validation_calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])])
     fake_curator(monkeypatch, [json.dumps(EPISODE)])
     calls, options, lifecycle = fake_narrator(monkeypatch, [REPLY_A, REPLY_B])
     result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1'])
     assert result.exit_code == 0, result.output
-    run = Path(result.output.strip())
+    run = Path(result.output.strip().splitlines()[-1])
     assert lifecycle == ['enter', 'exit', 'enter', 'exit']
     assert len(calls) == 2 and all(options[i].tools == ['Read'] for i in range(2))
     request1 = json.loads(calls[0])
@@ -140,7 +145,12 @@ def test_two_acts_previous_acts_and_story_join(world, monkeypatch):
     story = (run / 'story.md').read_text()
     assert story == STORY_A + '\n\n---\n\n' + STORY_B
     assert '<!--' not in story
-    assert not (run / 'draft.md').exists()
+    assert [json.loads(call)['call'] for call in validation_calls] == ['extract', 'verdicts']
+    sentences = json.loads(validation_calls[0])['sentences']
+    assert any('Agnea laughed.' in row['text'] for row in sentences)
+    assert any('Agnea let the moment settle.' in row['text'] for row in sentences)
+    assert 'not_in_kb=0' in result.output
+    assert (run / 'draft.md').read_text() == story
     meta = RunMeta.model_validate_json((run / 'meta.json').read_bytes())
     assert meta.status == 'passed' and meta.day == 1
     trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
@@ -161,7 +171,7 @@ def test_act_request_scopes_scene_and_transition_events(world, monkeypatch):
     result = CliRunner().invoke(
         app, ['world', 'tell', 'test', '--day', '1', '--act', 'B', '--pov', 'agnea'])
     assert result.exit_code == 0, result.output
-    run = Path(result.output.strip())
+    run = Path(result.output.strip().splitlines()[-1])
     assert lifecycle == ['enter', 'exit']
     assert options[0].tools == options[0].allowed_tools == ['Read']
     request = json.loads(calls[0])
@@ -188,7 +198,7 @@ def test_paragraph_without_citation_rejected_then_retry_accepted(world, monkeypa
     result = CliRunner().invoke(
         app, ['world', 'tell', 'test', '--day', '1', '--act', 'A', '--pov', 'agnea'])
     assert result.exit_code == 0, result.output
-    run = Path(result.output.strip())
+    run = Path(result.output.strip().splitlines()[-1])
     assert len(calls) == 2  # the bad reply, then the retry
     assert 'Grounding check failed' in calls[1]
     assert 'cite' in calls[1]
@@ -232,7 +242,7 @@ def test_multiple_rounds_cited_render_as_range(world, monkeypatch):
     result = CliRunner().invoke(
         app, ['world', 'tell', 'test', '--day', '1', '--act', 'A', '--pov', 'agnea'])
     assert result.exit_code == 0, result.output
-    run = Path(result.output.strip())
+    run = Path(result.output.strip().splitlines()[-1])
     assert (run / 'acts/act_1.md').read_text() == expected
     trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     grounding = next(row for row in trace if row['type'] == 'act_grounding')
@@ -278,7 +288,7 @@ def test_episode_from_skips_curator(world, monkeypatch):
     calls, _, _ = fake_narrator(monkeypatch, [REPLY_A, REPLY_B])
     result = CliRunner().invoke(app, ['world', 'tell', 'test', '--episode-from', source_run.name])
     assert result.exit_code == 0, result.output
-    run = Path(result.output.strip())
+    run = Path(result.output.strip().splitlines()[-1])
     assert run != source_run
     assert len(calls) == 2  # the narrator was called, once per act
     assert (run / 'episode.json').read_bytes() == (source_run / 'episode.json').read_bytes()
@@ -303,12 +313,14 @@ def test_episode_from_rejects_old_format(world, monkeypatch):
 
 
 def test_stop_after_act_then_continue(world, monkeypatch):
+    validation_calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])])
     fake_curator(monkeypatch, [json.dumps(EPISODE)])
     calls, _, _ = fake_narrator(monkeypatch, [REPLY_A, REPLY_B])
     result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1', '--stop-after', 'act:1'])
     assert result.exit_code == 0, result.output
-    run = Path(result.output.strip())
+    run = Path(result.output.strip().splitlines()[-1])
     assert len(calls) == 1
+    assert validation_calls == []
     act1_path = run / 'acts/act_1.md'
     assert act1_path.read_text() == ACT_A
     assert not (run / 'acts/act_2.md').exists()
@@ -321,7 +333,7 @@ def test_stop_after_act_then_continue(world, monkeypatch):
     time.sleep(0.01)
     result = CliRunner().invoke(app, ['world', 'tell', 'test', '--continue', run.name])
     assert result.exit_code == 0, result.output
-    assert Path(result.output.strip()) == run
+    assert Path(result.output.strip().splitlines()[-1]) == run
     assert len(calls) == 2
     assert act1_path.read_bytes() == before_bytes
     assert act1_path.stat().st_mtime_ns == before_mtime
@@ -329,3 +341,39 @@ def test_stop_after_act_then_continue(world, monkeypatch):
     assert (run / 'story.md').read_text() == STORY_A + '\n\n---\n\n' + STORY_B
     meta = RunMeta.model_validate_json((run / 'meta.json').read_bytes())
     assert meta.status == 'passed'
+
+
+@pytest.mark.parametrize('fix_rounds', [0, 1])
+def test_validation_fixes_only_joined_text(world, monkeypatch, fix_rounds):
+    import yaml
+    from test_extract import claim
+    from test_validation import verdict
+
+    settings_path = Path('config/settings.yaml')
+    settings = yaml.safe_load(settings_path.read_text())
+    settings['validation_rounds'] = fix_rounds
+    settings_path.write_text(yaml.safe_dump(settings))
+    fake_curator(monkeypatch, [json.dumps(EPISODE)])
+    fake_narrator(monkeypatch, [REPLY_A, REPLY_B] + [json.dumps(dict(edits=[dict(
+        fixes=[1], old_string='Agnea laughed.', new_string='Agnea smiled.')]))])
+    replies = [dict(call='extract', claims=[claim(1, 'canon_fact', entities=['agnea'])]),
+               dict(call='verdicts', verdicts=[verdict(file='kb/agnea.md') | dict(evidence='name: Agnea')])]
+    if fix_rounds:
+        replies += [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])]
+    validation_calls, _, _ = fake(monkeypatch, replies)
+    result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1'])
+    assert result.exit_code == (0 if fix_rounds else 1), result.output
+    run, = Path('runs').iterdir()
+    joined = STORY_A + '\n\n---\n\n' + STORY_B
+    assert (run / 'draft.md').read_text() == joined
+    assert (run / 'acts/act_1.md').read_text() == ACT_A
+    assert (run / 'acts/act_2.md').read_text() == ACT_B
+    assert all(json.loads(call)['call'] != 'log' for call in validation_calls)
+    meta = RunMeta.model_validate_json((run / 'meta.json').read_bytes())
+    assert meta.status == ('passed' if fix_rounds else 'failed')
+    assert (run / 'validation.json').exists() and (run / 'edits.json').exists()
+    if fix_rounds:
+        assert (run / 'story.md').read_text() == joined.replace('Agnea laughed.', 'Agnea smiled.')
+    else:
+        assert meta.error == 'validate failed: contradictions remain after 0 fix rounds'
+        assert not (run / 'story.md').exists()

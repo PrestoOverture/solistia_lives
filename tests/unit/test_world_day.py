@@ -7,6 +7,7 @@ from claude_agent_sdk import ResultMessage
 from typer.testing import CliRunner
 
 from story_engine.agents import character, curator, narrator, world as world_agent
+from test_extract import fake
 from story_engine.cli import app
 from story_engine.runs import RunMeta
 from story_engine.world.io import append_event, append_scene, load_state, read_events, save_state
@@ -120,6 +121,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
     monkeypatch.setattr(narrator, 'ClaudeSDKClient', FakeClient)
     monkeypatch.setattr(character, 'ClaudeSDKClient', FakeClient)
     monkeypatch.setattr(world_agent, 'ClaudeSDKClient', FakeClient)
+    fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])])
     args = ['world', 'run', 'test'] + (['--stop-after', 'day'] if stop_after else [])
     if failure == 'dry_run':
         args += ['--dry-run']

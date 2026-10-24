@@ -14,6 +14,7 @@ from story_engine.kb import validate_input
 from story_engine.agents.baseline import baseline_writer
 from story_engine.agents.initializer import scene_context, starting_state
 from story_engine.world.io import create_world
+from story_engine.agents.validate_and_fix import ValidationStageError, validate_and_fix
 from story_engine.agents.sdk import SessionError
 from story_engine.runs import RunInput, RunMeta, create_run, finish_run, read_scene_context
 from story_engine.trace import TraceWriter
@@ -102,13 +103,23 @@ def generate(
                     Path.cwd(), run_dir, character_slugs, location_slug, scenario,
                     models.baseline, settings.words, settings.writer_max_turns, trace,
                 ))
-                story = (run_dir / "story.md").read_bytes()
+                story = (run_dir / "draft.md").read_bytes()
                 trace.write("stage_finished", stage=stage, word_count=len(story.decode("utf-8").split()))
+                stage = "validate"
+                text, report = asyncio.run(validate_and_fix(
+                    story.decode("utf-8"), root=Path.cwd(), run_dir=run_dir,
+                    models=models, settings=settings, trace=trace,
+                ))
+                if report.rounds[-1].contradicted:
+                    raise SessionError(f"contradictions remain after {settings.validation_rounds} fix rounds")
+                (run_dir / "story.md").write_text(text, encoding="utf-8")
+                typer.echo(f"not_in_kb={len(report.rounds[-1].not_in_kb)}")
                 status = "passed"
             finish_run(run_dir, status)
         except Exception as error:
             # Exception messages can include credentials from the relay or SDK.
             detail = str(error) if isinstance(error, SessionError) else type(error).__name__
+            stage = error.stage if isinstance(error, ValidationStageError) else stage
             summary = f"{stage} failed: {detail}"
             (run_dir / "story.md").unlink(missing_ok=True)
             finish_run(run_dir, "failed", summary)
@@ -292,6 +303,7 @@ def world_run(
     except BaseException as error:
         status = "stopped" if isinstance(error, CostCapReached) else "failed"
         detail = str(error) if isinstance(error, (SessionError, CostCapReached)) else type(error).__name__
+        stage = error.stage if isinstance(error, ValidationStageError) else stage
         reason = f"{stage} stopped: {detail}" if status == "stopped" else f"{stage} failed: {detail}"
         finish_run(run_dir, status, reason)
         trace.write("stage_failed", stage=stage, error=reason)
@@ -320,8 +332,8 @@ def _curate_day(world_dir, run_dir, day, info, models, trace):
 def _narrate_acts(world_dir, run_dir, day, episode, info, models, settings, trace,
                   start: int, stop_at: int | None):
     """Narrate acts `start` through `stop_at` (1-based, inclusive; None means to the end) of
-    `episode`, writing acts/act_<n>.md. When the episode's last act is reached, also writes
-    story.md. Returns 'stopped' or 'passed'."""
+    `episode`, writing acts/act_<n>.md. A completed episode is validated and fixed before
+    writing story.md. Explicit stops skip validation. Returns 'stopped' or 'passed'."""
     from story_engine.agents.narrator import act_filename, narrate_act, strip_markers
     from story_engine.world.io import read_events, read_scenes
 
@@ -347,9 +359,15 @@ def _narrate_acts(world_dir, run_dir, day, episode, info, models, settings, trac
         text = strip_markers((acts_dir / act_filename(number)).read_text(encoding="utf-8"))
         trace.write("stage_finished", stage="narrate_act", act=number, word_count=len(text.split()))
         previous_texts.append(text)
-    if last == total:
+    if stop_at is None and last == total:
         story = "\n\n---\n\n".join(previous_texts)
+        story, report = asyncio.run(validate_and_fix(
+            story, root=Path.cwd(), run_dir=run_dir, models=models, settings=settings, trace=trace,
+        ))
+        if report.rounds[-1].contradicted:
+            raise ValidationStageError('validate', f'contradictions remain after {settings.validation_rounds} fix rounds')
         (run_dir / "story.md").write_text(story, encoding="utf-8")
+        typer.echo(f"not_in_kb={len(report.rounds[-1].not_in_kb)}")
         return "passed"
     return "stopped"
 
@@ -526,6 +544,7 @@ def world_tell(
             finish_run(run_dir, status)
         except Exception as error:
             detail = str(error) if isinstance(error, SessionError) else type(error).__name__
+            stage = error.stage if isinstance(error, ValidationStageError) else stage
             reason = f"{stage} failed: {detail}"
             finish_run(run_dir, "failed", reason)
             trace.write("stage_failed", stage=stage, error=reason)
@@ -576,6 +595,7 @@ def world_tell(
         finish_run(run_dir, status)
     except Exception as error:
         detail = str(error) if isinstance(error, SessionError) else type(error).__name__
+        stage = error.stage if isinstance(error, ValidationStageError) else stage
         reason = f"{stage} failed: {detail}"
         finish_run(run_dir, "failed", reason)
         trace.write("stage_failed", stage=stage, error=reason)
@@ -643,8 +663,7 @@ def eval_validate(
     models_file: Path = typer.Option(Path('config/models.yaml'), '--models', help='Model configuration file'),
 ) -> None:
     """Validate a story against the KB, optionally fixing contradictions."""
-    from story_engine.agents.sdk import SessionCost
-    from story_engine.agents.validation import CheckedClaim, validate_text
+    from story_engine.agents.validation import CheckedClaim
 
     log_input = None
     try:
@@ -676,21 +695,12 @@ def eval_validate(
     trace = TraceWriter(run_dir)
     trace.write('run_started', mode='validate')
     try:
-        (run_dir / 'draft.md').write_bytes(story)
-        report = asyncio.run(validate_text(
-            text, root=Path.cwd(), run_dir=run_dir, role=models.validator,
-            max_turns=settings.agent_max_turns, trace=trace, cost=SessionCost(), log_input=log_input,
+        limit = (settings.validation_rounds if rounds is None else rounds) if fix else 0
+        text, report = asyncio.run(validate_and_fix(
+            text, root=Path.cwd(), run_dir=run_dir, models=models, settings=settings,
+            trace=trace, log_input=log_input, rounds=limit,
         ))
-        (run_dir / 'validation.json').write_text(report.model_dump_json(indent=2), encoding='utf-8')
         if fix:
-            from story_engine.agents.narrator import fix_passages
-
-            limit = settings.validation_rounds if rounds is None else rounds
-            text, report = asyncio.run(fix_passages(
-                text, report=report, rounds=limit, root=Path.cwd(), run_dir=run_dir,
-                role=models.narrator, validator_role=models.validator,
-                max_turns=settings.agent_max_turns, trace=trace, log_input=log_input,
-            ))
             if report.rounds[-1].contradicted:
                 raise SessionError(f'contradictions remain after {limit} fix rounds')
             (run_dir / 'story.md').write_text(text, encoding='utf-8')

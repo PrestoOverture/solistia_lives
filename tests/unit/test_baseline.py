@@ -1,4 +1,5 @@
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -6,7 +7,8 @@ import yaml
 from claude_agent_sdk import AssistantMessage, ResultMessage, TextBlock, ThinkingBlock, ToolUseBlock
 from typer.testing import CliRunner
 
-from story_engine.agents import baseline, initializer
+from story_engine.agents import baseline, initializer, validation
+from test_extract import fake
 from story_engine.cli import app
 from story_engine.runs import RunMeta
 
@@ -71,6 +73,19 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
     monkeypatch.setattr(initializer, "ClaudeSDKClient", FakeInitializer)
     monkeypatch.setattr(baseline, "ClaudeSDKClient", UnexpectedWriter)
+    for name in ('validator_extract.md', 'validator_verdict.md', 'world_premise.md'):
+        shutil.copy(source / 'prompts' / name, tmp_path / 'prompts' / name)
+    fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])])
+    fake_client = validation.ClaudeSDKClient
+
+    class DraftValidator(fake_client):
+        def __init__(self, **kwargs):
+            run_dir, = [path for path in (tmp_path / 'runs').iterdir() if (path / 'draft.md').exists()]
+            assert (run_dir / 'draft.md').read_text() == STORY
+            assert not (run_dir / 'story.md').exists()
+            super().__init__(**kwargs)
+
+    monkeypatch.setattr(validation, 'ClaudeSDKClient', DraftValidator)
     return tmp_path
 
 
@@ -163,8 +178,12 @@ def test_baseline_session(repo: Path, monkeypatch: pytest.MonkeyPatch, thinking:
         args += ["--models", str(model_path)]
     result = CliRunner().invoke(app, args)
     assert result.exit_code == 0, result.output
-    run_dir = Path(result.output.strip())
+    run_dir = Path(result.output.strip().splitlines()[-1])
     assert calls == [(role, event) for role in ("initializer", "baseline") for event in ("init", "enter", "query", "exit")]
+    assert "not_in_kb=0" in result.output
+    assert (run_dir / "validation.json").exists()
+    assert json.loads((run_dir / "edits.json").read_text()) == []
+    assert (run_dir / "draft.md").read_text() == STORY
     assert (run_dir / "story.md").read_text() == STORY
     meta = RunMeta.model_validate_json((run_dir / "meta.json").read_text())
     assert meta.status == "passed" and meta.error is None
@@ -175,7 +194,7 @@ def test_baseline_session(repo: Path, monkeypatch: pytest.MonkeyPatch, thinking:
     retrieval = rows(run_dir / "retrieval.jsonl")
     assert [(r["agent"], r["tool"]) for r in retrieval] == [(role, tool) for role in ("initializer", "baseline") for tool in ("Read", "Grep", "Glob")]
     assert all(r["reason"] == f"{r['agent']} checking {r['tool']}." for r in retrieval)
-    trace = rows(run_dir / "trace.jsonl")
+    trace = [e for e in rows(run_dir / "trace.jsonl") if e.get("agent") != "validator" and e.get("stage") != "validate"]
     assert [(e["type"], e.get("stage")) for e in trace] == [
         ("run_started", None),
         ("stage_started", "scene_context"), ("stage_usage", "scene_context"), ("stage_finished", "scene_context"),
@@ -197,7 +216,7 @@ def test_baseline_session(repo: Path, monkeypatch: pytest.MonkeyPatch, thinking:
 def source_run(repo: Path) -> Path:
     result = CliRunner().invoke(app, ARGS + ["--dry-run"])
     assert result.exit_code == 0, result.output
-    run_dir = Path(result.output.strip())
+    run_dir = Path(result.output.strip().splitlines()[-1])
     (run_dir / "scene_context.md").write_bytes(
         "## Location\r\nNew Delsta — 乾杯\r\n\r\n## Characters\nOsvald and Temenos".encode("utf-8")
     )
@@ -234,7 +253,7 @@ def test_reused_context_skips_initializer(repo: Path, source_run: Path, monkeypa
     original = (source_run / "scene_context.md").read_bytes()
     result = CliRunner().invoke(app, ARGS + ["--scene-context-from", source_run.name])
     assert result.exit_code == 0, result.output
-    run_dir = Path(result.output.strip())
+    run_dir = Path(result.output.strip().splitlines()[-1])
     assert run_dir != source_run
     assert (run_dir / "scene_context.md").read_bytes() == original
     assert (source_run / "scene_context.md").read_bytes() == original
@@ -242,7 +261,7 @@ def test_reused_context_skips_initializer(repo: Path, source_run: Path, monkeypa
     meta = RunMeta.model_validate_json((run_dir / "meta.json").read_text())
     assert meta.scene_context_from == source_run.name
     assert meta.status == "passed"
-    trace = rows(run_dir / "trace.jsonl")
+    trace = [e for e in rows(run_dir / "trace.jsonl") if e.get("agent") != "validator" and e.get("stage") != "validate"]
     context_events = [e for e in trace if e.get("stage") == "scene_context"]
     assert len(context_events) == 1
     assert context_events[0]["type"] == "stage_reused"
@@ -372,3 +391,46 @@ def test_timeout_fails_run_with_meta_error(repo, monkeypatch):
     assert 'timed out after 0.05s' in meta.error
     event, = [row for row in rows(run_dir / 'trace.jsonl') if row['type'] == 'call_timeout']
     assert (event['stage'], event['agent'], event['timeout_s']) == ('baseline_writer', 'baseline', 0.05)
+
+
+def test_baseline_exhausts_configured_fix_rounds(repo, monkeypatch):
+    from test_fix import check, edit, setup_fake
+
+    settings_path = repo / 'config/settings.yaml'
+    settings = yaml.safe_load(settings_path.read_text())
+    settings['validation_rounds'] = 2
+    settings_path.write_text(yaml.safe_dump(settings))
+    for name in ('narrator_fix.md', 'world_premise.md'):
+        (repo / 'prompts' / name).write_bytes((Path(__file__).resolve().parents[2] / 'prompts' / name).read_bytes())
+    (repo / 'kb/temenos.md').write_text('---\nname: Temenos\naliases: []\n---\n')
+
+    class Writer:
+        def __init__(self, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def query(self, request):
+            pass
+
+        async def receive_response(self):
+            yield ResultMessage('success', 1, 1, False, 1, 'writer', result='# Story\n\nTemenos assertion.')
+
+    monkeypatch.setattr(baseline, 'ClaudeSDKClient', Writer)
+    calls, _, _ = setup_fake(monkeypatch, check() + [edit()] + check() + [edit('correction', 'truth')] + check())
+    result = CliRunner().invoke(app, ARGS)
+    assert result.exit_code == 1, result.output
+    run_dir, = (repo / 'runs').iterdir()
+    meta = RunMeta.model_validate_json((run_dir / 'meta.json').read_bytes())
+    assert meta.status == 'failed'
+    assert meta.error == 'validate failed: contradictions remain after 2 fix rounds'
+    assert (run_dir / 'draft.md').read_text() == '# Story\n\nTemenos assertion.'
+    report = json.loads((run_dir / 'validation.json').read_text())
+    assert len(report['rounds']) == 3 and report['rounds'][-1]['contradicted'] == 1
+    assert len(json.loads((run_dir / 'edits.json').read_text())) == 2
+    assert not (run_dir / 'story.md').exists()
+    assert len(calls) == 8
