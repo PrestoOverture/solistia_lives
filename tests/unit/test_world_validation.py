@@ -19,11 +19,11 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def _settled(where, outcome, spot=None):
-    return dict(status='settled', outcome=outcome, where=where, spot=spot)
+    return dict(involves=[], status='settled', outcome=outcome, where=where, spot=spot)
 
 
 def _staged(where, spot=None):
-    return dict(status='staged', where=where, spot=spot)
+    return dict(involves=[], status='staged', where=where, spot=spot)
 
 
 def _adjudicate_reply(verdicts, encounters=None):
@@ -195,11 +195,11 @@ def test_adjudicate_staged_verdict_with_outcome_fails_schema():
     """A staged verdict carries no outcome field (it is forbidden by the schema)."""
     with pytest.raises(ValidationError):
         world_agent.Staged.model_validate(
-            dict(status='staged', where='cropdale', spot=None, outcome='Should not be allowed.'))
+            dict(involves=[], status='staged', where='cropdale', spot=None, outcome='Should not be allowed.'))
     with pytest.raises(ValidationError):
         world_agent.AdjudicateReply.model_validate(dict(
             call='adjudicate',
-            verdicts={'throne': dict(status='staged', where='cropdale', spot=None, outcome='Nope.')},
+            verdicts={'throne': dict(involves=[], status='staged', where='cropdale', spot=None, outcome='Nope.')},
             encounters=[]))
 
 
@@ -440,3 +440,89 @@ def test_adjudicate_retry_budget(tmp_path, monkeypatch, retries, recover):
         with pytest.raises(world_agent.SessionError, match='World validation failed after'):
             asyncio.run(exercise())
     assert len(requests) == attempts
+
+
+@pytest.mark.parametrize("status", ["settled", "staged"])
+def test_verdict_requires_involves(status):
+    data = dict(status=status, where="cropdale")
+    if status == "settled":
+        data["outcome"] = "Waits."
+    with pytest.raises(ValidationError, match="involves"):
+        world_agent.AdjudicateReply.model_validate(
+            _adjudicate_reply({"agnea": data}))
+    model = world_agent.Settled if status == "settled" else world_agent.Staged
+    assert list(model.model_fields)[:2] == ["involves", "status"]
+
+
+@pytest.mark.parametrize("involves,minor", [
+    (["  MÉRCHANT_tam  "], ["Merchant Tam"]),
+    (["Unknown Person"], []),
+    (["throne"], []),
+    ([], []),
+])
+@pytest.mark.parametrize("existing_encounter", [False, True])
+def test_involves_forces_staging_without_retry(tmp_path, monkeypatch, involves, minor, existing_encounter):
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    state = load_state(world)
+    state.people['Merchant Tam'] = Person(where='cropdale', wants=['Sell berries'], commitments=[])
+    outcome = 'An outcome whose text is never inspected.'
+    verdict = _settled('cropdale', outcome, spot='by the stall') | dict(involves=involves)
+    encounter = [dict(mains=['agnea', 'throne'], minor=[])] if existing_encounter else []
+    reply = _adjudicate_reply({
+        'agnea': verdict,
+        'throne': _settled('cropdale', 'Waits.', spot='by the stall'),
+    }, encounter)
+    (events, updated, _notes, encounters, statuses), requests = _run_resolve(
+        world, run, monkeypatch, state, {'agnea': {}, 'throne': {}},
+        [reply, _offscreen_reply(state)])
+    assert len(requests) == 2  # exactly adjudicate + offscreen, no validation retry
+    assert statuses['agnea'] == ('staged' if involves else 'settled')
+    assert updated.characters['agnea'].where == 'cropdale'
+    assert updated.characters['agnea'].spot == 'by the stall'
+    outcomes = [event for event in events if event.of == 'agnea']
+    assert [event.content for event in outcomes] == ([] if involves else [outcome])
+    assert len(encounters) == (1 if existing_encounter or involves else 0)
+    if encounters:
+        assert encounters[0].minor == minor
+        assert encounters[0].mains == (['agnea', 'throne'] if existing_encounter else ['agnea'])
+    trace = list(map(json.loads, (run / 'trace.jsonl').read_text().splitlines()))
+    assert not any(row['type'] == 'world_validation_failed' for row in trace)
+    forced = [row for row in trace if row['type'] == 'verdict_forced_staged']
+    assert len(forced) == bool(involves)
+    if forced:
+        assert {key: forced[0][key] for key in ('slug', 'involves', 'outcome', 'day', 'part')} == dict(
+            slug='agnea', involves=involves, outcome=outcome,
+            day=state.clock.day, part=state.clock.part)
+
+
+def test_involves_person_elsewhere_forces_staging_without_adding_minor(tmp_path, monkeypatch):
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    state = load_state(world)
+    state.people['Merchant Tam'] = Person(
+        where='festival_grounds', wants=['Sell berries'], commitments=[])
+    outcome = 'An outcome whose text is never inspected.'
+    involves = ['  MÉRCHANT_tam  ']
+    reply = _adjudicate_reply({
+        'agnea': _settled('cropdale', outcome) | dict(involves=involves),
+    })
+    (events, _updated, _notes, encounters, statuses), requests = _run_resolve(
+        world, run, monkeypatch, state, {'agnea': {}},
+        [reply, _offscreen_reply(state)])
+
+    assert len(requests) == 2  # exactly adjudicate + offscreen, no validation retry
+    assert statuses == {'agnea': 'staged'}
+    assert events == []
+    assert len(encounters) == 1
+    assert encounters[0].mains == ['agnea']
+    assert encounters[0].minor == []
+    trace = list(map(json.loads, (run / 'trace.jsonl').read_text().splitlines()))
+    assert not any(row['type'] == 'world_validation_failed' for row in trace)
+    forced = [row for row in trace if row['type'] == 'verdict_forced_staged']
+    assert len(forced) == 1
+    assert {key: forced[0][key] for key in ('slug', 'involves', 'outcome', 'day', 'part')} == dict(
+        slug='agnea', involves=involves, outcome=outcome,
+        day=state.clock.day, part=state.clock.part)

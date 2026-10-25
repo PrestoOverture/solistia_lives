@@ -149,11 +149,12 @@ def run_suite_command(
     mode: Literal["baseline", "simulation"] = typer.Option(...),
     models_file: Path = typer.Option(Path("config/models.yaml"), "--models", help="Models YAML file"),
     dry_run: bool = typer.Option(False),
+    stop_after: Literal["day"] | None = typer.Option(None),
 ) -> None:
     """Run every case in eval/test_suite.yaml."""
     try:
         _, settings = load_configs(models_file)
-        manifest, path = run_suite(models_file, dry_run, settings.suite_parallel, mode)
+        manifest, path = run_suite(models_file, dry_run, settings.suite_parallel, mode, stop_after)
     except (ConfigError, OSError, ValueError) as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1) from None
@@ -161,7 +162,7 @@ def run_suite_command(
         cost = "unknown" if result.total_cost_usd is None else f"${result.total_cost_usd:.6f}"
         typer.echo(f"{case_id}: {result.run_id or '-'} {result.status} {cost}")
     typer.echo(path)
-    expected = "dry_run" if dry_run else "passed"
+    expected = "dry_run" if dry_run else ("stopped" if stop_after else "passed")
     if any(result.status != expected for result in manifest.root.values()):
         raise typer.Exit(code=1)
 

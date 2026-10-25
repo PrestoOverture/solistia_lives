@@ -29,7 +29,7 @@ def world_state_echo(request):
 
 def settled_verdicts(state_echo, outcome='Nothing much happens.'):
     """Settle every planning character right where it already stood (no movement)."""
-    return {slug: dict(status='settled', outcome=outcome, where=char['where'], spot=char.get('spot'))
+    return {slug: dict(involves=[], status='settled', outcome=outcome, where=char['where'], spot=char.get('spot'))
            for slug, char in state_echo['characters'].items()}
 
 
@@ -637,9 +637,9 @@ def test_solo_main_with_listed_minor_runs_scene(tmp_path, monkeypatch):
         async def receive_response(self):
             if self.request['call'] == 'adjudicate':
                 verdicts = dict(
-                    agnea=dict(status='settled', outcome='Agnea reaches the festival grounds.',
+                    agnea=dict(involves=[], status='settled', outcome='Agnea reaches the festival grounds.',
                               where='festival_grounds', spot=None),
-                    throne=dict(status='settled', outcome='Throné reaches Cropdale.',
+                    throne=dict(involves=[], status='settled', outcome='Throné reaches Cropdale.',
                                where='cropdale', spot=None))
                 data = dict(call='adjudicate', verdicts=verdicts,
                            encounters=[{'mains': ['agnea'], 'minor': ['Gus']}])
@@ -954,7 +954,7 @@ def test_two_mains_same_place_different_spots_no_scene_same_spot_opens_one(tmp_p
 
         async def receive_response(self):
             if self.request['call'] == 'adjudicate':
-                verdicts = {slug: dict(status='settled', outcome='Nothing much happens.',
+                verdicts = {slug: dict(involves=[], status='settled', outcome='Nothing much happens.',
                                        where='cropdale', spot=same_spot.get(slug))
                            for slug in self.request['choices']}
                 data = dict(call='adjudicate', verdicts=verdicts, encounters=[])
@@ -1041,8 +1041,8 @@ def test_encounter_scene_opens_at_mains_shared_spot(tmp_path, monkeypatch):
         async def receive_response(self):
             if self.request['call'] == 'adjudicate':
                 verdicts = dict(
-                    agnea=dict(status='staged', where='festival_grounds', spot='the raspberry thicket'),
-                    throne=dict(status='settled', outcome='Throné minds the tavern.',
+                    agnea=dict(involves=[], status='staged', where='festival_grounds', spot='the raspberry thicket'),
+                    throne=dict(involves=[], status='settled', outcome='Throné minds the tavern.',
                                where='cropdale', spot=None))
                 data = dict(call='adjudicate', verdicts=verdicts,
                            encounters=[{'mains': ['agnea'], 'minor': []}])

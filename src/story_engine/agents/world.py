@@ -45,6 +45,7 @@ class OffscreenEvent(BaseModel):
 
 class Settled(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    involves: list[str]
     status: Literal["settled"]
     outcome: str = Field(max_length=280)
     where: str
@@ -53,6 +54,7 @@ class Settled(BaseModel):
 
 class Staged(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    involves: list[str]
     status: Literal["staged"]
     where: str
     spot: str | None = None
@@ -328,6 +330,12 @@ class WorldAgent(_WorldSession):
         outcome's event, moves every verdicted main character, and opens a solo attempt
         scene for any staged character left out of an encounter."""
         verdicts, encounters, situations = await self.adjudicate(state, choices, events)
+        for slug, verdict in verdicts.items():
+            if verdict.status == "settled" and verdict.involves:
+                self.trace.write("verdict_forced_staged", slug=slug, involves=verdict.involves,
+                                 outcome=verdict.outcome, **state.clock.model_dump())
+                verdicts[slug] = Staged(involves=verdict.involves, status="staged",
+                                        where=verdict.where, spot=verdict.spot)
         characters = dict(state.characters)
         for slug, verdict in verdicts.items():
             characters[slug] = characters[slug].model_copy(
@@ -343,9 +351,18 @@ class WorldAgent(_WorldSession):
                     id=0, **state.clock.model_dump(), place=verdict.where, actor="world", of=slug,
                     type="world", content=verdict.outcome, perceived_by=perceived_by))
         encountered_mains = {slug for encounter in encounters for slug in encounter.mains}
+        people_keys = {_key(name): name for name in state.people}
         for slug, verdict in verdicts.items():
-            if verdict.status == "staged" and slug not in encountered_mains:
-                encounters.append(Encounter(mains=[slug], minor=[]))
+            if verdict.status == "staged":
+                if slug not in encountered_mains:
+                    encounters.append(Encounter(mains=[slug], minor=[]))
+                    encountered_mains.add(slug)
+                encounter = next(item for item in encounters if slug in item.mains)
+                for name in verdict.involves:
+                    person = people_keys.get(_key(name))
+                    if (person is not None and state.people[person].where == verdict.where
+                            and all(_key(other) != _key(person) for other in encounter.minor)):
+                        encounter.minor.append(person)
         open_situations = {situation.id for situation in moved_state.situations if situation.status == "open"}
         save_state(self.world_dir, moved_state)
         off_events, new_state, situation_notes = await offscreen.offscreen(moved_state, open_situations)

@@ -73,7 +73,7 @@ def test_world_output_format_accepts_all_call_variants(tmp_path, monkeypatch):
     schema = options.output_format['schema']
     state = load_state(world)
     adjudicate = dict(call='adjudicate',
-                      verdicts={slug: dict(status='settled', outcome='Did something.',
+                      verdicts={slug: dict(involves=[], status='settled', outcome='Did something.',
                                            where='cropdale', spot=None) for slug in state.characters},
                       encounters=[])
     offscreen = dict(call='offscreen', events=[], people={},

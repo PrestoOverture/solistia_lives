@@ -16,9 +16,9 @@ Reply with JSON: `{"call": "day_start", "situations": [...], "people": {}, "plac
 
 Each main character's `choices` entry is their **plan** for this part of the day: `where` (and `spot`) they mean to be, and their `aim`, in their own private `intent`. A plan is an intention, not a fact: decide what actually happens with it.
 
-For each plan, either **settle** it or **stage** it:
-- **Settle** a plan that is ordinary and certain (walking somewhere, eating, resting): a `{"status": "settled", "outcome": "...", "where": "...", "spot": null}` verdict, where `outcome` is at most one sentence (at most 280 characters) saying what that character's own attempt achieved or found.
-- **Stage** a plan whose outcome is open, or that involves anyone else (searching, chasing, persuading, rescuing, meeting another main character): a `{"status": "staged", "where": "...", "spot": null}` verdict — it carries no outcome. A staged plan becomes a scene; its outcome is given there, round by round.
+For each plan, first list `involves`: the other main character slugs or people names the plan involves, or `[]` if solitary. Only a plan involving no one may be settled; code stages every verdict with a non-empty `involves` list and drops its outcome. Then either **settle** it or **stage** it:
+- **Settle** a plan that involves no one and is ordinary and certain (walking somewhere, eating, resting): a `{"involves": [], "status": "settled", "outcome": "...", "where": "...", "spot": null}` verdict, where `outcome` is at most one sentence (at most 280 characters) saying what that character's own attempt achieved or found.
+- **Stage** a plan whose outcome is open, or that involves anyone else (searching, chasing, persuading, rescuing, meeting another main character): a `{"involves": ["Name"], "status": "staged", "where": "...", "spot": null}` verdict — it carries no outcome. A staged plan becomes a scene; its outcome is given there, round by round.
 
 Resolve plans fairly: they happen unless something in the world would really stop them.
 
@@ -27,7 +27,7 @@ Also return the **encounters**: who meets whom. An encounter names its main char
 Reply only with JSON:
 ```
 {"call": "adjudicate",
- "verdicts": {"main_character_slug": {"status": "settled", "outcome": "What that character's own attempt achieved or found, at most 280 characters.", "where": "place_slug", "spot": null}},
+ "verdicts": {"main_character_slug": {"involves": [], "status": "settled", "outcome": "What that character's own attempt achieved or found, at most 280 characters.", "where": "place_slug", "spot": null}},
  "encounters": [{"mains": ["main_character_slug"], "minor": ["Name"]}],
  "situation_updates": [{"id": "existing_situation_id", "status": "resolved"}]}
 ```

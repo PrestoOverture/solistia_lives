@@ -231,8 +231,9 @@ def test_unexpected_final_status_exits_one(suite_workspace, monkeypatch, dry_run
     assert {entry["status"] for entry in manifest.values()} == {status}
 
 
+@pytest.mark.parametrize("stop_after", [None, "day"])
 @pytest.mark.parametrize("failed", [False, True])
-def test_simulation_dispatch_and_manifest(suite_workspace, monkeypatch, failed):
+def test_simulation_dispatch_and_manifest(suite_workspace, monkeypatch, failed, stop_after):
     cases = suite_workspace
     models, _ = load_configs()
     calls = []
@@ -243,7 +244,8 @@ def test_simulation_dispatch_and_manifest(suite_workspace, monkeypatch, failed):
     def child(command, **kwargs):
         assert command[:4] == [sys.executable, "-c", "from story_engine.cli import app; app()", "world"]
         assert kwargs == dict(stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, check=False)
-        assert "--stop-after" not in command
+        if command[4] == "new":
+            assert "--stop-after" not in command
         with lock:
             calls.append(command)
         if command[4] == "new":
@@ -259,7 +261,7 @@ def test_simulation_dispatch_and_manifest(suite_workspace, monkeypatch, failed):
             world_id = "world-" + case["id"]
             expected[case["id"]] = dict(world_id=None if is_failed else world_id,
                                              init_run_id=run.name, run_id=None,
-                                             status="failed" if is_failed else "passed",
+                                             status="failed" if is_failed else ("stopped" if stop_after else "passed"),
                                              total_cost_usd=0.25 if is_failed else 1.0)
             if is_failed:
                 return subprocess.CompletedProcess(command, 1, stdout=f"{run}: initializer failed\n")
@@ -267,19 +269,36 @@ def test_simulation_dispatch_and_manifest(suite_workspace, monkeypatch, failed):
             world.mkdir(parents=True)
             (world / "world.json").write_text(json.dumps({"init_run_id": run.name}))
             return subprocess.CompletedProcess(command, 0, stdout=f"{world}\n")
-        assert command[4] == "run" and len(command) == 8
-        assert command[6:] == ["--models", "alternate.yaml"]
+        assert command[4] == "run"
+        assert command[6:] == ["--models", "alternate.yaml"] + (["--stop-after", stop_after] if stop_after else [])
         case = next(c for c in cases if "world-" + c["id"] == command[5])
         assert not (failed and case == cases[0])
         assert expected[case["id"]]["init_run_id"]
-        run = create_run(case["characters"], case["location"], case["situation"], "simulation", None, models)
+        run = create_run(case["characters"], case["location"], case["situation"], "simulation", stop_after, models)
         TraceWriter(run).write("stage_usage", total_cost_usd=0.75)
-        finish_run(run, "passed")
+        finish_run(run, "stopped" if stop_after else "passed")
         expected[case["id"]]["run_id"] = run.name
         return subprocess.CompletedProcess(command, 0, stdout=f"{run}\n")
 
     monkeypatch.setattr(suite_module.subprocess, "run", child)
-    result = CliRunner().invoke(app, ["eval", "run-suite", "--mode", "simulation", "--models", "alternate.yaml"])
+    args = ["eval", "run-suite", "--mode", "simulation", "--models", "alternate.yaml"]
+    if stop_after:
+        args.extend(["--stop-after", stop_after])
+    result = CliRunner().invoke(app, args)
     assert result.exit_code == (1 if failed else 0), result.output
     assert len(calls) == (19 if failed else 20)
     assert read_manifest(result, cases) == expected
+
+
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_baseline_rejects_stop_after_day(suite_workspace, monkeypatch, dry_run):
+    def unexpected(*args, **kwargs):
+        pytest.fail("baseline rejection must happen before launching a child")
+    monkeypatch.setattr(suite_module.subprocess, "run", unexpected)
+    args = ["eval", "run-suite", "--mode", "baseline", "--stop-after", "day"]
+    if dry_run:
+        args.append("--dry-run")
+    result = CliRunner().invoke(app, args)
+    assert result.exit_code == 1
+    assert "--stop-after is only supported in simulation mode" in result.output
+    assert not Path("runs/suites").exists()

@@ -27,8 +27,8 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     save_state(world, state)
     requests, clients = [], []
     adjudicate_reply = dict(call='adjudicate', verdicts={
-        'agnea': dict(status='settled', outcome='Agnea heads into Cropdale.', where='cropdale', spot=None),
-        'throne': dict(status='settled', outcome='Throné stays at the festival grounds.',
+        'agnea': dict(involves=[], status='settled', outcome='Agnea heads into Cropdale.', where='cropdale', spot=None),
+        'throne': dict(involves=[], status='settled', outcome='Throné stays at the festival grounds.',
                       where='festival_grounds', spot=None),
     }, encounters=[])
     offscreen_reply = dict(

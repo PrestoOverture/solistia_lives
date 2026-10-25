@@ -340,7 +340,7 @@ def test_offscreen_isolated_persistent_client_and_adjudicated_state(workspace, m
         assert request['reply']
         if request['call'] == 'adjudicate':
             return dict(call='adjudicate', verdicts={
-                'agnea': dict(status='settled', where='cropdale', outcome='PRIVATE OUTCOME')},
+                'agnea': dict(involves=[], status='settled', where='cropdale', outcome='PRIVATE OUTCOME')},
                 situation_updates=[dict(id=situation_id, status='resolved')])
         if request['call'] == 'scene_round':
             return dict(call='scene_round', outcome=None, minor_moves={})

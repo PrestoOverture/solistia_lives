@@ -92,9 +92,9 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
                 if self.request['call'] == 'adjudicate':
                     # Keep the characters apart so this test exercises the day orchestration.
                     data = dict(call='adjudicate', encounters=[], verdicts=dict(
-                        agnea=dict(status='settled', outcome='Agnea looks around Cropdale.',
+                        agnea=dict(involves=[], status='settled', outcome='Agnea looks around Cropdale.',
                                   where='cropdale', spot=None),
-                        throne=dict(status='settled', outcome='Throné stays at the festival grounds.',
+                        throne=dict(involves=[], status='settled', outcome='Throné stays at the festival grounds.',
                                    where='festival_grounds', spot=None)))
                 else:
                     data = dict(call='offscreen', events=[], people={},

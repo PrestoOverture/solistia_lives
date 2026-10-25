@@ -80,7 +80,8 @@ def _generate_case(case: SuiteCase, models_file: Path, dry_run: bool) -> CaseRes
     return result
 
 
-def _simulate_case(case: SuiteCase, models_file: Path, dry_run: bool) -> CaseResult:
+def _simulate_case(case: SuiteCase, models_file: Path, dry_run: bool,
+                   stop_after: Literal["day"] | None = None) -> CaseResult:
     prefix = [sys.executable, "-c", "from story_engine.cli import app; app()", "world"]
     command = prefix + [
         "new", "--characters", ",".join(case.characters),
@@ -115,7 +116,10 @@ def _simulate_case(case: SuiteCase, models_file: Path, dry_run: bool) -> CaseRes
             return result
         if meta.status != "passed":
             return result
-        process = subprocess.run(prefix + ["run", result.world_id, "--models", str(models_file)], stdout=subprocess.PIPE,
+        command = prefix + ["run", result.world_id, "--models", str(models_file)]
+        if stop_after is not None:
+            command.extend(["--stop-after", stop_after])
+        process = subprocess.run(command, stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT, text=True, check=False)
         match = re.search(r"^runs/([\w-]+)(?=[:\r\n]|$)", process.stdout, re.MULTILINE)
         if match is None:
@@ -135,12 +139,15 @@ def _simulate_case(case: SuiteCase, models_file: Path, dry_run: bool) -> CaseRes
 
 def run_suite(
     models_file: Path, dry_run: bool, suite_parallel: int, mode: Literal["baseline", "simulation"] = "baseline",
+    stop_after: Literal["day"] | None = None,
 ) -> tuple[SuiteManifest, Path]:
+    if mode == "baseline" and stop_after is not None:
+        raise ValueError("--stop-after is only supported in simulation mode")
     suite = TestSuite.model_validate(yaml.safe_load(Path("eval/test_suite.yaml").read_text()))
     with ThreadPoolExecutor(max_workers=suite_parallel) as executor:
         results = list(executor.map(
             lambda case: (_generate_case(case, models_file, dry_run) if mode == "baseline"
-                          else _simulate_case(case, models_file, dry_run)), suite.cases,
+                          else _simulate_case(case, models_file, dry_run, stop_after)), suite.cases,
         ))
     manifest = SuiteManifest({case.id: result for case, result in zip(suite.cases, results)})
     directory = Path("runs/suites")
