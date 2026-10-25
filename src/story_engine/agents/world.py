@@ -14,7 +14,7 @@ from story_engine.agents.sdk import (
 from story_engine.config import Role
 from story_engine.agents.subjects import fold
 from story_engine.trace import TraceWriter
-from story_engine.world.io import save_state, validate_state
+from story_engine.world.io import read_events, save_state, validate_state
 from story_engine.world.models import Clock, Event, Person, Place, Situation, WorldState
 
 
@@ -163,8 +163,43 @@ class _WorldSession:
         self.client = None
         self.opened = False
         self.seen: set[int] = set()
+        self.last_state: dict | None = None
         self.turn = 0
         self.cost = SessionCost()
+
+    def _state_payload(self, state: dict) -> dict:
+        """Send a snapshot once, then entry-level changes from the last input."""
+        if self.last_state is None:
+            payload = {"state": state}
+        else:
+            changes = {}
+            removed = {}
+            for section, current in state.items():
+                previous = self.last_state[section]
+                if section == "clock":
+                    if current != previous:
+                        changes[section] = current
+                    continue
+                if isinstance(current, list):
+                    key = "slug" if section == "places" else "id"
+                    before = {entry[key]: entry for entry in previous}
+                    after = {entry[key]: entry for entry in current}
+                    changed = [entry for name, entry in after.items()
+                               if name not in before or entry != before[name]]
+                else:
+                    before, after = previous, current
+                    changed = {name: entry for name, entry in after.items()
+                               if name not in before or entry != before[name]}
+                if changed:
+                    changes[section] = changed
+                missing = [name for name in before if name not in after]
+                if missing:
+                    removed[section] = missing
+            if removed:
+                changes["removed"] = removed
+            payload = {"state_changes": changes}
+        self.last_state = state
+        return payload
 
     async def __aenter__(self) -> Self:
         if self.opened:
@@ -228,7 +263,7 @@ class WorldAgent(_WorldSession):
         self.hooks.turn = self.turn
         request = json.dumps({
             "call": "day_start", "reply": "JSON with call: 'day_start' and 1-3 new situations",
-            "state": state.model_dump(),
+            **self._state_payload(state.model_dump()),
             "events": [event.model_dump(exclude={"intent"}) for event in events
                        if event.day == state.clock.day - 1 and event.type != "plan"],
         }, ensure_ascii=False)
@@ -285,7 +320,10 @@ class WorldAgent(_WorldSession):
         self.turn += 1
         self.hooks.turn = self.turn
         new_events = self._new_events(state, events)
-        request = json.dumps({"state": state.model_dump(), "choices": choices,
+        self.trace.write("call_input", agent=self.agent_name, call="adjudicate", turn=self.turn,
+                         **state.clock.model_dump(), state=state.model_dump(), choices=choices,
+                         max_event_id=max((event.id for event in events), default=0))
+        request = json.dumps({**self._state_payload(state.model_dump()), "choices": choices,
                               "call": "adjudicate", "reply": "JSON with call: 'adjudicate'",
                               "events": [event.model_dump() for event in new_events]}, ensure_ascii=False)
         valid_of = set(choices.keys()) & state.characters.keys()
@@ -381,7 +419,7 @@ class WorldAgent(_WorldSession):
         new_events = self._new_events(state, events)
         minor_people = {name: state.people[name].model_dump()
                        for name in minor_present if name in state.people}
-        request = json.dumps({"state": state.model_dump(), "call": "scene_round",
+        request = json.dumps({**self._state_payload(state.model_dump()), "call": "scene_round",
                               "reply": "JSON with call: 'scene_round'",
                               "place": place, "participants": {"main": main_present, "minor": minor_present},
                               "people": minor_people,
@@ -448,18 +486,25 @@ class OffscreenAgent(_WorldSession):
                         if character.where == event.place and (spot is None or character.spot == spot)]
         return event.model_copy(update={"perceived_by": perceived_by})
 
-    async def offscreen(self, state: WorldState, open_situations: set[str]):
+    async def offscreen(self, state: WorldState, open_situations: set[str],
+                        *, max_event_id: int | None = None):
         """Advance off-screen life in a session with no main-character context."""
         if self.client is None:
             raise SessionError("WorldAgent must be opened as an async context manager")
         self.turn += 1
         self.hooks.turn = self.turn
+        projection = state.model_dump(exclude={
+            "characters": True, "situations": {"__all__": {"touches"}},
+        })
+        if max_event_id is None:
+            max_event_id = max((event.id for event in read_events(self.world_dir)), default=0)
+        self.trace.write("call_input", agent=self.agent_name, call="offscreen", turn=self.turn,
+                         **state.clock.model_dump(), state=projection,
+                         max_event_id=max_event_id,
+                         # Internal validation/perception context; never sent to the model.
+                         validation_state=state.model_dump(), open_situations=sorted(open_situations))
         request = json.dumps({"call": "offscreen", "reply": "JSON with call: 'offscreen'",
-                              "clock": state.clock.model_dump(),
-                              "places": [place.model_dump() for place in state.places],
-                              "people": {name: person.model_dump() for name, person in state.people.items()},
-                              "situations": [situation.model_dump(exclude={"touches"})
-                                             for situation in state.situations]}, ensure_ascii=False)
+                              **self._state_payload(projection)}, ensure_ascii=False)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
@@ -470,9 +515,11 @@ class OffscreenAgent(_WorldSession):
                 # People persist (D21): the reply updates or adds people; anyone it omits is kept.
                 people = {name: person.model_dump() for name, person in state.people.items()}
                 people.update({name: person.model_dump() for name, person in reply.people.items()})
+                places_by_slug = {place.slug: place.model_dump() for place in state.places}
+                places_by_slug.update({place.slug: place.model_dump() for place in reply.places})
                 new_state = validate_state(self.world_dir, WorldState.model_validate({
                     "clock": state.clock.model_dump(),
-                    "places": [place.model_dump() for place in reply.places],
+                    "places": list(places_by_slug.values()),
                     "characters": {slug: character.model_dump() for slug, character in state.characters.items()},
                     "people": people,
                     "situations": [situation.model_dump() for situation in
@@ -484,6 +531,7 @@ class OffscreenAgent(_WorldSession):
                     raise ValueError("situation_notes must cover every situation open at tick start")
                 if any(not note.strip() for note in reply.situation_notes.values()):
                     raise ValueError("situation_notes must be non-empty sentences")
+                self.last_reply = reply
                 return resolved, new_state, reply.situation_notes
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,

@@ -35,6 +35,7 @@ def settled_verdicts(state_echo, outcome='Nothing much happens.'):
 
 def offscreen_echo(request):
     """A trivial offscreen reply that changes nothing: echoes places/situations, no events."""
+    request = request['state']
     return dict(call='offscreen', events=[], people={},
                situations=[{key: item[key] for key in ('id', 'status', 'next', 'due', 'people')}
                            for item in request['situations']], places=request['places'],

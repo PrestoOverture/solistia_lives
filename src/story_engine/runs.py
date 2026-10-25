@@ -21,7 +21,7 @@ class RunMeta(BaseModel):
     run_id: str
     created_at: str
     input: RunInput
-    mode: Literal["simulation", "baseline", "initializer", "world_eval", "extract_eval", "validate"]
+    mode: Literal["simulation", "baseline", "initializer", "world_eval", "extract_eval", "validate", "replay"]
     stop_after: str | None
     # Historical snapshots contain only the roles that existed when the run began.
     models: Models | dict[str, Role]
@@ -49,7 +49,7 @@ def create_run(
     characters: list[str],
     location: str,
     scenario: str,
-    mode: Literal["simulation", "baseline", "initializer", "world_eval", "extract_eval", "validate"],
+    mode: Literal["simulation", "baseline", "initializer", "world_eval", "extract_eval", "validate", "replay"],
     stop_after: str | None,
     models: Models,
     status: Literal["dry_run", "running"] = "dry_run",

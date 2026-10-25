@@ -346,8 +346,13 @@ def test_offscreen_isolated_persistent_client_and_adjudicated_state(workspace, m
             return dict(call='scene_round', outcome=None, minor_moves={})
         assert request['call'] == 'offscreen'
         offscreen_requests.append(request)
-        assert set(request) == {'call', 'reply', 'clock', 'places', 'people', 'situations'}
-        assert request['situations'][0]['status'] == 'resolved'
+        if len(offscreen_requests) == 1:
+            assert set(request) == {'call', 'reply', 'state'}
+            assert set(request['state']) == {'clock', 'places', 'people', 'situations'}
+            assert request['state']['situations'][0]['status'] == 'resolved'
+        else:
+            assert set(request) == {'call', 'reply', 'state_changes'}
+            assert request['state_changes'] == {}
         assert load_state(world).situations[0].status == 'resolved'
         # Assert keys recursively, not just at the request's top level.
         def keys(value):
@@ -359,9 +364,9 @@ def test_offscreen_isolated_persistent_client_and_adjudicated_state(workspace, m
         assert not keys(request) & {'characters', 'outcomes', 'touches', 'intent', 'intents', 'events', 'choices'}
         for secret in ('PRIVATE PLAN', 'PRIVATE INTENT', 'PRIVATE OUTCOME', 'PRIVATE SCENE'):
             assert secret not in json.dumps(request) and secret not in client.options.system_prompt
-        return dict(call='offscreen', places=request['places'], situations=[],
-                    situation_notes={s['id']: 'Unchanged.' for s in request['situations']
-                                     if s['status'] == 'open'})
+        return dict(call='offscreen', places=[], situations=[],
+                    situation_notes={s.id: 'Unchanged.' for s in load_state(world).situations
+                                     if s.status == 'open'})
 
     clients = fake_sdk(monkeypatch, respond)
 

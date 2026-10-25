@@ -221,9 +221,10 @@ def test_offscreen_request_has_no_main_character_plan_or_intent(tmp_path, monkey
         world, run, monkeypatch, state, choices, [adjudicate, offscreen])
     assert len(requests) == 2
     offscreen_request = json.loads(requests[1])
-    assert set(offscreen_request) == {'call', 'reply', 'clock', 'places', 'people', 'situations'}
+    assert set(offscreen_request) == {'call', 'reply', 'state'}
+    assert set(offscreen_request['state']) == {'clock', 'places', 'people', 'situations'}
     assert 'Throné finds nothing unusual.' not in requests[1]
-    assert all('touches' not in item for item in offscreen_request['situations'])
+    assert all('touches' not in item for item in offscreen_request['state']['situations'])
     assert 'Secretly follow Tam' not in requests[1]
     assert 'Catch the thief' not in requests[1]
 

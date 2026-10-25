@@ -6,6 +6,8 @@ The scene context follows. The KB is canon; check uncertain facts with Read, Gre
 
 You work at three levels, named by each call's `call` field: `day_start`, `adjudicate`, and `scene_round`. Off-screen life runs in a separate session.
 
+The first call in this session supplies the full `state`. Later calls supply only `state_changes` since the last state sent to you: added or changed characters and people by key, places by slug, and situations by id, each as a complete entry in its original section shape. Replace those entries, keep omitted entries, and replace the clock only when supplied. `removed` maps section names to keys, slugs, or ids to delete. An empty `state_changes` means nothing changed.
+
 ## day_start
 
 From day 2 onward, before any plans, add 1-3 new situations grounded in people's wants, open commitments and promises, places, and the main characters' revised goals. You receive the state and the previous day's visible events, without plan events or private intents.

@@ -607,6 +607,29 @@ def world_tell(
     typer.echo(run_dir)
 
 
+@eval_app.command('replay')
+def eval_replay(
+    run_id: str = typer.Argument(..., help="Run containing recorded call_input events"),
+    call: Literal["adjudicate", "offscreen"] = typer.Option(..., "--call"),
+    turn: int | None = typer.Option(None, min=1, help="Replay only this agent turn"),
+    repeat: int = typer.Option(1, min=1, help="Fresh sessions per selected call"),
+    models_file: Path = typer.Option(Path("config/models.yaml"), "--models", help="Models YAML file"),
+) -> None:
+    """Replay World calls on recorded inputs using a private copy of the world."""
+    from story_engine.eval.replay import replay
+
+    try:
+        run_dir, report = asyncio.run(replay(run_id, call, turn, repeat, models_file))
+    except (OSError, ValueError, ConfigError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from None
+    typer.echo(run_dir)
+    errors = [result.error for result in report.results if result.error]
+    if errors:
+        typer.echo("; ".join(errors), err=True)
+        raise typer.Exit(code=1)
+
+
 @eval_app.command('world')
 def eval_world(
     world_ids: list[str] = typer.Argument(..., help='World IDs to evaluate sequentially'),
