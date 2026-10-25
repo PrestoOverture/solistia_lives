@@ -90,7 +90,7 @@ def test_valid_world(repo, state, monkeypatch):
     assert result.exit_code == 0, result.output
     world = Path(result.output.strip())
     assert {p.name for p in world.iterdir()} == {
-        "world.json", "state.json", "events.jsonl", "scenes.jsonl", "memory", "scene_context.md"}
+        "world.json", "genesis.json", "state.json", "events.jsonl", "scenes.jsonl", "memory", "scene_context.md"}
     info = json.loads((world / "world.json").read_text())
     run = repo / "runs" / info["init_run_id"]
     assert {"meta.json", "trace.jsonl", "retrieval.jsonl", "scene_context.md"} <= {p.name for p in run.iterdir()}

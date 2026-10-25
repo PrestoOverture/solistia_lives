@@ -115,6 +115,7 @@ def test_simulation_session_loads_selected_models(tmp_path, monkeypatch):
     import json
     from story_engine import simulation
 
+    (tmp_path / "genesis.json").touch()
     (tmp_path / "meta.json").write_text(json.dumps({"models_file": "alternate.yaml"}))
     calls = []
 

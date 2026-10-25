@@ -94,7 +94,7 @@ def _event_row(event: Event, pov: str) -> dict:
 
 def act_scene_events(events: list[Event], scene_id: str) -> list[Event]:
     """This act's scene events, in order."""
-    return [event for event in events if event.scene == scene_id]
+    return [event for event in events if event.scene == scene_id and not event.op_only]
 
 
 def act_beats(scene_events: list[Event], pov: str) -> list[dict]:
@@ -116,7 +116,7 @@ def act_transition_events(events: list[Event], scenes: list[SceneRecord], scene:
     lower = previous.last_event_id if previous is not None else 0
     return [
         event for event in events
-        if event.scene is None and event.day == scene.day and lower < event.id < scene.first_event_id
+        if not event.op_only and event.scene is None and event.day == scene.day and lower < event.id < scene.first_event_id
     ]
 
 

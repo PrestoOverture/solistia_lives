@@ -116,7 +116,7 @@ async def evaluate_world(world_id: str, day: int | None = None,
     if day > latest_day:
         raise ValueError(f'{world_id}: day {day} has not been simulated')
     end = current if (current.clock.day, current.clock.part) == (day + 1, first_part) else None
-    events = read_events(world_dir)
+    events = [event for event in read_events(world_dir) if not event.op_only]
     today = [e for e in events if e.day == day]
     previous = [e for e in events if day >= 2 and e.day == day - 1]
     scenes = [s for s in read_scenes(world_dir) if s.day == day]

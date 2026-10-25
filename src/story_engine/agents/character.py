@@ -154,7 +154,7 @@ class CharacterAgent:
         self.hooks.turn = self.turn
         events = []
         for event in (self.prior_events if self.turn == 1 else []) + perceived:
-            if self.slug in event.perceived_by and event.id not in self.seen:
+            if not event.op_only and self.slug in event.perceived_by and event.id not in self.seen:
                 events.append(event.model_dump(exclude={"intent", "perceived_by"}))
                 self.seen.add(event.id)
         request = json.dumps({**(self.opening if self.turn == 1 else {}), "perceived": events,

@@ -14,7 +14,7 @@ from story_engine.agents.sdk import (
 from story_engine.config import Role
 from story_engine.agents.subjects import fold
 from story_engine.trace import TraceWriter
-from story_engine.world.io import read_events, save_state, validate_state
+from story_engine.world.io import read_events, commit_state, validate_state
 from story_engine.world.models import Clock, Event, Person, Place, Situation, WorldState
 
 
@@ -265,7 +265,7 @@ class WorldAgent(_WorldSession):
             "call": "day_start", "reply": "JSON with call: 'day_start' and 1-3 new situations",
             **self._state_payload(state.model_dump()),
             "events": [event.model_dump(exclude={"intent"}) for event in events
-                       if event.day == state.clock.day - 1 and event.type != "plan"],
+                       if event.day == state.clock.day - 1 and event.type != "plan" and not event.op_only],
         }, ensure_ascii=False)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
@@ -283,7 +283,7 @@ class WorldAgent(_WorldSession):
                     "places": state.places + reply.places,
                     "situations": state.situations + reply.situations,
                 }))
-                save_state(self.world_dir, updated)
+                updated = commit_state(self.world_dir, updated)
                 return updated
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
@@ -295,7 +295,7 @@ class WorldAgent(_WorldSession):
 
     def _new_events(self, state: WorldState, events: list[Event]) -> list[Event]:
         new_events = [event for event in events
-                      if event.day == state.clock.day and event.id not in self.seen]
+                      if event.day == state.clock.day and event.id not in self.seen and not event.op_only]
         self.seen.update(event.id for event in new_events)
         return new_events
 
@@ -402,7 +402,7 @@ class WorldAgent(_WorldSession):
                             and all(_key(other) != _key(person) for other in encounter.minor)):
                         encounter.minor.append(person)
         open_situations = {situation.id for situation in moved_state.situations if situation.status == "open"}
-        save_state(self.world_dir, moved_state)
+        moved_state = commit_state(self.world_dir, moved_state)
         off_events, new_state, situation_notes = await offscreen.offscreen(moved_state, open_situations)
         statuses = {slug: verdict.status for slug, verdict in verdicts.items()}
         return outcome_events + off_events, new_state, situation_notes, encounters, statuses
@@ -454,7 +454,7 @@ class WorldAgent(_WorldSession):
                 if reply.new_people:
                     new_state = validate_state(self.world_dir, state.model_copy(
                         update={"people": {**state.people, **reply.new_people}}))
-                    save_state(self.world_dir, new_state)
+                    new_state = commit_state(self.world_dir, new_state)
                 return outcome, minor_moves, new_state
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,

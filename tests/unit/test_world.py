@@ -48,8 +48,8 @@ def test_round_trip_and_event_reopening(tmp_path, state_data):
     assert info.characters == ["agnea", "throne"]
     assert info.location == "cropdale" and info.situation == "Festival" and info.created_at
     assert WorldInfo.model_validate_json(info.model_dump_json()) == info
-    state = WorldState.model_validate(state_data)
-    assert load_state(world) == state
+    state = load_state(world)
+    assert state.model_dump(exclude={"characters": {"agnea": {"commitments"}}}) == WorldState.model_validate(state_data).model_dump(exclude={"characters": {"agnea": {"commitments"}}})
     state.clock.part = "night"
     save_state(world, state)
     assert load_state(world) == state
@@ -59,8 +59,8 @@ def test_round_trip_and_event_reopening(tmp_path, state_data):
     assert (world / "events.jsonl").read_bytes().startswith(prefix)
     reopened = Path(str(world))
     third = append_event(reopened, event(actor="world", intent=None, type="world"))
-    assert read_events(reopened) == [first, second, third]
-    assert [e.id for e in read_events(world)] == [1, 2, 3]
+    assert read_events(reopened)[1:] == [first, second, third]
+    assert [e.id for e in read_events(world)] == [1, 2, 3, 4]
     write_memory(world, "agnea", "# Today\nHelped at the festival.\n")
     assert read_memory(reopened, "agnea") == "# Today\nHelped at the festival.\n"
     assert (world / "memory" / "agnea.md").is_file()
@@ -93,7 +93,7 @@ def test_reject_invalid_state(tmp_path, state_data, invalid):
     with pytest.raises(ValueError):
         save_state(world, WorldState.model_validate(state_data))
     assert (world / "state.json").read_bytes() == original
-    (world / "state.json").write_text(json.dumps(state_data))
+    (world / "genesis.json").write_text(json.dumps(state_data))
     with pytest.raises(ValueError):
         load_state(world)
 
@@ -103,7 +103,7 @@ def test_duplicate_character_json_rejected(tmp_path, state_data):
     raw = json.dumps(state_data)
     character = json.dumps(state_data["characters"]["agnea"])
     raw = raw.replace('"characters": {', '"characters": {"agnea": ' + character + ', ', 1)
-    (world / "state.json").write_text(raw)
+    (world / "genesis.json").write_text(raw)
     with pytest.raises(ValueError, match="duplicate JSON key: agnea"):
         load_state(world)
     with pytest.raises(ValidationError):
@@ -126,7 +126,9 @@ def test_atomic_state_replacement_failure(tmp_path, state_data, monkeypatch):
         raise OSError("replacement failed")
     monkeypatch.setattr("story_engine.world.io.os.replace", fail_replace)
     with pytest.raises(OSError):
-        save_state(world, load_state(world))
+        state = load_state(world)
+        state.clock.day += 1
+        save_state(world, state)
     assert (world / "state.json").read_bytes() == original
     assert not list(world.glob(".state.json.*"))
 

@@ -256,13 +256,14 @@ def world_run(
 ) -> None:
     """Simulate through the current day's night, then curate and narrate one story."""
     from story_engine.simulation import CostCapReached, run_day
-    from story_engine.world.io import load_state, read_events
+    from story_engine.world.io import load_state, read_events, require_genesis
     from story_engine.world.models import WorldInfo
 
     try:
         if Path(world_id).name != world_id or world_id in ("", ".", ".."):
             raise ValueError("world_id must be a world ID")
         world_dir = Path("worlds") / world_id
+        require_genesis(world_dir)
         state = load_state(world_dir)
         info = WorldInfo.model_validate_json((world_dir / "world.json").read_bytes())
         read_events(world_dir)

@@ -81,6 +81,7 @@ def _event_row(event: Event, characters: list[str]) -> dict:
 
 def _build_payload(events: list[Event], scenes: list[SceneRecord], characters: list[str]) -> list[dict]:
     """Interleave each scene (with all its events) with the day's part-of-day events, in order."""
+    events = [event for event in events if not event.op_only]
     by_id = {scene.id: scene for scene in scenes}
     seen: set[str] = set()
     payload = []

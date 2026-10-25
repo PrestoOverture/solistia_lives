@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .models import Event, SceneRecord, WorldInfo, WorldState
+from .ops import reduce_ops
 
 
 def _unique_object(pairs: list[tuple[str, object]]) -> dict:
@@ -63,6 +64,11 @@ def create_world(
     world_dir.mkdir(parents=True, exist_ok=False)
     (world_dir / "memory").mkdir()
     _atomic_write(world_dir / "world.json", info.model_dump_json(indent=2))
+    for name, member in {**state.characters, **state.people}.items():
+        for index, commitment in enumerate(member.commitments):
+            commitment.id = f'genesis:{name}:{index}'
+            commitment.scene = None
+    _atomic_write(world_dir / "genesis.json", state.model_dump_json(indent=2))
     _atomic_write(world_dir / "state.json", state.model_dump_json(indent=2))
     (world_dir / "events.jsonl").touch()
     (world_dir / "scenes.jsonl").touch()
@@ -71,7 +77,13 @@ def create_world(
 
 def load_state(world_dir: Path) -> WorldState:
     info = WorldInfo.model_validate(_read_json(world_dir / "world.json"))
-    return _validate_state(info, WorldState.model_validate(_read_json(world_dir / "state.json")))
+    genesis = world_dir / "genesis.json"
+    if not genesis.exists():
+        return _validate_state(info, WorldState.model_validate(_read_json(world_dir / "state.json")))
+    state = _validate_state(info, WorldState.model_validate(_read_json(genesis)))
+    for event in read_events(world_dir):
+        state = reduce_ops(state, event.ops, event_id=event.id, scene=event.scene)
+    return _validate_state(info, state)
 
 
 def validate_state(world_dir: Path, state: WorldState) -> WorldState:
@@ -80,10 +92,29 @@ def validate_state(world_dir: Path, state: WorldState) -> WorldState:
     return _validate_state(info, state)
 
 
+def require_genesis(world_dir: Path) -> None:
+    if not (world_dir / "genesis.json").exists():
+        raise ValueError("Worlds without genesis.json are read-only; create a new world to run")
+
+
+def commit_state(world_dir: Path, state: WorldState, *, scene: str | None = None,
+                 round: int | None = None) -> WorldState:
+    """Legacy reply adapter; all durable changes still pass through commit_event."""
+    from .adapter import state_ops
+    require_genesis(world_dir)
+    state = validate_state(world_dir, state)
+    before = load_state(world_dir)
+    ops = state_ops(before, state)
+    if ops:
+        commit_event(world_dir, Event(
+            id=0, **before.clock.model_dump(), place=before.places[0].slug, actor='world',
+            type='state_change', content='', perceived_by=[], scene=scene, round=round, ops=ops))
+    return load_state(world_dir)
+
+
 def save_state(world_dir: Path, state: WorldState) -> None:
-    info = WorldInfo.model_validate(_read_json(world_dir / "world.json"))
-    state = _validate_state(info, state)
-    _atomic_write(world_dir / "state.json", state.model_dump_json(indent=2))
+    """Compatibility entry point for callers outside the day loop, also event sourced."""
+    commit_state(world_dir, state)
 
 
 def read_events(world_dir: Path) -> list[Event]:
@@ -97,8 +128,9 @@ def read_events(world_dir: Path) -> list[Event]:
     return events
 
 
-def append_event(world_dir: Path, event: Event) -> Event:
+def commit_event(world_dir: Path, event: Event) -> Event:
     """Assign the next persisted ID and append. World writes are sequential."""
+    require_genesis(world_dir)
     events = read_events(world_dir)
     data = event.model_dump()
     data["id"] = events[-1].id + 1 if events else 1
@@ -106,9 +138,19 @@ def append_event(world_dir: Path, event: Event) -> Event:
     info = WorldInfo.model_validate(_read_json(world_dir / "world.json"))
     if event.intent is not None and event.actor not in info.characters:
         raise ValueError("only main characters may have private intent")
+    state = validate_state(world_dir, reduce_ops(load_state(world_dir), event.ops,
+                                               event_id=event.id, scene=event.scene))
     with (world_dir / "events.jsonl").open("a", encoding="utf-8") as stream:
         stream.write(event.model_dump_json() + "\n")
+        stream.flush()
+        os.fsync(stream.fileno())
+    if event.ops:
+        _atomic_write(world_dir / "state.json", state.model_dump_json(indent=2))
     return event
+
+
+def append_event(world_dir: Path, event: Event) -> Event:
+    return commit_event(world_dir, event)
 
 
 def read_scenes(world_dir: Path) -> list[SceneRecord]:

@@ -74,9 +74,11 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     result = asyncio.run(exercise())
     assert load_state(world) == result
     assert (result.clock.day, result.clock.part) == (day, next_part)
-    events = read_events(world)
+    all_events = read_events(world)
+    assert load_state(world) == type(result).model_validate_json((world / "state.json").read_text())
+    events = [event for event in all_events if not event.op_only]
     assert [event.actor for event in events] == ['agnea', 'throne', 'world', 'world', 'world']
-    assert [event.id for event in events] == [1, 2, 3, 4, 5]
+    assert [event.id for event in all_events] == list(range(1, len(all_events) + 1))
     assert all(event.part == part and event.day == 1 for event in events)
     for event in events[:2]:
         assert event.place == 'festival_grounds'

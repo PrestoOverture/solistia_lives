@@ -81,7 +81,7 @@ def test_run_day_first_calls_goals_and_visible_history(workspace, monkeypatch, d
     # Keep the legacy state format (no people, spots, or kind on some situations).
     raw = json.loads((world / 'state.json').read_text())
     raw['clock']['day'] = day
-    (world / 'state.json').write_text(json.dumps(raw))
+    (world / 'genesis.json').write_text(json.dumps(raw))
     old_state = load_state(world)
     memory_bytes = b'Previous memory\r\nThe festival is over.\r\n'
     for slug in old_state.characters:

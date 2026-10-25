@@ -14,7 +14,7 @@ from story_engine.config import load_configs
 from story_engine.kb import normalize_slug
 from story_engine.trace import TraceWriter
 from story_engine.world.io import (
-    append_event, append_scene, load_state, read_events, read_scenes, save_state, write_memory,
+    append_event, append_scene, load_state, read_events, read_scenes, commit_state, write_memory,
 )
 from story_engine.world.models import Clock, Event, SceneRecord, WorldState
 
@@ -45,6 +45,8 @@ class TickSession:
         self.active = False
 
     async def __aenter__(self) -> Self:
+        from story_engine.world.io import require_genesis
+        require_genesis(self.world_dir)
         meta_path = self.run_dir / 'meta.json'
         models_file = (json.loads(meta_path.read_text()).get('models_file', 'config/models.yaml')
                        if meta_path.exists() else 'config/models.yaml')
@@ -127,6 +129,7 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
         offscreen=session.offscreen)
     for event in events:
         append_event(world_dir, event)
+    updated = commit_state(world_dir, updated)
     groups = {}
     for slug, character in updated.characters.items():
         groups.setdefault((character.where, character.spot), []).append(slug)
@@ -154,7 +157,7 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
     index = parts.index(state.clock.part) + 1
     updated.clock = Clock(day=state.clock.day + (index == len(parts)),
                           part=parts[index % len(parts)])
-    save_state(world_dir, updated)
+    updated = commit_state(world_dir, updated)
     session.trace.write('situation_notes', day=state.clock.day, part=state.clock.part,
                         situation_notes=notes)
     return updated
@@ -303,6 +306,8 @@ def _copy_world(source: Path, destination: Path) -> None:
 
 async def run_day(world_dir: Path, run_dir: Path) -> WorldState:
     """Commit completed parts; roll back the failing part after preserving evidence."""
+    from story_engine.world.io import require_genesis
+    require_genesis(world_dir)
     checkpoint = run_dir / "world_before"
     _copy_world(world_dir, checkpoint)
     try:
@@ -313,7 +318,7 @@ async def run_day(world_dir: Path, run_dir: Path) -> WorldState:
             if day_started:
                 for slug, agent in session.characters.items():
                     state.characters[slug].goals = await agent.day_start()
-                    save_state(world_dir, state)
+                    commit_state(world_dir, state)
                 state = await session.world.day_start(state, read_events(world_dir))
             while state.clock.day == session.day:
                 # Day start and its first tick share the pre-day-start checkpoint.
@@ -325,7 +330,7 @@ async def run_day(world_dir: Path, run_dir: Path) -> WorldState:
                         for slug, agent in session.characters.items()}
             for slug, memory in memories.items():
                 write_memory(world_dir, slug, memory)
-            save_state(world_dir, state)
+            commit_state(world_dir, state)
     except BaseException:
         _copy_world(world_dir, run_dir / "world_failed")
         _copy_world(checkpoint, world_dir)

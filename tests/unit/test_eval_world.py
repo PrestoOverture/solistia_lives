@@ -67,7 +67,9 @@ def report():
 def finish(world, day=2, part='morning'):
     state = load_state(world)
     state.clock.day, state.clock.part = day, part
-    save_state(world, state)
+    # Seed the historical snapshot; these tests fabricate completed worlds.
+    (world / "genesis.json").write_text(state.model_dump_json(indent=2))
+    (world / "state.json").write_text(state.model_dump_json(indent=2))
 
 
 @pytest.mark.parametrize('part', ['morning', 'night'])
@@ -119,7 +121,9 @@ def test_metrics_and_full_judge_payload(world, monkeypatch):
     new = state.situations[2].model_copy(deep=True)
     new.id, new.status, new.due.day = 'new', 'dropped', 2
     state.situations.append(new)
-    save_state(world, state)
+    # Seed the historical snapshot; these tests fabricate completed worlds.
+    (world / "genesis.json").write_text(state.model_dump_json(indent=2))
+    (world / "state.json").write_text(state.model_dump_json(indent=2))
     for i, day, scene, of in [(1, 1, None, None), (2, 2, None, 'agnea'),
                                (3, 2, 's', 'agnea'), (4, 2, None, None), (5, 3, None, 'agnea')]:
         append_event(world, Event(id=i, day=day, part='morning', place='cropdale',

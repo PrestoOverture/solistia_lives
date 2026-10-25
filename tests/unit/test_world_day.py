@@ -159,8 +159,9 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
                     e.model_dump(exclude={'intent', 'perceived_by'})
                     for e in morning if slug in e.perceived_by]
                 assert (world / 'memory' / f'{slug}.md').read_text().startswith('# Today')
-            assert {e['id'] for e in clients[2].calls[0]['events']} >= {e.id for e in morning}
+            assert {e['id'] for e in clients[2].calls[0]['events']} >= {e.id for e in morning if not e.op_only}
             assert read_events(world)[:len(morning)] == morning
+            assert load_state(world) == type(load_state(world)).model_validate_json((world / "state.json").read_text())
             assert load_state(world).clock.model_dump() == dict(day=2, part='morning')
     elif failure == 'dry_run':
         assert result.exit_code == 0, result.output
@@ -171,6 +172,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
         assert meta.status == ('stopped' if stop_after else 'passed')
         assert {(e.day, e.part) for e in read_events(world)} == {
             (1, p) for p in ('morning', 'afternoon', 'evening', 'night')}
+        assert load_state(world) == type(load_state(world)).model_validate_json((world / "state.json").read_text())
         assert load_state(world).clock.model_dump() == dict(day=2, part='morning')
         assert len(clients) == (4 if stop_after else 7)
         assert (run / "episode.json").exists() == (not stop_after)

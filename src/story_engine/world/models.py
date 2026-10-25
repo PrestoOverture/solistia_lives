@@ -1,10 +1,13 @@
 """Persistent world artifact schemas (architecture §5)."""
 
-from typing import Literal, Self
+from typing import TYPE_CHECKING, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from story_engine.kb import normalize_slug
+
+if TYPE_CHECKING:
+    from .ops import Op
 
 PartOfDay = Literal["morning", "afternoon", "evening", "night"]
 SituationKind = Literal["trouble", "occasion", "promise", "wish", "reunion"]
@@ -39,6 +42,8 @@ class Place(WorldModel):
 
 
 class Commitment(WorldModel):
+    id: str | None = None
+    scene: str | None = None
     what: str
     where: str
     day: int
@@ -115,6 +120,13 @@ class Event(WorldModel):
     perceived_by: list[str]
     scene: str | None = None
     round: int | None = None
+    ops: list['Op'] = Field(default_factory=list)
+    resolves: int | None = None
+    resolution: Literal['succeeded', 'failed', 'pending', 'none'] | None = None
+
+    @property
+    def op_only(self) -> bool:
+        return bool(self.ops) and not self.content
 
 
 class SceneRecord(WorldModel):
@@ -128,3 +140,7 @@ class SceneRecord(WorldModel):
     last_event_id: int
     rounds: int
     end: str
+
+
+from .ops import Op
+Event.model_rebuild()
