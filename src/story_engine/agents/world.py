@@ -213,6 +213,23 @@ class _WorldSession:
             stage=self.agent_name, agent=self.agent_name,
         )
 
+    def _event_state(self, state: WorldState, event: Event, authority: Authority,
+                     attempt: int, dropped: list[tuple[Event, str]]) -> WorldState | None:
+        """Retry op rejections, then discard the whole atomic event group."""
+        try:
+            return validate_ops(state, event, authority)
+        except ValueError as error:
+            if attempt < self.role.retries:
+                raise
+            dropped.append((event, str(error)))
+            return None
+
+    def _trace_drops(self, call: str, dropped: list[tuple[Event, str]]) -> None:
+        # Only report drops after the reply's remaining, non-op checks pass.
+        for event, error in dropped:
+            self.trace.write('event_dropped', call=call, turn=self.turn,
+                             error=error, event=event.model_dump())
+
 
 class WorldAgent(_WorldSession):
     async def day_start(self, state: WorldState, events: list[Event]) -> WorldState:
@@ -236,8 +253,11 @@ class WorldAgent(_WorldSession):
                 reply = DayStartReply.model_validate(structured_reply(result, structured_output))
                 event = Event(id=0, **state.clock.model_dump(), place=state.places[0].slug, actor='world',
                               type='state_change', content='', perceived_by=[], ops=reply.ops)
-                validate_ops(state, event, Authority('day_start'))
-                commit_event(self.world_dir, event, authority=Authority('day_start'))
+                dropped = []
+                updated = self._event_state(state, event, Authority('day_start'), attempt, dropped)
+                if updated is not None:
+                    commit_event(self.world_dir, event, authority=Authority('day_start'))
+                self._trace_drops('day_start', dropped)
                 return load_state(self.world_dir)
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
@@ -275,7 +295,10 @@ class WorldAgent(_WorldSession):
                 reply = AdjudicateReply.model_validate(structured_reply(result, structured_output))
                 event = Event(id=0, **state.clock.model_dump(), place=state.places[0].slug,
                               actor='world', type='state_change', content='', perceived_by=[], ops=reply.ops)
-                updated = validate_ops(state, event, Authority('encounter'))
+                dropped = []
+                updated = self._event_state(state, event, Authority('encounter'), attempt, dropped)
+                if updated is None:
+                    event, updated = None, state
                 keys = {_key(name): name for name in updated.people}
                 encounters = []
                 for encounter in reply.encounters:
@@ -294,6 +317,7 @@ class WorldAgent(_WorldSession):
                         if name not in minors:
                             minors.append(name)
                     encounters.append(Encounter(mains=encounter.mains, minor=minors))
+                self._trace_drops('adjudicate', dropped)
                 return event, encounters, updated
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
@@ -342,7 +366,10 @@ class WorldAgent(_WorldSession):
                               perceived_by=list(main_present), scene=scene,
                               round=(round_number if closing else max(1, round_number - 1)),
                               resolves=target, resolution=reply.resolution, ops=reply.ops)
-                updated = validate_ops(state, event, Authority('scene_round'))
+                dropped = []
+                updated = self._event_state(state, event, Authority('scene_round'), attempt, dropped)
+                if updated is None:
+                    event, updated = None, state
                 keys = {_key(name): name for name in updated.people}
                 minors = {}
                 for name, move in reply.minor_moves.items():
@@ -352,8 +379,18 @@ class WorldAgent(_WorldSession):
                         raise ValueError('minor_moves name must be a people entry at this place')
                     if main_present and person.spot != updated.characters[main_present[0]].spot:
                         raise ValueError('minor_moves person must be at the same spot')
-                    validate_ops(updated, event.model_copy(update={'ops': move.ops}), Authority('person_scene', name))
+                    content = ' '.join(value for value in (move.action, move.say if move.move != 'wait' else '') if value)
+                    if move.move == 'leave':
+                        content = (content + f' {name} leaves.').strip()
+                    move_event = Event(
+                        id=0, **state.clock.model_dump(), place=place, actor=name,
+                        type='speech' if move.move == 'act' and move.say else 'action',
+                        content=content,
+                        perceived_by=list(main_present), scene=scene, round=round_number, ops=move.ops)
+                    if self._event_state(updated, move_event, Authority('person_scene', name), attempt, dropped) is None:
+                        continue
                     minors[name] = move
+                self._trace_drops('closing_resolution' if closing else 'scene_round', dropped)
                 return event, minors, updated
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
@@ -409,19 +446,25 @@ class OffscreenAgent(_WorldSession):
                 reply = OffscreenReply.model_validate(structured_reply(result, structured_output))
                 new_state = state
                 resolved = []
-                for index, raw in enumerate(reply.events):
+                dropped = []
+                for raw in reply.events:
                     # Ops may add a place used by this event; validate all references in order.
-                    event = Event(id=max_event_id + index + 1, **state.clock.model_dump(), place=raw.place,
+                    event = Event(id=max_event_id + len(resolved) + 1, **state.clock.model_dump(), place=raw.place,
                                   actor='world', type='world' if raw.content else 'state_change',
                                   content=raw.content, perceived_by=[], ops=raw.ops)
-                    new_state = validate_ops(new_state, event, Authority('offscreen', parts_of_day=self.parts_of_day))
-                    places = {place.slug for place in new_state.places}
-                    resolved.append(self._build_offscreen_event(raw, new_state, places))
+                    updated = self._event_state(new_state, event, Authority('offscreen', parts_of_day=self.parts_of_day),
+                                                attempt, dropped)
+                    if updated is None:
+                        continue
+                    places = {place.slug for place in updated.places}
+                    resolved.append(self._build_offscreen_event(raw, updated, places))
+                    new_state = updated
                 if open_situations - reply.situation_notes.keys():
                     raise ValueError("situation_notes must cover every situation open at tick start")
                 if any(not note.strip() for note in reply.situation_notes.values()):
                     raise ValueError("situation_notes must be non-empty sentences")
                 self.last_reply = reply
+                self._trace_drops('offscreen', dropped)
                 return resolved, new_state, reply.situation_notes
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,

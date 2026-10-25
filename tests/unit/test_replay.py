@@ -238,14 +238,20 @@ def test_replay_reuses_validation_and_retries(setup, monkeypatch, call, recover)
                    actor="agnea", place="cropdale", type="world", content="Waits.")]))
     clients = fake(monkeypatch, [invalid, good if recover else invalid])
     result = CliRunner().invoke(app, ["eval", "replay", source.name, "--call", call, "--turn", "1"])
-    assert result.exit_code == (0 if recover else 1), result.output
+    passed = recover or call == 'adjudicate'  # a repeated op rejection drops the event
+    assert result.exit_code == (0 if passed else 1), result.output
     run = next(p.parent for p in Path("runs").glob("*/replay.json"))
     row = json.loads((run / "replay.json").read_text())["results"][0]
     assert len(clients) == 1 and len(clients[0].requests) == 2
     assert clients[0].requests[1].startswith("World validation failed:")
     assert row["cost_usd"] == .02
-    assert (row["error"] is None) == recover
-    assert json.loads((run / "meta.json").read_text())["status"] == ("passed" if recover else "failed")
+    assert (row["error"] is None) == passed
+    assert json.loads((run / "meta.json").read_text())["status"] == ("passed" if passed else "failed")
+    if call == 'adjudicate' and not recover:
+        assert row['ops'] == []
+        drops = [r for line in (run / 'trace.jsonl').read_text().splitlines()
+                 if (r := json.loads(line))['type'] == 'event_dropped']
+        assert len(drops) == 1 and drops[0]['event']['ops'] == invalid['ops']
 
 
 def test_run_without_call_input_has_clear_error(setup, monkeypatch):

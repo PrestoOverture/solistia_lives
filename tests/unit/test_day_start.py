@@ -282,13 +282,21 @@ def test_world_day_start_retries_once(workspace, monkeypatch, bad, reason, corre
         assert result == load_state(world)
         assert result.situations[:len(state.situations)] == state.situations
         assert [s.id for s in result.situations[-2:]] == ['new-promise', 'occasion']
+    elif bad in {'person', 'touches', 'duplicate_existing', 'duplicate_new'}:
+        assert asyncio.run(exercise()) == state
+        assert load_state(world) == state
+        dropped = [row for row in map(json.loads, (run / 'trace.jsonl').read_text().splitlines())
+                   if row['type'] == 'event_dropped']
+        assert len(dropped) == 1 and reason in dropped[0]['error']
+        assert dropped[0]['event']['ops'] == invalid['ops']
     else:
         with pytest.raises(SessionError, match='after one retry'):
             asyncio.run(exercise())
         assert load_state(world) == state
     assert len(clients) == 1 and len(clients[0].calls) == 2
     assert reason in clients[0].calls[1]
-    assert len(failures(run)) == (1 if correct_retry else 2)
+    assert len(failures(run)) == (1 if correct_retry or bad in {
+        'person', 'touches', 'duplicate_existing', 'duplicate_new'} else 2)
 
 
 def test_day_start_adds_people_and_places(workspace, monkeypatch):
@@ -380,9 +388,9 @@ def test_offscreen_drops_only_existing_due_situations(workspace, monkeypatch, ne
         async with agent(world_agent.OffscreenAgent, world, run) as session:
             return await session.offscreen(state, {s.id for s in state.situations})
     if new_id:
-        with pytest.raises(SessionError, match='may not commit situation'):
-            asyncio.run(exercise())
-        assert len(clients[0].calls) == 2 and len(failures(run)) == 2
+        events, result, _ = asyncio.run(exercise())
+        assert events == [] and result == state
+        assert len(clients[0].calls) == 2 and len(failures(run)) == 1
     else:
         _, result, _ = asyncio.run(exercise())
         assert result.situations[0].status == 'dropped'
@@ -410,8 +418,7 @@ def test_offscreen_retry_does_not_echo_internal_state(workspace, monkeypatch):
         async with agent(world_agent.OffscreenAgent, world, run) as session:
             await session.offscreen(state, {s.id for s in state.situations})
 
-    with pytest.raises(SessionError, match='may not commit move'):
-        asyncio.run(exercise())
+    asyncio.run(exercise())
     feedback = clients[0].calls[1]
     assert 'may not commit move' in feedback
     for forbidden in ('input_value', 'characters', 'touches', 'PRIVATE GOAL'):

@@ -112,7 +112,7 @@ async def replay(run_id: str, call: Call, turn: int | None = None, repeat: int =
                         agent.turn = item.turn - 1
                         if call == "adjudicate":
                             event, encounters, _ = await agent.adjudicate(state, item.choices, before)
-                            result.ops = event.ops
+                            result.ops = event.ops if event is not None else []
                             result.encounters = encounters
                         else:
                             await agent.offscreen(state, item.open_situations,

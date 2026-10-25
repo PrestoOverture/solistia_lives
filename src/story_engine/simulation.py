@@ -141,7 +141,7 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
     state = load_state(world_dir)
     encounter_event, encounters, _ = await session.world.adjudicate(
         state, {slug: plan.model_dump() for slug, plan in plans.items()}, read_events(world_dir))
-    if encounter_event.ops:
+    if encounter_event is not None and encounter_event.ops:
         commit_event(world_dir, encounter_event, authority=Authority('encounter'))
     updated = load_state(world_dir)
     groups = {}
@@ -237,17 +237,17 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
         last_event_id = saved.id
         return saved
 
-    async def resolve(round_number, before, closing=False):
+    async def resolve(round_number, before, closing=False, target=None):
         nonlocal state
-        target = unresolved[0] if unresolved else None
+        target = target or (unresolved[0] if unresolved else None)
         outcome, minors, _ = await session.world.round(
             state, before, place=place, main_present=main_present, minor_present=minor_present,
             last_winner=target, scene=scene_id, round_number=round_number, closing=closing)
-        if outcome.ops or outcome.resolves is not None or outcome.content:
+        if outcome is not None and (outcome.ops or outcome.resolves is not None or outcome.content):
             log(outcome, Authority('scene_round'))
-        finished = target is not None and outcome.resolution != 'pending'
+        finished = target is not None and outcome is not None and outcome.resolution != 'pending'
         if finished:
-            unresolved.pop(0)
+            unresolved.remove(target)
         return minors, finished
 
     for round_number in range(1, session.settings.scene_cap + 1):
@@ -313,9 +313,9 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
         if quiet >= 2:
             reason = 'quiet'
             break
-    # Resolve every outstanding winner, including the final floor holder at cap/leave.
-    while unresolved:
-        await resolve(round_number, read_events(world_dir), closing=True)
+    # Try each outstanding winner once; a rejected closing event leaves it unresolved.
+    for target in list(unresolved):
+        await resolve(round_number, read_events(world_dir), closing=True, target=target)
     session.trace.write('scene_ended', place=place, scene=scene_id, reason=reason, rounds=round_number)
     append_scene(world_dir, SceneRecord(
         id=scene_id, day=state.clock.day, part=state.clock.part, place=place, spot=spot,
