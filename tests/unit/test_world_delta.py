@@ -1,3 +1,4 @@
+from world_replies import day_start_reply
 """State deltas exercised at the SDK request boundary, without model calls."""
 
 import asyncio
@@ -11,7 +12,7 @@ from claude_agent_sdk import ResultMessage
 from story_engine.agents import world as world_agent
 from story_engine.config import load_configs
 from story_engine.trace import TraceWriter
-from story_engine.world.io import load_state
+from story_engine.world.io import load_state, save_state
 from story_engine.world.models import Person, Place
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -27,6 +28,7 @@ def session_setup(tmp_path, monkeypatch):
     state.people["Tam"] = Person(where="cropdale", wants=["Sell berries"], commitments=[])
     state.people["Gus"] = Person(where="cropdale", wants=["Rest"], commitments=[])
     state.places.append(Place(slug="unused_place", details=[]))
+    save_state(world, state)
     new_situation = state.situations[0].model_dump() | {"id": "delta-new"}
     requests, clients = [], []
 
@@ -51,10 +53,11 @@ def session_setup(tmp_path, monkeypatch):
 
         async def receive_response(self):
             reply = {
-                "day_start": dict(call="day_start", situations=[new_situation]),
+                "day_start": day_start_reply(situations=[dict(new_situation, id="delta-new" if len(requests) == 1 else f"delta-new-{len(requests)}")]),
                 "adjudicate": dict(call="adjudicate"),
                 "scene_round": dict(call="scene_round"),
-                "offscreen": dict(call="offscreen", places=self.offscreen_places),
+                "offscreen": dict(call="offscreen", events=[dict(place="cropdale", ops=[dict(op="place", slug=p["slug"], add_details=p["details"])
+                                                                             for p in self.offscreen_places])]),
             }[self.call]
             if self.fail_next:
                 self.fail_next = False
@@ -270,7 +273,7 @@ def test_offscreen_reply_keeps_omitted_places_and_merges_by_slug(session_setup, 
     by_slug = {place.slug: place.model_dump() for place in updated.places}
     expected = {place.slug: place.model_dump() for place in original.places}
     if update_place:
-        expected.update({changed["slug"]: changed, added["slug"]: added})
+        expected.update({changed["slug"]: dict(changed, details=original.places[0].details + changed["details"]), added["slug"]: added})
     assert by_slug == expected
     assert len(updated.places) == len(expected)
     assert state == original

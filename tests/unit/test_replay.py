@@ -72,12 +72,9 @@ def adjudicate_reply():
 
 
 def offscreen_reply(state):
-    return dict(call="offscreen", events=[dict(
-        actor="world", type="world", place="cropdale", content="The bell rings.")],
-        people={"Tam": dict(where="cropdale", wants=["Sell fruit"], commitments=[])},
-        situations=[dict(id=s.id, status="resolved", next=s.next,
-                         due=s.due.model_dump(), people=["Tam"]) for s in state.situations],
-        situation_notes={s.id: "Resolved." for s in state.situations})
+    return dict(call="offscreen", events=[dict(place="cropdale", content="The bell rings.",
+        ops=[dict(op="place", slug="cropdale", add_details=["A bell tower"])])],
+        situation_notes={s.id: "Unchanged." for s in state.situations})
 
 
 def add_event(world, *, day=1, part="morning"):
@@ -186,8 +183,7 @@ def test_replay_full_request_filters_repeats_and_preserves_world(setup, monkeypa
             assert "characters" not in request["state"]
             assert all("touches" not in item for item in request["state"]["situations"])
             assert [event["content"] for event in row["events"]] == ["The bell rings."]
-            assert row["people"]["Tam"]["wants"] == ["Sell fruit"]
-            assert [s["status"] for s in row["situation_updates"]] == ["resolved"] * len(state.situations)
+            assert row["events"][0]["ops"] == [dict(op="place", slug="cropdale", add_details=["A bell tower"])]
     if repeat == 2:
         assert [row["repeat"] for row in report["results"]] == [1, 2]
 

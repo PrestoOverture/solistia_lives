@@ -76,6 +76,10 @@ def _event_row(event: Event, characters: list[str]) -> dict:
     row = event.model_dump(include={"id", "part", "place", "actor", "type", "content"})
     if event.actor in characters:
         row["intent"] = event.intent
+    if event.ops:
+        row['ops'] = [op.model_dump() for op in event.ops]
+    if event.resolves is not None:
+        row.update(resolves=event.resolves, resolution=event.resolution)
     return row
 
 

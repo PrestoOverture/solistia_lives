@@ -149,6 +149,30 @@ def test_metrics_and_full_judge_payload(world, monkeypatch):
     assert payload['scenes'][0]['rounds'] == 7
 
 
+def test_judge_input_excludes_op_only_events_and_keeps_visible_ops(world, monkeypatch):
+    from story_engine.world.io import commit_event
+    from story_engine.world.ops import ClockOp, PlaceOp
+    from story_engine.world.permissions import Authority
+    finish(world, 3)
+    visible = []
+    for day in (1, 2):
+        commit_event(world, Event(
+            id=0, day=day, part='night', place='cropdale', actor='world', type='state_change',
+            content='', perceived_by=['agnea'], ops=[ClockOp(day=3, part='morning')]))
+        visible.append(commit_event(world, Event(
+            id=0, day=day, part='night', place='cropdale', actor='world', type='world',
+            content='The stall opens.', perceived_by=['agnea'],
+            ops=[PlaceOp(slug='cropdale', add_details=[f'Stall {day}'])]), authority=Authority('offscreen')))
+    calls, _, _ = fake(monkeypatch, [{'findings': []}])
+    result = invoke('test', '--day', '2')
+    assert result.exit_code == 0, result.output
+    payload = json.loads(calls[0])
+    assert payload['previous_events'] == [visible[0].model_dump()]
+    assert payload['events'] == [visible[1].model_dump()]
+    assert payload['outcomes'] == []
+    assert payload['events'][0]['ops'] == [op.model_dump() for op in visible[1].ops]
+
+
 @pytest.mark.parametrize('recover', [False, True])
 def test_unknown_event_retry_once(world, monkeypatch, recover):
     finish(world)

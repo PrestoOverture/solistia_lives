@@ -15,7 +15,7 @@ from story_engine.config import Role
 from story_engine.trace import TraceWriter
 from story_engine.world.io import load_state, read_events
 from story_engine.world.models import Event, PartOfDay
-from story_engine.world.ops import Op
+from story_engine.world.ops import Goals, Op
 from story_engine.world.permissions import Authority, validate_ops
 
 
@@ -85,7 +85,7 @@ class DayStart(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     call: Literal["day_start"]
-    goals: list[str] = Field(min_length=1, max_length=3)
+    ops: list[Goals] = Field(min_length=1, max_length=1)
 
 
 CharacterReply = Annotated[Union[Action, Plan, EndOfDay, DayStart], Field(discriminator="call")]
@@ -147,13 +147,13 @@ class CharacterAgent:
         """Summarize the day in this character's existing session."""
         return await self._action(perceived, summary=True)
 
-    async def day_start(self) -> list[str]:
+    async def day_start(self) -> list[Goals]:
         """Revise goals from the opening memory before making any plans."""
         return await self._action([], day_start=True)
 
     async def _action(self, perceived: list[Event], part: PartOfDay | None = None,
                       note: str | None = None, summary: bool = False,
-                      day_start: bool = False) -> Action | Plan | str | list[str]:
+                      day_start: bool = False) -> Action | Plan | str | list[Goals]:
         if self.client is None:
             raise SessionError("CharacterAgent must be opened as an async context manager")
         self.turn += 1
@@ -167,7 +167,7 @@ class CharacterAgent:
         request = json.dumps({**(self.opening if self.turn == 1 else {'self': current.model_dump()}), "perceived": events,
                               **({"note": note} if note else {}),
                               **({"call": "end_of_day", "reply": "JSON {call: 'end_of_day', summary: 'Markdown: what happened, what changed, what you want now'}"} if summary else {}),
-                              **({"call": "day_start", "reply": "JSON with call: 'day_start' and 1-3 revised goals"} if day_start else {}),
+                              **({"call": "day_start", "reply": "JSON with call: 'day_start' and one goals op for yourself (1-3 goals)"} if day_start else {}),
                               **({"part": part, "call": "part_of_day", "reply": "JSON with call: 'plan'"} if part else {}),
                               # Each request names its reply type in the shared schema.
                               **({"call": "scene_move", "reply": "JSON with call: 'action'"}
@@ -201,7 +201,12 @@ class CharacterAgent:
             try:
                 payload = structured_reply(result, structured_output)
                 if day_start:
-                    return DayStart.model_validate(payload).goals
+                    ops = DayStart.model_validate(payload).ops
+                    state = load_state(self.world_dir)
+                    validate_ops(state, Event(id=0, **state.clock.model_dump(), place=state.characters[self.slug].where,
+                                             actor=self.slug, type='state_change', content='', perceived_by=[], ops=ops),
+                                 Authority('character_day_start', self.slug))
+                    return ops
                 if summary:
                     return EndOfDay.model_validate(payload).summary
                 if part:

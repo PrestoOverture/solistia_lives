@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .models import Event, SceneRecord, WorldInfo, WorldState
 from .ops import reduce_ops
+from .permissions import Authority
 
 
 def _unique_object(pairs: list[tuple[str, object]]) -> dict:
@@ -108,7 +109,7 @@ def commit_state(world_dir: Path, state: WorldState, *, scene: str | None = None
     if ops:
         commit_event(world_dir, Event(
             id=0, **before.clock.model_dump(), place=before.places[0].slug, actor='world',
-            type='state_change', content='', perceived_by=[], scene=scene, round=round, ops=ops))
+            type='state_change', content='', perceived_by=[], scene=scene, round=round, ops=ops), authority=None)
     return load_state(world_dir)
 
 
@@ -128,7 +129,7 @@ def read_events(world_dir: Path) -> list[Event]:
     return events
 
 
-def commit_event(world_dir: Path, event: Event, *, authority=None) -> Event:
+def commit_event(world_dir: Path, event: Event, *, authority: Authority | None = Authority('code')) -> Event:
     """Assign the next persisted ID and append. World writes are sequential."""
     require_genesis(world_dir)
     events = read_events(world_dir)

@@ -162,6 +162,31 @@ def test_two_calls_share_session_and_only_send_new_perceptions(tmp_path, monkeyp
     assert [json.loads(line)["turn"] for line in (run / "retrieval.jsonl").read_text().splitlines()] == [1, 2]
 
 
+def test_character_input_excludes_op_only_events_and_keeps_visible_ops(tmp_path, monkeypatch):
+    from story_engine.world.io import commit_event, read_events
+    from story_engine.world.ops import ClockOp, Promise
+    from story_engine.world.permissions import Authority
+    agent, _, requests, _, _ = setup_agent(tmp_path, monkeypatch, iter([json.dumps(VALID)]))
+    commit_event(agent.world_dir, Event(
+        id=0, day=1, part='morning', place='cropdale', actor='world', type='state_change',
+        content='', perceived_by=['throne'], ops=[ClockOp(day=1, part='morning')]))
+    visible = commit_event(agent.world_dir, Event(
+        id=0, day=1, part='morning', place='cropdale', actor='agnea', type='speech',
+        content='Agnea promises to return.', intent='A private reason', perceived_by=['throne'],
+        scene='1', round=1, ops=[Promise(who='agnea', what='Return', where='cropdale', day=1, part='night')]),
+        authority=Authority('character_scene', 'agnea'))
+
+    async def exercise():
+        async with agent:
+            await agent.act(read_events(agent.world_dir))
+
+    asyncio.run(exercise())
+    perceived = json.loads(requests[0])['perceived']
+    assert [row['id'] for row in perceived] == [visible.id]
+    assert perceived[0]['ops'] == [op.model_dump() for op in visible.ops]
+    assert 'intent' not in perceived[0] and 'perceived_by' not in perceived[0]
+
+
 @pytest.mark.parametrize("changes,reason", [
     ({"move": "bad"}, "Input should be"),
     ({"urge": 0}, "act urge"),

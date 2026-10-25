@@ -1,3 +1,4 @@
+import inspect
 import json
 import shutil
 from pathlib import Path
@@ -49,6 +50,15 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
                                     participants=['agnea'], first_event_id=2, last_event_id=2,
                                     rounds=1, end='one_left'))
     before = files(world)
+    from story_engine.world import io
+    original_write = io._atomic_write
+    cache_writes = []
+    def guarded_write(path, content):
+        if path.name == 'state.json':
+            assert inspect.currentframe().f_back.f_code.co_name == 'commit_event'
+            cache_writes.append(path)
+        original_write(path, content)
+    monkeypatch.setattr(io, '_atomic_write', guarded_write)
     monkeypatch.chdir(tmp_path)
     clients = []
 
@@ -93,9 +103,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
                     # Keep the characters apart so this test exercises the day orchestration.
                     data = dict(call='adjudicate', encounters=[])
                 else:
-                    data = dict(call='offscreen', events=[], people={},
-                               situations=[s.model_dump(include={"id", "status", "next", "due", "people"}) for s in state.situations],
-                               places=[p.model_dump() for p in state.places],
+                    data = dict(call='offscreen', events=[],
                                situation_notes={s.id: 'Unchanged.' for s in state.situations})
                 reply = json.dumps(data)
             elif self.request.get('call') == 'end_of_day':
@@ -167,6 +175,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
     else:
         assert result.exit_code == 0, result.output
         assert meta.status == ('stopped' if stop_after else 'passed')
+        assert cache_writes
         assert {(e.day, e.part) for e in read_events(world)} == {
             (1, p) for p in ('morning', 'afternoon', 'evening', 'night')}
         assert load_state(world) == type(load_state(world)).model_validate_json((world / "state.json").read_text())

@@ -12,7 +12,7 @@ VALID_ACTION = dict(call="action", intent="Find some quiet", move="act", urge=2,
 VALID_PLAN = dict(call="plan", kind="go", intent="Find somewhere quiet", where="cropdale",
                   spot=None, aim="Walk to the tavern.")
 VALID_MINOR_MOVE = dict(move="act", urge=1, to=None, action="Waves.", say="Hello!")
-VALID_WORLD_EVENT = {"place": "festival_grounds", "actor": "world", "type": "world", "content": "x"}
+VALID_WORLD_EVENT = {"place": "festival_grounds", "content": "x"}
 VALID_EVENT = dict(id=1, day=1, part="morning", place="cropdale", actor="world",
                    of=None, type="world", content="The bell rings.", intent=None,
                    perceived_by=[], scene=None, round=None)

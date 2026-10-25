@@ -17,6 +17,7 @@ from story_engine.config import load_configs
 from story_engine.trace import TraceWriter
 from story_engine.world.io import append_event, load_state, read_events, save_state
 from story_engine.world.models import Event
+from world_replies import day_start_reply, goals_reply
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -110,9 +111,9 @@ def test_run_day_first_calls_goals_and_visible_history(workspace, monkeypatch, d
                 assert request['state'] == load_state(world).model_dump()
                 assert [e['content'] for e in request['events']] == ['Yesterday visible event']
                 assert all('intent' not in e and e['type'] != 'plan' for e in request['events'])
-                return dict(call='day_start', situations=[new_situation])
+                return day_start_reply(situations=[new_situation])
             assert 'The festival is over.' in request['memory']
-            return dict(call='day_start', goals=['Make a new plan'])
+            return goals_reply(('agnea', 'throne')[clients.index(client) % 4], ['Make a new plan'])
         assert request['call'] == 'end_of_day'
         return dict(call='end_of_day', summary='New memory')
 
@@ -196,8 +197,8 @@ def test_run_day_first_tick_failure_restores_before_day_start(workspace, monkeyp
             assert len(client.calls) == 1
             if client.options.system_prompt.startswith('# World'):
                 assert request['state']['situations'] == state.model_dump()['situations']
-                return dict(call='day_start', situations=[situation()])
-            return dict(call='day_start', goals=['Make a new plan'])
+                return day_start_reply(situations=[situation()])
+            return goals_reply(('agnea', 'throne')[clients.index(client) % 4], ['Make a new plan'])
         assert request['call'] == 'end_of_day'
         return dict(call='end_of_day', summary='New memory')
 
@@ -243,16 +244,16 @@ def test_run_day_first_tick_failure_restores_before_day_start(workspace, monkeyp
     ('duplicate_new', 'ids must be unique'),
     ('kind', 'more than one kind'),
     ('due', 'same due part'),
-    ('empty', 'at least 1'),
-    ('too_many', 'at most 3'),
+    ('empty', '1-3 open ops'),
+    ('too_many', '1-3 open ops'),
 ])
 @pytest.mark.parametrize('correct_retry', [False, True])
 def test_world_day_start_retries_once(workspace, monkeypatch, bad, reason, correct_retry):
     world, run = workspace
     state = load_state(world)
-    good = dict(call='day_start', situations=[situation(), situation('occasion', 'occasion', 'night')])
+    good = day_start_reply(situations=[situation(), situation('occasion', 'occasion', 'night')])
     invalid = copy.deepcopy(good)
-    first, second = invalid['situations']
+    first, second = [op['situation'] for op in invalid['ops']]
     if bad == 'person':
         first['people'] = ['Unknown']
     elif bad == 'touches':
@@ -266,9 +267,9 @@ def test_world_day_start_retries_once(workspace, monkeypatch, bad, reason, corre
     elif bad == 'due':
         second['due'] = first['due']
     elif bad == 'empty':
-        invalid['situations'] = []
+        invalid['ops'] = []
     else:
-        invalid['situations'] *= 2
+        invalid['ops'] *= 2
     replies = iter([invalid, good if correct_retry else invalid])
     clients = fake_sdk(monkeypatch, lambda *_: next(replies))
 
@@ -295,7 +296,7 @@ def test_day_start_adds_people_and_places(workspace, monkeypatch):
     state = load_state(world)
     new = situation()
     new['people'] = ['Host']
-    reply = dict(call='day_start', situations=[new],
+    reply = day_start_reply(situations=[new],
                  people={'Host': dict(where='new_place', wants=['Host supper'], commitments=[])},
                  places=[dict(slug='new_place', details=['A room'])])
     fake_sdk(monkeypatch, lambda *_: reply)
@@ -313,7 +314,7 @@ def test_day_start_adds_people_and_places(workspace, monkeypatch):
 @pytest.mark.parametrize('goals', [[], ['a', 'b', 'c', 'd']])
 def test_character_day_start_goal_count_retries_once(workspace, monkeypatch, goals):
     world, run = workspace
-    clients = fake_sdk(monkeypatch, lambda *_: dict(call='day_start', goals=goals))
+    clients = fake_sdk(monkeypatch, lambda *_: goals_reply('agnea', goals))
     models, settings = load_configs()
 
     async def exercise():
@@ -367,32 +368,25 @@ def test_offscreen_isolated_persistent_client_and_scene_state(workspace, monkeyp
 
 
 @pytest.mark.parametrize('new_id', [True, False])
-def test_offscreen_updates_only_existing_situations(workspace, monkeypatch, new_id):
+def test_offscreen_drops_only_existing_due_situations(workspace, monkeypatch, new_id):
     world, run = workspace
     state = load_state(world)
-    update = dict(id='new' if new_id else state.situations[0].id, status='resolved',
-                  next='Supper starts.', due=dict(day=2, part='night'), people=['Host'])
-    reply = dict(call='offscreen', situations=[update],
-                 people={'Host': dict(where='cropdale', wants=['Cook'], commitments=[])},
-                 places=[p.model_dump() for p in state.places],
+    state.clock.part = 'afternoon'
+    update = dict(op='situation', id='new' if new_id else state.situations[0].id, status='dropped')
+    reply = dict(call='offscreen', events=[dict(place='cropdale', ops=[update])],
                  situation_notes={s.id: 'Updated.' for s in state.situations})
     clients = fake_sdk(monkeypatch, lambda *_: reply)
-
     async def exercise():
         async with agent(world_agent.OffscreenAgent, world, run) as session:
             return await session.offscreen(state, {s.id for s in state.situations})
-
     if new_id:
-        with pytest.raises(SessionError, match='existing situation ids'):
+        with pytest.raises(SessionError, match='may not commit situation'):
             asyncio.run(exercise())
         assert len(clients[0].calls) == 2 and len(failures(run)) == 2
-        assert load_state(world) == state
     else:
         _, result, _ = asyncio.run(exercise())
-        assert result.situations[0].model_dump(include=set(update)) == update
-        assert result.situations[0].touches == state.situations[0].touches
-        assert result.situations[0].summary == state.situations[0].summary
-        assert result.situations[0].kind == state.situations[0].kind
+        assert result.situations[0].status == 'dropped'
+        assert result.situations[0].model_dump(exclude={'status'}) == state.situations[0].model_dump(exclude={'status'})
         assert result.situations[1:] == state.situations[1:]
 
 
@@ -407,19 +401,18 @@ def test_offscreen_retry_does_not_echo_internal_state(workspace, monkeypatch):
     world, run = workspace
     state = load_state(world)
     state.characters['agnea'].goals = ['PRIVATE GOAL']
-    invalid = dict(call='offscreen', places=[p.model_dump() for p in state.places],
-                   situations=[dict(id=state.situations[0].id, status='open', next='Wait.',
-                                    due=dict(day=2, part='night'), people=['Unknown'])],
-                   situation_notes={s.id: 'Unchanged.' for s in state.situations})
+    invalid = dict(call='offscreen', events=[dict(place='cropdale', ops=[dict(
+        op='move', who='Unknown', place='cropdale', spot=None)])],
+        situation_notes={s.id: 'Unchanged.' for s in state.situations})
     clients = fake_sdk(monkeypatch, lambda *_: invalid)
 
     async def exercise():
         async with agent(world_agent.OffscreenAgent, world, run) as session:
             await session.offscreen(state, {s.id for s in state.situations})
 
-    with pytest.raises(SessionError, match='people must name'):
+    with pytest.raises(SessionError, match='may not commit move'):
         asyncio.run(exercise())
     feedback = clients[0].calls[1]
-    assert 'people must name' in feedback
+    assert 'may not commit move' in feedback
     for forbidden in ('input_value', 'characters', 'touches', 'PRIVATE GOAL'):
         assert forbidden not in feedback

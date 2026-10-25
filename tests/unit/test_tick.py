@@ -29,9 +29,7 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     adjudicate_reply = dict(call='adjudicate', encounters=[])
     offscreen_reply = dict(
         call='offscreen',
-        events=[dict(place='cropdale', actor='world', type='world', content='The stalls open.', intent=None)],
-        people={}, situations=[s.model_dump(include={"id", "status", "next", "due", "people"}) for s in state.situations],
-        places=[p.model_dump() for p in state.places],
+        events=[dict(place='cropdale', content='The stalls open.')],
         situation_notes={s.id: 'Preparations continue.' for s in state.situations})
     invalid_offscreen = copy.deepcopy(offscreen_reply)
     invalid_offscreen['events'][0]['actor'] = 'agnea'
@@ -93,15 +91,15 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     character_requests = [json.loads(request) for is_world, request in requests if not is_world]
     assert all(request['perceived'] == [] and request['part'] == part for request in character_requests)
     if bad_actor:
-        assert 'must not be a main character' in requests[-1][1]
+        assert 'Extra inputs' in requests[-1][1]
     trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     assert trace[-1]['situation_notes'] == offscreen_reply['situation_notes']
     assert len([row for row in trace if row['type'] == 'stage_usage']) == 4 + bad_actor
 
 
 @pytest.mark.parametrize('failure,reason', [
-    ('actor', 'must not be a main character'),
-    ('intent', 'intent must be null'),
+    ('actor', 'Extra inputs'),
+    ('intent', 'Extra inputs'),
     ('place', 'place must be in places'),
     ('notes', 'cover every situation'),
 ])
@@ -113,11 +111,8 @@ def test_offscreen_validation_error(tmp_path, monkeypatch, failure, reason):
     run = tmp_path / 'run'
     run.mkdir()
     state = load_state(world)
-    event = dict(place='festival_grounds', actor='world', type='world',
-                 content='The wind rises.', intent=None)
+    event = dict(place='festival_grounds', content='The wind rises.')
     reply = dict(call='offscreen', events=[event],
-                people={}, situations=[s.model_dump(include={"id", "status", "next", "due", "people"}) for s in state.situations],
-                places=[p.model_dump() for p in state.places],
                 situation_notes={s.id: 'Unchanged.' for s in state.situations})
     if failure == 'actor':
         event['actor'] = 'agnea'

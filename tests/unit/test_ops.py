@@ -5,9 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from story_engine.world.io import commit_event, create_world, load_state, read_events, save_state
+from story_engine.world.io import commit_event as _commit_event, create_world, load_state, read_events, save_state
 from story_engine.world.models import Event, WorldState
 from story_engine.world.ops import OPS, reduce_ops
+
+def commit_event(world, event):
+    return _commit_event(world, event, authority=None)
+
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -120,3 +124,68 @@ def test_op_only_events_hidden_from_world_curator_and_narrator(world, tmp_path):
     assert _build_payload([committed, in_scene], [scene], ['agnea']) == []
     assert act_scene_events([committed, in_scene], '1') == []
     assert act_transition_events([committed, in_scene], [scene], scene) == []
+
+
+def test_legacy_world_run_rejected_before_opening_sessions(tmp_path, monkeypatch):
+    from typer.testing import CliRunner
+    from story_engine.cli import app
+    world = tmp_path / 'worlds/legacy'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    (world / 'genesis.json').unlink()
+    before = {p.relative_to(world): p.read_bytes() for p in world.rglob('*') if p.is_file()}
+    monkeypatch.chdir(tmp_path)
+    result = CliRunner().invoke(app, ['world', 'run', 'legacy', '--dry-run'])
+    assert result.exit_code == 1 and 'read-only' in result.output
+    assert not (tmp_path / 'runs').exists()
+    assert {p.relative_to(world): p.read_bytes() for p in world.rglob('*') if p.is_file()} == before
+
+
+@pytest.mark.parametrize('owner', ['main', 'person'])
+def test_genesis_commitment_destinations_must_exist(world, owner):
+    data = load_state(world).model_dump()
+    commitment = dict(what='Meet', where='unknown-place', day=1, part='night')
+    if owner == 'main':
+        data['characters']['agnea']['commitments'] = [commitment]
+    else:
+        data['people']['Host'] = dict(where='cropdale', wants=['Meet'], commitments=[commitment])
+    (world / 'genesis.json').write_text(json.dumps(data))
+    with pytest.raises(ValueError, match='commitment where must name a slug in places'):
+        load_state(world)
+
+
+def test_introduced_commitment_reference_rejects_whole_group(world):
+    before = {p.name: p.read_bytes() for p in world.iterdir() if p.is_file()}
+    ops = [dict(op='place', slug='cropdale', add_details=['A gate']),
+           dict(op='introduce', name='Host', where='cropdale', wants=['Meet'], commitments=[
+               dict(what='Meet', where='unknown-place', day=1, part='night')])]
+    with pytest.raises(ValueError, match='commitment where must name a slug in places'):
+        commit_event(world, event(world, ops))
+    assert {p.name: p.read_bytes() for p in world.iterdir() if p.is_file()} == before
+
+
+def test_visible_story_rows_keep_ops_and_resolution_metadata():
+    from story_engine.agents.curator import _build_payload
+    from story_engine.agents.narrator import act_beats, act_scene_events
+    from story_engine.world.models import SceneRecord
+    act = Event(id=1, day=1, part='morning', place='cropdale', actor='agnea', type='action',
+                content='Agnea promises to return.', intent='Meet again', perceived_by=['agnea', 'throne'],
+                scene='1', round=1, ops=OPS.validate_python([
+                    dict(op='promise', who='agnea', what='Return', where='cropdale', day=1, part='night')]))
+    internal = act.model_copy(update={'id': 2, 'type': 'state_change', 'content': ''})
+    outcome = Event(id=3, day=1, part='morning', place='cropdale', actor='world', type='world',
+                    content='The gate opens.', perceived_by=['agnea', 'throne'], scene='1', round=1,
+                    resolves=1, resolution='succeeded', ops=OPS.validate_python([
+                        dict(op='place', slug='cropdale', add_details=['An open gate'])]))
+    scene = SceneRecord(id='1', day=1, part='morning', place='cropdale', participants=['agnea', 'throne'],
+                        first_event_id=1, last_event_id=3, rounds=1, end='quiet')
+    events = [act, internal, outcome]
+    curated = _build_payload(events, [scene], ['agnea', 'throne'])[0]['events']
+    narrated = act_beats(act_scene_events(events, '1'), 'agnea')[0]['events']
+    for rows in (curated, narrated):
+        assert [row['id'] for row in rows] == [1, 3]
+        assert rows[0]['ops'] == [op.model_dump() for op in act.ops]
+        assert rows[0]['intent'] == 'Meet again'
+        assert rows[1]['ops'] == [op.model_dump() for op in outcome.ops]
+        assert (rows[1]['resolves'], rows[1]['resolution']) == (1, 'succeeded')
+    other_pov = act_beats(act_scene_events(events, '1'), 'throne')[0]['events']
+    assert other_pov[0]['intent'] is None

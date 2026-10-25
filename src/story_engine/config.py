@@ -78,8 +78,14 @@ def _load(filename: str | Path, schema: type[Models] | type[Settings]) -> Models
         raise ConfigError(f"{filename}: {error}") from None
 
 
+def load_settings(settings_file: str | Path = "config/settings.yaml") -> Settings:
+    settings = _load(settings_file, Settings)
+    assert isinstance(settings, Settings)
+    return settings
+
+
 def load_configs(models_file: str | Path = "config/models.yaml") -> tuple[Models, Settings]:
     models = _load(models_file, Models)
-    settings = _load("config/settings.yaml", Settings)
+    settings = load_settings()
     assert isinstance(models, Models) and isinstance(settings, Settings)
     return models, settings

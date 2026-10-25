@@ -95,6 +95,10 @@ class WorldState(WorldModel):
         unknown = {name: person.where for name, person in self.people.items() if person.where not in places}
         if unknown:
             raise ValueError(f"person where must name a slug in places: {unknown}")
+        unknown = sorted({c.where for member in [*self.characters.values(), *self.people.values()]
+                          for c in member.commitments if c.where not in places})
+        if unknown:
+            raise ValueError(f"commitment where must name a slug in places: {unknown}")
         ids = [situation.id for situation in self.situations]
         if len(ids) != len(set(ids)):
             raise ValueError(f"situation ids must be unique: {sorted({id for id in ids if ids.count(id) > 1})}")

@@ -11,6 +11,7 @@ class Authority:
     call: Literal['code', 'encounter', 'scene_round', 'character_scene', 'person_scene',
                   'day_start', 'character_day_start', 'offscreen']
     actor: str = 'world'
+    parts_of_day: tuple[str, ...] = ()
 
 
 def validate_ops(state: WorldState, event: Event, authority: Authority) -> WorldState:
@@ -30,6 +31,11 @@ def validate_ops(state: WorldState, event: Event, authority: Authority) -> World
             allowed = ((call == 'character_scene' and actor == op.who and actor in state.characters
                         and event.scene is not None)
                        or (world and call != 'encounter' and op.who in state.people))
+            if isinstance(op, Release) and allowed and op.how == 'kept':
+                member = state.characters.get(op.who) or state.people.get(op.who)
+                commitment = next((c for c in member.commitments if c.id == op.id), None)
+                if commitment is not None and commitment.scene is not None and event.scene is None:
+                    raise ValueError('a promise made in a scene with a main can be kept only in a scene')
         elif isinstance(op, Wants):
             allowed = world and call != 'encounter' and op.person in state.people
         elif isinstance(op, Goals):
@@ -39,7 +45,15 @@ def validate_ops(state: WorldState, event: Event, authority: Authority) -> World
         elif isinstance(op, SituationOp):
             allowed = (call == 'scene_round' and event.scene is not None
                        and event.resolves is not None and event.resolution is not None)
-            # The off-screen adapter remains in place until WE3.
+            if call == 'offscreen':
+                situation = next((s for s in state.situations if s.id == op.id), None)
+                parts = authority.parts_of_day
+                if not parts:
+                    raise ValueError('offscreen situation checks require the configured parts_of_day')
+                allowed = (situation is not None and op.status == 'dropped'
+                           and op.model_fields_set - {'op', 'id'} == {'status'}
+                           and (situation.due.day, parts.index(situation.due.part))
+                           <= (state.clock.day, parts.index(state.clock.part)))
         elif isinstance(op, ClockOp):
             allowed = call == 'code'
         if call == 'person_scene':

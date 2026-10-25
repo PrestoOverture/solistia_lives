@@ -1,3 +1,4 @@
+from world_replies import day_start_reply, goals_reply
 """Structured output: ClaudeAgentOptions.output_format for every JSON-replying session."""
 
 import asyncio
@@ -73,14 +74,11 @@ def test_world_output_format_accepts_all_call_variants(tmp_path, monkeypatch):
     schema = options.output_format['schema']
     state = load_state(world)
     adjudicate = dict(call='adjudicate', encounters=[])
-    offscreen = dict(call='offscreen', events=[], people={},
-                     situations=[s.model_dump(include={"id", "status", "next", "due", "people"}) for s in state.situations],
-                     places=[p.model_dump() for p in state.places],
-                     situation_notes={s.id: 'Unchanged.' for s in state.situations})
+    offscreen = dict(call='offscreen', events=[], situation_notes={s.id: 'Unchanged.' for s in state.situations})
     scene_round = dict(call='scene_round', outcome=None, minor_moves={})
     _assert_schema_accepts(schema, adjudicate, WorldReply)
     _assert_schema_accepts(offscreen_options.output_format['schema'], offscreen, OffscreenReply)
-    _assert_schema_accepts(schema, dict(call='day_start', situations=[
+    _assert_schema_accepts(schema, day_start_reply(situations=[
         state.situations[0].model_dump()]), WorldReply)
     _assert_schema_accepts(schema, scene_round, WorldReply)
 
@@ -107,7 +105,7 @@ def test_character_output_format_accepts_both_call_variants(tmp_path, monkeypatc
     end_of_day = dict(call='end_of_day', summary='# Today\nNothing much.')
     _assert_schema_accepts(schema, action, CharacterReply)
     _assert_schema_accepts(schema, end_of_day, CharacterReply)
-    _assert_schema_accepts(schema, dict(call='day_start', goals=['Find a quiet home']), CharacterReply)
+    _assert_schema_accepts(schema, goals_reply('throne', ['Find a quiet home']), CharacterReply)
     assert Action.model_validate(action)
     assert EndOfDay.model_validate(end_of_day)
 

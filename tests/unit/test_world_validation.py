@@ -22,9 +22,6 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def _offscreen_reply(state, events=None, situation_notes=None):
     return dict(call='offscreen', events=events or [],
-               people={name: person.model_dump() for name, person in state.people.items()},
-               situations=[situation.model_dump(include={"id", "status", "next", "due", "people"}) for situation in state.situations],
-               places=[place.model_dump() for place in state.places],
                situation_notes=situation_notes or {s.id: 'Unchanged.' for s in state.situations})
 
 
@@ -74,7 +71,7 @@ def test_world_content_accepted_with_no_text_judgment(tmp_path, monkeypatch, cas
         last_winner = {'id': 42, 'actor': 'agnea', 'round': 1}
         reply = round_reply({'last_winner': last_winner}, outcome=event)
     else:
-        event = dict(place='festival_grounds', actor=actor, type=event_type, content=content, intent=None)
+        event = dict(place='festival_grounds', content=content)
         reply = _offscreen_reply(state, events=[event])
     replies = iter([json.dumps(reply)])
     requests = []
@@ -128,10 +125,7 @@ def test_offscreen_reply_omitting_people_keeps_them(tmp_path, monkeypatch):
     run.mkdir()
     state = load_state(world)
     state.people['Gus'] = Person(where='festival_grounds', wants=['Save the contest'], commitments=[])
-    reply = dict(call='offscreen', events=[], people={},
-                situations=[situation.model_dump(include={"id", "status", "next", "due", "people"}) for situation in state.situations],
-                places=[place.model_dump() for place in state.places],
-                situation_notes={s.id: 'Unchanged.' for s in state.situations})
+    reply = _offscreen_reply(state)
     requests = []
     monkeypatch.setattr(world_agent, 'ClaudeSDKClient', _fake_client(iter([json.dumps(reply)]), requests))
     models, settings = load_configs()

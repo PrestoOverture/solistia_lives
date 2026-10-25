@@ -11,25 +11,22 @@ from story_engine.agents.sdk import (
     run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
     session_options, structured_reply,
 )
-from story_engine.config import Role
+from story_engine.config import Role, load_settings
 from story_engine.agents.subjects import fold
 from story_engine.trace import TraceWriter
-from story_engine.world.io import read_events, commit_state, validate_state
-from story_engine.world.ops import Op, reduce_ops
+from story_engine.world.io import commit_event, load_state, read_events, validate_state
+from story_engine.world.ops import Op, Open
 from story_engine.world.permissions import Authority, validate_ops
 from story_engine.world.models import Clock, Event, Person, Place, Situation, WorldState
 
 
 class OffscreenEvent(BaseModel):
-    """An off-screen event: no `of` (off-screen life never resolves a main character's
-    attempt) and no `perceived_by` (code computes it from who is at `place`/`spot`)."""
+    """Code fills actor, time, scene, and perception; ops carry every state change."""
     model_config = ConfigDict(extra="forbid")
     place: str
-    actor: str
-    type: Literal["speech", "action", "world", "state_change"]
-    content: str = Field(max_length=280)
-    intent: str | None = None
+    content: str = Field(default='', max_length=280)
     spot: str | None = None
+    ops: list[Op] = Field(default_factory=list)
 
 
 class Encounter(BaseModel):
@@ -38,31 +35,20 @@ class Encounter(BaseModel):
     minor: list[str] = Field(default_factory=list)
 
 
-class SituationStatusUpdate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    id: str
-    status: Literal["open", "resolved", "dropped"]
-
-
-class SituationUpdate(SituationStatusUpdate):
-    next: str
-    due: Clock
-    people: list[str]
-
-
 class DayStartReply(BaseModel):
     model_config = ConfigDict(extra="forbid")
     call: Literal["day_start"]
-    situations: list[Situation] = Field(min_length=1, max_length=3)
-    people: dict[str, Person] = Field(default_factory=dict)
-    places: list[Place] = Field(default_factory=list)
+    ops: list[Op]
 
     @model_validator(mode="after")
     def valid_situations(self) -> Self:
-        if len(self.situations) >= 2:
-            if len({item.kind for item in self.situations}) <= 1:
+        situations = [op.situation for op in self.ops if isinstance(op, Open)]
+        if not 1 <= len(situations) <= 3:
+            raise ValueError('day_start needs 1-3 open ops')
+        if len(situations) >= 2:
+            if len({s.kind for s in situations}) <= 1:
                 raise ValueError("new situations must have more than one kind")
-            if len({item.due.part for item in self.situations}) <= 1:
+            if len({s.due.part for s in situations}) <= 1:
                 raise ValueError("new situations must not have all the same due part")
         return self
 
@@ -78,9 +64,6 @@ class OffscreenReply(BaseModel):
     model_config = ConfigDict(extra="forbid")
     call: Literal["offscreen"]
     events: list[OffscreenEvent] = Field(default_factory=list)
-    people: dict[str, Person] = Field(default_factory=dict)
-    situations: list[SituationUpdate] = Field(default_factory=list)
-    places: list[Place] = Field(default_factory=list)
     situation_notes: dict[str, str] = Field(default_factory=dict)
 
 
@@ -145,6 +128,7 @@ class _WorldSession:
         self.last_state: dict | None = None
         self.turn = 0
         self.cost = SessionCost()
+        self.parts_of_day = tuple(load_settings(root / "config/settings.yaml").parts_of_day)
 
     def _state_payload(self, state: dict) -> dict:
         """Send a snapshot once, then entry-level changes from the last input."""
@@ -241,7 +225,7 @@ class WorldAgent(_WorldSession):
         self.turn += 1
         self.hooks.turn = self.turn
         request = json.dumps({
-            "call": "day_start", "reply": "JSON with call: 'day_start' and 1-3 new situations",
+            "call": "day_start", "reply": "JSON with call: 'day_start' with ops, including 1-3 open ops",
             **self._state_payload(state.model_dump()),
             "events": [event.model_dump(exclude={"intent"}) for event in events
                        if event.day == state.clock.day - 1 and event.type != "plan" and not event.op_only],
@@ -253,17 +237,11 @@ class WorldAgent(_WorldSession):
                                  attempt=attempt + 1, **usage_fields)
             try:
                 reply = DayStartReply.model_validate(structured_reply(result, structured_output))
-                if reply.people.keys() & state.people.keys():
-                    raise ValueError("day_start people must be new")
-                if {place.slug for place in reply.places} & {place.slug for place in state.places}:
-                    raise ValueError("day_start places must be new")
-                updated = validate_state(self.world_dir, state.model_copy(update={
-                    "people": {**state.people, **reply.people},
-                    "places": state.places + reply.places,
-                    "situations": state.situations + reply.situations,
-                }))
-                updated = commit_state(self.world_dir, updated)
-                return updated
+                event = Event(id=0, **state.clock.model_dump(), place=state.places[0].slug, actor='world',
+                              type='state_change', content='', perceived_by=[], ops=reply.ops)
+                validate_ops(state, event, Authority('day_start'))
+                commit_event(self.world_dir, event, authority=Authority('day_start'))
+                return load_state(self.world_dir)
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
                                  turn=self.turn, attempt=attempt + 1)
@@ -396,16 +374,12 @@ class OffscreenAgent(_WorldSession):
     include_scene_context = False
 
     def _build_offscreen_event(self, raw: "OffscreenEvent", state: WorldState, places: set[str]) -> Event:
-        data = raw.model_dump()
-        spot = data.pop("spot", None)
-        event = Event.model_validate({"id": 0, **state.clock.model_dump(), **data,
-                                      "of": None, "perceived_by": []})
-        if event.actor in state.characters:
-            raise ValueError("World event actor must not be a main character")
-        if event.intent is not None:
-            raise ValueError("World event intent must be null")
-        if event.place not in places:
-            raise ValueError("World event place must be in places")
+        if raw.place not in places:
+            raise ValueError('World event place must be in places')
+        spot = raw.spot
+        event = Event(id=0, **state.clock.model_dump(), place=raw.place, actor='world',
+                      type='world' if raw.content else 'state_change', content=raw.content,
+                      perceived_by=[], ops=raw.ops)
         perceived_by = [slug for slug, character in state.characters.items()
                         if character.where == event.place and (spot is None or character.spot == spot)]
         return event.model_copy(update={"perceived_by": perceived_by})
@@ -436,21 +410,16 @@ class OffscreenAgent(_WorldSession):
                                  attempt=attempt + 1, **usage_fields)
             try:
                 reply = OffscreenReply.model_validate(structured_reply(result, structured_output))
-                # People persist (D21): the reply updates or adds people; anyone it omits is kept.
-                people = {name: person.model_dump() for name, person in state.people.items()}
-                people.update({name: person.model_dump() for name, person in reply.people.items()})
-                places_by_slug = {place.slug: place.model_dump() for place in state.places}
-                places_by_slug.update({place.slug: place.model_dump() for place in reply.places})
-                new_state = validate_state(self.world_dir, WorldState.model_validate({
-                    "clock": state.clock.model_dump(),
-                    "places": list(places_by_slug.values()),
-                    "characters": {slug: character.model_dump() for slug, character in state.characters.items()},
-                    "people": people,
-                    "situations": [situation.model_dump() for situation in
-                                   _updated_situations(state, reply.situations)],
-                }))
-                places = {place.slug for place in new_state.places}
-                resolved = [self._build_offscreen_event(raw, new_state, places) for raw in reply.events]
+                new_state = state
+                resolved = []
+                for index, raw in enumerate(reply.events):
+                    # Ops may add a place used by this event; validate all references in order.
+                    event = Event(id=max_event_id + index + 1, **state.clock.model_dump(), place=raw.place,
+                                  actor='world', type='world' if raw.content else 'state_change',
+                                  content=raw.content, perceived_by=[], ops=raw.ops)
+                    new_state = validate_ops(new_state, event, Authority('offscreen', parts_of_day=self.parts_of_day))
+                    places = {place.slug for place in new_state.places}
+                    resolved.append(self._build_offscreen_event(raw, new_state, places))
                 if open_situations - reply.situation_notes.keys():
                     raise ValueError("situation_notes must cover every situation open at tick start")
                 if any(not note.strip() for note in reply.situation_notes.values()):
@@ -469,19 +438,6 @@ class OffscreenAgent(_WorldSession):
                             if isinstance(error, ValidationError) else str(error))
                 request = f"World validation failed: {feedback}\nReturn corrected JSON."
         raise AssertionError("unreachable")
-
-
-def _updated_situations(state: WorldState, updates: list[SituationStatusUpdate]) -> list[Situation]:
-    by_id = {item.id: item for item in state.situations}
-    ids = [update.id for update in updates]
-    if len(ids) != len(set(ids)):
-        raise ValueError("situation update ids must be unique")
-    if set(ids) - by_id.keys():
-        raise ValueError("situation updates must name existing situation ids")
-    for update in updates:
-        by_id[update.id] = Situation.model_validate({
-            **by_id[update.id].model_dump(), **update.model_dump(exclude={"id"})})
-    return list(by_id.values())
 
 
 def _key(name: str) -> str:

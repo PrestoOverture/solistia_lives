@@ -37,9 +37,9 @@ Only your own `promise` and `release` ops may accompany a scene move. They commi
 Code assigns promise ids and the scene. Only typed ops change state; saying a promise without an op does not record it.
 
 ## Day start
-From day 2 onward, the first call of your day session is `day_start`. Revise your goals from your memory, current goals, and commitments: what you now want, given what happened and changed. Return 1-3 goals, without choosing a plan or a scene move yet:
+From day 2 onward, the first call of your day session is `day_start`. Revise your goals from your memory, current goals, and commitments: what you now want, given what happened and changed. Return one goals op for yourself with 1-3 goals, without choosing a plan or a scene move yet:
 
-{"call": "day_start", "goals": ["What you now want to do or find"]}
+{"call": "day_start", "ops": [{"op":"goals","main":"your slug","goals":["What you now want to do or find"]}]}
 
 ## A part of the day
 A `part_of_day` call asks you to choose `kind`: `go` or `attempt`.

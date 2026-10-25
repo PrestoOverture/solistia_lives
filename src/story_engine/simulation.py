@@ -14,7 +14,7 @@ from story_engine.config import load_configs
 from story_engine.kb import normalize_slug
 from story_engine.trace import TraceWriter
 from story_engine.world.io import (
-    append_event, append_scene, commit_event, load_state, read_events, read_scenes, commit_state, write_memory,
+    append_event, append_scene, commit_event, load_state, read_events, read_scenes, write_memory,
 )
 from story_engine.world.models import Clock, Event, SceneRecord, WorldState
 from story_engine.world.ops import ClockOp, Move
@@ -169,9 +169,9 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
             updated = await run_scene(world_dir, session, updated, place, present, minors, spot=spot)
     open_situations = {s.id for s in updated.situations if s.status == 'open'}
     events, updated, notes = await session.offscreen.offscreen(updated, open_situations)
-    updated = commit_state(world_dir, updated)
     for event in events:
-        append_event(world_dir, event)
+        commit_event(world_dir, event, authority=Authority('offscreen', parts_of_day=tuple(session.settings.parts_of_day)))
+    updated = load_state(world_dir)
     parts = session.settings.parts_of_day
     index = parts.index(state.clock.part) + 1
     commit_event(world_dir, Event(
@@ -352,8 +352,12 @@ async def run_day(world_dir: Path, run_dir: Path) -> WorldState:
                            and state.clock.part == session.settings.parts_of_day[0])
             if day_started:
                 for slug, agent in session.characters.items():
-                    state.characters[slug].goals = await agent.day_start()
-                    commit_state(world_dir, state)
+                    ops = await agent.day_start()
+                    commit_event(world_dir, Event(
+                        id=0, **state.clock.model_dump(), place=state.characters[slug].where, actor=slug,
+                        type='state_change', content='', perceived_by=[], ops=ops),
+                        authority=Authority('character_day_start', slug))
+                    state = load_state(world_dir)
                 state = await session.world.day_start(state, read_events(world_dir))
             while state.clock.day == session.day:
                 # Day start and its first tick share the pre-day-start checkpoint.
@@ -365,7 +369,6 @@ async def run_day(world_dir: Path, run_dir: Path) -> WorldState:
                         for slug, agent in session.characters.items()}
             for slug, memory in memories.items():
                 write_memory(world_dir, slug, memory)
-            commit_state(world_dir, state)
     except BaseException:
         _copy_world(world_dir, run_dir / "world_failed")
         _copy_world(checkpoint, world_dir)

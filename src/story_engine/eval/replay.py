@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from story_engine.agents.sdk import SessionError
 from story_engine.agents.world import (
-    Encounter, OffscreenAgent, OffscreenEvent, SituationUpdate, WorldAgent,
+    Encounter, OffscreenAgent, OffscreenEvent, WorldAgent,
 )
 from story_engine.config import load_configs
 from story_engine.runs import RunMeta, create_run, finish_run
@@ -45,7 +45,6 @@ class ReplayResult(BaseModel):
     encounters: list[Encounter] = Field(default_factory=list)
     events: list[OffscreenEvent] = Field(default_factory=list)
     people: dict[str, Person] = Field(default_factory=dict)
-    situation_updates: list[SituationUpdate] = Field(default_factory=list)
     error: str | None = None
 
 
@@ -119,8 +118,7 @@ async def replay(run_id: str, call: Call, turn: int | None = None, repeat: int =
                             await agent.offscreen(state, item.open_situations,
                                                   max_event_id=item.max_event_id)
                             reply = agent.last_reply
-                            result.events, result.people = reply.events, reply.people
-                            result.situation_updates = reply.situations
+                            result.events = reply.events
                 except Exception as error:
                     result.error = str(error) if isinstance(error, SessionError) else f"{type(error).__name__}: {error}"
                     trace.write("stage_failed", call=call, turn=item.turn, repeat=repetition,
