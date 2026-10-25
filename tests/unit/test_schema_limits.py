@@ -40,7 +40,7 @@ def test_schema_declares_max_length(model, field, max_length):
     (MinorMove, VALID_MINOR_MOVE, "say", 400),
     (OffscreenEvent, VALID_WORLD_EVENT, "content", 280),
     (Plan, VALID_PLAN, "aim", 140),
-    (RoundResolution, dict(call="scene_round", resolves=1, resolution="none"), "outcome", 280),
+    (RoundResolution, dict(call="scene_round", resolution="none"), "outcome", 280),
 ])
 def test_over_length_value_fails_validation(model, valid, field, max_length):
     with pytest.raises(ValidationError, match="at most .* characters"):

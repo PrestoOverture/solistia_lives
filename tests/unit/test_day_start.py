@@ -15,9 +15,9 @@ from story_engine.agents import character, world as world_agent
 from story_engine.agents.sdk import SessionError
 from story_engine.config import load_configs
 from story_engine.trace import TraceWriter
-from story_engine.world.io import append_event, load_state, read_events, save_state
+from story_engine.world.io import append_event, load_state, read_events
 from story_engine.world.models import Event
-from world_replies import day_start_reply, goals_reply
+from world_replies import day_start_reply, goals_reply, commit_fixture_changes
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -135,7 +135,7 @@ def test_run_day_first_calls_goals_and_visible_history(workspace, monkeypatch, d
         # Day start reads old memory but never rewrites it.
         assert (world / 'memory/agnea.md').read_bytes() == memory_bytes
         state.clock.day += 1
-        save_state(world_dir, state)
+        commit_fixture_changes(world_dir, state)
         return state
 
     monkeypatch.setattr(simulation, 'run_tick', tick)
@@ -154,7 +154,7 @@ def test_run_day_afternoon_resume_skips_day_start(workspace, monkeypatch):
     world, run = workspace
     state = load_state(world)
     state.clock.day, state.clock.part = 2, 'afternoon'
-    save_state(world, state)
+    commit_fixture_changes(world, state)
 
     def respond(client, request):
         assert request['call'] == 'end_of_day'
@@ -174,7 +174,7 @@ def test_run_day_afternoon_resume_skips_day_start(workspace, monkeypatch):
         index = session.settings.parts_of_day.index(current.clock.part) + 1
         current.clock.day += index == len(session.settings.parts_of_day)
         current.clock.part = session.settings.parts_of_day[index % len(session.settings.parts_of_day)]
-        save_state(world_dir, current)
+        commit_fixture_changes(world_dir, current)
         return current
 
     monkeypatch.setattr(simulation, 'run_tick', tick)
@@ -189,7 +189,7 @@ def test_run_day_first_tick_failure_restores_before_day_start(workspace, monkeyp
     world, run = workspace
     state = load_state(world)
     state.clock.day = 2
-    save_state(world, state)
+    commit_fixture_changes(world, state)
     before = (world / 'state.json').read_bytes()
 
     def respond(client, request):
@@ -217,7 +217,7 @@ def test_run_day_first_tick_failure_restores_before_day_start(workspace, monkeyp
         if fail:
             raise RuntimeError('morning tick failed')
         current.clock.day += 1
-        save_state(world_dir, current)
+        commit_fixture_changes(world_dir, current)
         return current
 
     monkeypatch.setattr(simulation, 'run_tick', tick)
@@ -331,7 +331,7 @@ def test_offscreen_isolated_persistent_client_and_scene_state(workspace, monkeyp
     world, run = workspace
     state = load_state(world)
     state.situations[0].status = 'resolved'
-    save_state(world, state)
+    (world / 'genesis.json').write_text(state.model_dump_json())
     (world / 'scene_context.md').write_text('PRIVATE SCENE CONTEXT')
     append_event(world, Event(id=0, day=1, part='morning', place='cropdale', actor='agnea',
                              type='plan', content='PRIVATE PLAN', intent='PRIVATE INTENT', perceived_by=['agnea']))

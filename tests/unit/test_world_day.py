@@ -7,11 +7,13 @@ import pytest
 from claude_agent_sdk import ResultMessage
 from typer.testing import CliRunner
 
+from world_replies import commit_fixture_changes
+
 from story_engine.agents import character, curator, narrator, world as world_agent
 from test_extract import fake
 from story_engine.cli import app
 from story_engine.runs import RunMeta
-from story_engine.world.io import append_event, append_scene, load_state, read_events, save_state
+from story_engine.world.io import append_event, append_scene, load_state, read_events
 from story_engine.world.models import Event, SceneRecord
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -198,7 +200,7 @@ def test_day_from_evening(tmp_path, monkeypatch):
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     state = load_state(world)
     state.clock.part = 'evening'
-    save_state(world, state)
+    commit_fixture_changes(world, state)
     parts = []
 
     class Agent:

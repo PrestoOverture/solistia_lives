@@ -98,3 +98,61 @@ def test_go_is_code_movement_and_every_attempt_is_a_scene(tmp_path):
     assert len(scenes) == 1 and scenes[0].participants == ['agnea'] and scenes[0].end == 'resolved'
     assert not any(e.of is not None and e.scene is None for e in read_events(world))
     assert result == type(result).model_validate_json((world / 'state.json').read_text())
+
+
+def test_mocked_world_links_previous_and_closing_winners(tmp_path, monkeypatch):
+    import json
+    from claude_agent_sdk import ResultMessage
+    from story_engine.agents import world as world_agent
+    from story_engine.config import load_configs
+
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    requests = []
+
+    class FakeClient:
+        def __init__(self, *, options):
+            assert 'resolves' not in options.output_format['schema']['$defs']['RoundResolution']['properties']
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def query(self, request):
+            requests.append(json.loads(request))
+
+        async def receive_response(self):
+            target = requests[-1]['last_winner']
+            # Neither regular nor closing replies supply a target id.
+            reply = dict(call='scene_round', resolution='succeeded' if target else None,
+                         ops=[dict(op='place', slug='festival_grounds', add_details=['An open gate'])] if target else [])
+            yield ResultMessage('success', 1, 1, False, 1, 'fake', structured_output=reply)
+
+    class Character:
+        async def act(self, before, note=None):
+            return Action(call='action', intent='Try', move='act', urge=2, action='Tries the gate.', say='')
+
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', FakeClient)
+    models, settings = load_configs()
+
+    async def exercise():
+        async with world_agent.WorldAgent(ROOT, run, world, models.world,
+                                          settings.agent_max_turns, TraceWriter(run)) as agent:
+            session = SimpleNamespace(world=agent, characters={s: Character() for s in ['agnea', 'throne']},
+                                      scene_notes={}, settings=SimpleNamespace(scene_cap=2), trace=TraceWriter(run))
+            return await run_scene(world, session, load_state(world), 'festival_grounds', ['agnea', 'throne'], [])
+
+    state = asyncio.run(exercise())
+    events = read_events(world)
+    acts = [e for e in events if e.actor != 'world']
+    resolutions = [e for e in events if e.resolution is not None]
+    assert len(acts) == len(resolutions) == 2
+    assert [e.resolves for e in resolutions] == [e.id for e in acts]
+    assert [e.round for e in resolutions] == [1, 2]
+    assert all(e.resolution == 'succeeded' and e.ops[0].op == 'place' for e in resolutions)
+    assert requests[1]['last_winner']['id'] == acts[0].id and not requests[1]['closing']
+    assert requests[-1]['last_winner']['id'] == acts[-1].id and requests[-1]['closing']
+    assert 'An open gate' in next(p for p in state.places if p.slug == 'festival_grounds').details

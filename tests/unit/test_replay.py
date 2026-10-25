@@ -10,12 +10,14 @@ import pytest
 from claude_agent_sdk import ResultMessage
 from typer.testing import CliRunner
 
+from world_replies import commit_fixture_changes
+
 from story_engine.agents import world as agents
 from story_engine.cli import app
 from story_engine.config import load_configs
 from story_engine.runs import create_run
 from story_engine.trace import TraceWriter
-from story_engine.world.io import append_event, load_state, save_state
+from story_engine.world.io import append_event, load_state
 from story_engine.world.models import Event
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -143,7 +145,7 @@ def test_replay_full_request_filters_repeats_and_preserves_world(setup, monkeypa
     originals, choices = record(setup, call, monkeypatch)
     # A later world state must never replace the recorded call state.
     state.characters["agnea"].goals = ["A later goal"]
-    save_state(world, state)
+    commit_fixture_changes(world, state)
     before, source_before = hashes(world), hashes(source)
     reply = adjudicate_reply() if call == "adjudicate" else offscreen_reply(state)
     clients = fake(monkeypatch, [reply] * count)

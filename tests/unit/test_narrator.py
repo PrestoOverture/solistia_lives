@@ -8,11 +8,13 @@ import pytest
 from claude_agent_sdk import ResultMessage
 from typer.testing import CliRunner
 
+from world_replies import commit_fixture_changes
+
 from story_engine.agents import curator, narrator
 from test_extract import fake
 from story_engine.cli import app
 from story_engine.runs import RunMeta
-from story_engine.world.io import append_event, append_scene, load_state, save_state
+from story_engine.world.io import append_event, append_scene, load_state
 from story_engine.world.models import Event, SceneRecord
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -65,7 +67,7 @@ def world(tmp_path, monkeypatch):
                                     rounds=1, end='one_left'))
     state = load_state(world)
     state.clock.day = 2
-    save_state(world, state)
+    commit_fixture_changes(world, state)
     (tmp_path / 'kb').mkdir()
     (tmp_path / 'kb/agnea.md').write_text('---\nname: Agnea\naliases: []\n---\n')
     fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])])

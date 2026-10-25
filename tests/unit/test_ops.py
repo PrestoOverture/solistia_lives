@@ -5,12 +5,14 @@ from pathlib import Path
 
 import pytest
 
-from story_engine.world.io import commit_event as _commit_event, create_world, load_state, read_events, save_state
+from story_engine.world.io import commit_event as _commit_event, create_world, load_state, read_events
 from story_engine.world.models import Event, WorldState
 from story_engine.world.ops import OPS, reduce_ops
+from story_engine.world.permissions import Authority
+from world_replies import commit_fixture_changes
 
-def commit_event(world, event):
-    return _commit_event(world, event, authority=None)
+def commit_event(world, event, *, authority=Authority('scene_round')):
+    return _commit_event(world, event, authority=authority)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -30,7 +32,7 @@ def event(world, ops, **changes):
 
 def test_fold_ignores_corrupt_missing_or_stale_cache(world):
     before = load_state(world)
-    commit_event(world, event(world, [dict(op='clock', day=2, part='morning')]))
+    commit_event(world, event(world, [dict(op='clock', day=2, part='morning')]), authority=Authority('code'))
     after = load_state(world)
     assert after.clock.day == 2
     for data in ('broken json', before.model_dump_json()):
@@ -43,14 +45,15 @@ def test_fold_ignores_corrupt_missing_or_stale_cache(world):
 def test_atomic_ordered_operations_and_prose_changes_nothing(world):
     before = load_state(world)
     raw = [dict(op='place', slug='new_place', add_details=['A bench']),
-           dict(op='move', who='agnea', place='new_place', spot='bench')]
+           dict(op='introduce', name='Host', where='cropdale', wants=['Rest']),
+           dict(op='move', who='Host', place='new_place', spot='bench')]
     committed = commit_event(world, event(world, raw))
-    assert load_state(world).characters['agnea'].where == 'new_place'
+    assert load_state(world).people['Host'].where == 'new_place'
     assert committed.id == 1
     stable = {p.name: p.read_bytes() for p in world.iterdir() if p.is_file()}
     with pytest.raises(ValueError, match='where'):
-        commit_event(world, event(world, [dict(op='clock', day=9, part='night'),
-                                         dict(op='move', who='agnea', place='missing', spot=None)]))
+        commit_event(world, event(world, [dict(op='place', slug='cropdale', add_details=['Gate']),
+                                         dict(op='move', who='Host', place='missing', spot=None)]))
     assert stable == {p.name: p.read_bytes() for p in world.iterdir() if p.is_file()}
     assert reduce_ops(before, OPS.validate_python(raw), event_id=1) == load_state(world)
     snapshot = load_state(world)
@@ -59,7 +62,7 @@ def test_atomic_ordered_operations_and_prose_changes_nothing(world):
     assert before.characters['agnea'].where == 'festival_grounds'
 
 
-def test_all_legacy_state_writes_are_ops(world, monkeypatch):
+def test_authorized_state_writes_update_projection(world, monkeypatch):
     from story_engine.world import io
     calls = []
     original = io._atomic_write
@@ -71,8 +74,8 @@ def test_all_legacy_state_writes_are_ops(world, monkeypatch):
     state = load_state(world)
     state.characters['agnea'].goals = ['A revised goal']
     state.clock.day = 2
-    save_state(world, state)
-    assert len(calls) == 1 and {op.op for op in calls[0].ops} == {'goals', 'clock'}
+    commit_fixture_changes(world, state)
+    assert len(calls) == 2 and {op.op for event in calls for op in event.ops} == {'goals', 'clock'}
     assert load_state(world) == WorldState.model_validate_json((world / 'state.json').read_text())
 
 
@@ -81,7 +84,7 @@ def test_pre_genesis_world_is_read_only(world):
     assert load_state(world)
     before = (world / 'state.json').read_bytes()
     with pytest.raises(ValueError, match='read-only'):
-        save_state(world, load_state(world))
+        commit_event(world, event(world, []))
     assert (world / 'state.json').read_bytes() == before
 
 
@@ -98,14 +101,13 @@ def test_ten_op_types_fold_with_stable_commitment_ids(world):
            dict(op='open', situation=situation),
            dict(op='situation', id='new-situation', status='resolved'),
            dict(op='clock', day=1, part='night')]
-    committed = commit_event(world, event(world, ops, scene='1', round=1))
-    state = load_state(world)
+    state = reduce_ops(state, OPS.validate_python(ops), event_id=1, scene='1')
     commitment = state.people['Host'].commitments[0]
-    assert commitment.id == f'{committed.id}:3' and commitment.scene == '1'
-    commit_event(world, event(world, [dict(op='release', who='Host', id=commitment.id, how='kept')], scene='1', round=2))
-    assert load_state(world).people['Host'].commitments == []
-    assert load_state(world).situations[-1].status == 'resolved'
-    assert load_state(world) == WorldState.model_validate_json((world / 'state.json').read_text())
+    assert commitment.id == '1:3' and commitment.scene == '1'
+    state = reduce_ops(state, OPS.validate_python([dict(op='release', who='Host', id=commitment.id, how='kept')]), event_id=2, scene='1')
+    assert state.people['Host'].commitments == []
+    assert state.situations[-1].status == 'resolved'
+    assert state.clock.part == 'night'
 
 
 def test_op_only_events_hidden_from_world_curator_and_narrator(world, tmp_path):
@@ -115,7 +117,7 @@ def test_op_only_events_hidden_from_world_curator_and_narrator(world, tmp_path):
     from story_engine.config import load_configs
     from story_engine.trace import TraceWriter
     from story_engine.world.models import SceneRecord
-    committed = commit_event(world, event(world, [dict(op='clock', day=1, part='afternoon')]))
+    committed = commit_event(world, event(world, [dict(op='clock', day=1, part='afternoon')]), authority=Authority('code'))
     in_scene = commit_event(world, event(world, [dict(op='place', slug='cropdale', add_details=['Gate'])], scene='1', round=1))
     agent = WorldAgent(ROOT, tmp_path, world, load_configs()[0].world, 1, TraceWriter(tmp_path))
     assert agent._new_events(load_state(world), [committed, in_scene]) == []
@@ -189,3 +191,21 @@ def test_visible_story_rows_keep_ops_and_resolution_metadata():
         assert (rows[1]['resolves'], rows[1]['resolution']) == (1, 'succeeded')
     other_pov = act_beats(act_scene_events(events, '1'), 'throne')[0]['events']
     assert other_pov[0]['intent'] is None
+
+
+def test_legacy_state_writers_removed():
+    from story_engine.world import io
+    import story_engine.world as world_package
+    for name in ('save_state', 'commit_state'):
+        assert not hasattr(io, name)
+        assert not hasattr(world_package, name)
+    sources = ROOT / 'src'
+    assert not any(name in path.read_text() for path in sources.rglob('*.py')
+                   for name in ('save_state', 'commit_state'))
+
+
+def test_commit_cannot_skip_authority(world):
+    before = {p.name: p.read_bytes() for p in world.iterdir() if p.is_file()}
+    with pytest.raises(AttributeError):
+        _commit_event(world, event(world, [dict(op='clock', day=2, part='morning')]), authority=None)
+    assert {p.name: p.read_bytes() for p in world.iterdir() if p.is_file()} == before

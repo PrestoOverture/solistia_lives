@@ -8,7 +8,7 @@ from typer.testing import CliRunner
 
 from story_engine.cli import app
 from story_engine.eval import world as evaluator
-from story_engine.world.io import load_state, save_state, append_event, append_scene
+from story_engine.world.io import load_state, append_event, append_scene
 from story_engine.world.models import Event, SceneRecord
 
 ROOT = Path(__file__).resolve().parents[2]

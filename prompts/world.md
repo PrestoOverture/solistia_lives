@@ -25,11 +25,11 @@ Every encounter's mains and minors must share a place and spot. Code groups main
 Input gives the scene's place, participants, their state, events, and `last_winner`: an unresolved winning act with its `id`, `actor`, and `round`, or null. Resolve that act and supply bids for minor participants' next moves. Reply:
 
 ```
-{"call":"scene_round", "resolves":null, "resolution":null, "outcome":null, "ops":[],
+{"call":"scene_round", "resolution":null, "outcome":null, "ops":[],
  "minor_moves":{"Host":{"move":"act","urge":2,"to":null,"action":"Host offers a chair.","say":"Sit here.","ops":[]}}}
 ```
 
-If `last_winner` is present, `resolves` must be its id. `resolution` is `succeeded`, `failed`, `pending` (still unresolved), or `none` (resolved, nothing changed). Without a winner both fields are null. `outcome` is an optional short fact, at most 280 characters, about that resolution. Code fills the event's actor, scene, round, and time. Only typed `ops` change state; prose changes nothing.
+If `last_winner` is present, give its `resolution`: `succeeded`, `failed`, `pending` (still unresolved), or `none` (resolved, nothing changed). Without a winner, `resolution` is null. `outcome` is an optional short fact, at most 280 characters, about that resolution. Code links the event to the winning act and fills its actor, scene, round, and time. Only typed `ops` change state; prose changes nothing.
 
 The scene resolution may `introduce` a new person, add `place` details, `move` a person, change a person's `wants`, make or release their promises, or update an existing `situation`. A situation update requires a resolution. No scene call moves a main, changes their goals, opens a situation, or advances the clock.
 

@@ -4,9 +4,12 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from world_replies import commit_fixture_changes
+from story_engine.world.io import validate_state
+
 from story_engine.world import (
     Event, WorldInfo, WorldState, append_event, create_world, load_state,
-    read_events, read_memory, save_state, write_memory,
+    read_events, read_memory, write_memory,
 )
 
 
@@ -51,7 +54,7 @@ def test_round_trip_and_event_reopening(tmp_path, state_data):
     state = load_state(world)
     assert state.model_dump(exclude={"characters": {"agnea": {"commitments"}}}) == WorldState.model_validate(state_data).model_dump(exclude={"characters": {"agnea": {"commitments"}}})
     state.clock.part = "night"
-    save_state(world, state)
+    commit_fixture_changes(world, state)
     assert load_state(world) == state
     first = append_event(world, event())
     prefix = (world / "events.jsonl").read_bytes()
@@ -91,7 +94,7 @@ def test_reject_invalid_state(tmp_path, state_data, invalid):
             state_data["people"]["Throné"] = {"where": "cropdale", "wants": ["Something"], "commitments": []}
         case "person_where_invalid": state_data["people"]["keeper"]["where"] = "unknown"
     with pytest.raises(ValueError):
-        save_state(world, WorldState.model_validate(state_data))
+        validate_state(world, WorldState.model_validate(state_data))
     assert (world / "state.json").read_bytes() == original
     (world / "genesis.json").write_text(json.dumps(state_data))
     with pytest.raises(ValueError):
@@ -116,7 +119,7 @@ def test_mutated_state_is_revalidated(tmp_path, state_data):
     state = load_state(world)
     state.characters["agnea"].goals.clear()
     with pytest.raises(ValueError):
-        save_state(world, state)
+        commit_fixture_changes(world, state)
 
 
 def test_atomic_state_replacement_failure(tmp_path, state_data, monkeypatch):
@@ -128,7 +131,7 @@ def test_atomic_state_replacement_failure(tmp_path, state_data, monkeypatch):
     with pytest.raises(OSError):
         state = load_state(world)
         state.clock.day += 1
-        save_state(world, state)
+        commit_fixture_changes(world, state)
     assert (world / "state.json").read_bytes() == original
     assert not list(world.glob(".state.json.*"))
 

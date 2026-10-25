@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from story_engine.agents import world as world_agent
 from story_engine.config import load_configs
 from story_engine.trace import TraceWriter
-from story_engine.world.io import commit_event, load_state, save_state
+from story_engine.world.io import commit_event, load_state
 from story_engine.world.models import Person
 from story_engine.world.permissions import Authority
 from world_replies import round_reply
@@ -233,16 +233,16 @@ def test_adjudicate_retry_budget(workspace, monkeypatch, retries, recover):
 @pytest.mark.parametrize('resolution', ['succeeded', 'failed', 'pending', 'none'])
 def test_scene_resolves_only_the_supplied_winning_act(workspace, monkeypatch, resolution):
     winner = dict(id=42, actor='throne', round=1)
-    good = dict(call='scene_round', resolves=42, resolution=resolution, outcome='An unchecked fact.')
-    exercise, requests = call_agent(workspace, monkeypatch, [dict(good, resolves=41), good],
+    good = dict(call='scene_round', resolution=resolution, outcome='An unchecked fact.')
+    exercise, requests = call_agent(workspace, monkeypatch, [good],
                                     scene=True, winner=winner)
     event, _, _ = asyncio.run(exercise())
-    assert len(requests) == 2 and event.resolves == 42 and event.of == 'throne'
+    assert len(requests) == 1 and event.resolves == 42 and event.of == 'throne'
     assert event.actor == 'world' and event.scene == '1' and event.round == 1
     assert event.resolution == resolution
 
 
-@pytest.mark.parametrize('fields', [dict(outcome='No winner'), dict(resolves=42), dict(resolution='none'),
+@pytest.mark.parametrize('fields', [dict(outcome='No winner'), dict(resolves=42), dict(resolves=None),
                                     dict(actor='agnea'), dict(scene='forged'), dict(round=99), dict(of='throne')])
 def test_scene_metadata_and_resolution_schema(fields):
     with pytest.raises(ValidationError):
@@ -268,9 +268,33 @@ def test_scene_minor_references_introductions_and_name_matching(workspace, monke
 
 @pytest.mark.parametrize('resolution', ['pending', 'none'])
 def test_closing_resolution_requires_final_result_and_no_bids(workspace, monkeypatch, resolution):
-    reply = dict(call='scene_round', resolves=42, resolution=resolution,
+    reply = dict(call='scene_round', resolution=resolution,
                  minor_moves={'Host': dict(move='wait', urge=0)} if resolution == 'none' else {})
     exercise, _ = call_agent(workspace, monkeypatch, [reply, reply], scene=True,
                              winner=dict(id=42, actor='agnea', round=1), closing=True)
     with pytest.raises(world_agent.SessionError, match='closing resolution'):
+        asyncio.run(exercise())
+
+
+@pytest.mark.parametrize('closing', [False, True])
+@pytest.mark.parametrize('supplied_id', [None, 42, 999])
+def test_model_supplied_resolves_is_a_schema_error(workspace, monkeypatch, closing, supplied_id):
+    good = dict(call='scene_round', resolution='none', ops=[])
+    bad = dict(good, resolves=supplied_id)
+    with pytest.raises(ValidationError) as caught:
+        world_agent.RoundResolution.model_validate(bad)
+    assert any(error['loc'] == ('resolves',) and error['type'] == 'extra_forbidden'
+               for error in caught.value.errors())
+    exercise, requests = call_agent(workspace, monkeypatch, [bad, good], scene=True,
+                                    winner=dict(id=42, actor='agnea', round=1), closing=closing)
+    event, _, _ = asyncio.run(exercise())
+    assert len(requests) == 2 and 'Extra inputs are not permitted' in requests[1]
+    assert event.resolves == 42 and event.resolution == 'none'
+
+
+@pytest.mark.parametrize('winner,resolution', [(None, 'none'), (dict(id=42, actor='agnea', round=1), None)])
+def test_scene_resolution_requires_exactly_an_outstanding_winner(workspace, monkeypatch, winner, resolution):
+    reply = dict(call='scene_round', resolution=resolution)
+    exercise, _ = call_agent(workspace, monkeypatch, [reply, reply], scene=True, winner=winner)
+    with pytest.raises(world_agent.SessionError, match='winning act'):
         asyncio.run(exercise())

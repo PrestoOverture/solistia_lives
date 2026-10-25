@@ -98,26 +98,6 @@ def require_genesis(world_dir: Path) -> None:
         raise ValueError("Worlds without genesis.json are read-only; create a new world to run")
 
 
-def commit_state(world_dir: Path, state: WorldState, *, scene: str | None = None,
-                 round: int | None = None) -> WorldState:
-    """Legacy reply adapter; all durable changes still pass through commit_event."""
-    from .adapter import state_ops
-    require_genesis(world_dir)
-    state = validate_state(world_dir, state)
-    before = load_state(world_dir)
-    ops = state_ops(before, state)
-    if ops:
-        commit_event(world_dir, Event(
-            id=0, **before.clock.model_dump(), place=before.places[0].slug, actor='world',
-            type='state_change', content='', perceived_by=[], scene=scene, round=round, ops=ops), authority=None)
-    return load_state(world_dir)
-
-
-def save_state(world_dir: Path, state: WorldState) -> None:
-    """Compatibility entry point for callers outside the day loop, also event sourced."""
-    commit_state(world_dir, state)
-
-
 def read_events(world_dir: Path) -> list[Event]:
     events = []
     with (world_dir / "events.jsonl").open(encoding="utf-8") as stream:
@@ -129,7 +109,7 @@ def read_events(world_dir: Path) -> list[Event]:
     return events
 
 
-def commit_event(world_dir: Path, event: Event, *, authority: Authority | None = Authority('code')) -> Event:
+def commit_event(world_dir: Path, event: Event, *, authority: Authority = Authority('code')) -> Event:
     """Assign the next persisted ID and append. World writes are sequential."""
     require_genesis(world_dir)
     events = read_events(world_dir)
@@ -149,11 +129,8 @@ def commit_event(world_dir: Path, event: Event, *, authority: Authority | None =
         if any(old.resolves == event.resolves and old.resolution != 'pending' for old in events):
             raise ValueError('winning act is already resolved')
     state = load_state(world_dir)
-    if authority is not None:
-        from .permissions import validate_ops
-        state = validate_ops(state, event, authority)
-    else:
-        state = reduce_ops(state, event.ops, event_id=event.id, scene=event.scene)
+    from .permissions import validate_ops
+    state = validate_ops(state, event, authority)
     state = validate_state(world_dir, state)
     with (world_dir / "events.jsonl").open("a", encoding="utf-8") as stream:
         stream.write(event.model_dump_json() + "\n")

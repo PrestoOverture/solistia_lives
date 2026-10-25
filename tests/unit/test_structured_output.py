@@ -1,4 +1,4 @@
-from world_replies import day_start_reply, goals_reply
+from world_replies import day_start_reply, goals_reply, commit_fixture_changes
 """Structured output: ClaudeAgentOptions.output_format for every JSON-replying session."""
 
 import asyncio
@@ -115,7 +115,7 @@ def test_curator_output_format_is_json_schema(tmp_path, monkeypatch):
         shutil.copytree(ROOT / name, tmp_path / name)
     world = tmp_path / 'worlds/test'
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
-    from story_engine.world.io import append_event, append_scene, save_state
+    from story_engine.world.io import append_event, append_scene
     from story_engine.world.models import Event, SceneRecord
     append_event(world, Event(id=1, day=1, part='morning', place='cropdale', scene='1',
                              actor='agnea', type='action', content='Agnea waves.',
@@ -131,7 +131,7 @@ def test_curator_output_format_is_json_schema(tmp_path, monkeypatch):
                                     rounds=1, end='one_left'))
     state = load_state(world)
     state.clock.day = 2
-    save_state(world, state)
+    commit_fixture_changes(world, state)
     monkeypatch.chdir(tmp_path)
     options = []
 

@@ -6,10 +6,12 @@ import pytest
 from claude_agent_sdk import ResultMessage
 from typer.testing import CliRunner
 
+from world_replies import commit_fixture_changes
+
 from story_engine.agents import curator
 from story_engine.cli import app
 from story_engine.runs import RunMeta
-from story_engine.world.io import append_event, append_scene, load_state, save_state
+from story_engine.world.io import append_event, append_scene, load_state
 from story_engine.world.models import Event, SceneRecord
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -45,7 +47,7 @@ def world(tmp_path, monkeypatch):
                                     rounds=2, end='one_left'))
     state = load_state(world)
     state.clock.day = 2
-    save_state(world, state)
+    commit_fixture_changes(world, state)
     monkeypatch.chdir(tmp_path)
     return world
 
@@ -140,7 +142,7 @@ def test_skipping_a_scene_is_the_curators_call(monkeypatch, tmp_path):
                                         last_event_id=event_id, rounds=1, end='one_left'))
     state = load_state(world)
     state.clock.day = 2
-    save_state(world, state)
+    commit_fixture_changes(world, state)
     monkeypatch.chdir(tmp_path)
     skipping = dict(acts=[{'scene': '1', 'pov': 'agnea'}, {'scene': '3', 'pov': 'agnea'},
                           {'scene': '4', 'pov': 'agnea'}], why='The scenes that matter.')
@@ -180,7 +182,7 @@ def test_day_with_no_scene_records_exits_1(tmp_path, monkeypatch):
                              perceived_by=['agnea', 'throne']))
     state = load_state(world)
     state.clock.day = 2
-    save_state(world, state)
+    commit_fixture_changes(world, state)
     monkeypatch.chdir(tmp_path)
     calls, _, _ = fake(monkeypatch, [])
     result = CliRunner().invoke(app, ['world', 'tell', 'test'])

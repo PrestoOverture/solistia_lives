@@ -7,10 +7,12 @@ from pathlib import Path
 import pytest
 from claude_agent_sdk import ResultMessage
 
+from world_replies import commit_fixture_changes
+
 from story_engine.agents import character, world as world_agent
 from story_engine.agents.sdk import SessionError
 from story_engine.simulation import TickSession, run_tick
-from story_engine.world.io import load_state, read_events, save_state
+from story_engine.world.io import load_state, read_events
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -24,7 +26,7 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     run.mkdir()
     state = load_state(world)
     state.clock.part = part
-    save_state(world, state)
+    commit_fixture_changes(world, state)
     requests, clients = [], []
     adjudicate_reply = dict(call='adjudicate', encounters=[])
     offscreen_reply = dict(

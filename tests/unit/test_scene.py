@@ -8,9 +8,9 @@ from claude_agent_sdk import ResultMessage
 
 from story_engine.agents import character, world as world_agent
 from story_engine.simulation import TickSession, run_scene, run_tick
-from story_engine.world.io import read_events, read_scenes, save_state
+from story_engine.world.io import read_events, read_scenes
 from story_engine.world.models import Person
-from world_replies import round_reply
+from world_replies import round_reply, commit_fixture_changes
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -226,7 +226,7 @@ def test_minor_joins_by_address_and_wins_floor(tmp_path, monkeypatch):
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 4
-            save_state(world, state)
+            commit_fixture_changes(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
 
     asyncio.run(exercise())
@@ -298,7 +298,7 @@ def test_minor_visible_wait_not_logged_but_floor_win_is(tmp_path, monkeypatch):
         state.people['Gus'] = Person(where='festival_grounds', wants=['Mind the stall'], commitments=[])
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 2
-            save_state(world, state)
+            commit_fixture_changes(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], ['Gus'])
 
     asyncio.run(exercise())
@@ -368,7 +368,7 @@ def test_unresolved_addressee_adds_no_phantom_participant(tmp_path, monkeypatch)
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 5
-            save_state(world, state)
+            commit_fixture_changes(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
 
     asyncio.run(exercise())
@@ -440,7 +440,7 @@ def test_round_rejects_extra_events_and_caps_logged_events(tmp_path, monkeypatch
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 1
-            save_state(world, state)
+            commit_fixture_changes(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
 
     asyncio.run(exercise())
@@ -518,7 +518,7 @@ def test_scene_events_carry_round_and_outcome_resolves_previous_round(tmp_path, 
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 2
-            save_state(world, state)
+            commit_fixture_changes(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
 
     asyncio.run(exercise())
@@ -738,7 +738,7 @@ def test_round_reply_with_state_key_is_rejected(tmp_path, monkeypatch):
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 1
-            save_state(world, state)
+            commit_fixture_changes(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
 
     asyncio.run(exercise())
@@ -803,7 +803,7 @@ def test_scene_leaves_state_json_byte_identical(tmp_path, monkeypatch):
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 5
-            save_state(world, state)
+            commit_fixture_changes(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
 
     asyncio.run(exercise())
@@ -862,7 +862,7 @@ def test_solo_attempt_scene_ends_on_quiet_not_participant_count(tmp_path, monkey
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 5
-            save_state(world, state)
+            commit_fixture_changes(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['throne'], [])
 
     asyncio.run(exercise())
@@ -925,7 +925,7 @@ def test_solo_attempt_scene_ends_when_character_leaves(tmp_path, monkeypatch):
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 5
-            save_state(world, state)
+            commit_fixture_changes(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['throne'], [])
 
     asyncio.run(exercise())

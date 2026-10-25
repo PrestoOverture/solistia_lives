@@ -1,4 +1,4 @@
-from world_replies import day_start_reply
+from world_replies import day_start_reply, commit_fixture_changes
 """State deltas exercised at the SDK request boundary, without model calls."""
 
 import asyncio
@@ -12,7 +12,7 @@ from claude_agent_sdk import ResultMessage
 from story_engine.agents import world as world_agent
 from story_engine.config import load_configs
 from story_engine.trace import TraceWriter
-from story_engine.world.io import load_state, save_state
+from story_engine.world.io import load_state
 from story_engine.world.models import Person, Place
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -28,7 +28,7 @@ def session_setup(tmp_path, monkeypatch):
     state.people["Tam"] = Person(where="cropdale", wants=["Sell berries"], commitments=[])
     state.people["Gus"] = Person(where="cropdale", wants=["Rest"], commitments=[])
     state.places.append(Place(slug="unused_place", details=[]))
-    save_state(world, state)
+    commit_fixture_changes(world, state)
     new_situation = state.situations[0].model_dump() | {"id": "delta-new"}
     requests, clients = [], []
 

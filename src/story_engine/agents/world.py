@@ -93,17 +93,14 @@ class MinorMove(BaseModel):
 class RoundResolution(BaseModel):
     model_config = ConfigDict(extra="forbid")
     call: Literal["scene_round"]
-    resolves: int | None = None
     resolution: Literal['succeeded', 'failed', 'pending', 'none'] | None = None
     outcome: str | None = Field(default=None, max_length=280)
     ops: list[Op] = Field(default_factory=list)
     minor_moves: dict[str, MinorMove] = Field(default_factory=dict)
 
     @model_validator(mode='after')
-    def resolution_pair(self):
-        if (self.resolves is None) != (self.resolution is None):
-            raise ValueError('resolves and resolution must be supplied together')
-        if self.outcome is not None and self.resolves is None:
+    def outcome_needs_resolution(self):
+        if self.outcome is not None and self.resolution is None:
             raise ValueError('an outcome must resolve a winning act')
         return self
 
@@ -331,8 +328,8 @@ class WorldAgent(_WorldSession):
             try:
                 reply = RoundResolution.model_validate(structured_reply(result, structured_output))
                 target = last_winner['id'] if last_winner else None
-                if reply.resolves != target:
-                    raise ValueError('resolves must name the unresolved winning act in this scene')
+                if target is None and reply.resolution is not None:
+                    raise ValueError('a resolution needs a winning act')
                 if target is not None and reply.resolution is None:
                     raise ValueError('the winning act needs a resolution')
                 if closing and reply.resolution == 'pending':
@@ -344,7 +341,7 @@ class WorldAgent(_WorldSession):
                               type='world' if reply.outcome else 'state_change', content=reply.outcome or '',
                               perceived_by=list(main_present), scene=scene,
                               round=(round_number if closing else max(1, round_number - 1)),
-                              resolves=reply.resolves, resolution=reply.resolution, ops=reply.ops)
+                              resolves=target, resolution=reply.resolution, ops=reply.ops)
                 updated = validate_ops(state, event, Authority('scene_round'))
                 keys = {_key(name): name for name in updated.people}
                 minors = {}
