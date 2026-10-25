@@ -16,6 +16,7 @@ from story_engine.runs import RunMeta, create_run, finish_run
 from story_engine.trace import TraceWriter
 from story_engine.world.io import read_events
 from story_engine.world.models import PartOfDay, Person, WorldState
+from story_engine.world.ops import Op
 
 Call = Literal["adjudicate", "offscreen"]
 
@@ -33,13 +34,6 @@ class CallInput(BaseModel):
     open_situations: set[str] = Field(default_factory=set)
 
 
-class ReplayVerdict(BaseModel):
-    status: Literal["settled", "staged"]
-    involves: list[str]
-    outcome: str | None
-    forced_staging: bool
-
-
 class ReplayResult(BaseModel):
     call: Call
     turn: int
@@ -47,7 +41,7 @@ class ReplayResult(BaseModel):
     part: PartOfDay
     repeat: int
     cost_usd: float = 0.0
-    verdicts: dict[str, ReplayVerdict] = Field(default_factory=dict)
+    ops: list[Op] = Field(default_factory=list)
     encounters: list[Encounter] = Field(default_factory=list)
     events: list[OffscreenEvent] = Field(default_factory=list)
     people: dict[str, Person] = Field(default_factory=dict)
@@ -118,14 +112,8 @@ async def replay(run_id: str, call: Call, turn: int | None = None, repeat: int =
                     async with agent:
                         agent.turn = item.turn - 1
                         if call == "adjudicate":
-                            verdicts, encounters, _ = await agent.adjudicate(state, item.choices, before)
-                            result.verdicts = {
-                                slug: ReplayVerdict(
-                                    status=verdict.status, involves=verdict.involves,
-                                    outcome=getattr(verdict, "outcome", None),
-                                    forced_staging=verdict.status == "settled" and bool(verdict.involves))
-                                for slug, verdict in verdicts.items()
-                            }
+                            event, encounters, _ = await agent.adjudicate(state, item.choices, before)
+                            result.ops = event.ops
                             result.encounters = encounters
                         else:
                             await agent.offscreen(state, item.open_situations,

@@ -68,9 +68,7 @@ def fake(monkeypatch, replies):
 
 
 def adjudicate_reply():
-    return dict(call="adjudicate", verdicts={"agnea": dict(
-        status="settled", involves=["throne"], outcome="Waits.", where="cropdale")},
-        encounters=[dict(mains=["agnea"], minor=[])])
+    return dict(call="adjudicate", encounters=[])
 
 
 def offscreen_reply(state):
@@ -181,8 +179,7 @@ def test_replay_full_request_filters_repeats_and_preserves_world(setup, monkeypa
         if call == "adjudicate":
             assert [event["id"] for event in request["events"]] == ([2] if turn == 1 else [2, 3])
             assert request["choices"] == choices
-            assert row["verdicts"]["agnea"] == dict(
-                status="settled", involves=["throne"], outcome="Waits.", forced_staging=True)
+            assert row["ops"] == []
             assert row["encounters"] == reply["encounters"]
         else:
             assert "events" not in request
@@ -238,7 +235,7 @@ def test_replay_reuses_validation_and_retries(setup, monkeypatch, call, recover)
     _, source, state, _, _ = setup
     record(setup, call, monkeypatch)
     good = adjudicate_reply() if call == "adjudicate" else offscreen_reply(state)
-    invalid = (dict(call="adjudicate", verdicts={}) if call == "adjudicate"
+    invalid = (dict(call="adjudicate", ops=[dict(op="clock", day=2, part="night")]) if call == "adjudicate"
                else dict(call="offscreen", events=[dict(
                    actor="agnea", place="cropdale", type="world", content="Waits.")]))
     clients = fake(monkeypatch, [invalid, good if recover else invalid])

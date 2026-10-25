@@ -8,8 +8,9 @@ from claude_agent_sdk import ResultMessage
 
 from story_engine.agents import character, world as world_agent
 from story_engine.simulation import TickSession, run_scene, run_tick
-from story_engine.world.io import read_events, read_scenes
+from story_engine.world.io import read_events, read_scenes, save_state
 from story_engine.world.models import Person
+from world_replies import round_reply
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -20,7 +21,7 @@ def move(kind='act', urge=2, to=None, action='Waves.', say='Hello.'):
 
 
 def plan(where='festival_grounds', spot=None, aim='Enjoy the festival.'):
-    return dict(call='plan', intent='Meet the others', where=where, spot=spot, aim=aim)
+    return dict(call='plan', kind='go', intent='Meet the others', where=where, spot=spot, aim=aim)
 
 
 def world_state_echo(request):
@@ -75,11 +76,11 @@ def test_scene_fake_sdk(tmp_path, monkeypatch, case):
             if self.is_world:
                 if self.request['call'] == 'adjudicate':
                     state_echo = world_state_echo(self.request)
-                    data = dict(call='adjudicate', verdicts=settled_verdicts(state_echo), encounters=[])
+                    data = dict(call='adjudicate', encounters=[])
                 elif self.request['call'] == 'offscreen':
                     data = offscreen_echo(self.request)
                 else:
-                    data = dict(call='scene_round', outcome=None, minor_moves={})
+                    data = round_reply(self.request, outcome=None, minor_moves={})
             elif self.request.get('call') == 'part_of_day':
                 data = plan()
             else:
@@ -210,11 +211,12 @@ def test_minor_joins_by_address_and_wins_floor(tmp_path, monkeypatch):
         async def receive_response(self):
             self.round += 1
             if self.round == 1:
-                data = dict(call='scene_round', outcome=None, minor_moves={})
+                data = round_reply(self.request, outcome=None, minor_moves={})
             else:
-                data = dict(call='scene_round', outcome=None, minor_moves={
+                data = round_reply(self.request, outcome=None, minor_moves={
                     'Gus': dict(move='act', urge=1, to=None, action='Waves back.', say='There you are!')},
-                    new_people={'Gus': dict(where='festival_grounds', wants=['Greet old friends'], commitments=[])})
+                    new_people=({'Gus': dict(where='festival_grounds', wants=['Greet old friends'], commitments=[])}
+                                if self.round == 2 else {}))
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
@@ -226,6 +228,7 @@ def test_minor_joins_by_address_and_wins_floor(tmp_path, monkeypatch):
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 4
+            save_state(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
 
     asyncio.run(exercise())
@@ -255,7 +258,8 @@ def test_minor_visible_wait_not_logged_but_floor_win_is(tmp_path, monkeypatch):
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
             self.round += 1
@@ -273,15 +277,16 @@ def test_minor_visible_wait_not_logged_but_floor_win_is(tmp_path, monkeypatch):
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
             self.round += 1
             if self.round == 1:
-                data = dict(call='scene_round', outcome=None, minor_moves={
+                data = round_reply(self.request, outcome=None, minor_moves={
                     'Gus': dict(move='wait', urge=0, to=None, action='Watches from the stall.', say='')})
             else:
-                data = dict(call='scene_round', outcome=None, minor_moves={
+                data = round_reply(self.request, outcome=None, minor_moves={
                     'Gus': dict(move='act', urge=1, to=None, action='Waves.', say='Hello there!')})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
@@ -295,6 +300,7 @@ def test_minor_visible_wait_not_logged_but_floor_win_is(tmp_path, monkeypatch):
         state.people['Gus'] = Person(where='festival_grounds', wants=['Mind the stall'], commitments=[])
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 2
+            save_state(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], ['Gus'])
 
     asyncio.run(exercise())
@@ -326,7 +332,8 @@ def test_unresolved_addressee_adds_no_phantom_participant(tmp_path, monkeypatch)
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
             self.round += 1
@@ -351,7 +358,7 @@ def test_unresolved_addressee_adds_no_phantom_participant(tmp_path, monkeypatch)
 
         async def receive_response(self):
             # The World never brings in a minor here: "everyone"/"the crowd" is never a real person.
-            data = dict(call='scene_round', outcome=None, minor_moves={})
+            data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
@@ -363,6 +370,7 @@ def test_unresolved_addressee_adds_no_phantom_participant(tmp_path, monkeypatch)
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 5
+            save_state(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
 
     asyncio.run(exercise())
@@ -393,7 +401,8 @@ def test_round_rejects_extra_events_and_caps_logged_events(tmp_path, monkeypatch
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
             data = move() if self.slug == 'agnea' else move('wait', 0, action='Nods.', say='')
@@ -410,7 +419,8 @@ def test_round_rejects_extra_events_and_caps_logged_events(tmp_path, monkeypatch
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
             self.attempt += 1
@@ -418,9 +428,9 @@ def test_round_rejects_extra_events_and_caps_logged_events(tmp_path, monkeypatch
                         content='A breeze passes.', perceived_by=['agnea', 'throne'])
             if self.attempt == 1:
                 # Extra 'events' alongside a single outcome: must be rejected, not appended.
-                data = dict(call='scene_round', outcome=event, minor_moves={}, events=[event, event])
+                data = round_reply(self.request, outcome=event, minor_moves={}, events=[event, event])
             else:
-                data = dict(call='scene_round', outcome=event, minor_moves={})
+                data = round_reply(self.request, outcome=event, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
@@ -432,6 +442,7 @@ def test_round_rejects_extra_events_and_caps_logged_events(tmp_path, monkeypatch
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 1
+            save_state(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
 
     asyncio.run(exercise())
@@ -463,7 +474,8 @@ def test_scene_events_carry_round_and_outcome_resolves_previous_round(tmp_path, 
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
             self.round += 1
@@ -486,16 +498,17 @@ def test_scene_events_carry_round_and_outcome_resolves_previous_round(tmp_path, 
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
             self.round += 1
             if self.round == 1:
-                data = dict(call='scene_round', outcome=None, minor_moves={})
+                data = round_reply(self.request, outcome=None, minor_moves={})
             else:
                 outcome = dict(place='festival_grounds', actor='world', of='agnea',
                                type='world', content="Agnea's wave is seen.", perceived_by=['agnea', 'throne'])
-                data = dict(call='scene_round', outcome=outcome, minor_moves={})
+                data = round_reply(self.request, outcome=outcome, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
@@ -507,6 +520,7 @@ def test_scene_events_carry_round_and_outcome_resolves_previous_round(tmp_path, 
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 2
+            save_state(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
 
     asyncio.run(exercise())
@@ -565,11 +579,11 @@ def test_scene_recorded_in_scenes_jsonl(tmp_path, monkeypatch):
         async def receive_response(self):
             if self.request['call'] == 'adjudicate':
                 state_echo = world_state_echo(self.request)
-                data = dict(call='adjudicate', verdicts=settled_verdicts(state_echo), encounters=[])
+                data = dict(call='adjudicate', encounters=[])
             elif self.request['call'] == 'offscreen':
                 data = offscreen_echo(self.request)
             else:
-                data = dict(call='scene_round', outcome=None, minor_moves={})
+                data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
@@ -642,12 +656,13 @@ def test_solo_main_with_listed_minor_runs_scene(tmp_path, monkeypatch):
                               where='festival_grounds', spot=None),
                     throne=dict(involves=[], status='settled', outcome='Throné reaches Cropdale.',
                                where='cropdale', spot=None))
-                data = dict(call='adjudicate', verdicts=verdicts,
-                           encounters=[{'mains': ['agnea'], 'minor': ['Gus']}])
+                data = dict(call='adjudicate',
+                           encounters=[{'mains': ['agnea'], 'minor': ['Gus']}],
+                           ops=[dict(op='introduce', name='Gus', where='festival_grounds', wants=['Help'], commitments=[])])
             elif self.request['call'] == 'offscreen':
                 data = offscreen_echo(self.request)
             else:
-                data = dict(call='scene_round', outcome=None, minor_moves={})
+                data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
@@ -683,7 +698,8 @@ def test_round_reply_with_state_key_is_rejected(tmp_path, monkeypatch):
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
             yield ResultMessage('success', 1, 1, False, 1, 'fake',
@@ -709,10 +725,10 @@ def test_round_reply_with_state_key_is_rejected(tmp_path, monkeypatch):
             self.attempt += 1
             if self.attempt == 1:
                 # Carrying a `state` key at all is rejected, even when it matches the input exactly.
-                data = dict(call='scene_round', outcome=None, minor_moves={},
+                data = round_reply(self.request, outcome=None, minor_moves={},
                            state=world_state_echo(self.request))
             else:
-                data = dict(call='scene_round', outcome=None, minor_moves={})
+                data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
@@ -724,6 +740,7 @@ def test_round_reply_with_state_key_is_rejected(tmp_path, monkeypatch):
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 1
+            save_state(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
 
     asyncio.run(exercise())
@@ -753,7 +770,8 @@ def test_scene_leaves_state_json_byte_identical(tmp_path, monkeypatch):
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
             self.round += 1
@@ -771,10 +789,11 @@ def test_scene_leaves_state_json_byte_identical(tmp_path, monkeypatch):
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
-            data = dict(call='scene_round', outcome=None, minor_moves={})
+            data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
@@ -786,6 +805,7 @@ def test_scene_leaves_state_json_byte_identical(tmp_path, monkeypatch):
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 5
+            save_state(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
 
     asyncio.run(exercise())
@@ -810,7 +830,8 @@ def test_solo_attempt_scene_ends_on_quiet_not_participant_count(tmp_path, monkey
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
             data = move('wait', 0, action='', say='')
@@ -827,10 +848,11 @@ def test_solo_attempt_scene_ends_on_quiet_not_participant_count(tmp_path, monkey
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
-            data = dict(call='scene_round', outcome=None, minor_moves={})
+            data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
@@ -842,6 +864,7 @@ def test_solo_attempt_scene_ends_on_quiet_not_participant_count(tmp_path, monkey
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 5
+            save_state(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['throne'], [])
 
     asyncio.run(exercise())
@@ -870,7 +893,8 @@ def test_solo_attempt_scene_ends_when_character_leaves(tmp_path, monkeypatch):
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
             data = move('leave', 0)
@@ -887,10 +911,11 @@ def test_solo_attempt_scene_ends_when_character_leaves(tmp_path, monkeypatch):
             pass
 
         async def query(self, request):
-            pass
+            if request.startswith("{"):
+                self.request = json.loads(request)
 
         async def receive_response(self):
-            data = dict(call='scene_round', outcome=None, minor_moves={})
+            data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
@@ -902,6 +927,7 @@ def test_solo_attempt_scene_ends_when_character_leaves(tmp_path, monkeypatch):
         state = load_state(world)
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 5
+            save_state(world, state)
             return await run_scene(world, session, state, 'festival_grounds', ['throne'], [])
 
     asyncio.run(exercise())
@@ -958,11 +984,11 @@ def test_two_mains_same_place_different_spots_no_scene_same_spot_opens_one(tmp_p
                 verdicts = {slug: dict(involves=[], status='settled', outcome='Nothing much happens.',
                                        where='cropdale', spot=same_spot.get(slug))
                            for slug in self.request['choices']}
-                data = dict(call='adjudicate', verdicts=verdicts, encounters=[])
+                data = dict(call='adjudicate', encounters=[])
             elif self.request['call'] == 'offscreen':
                 data = offscreen_echo(self.request)
             else:
-                data = dict(call='scene_round', outcome=None, minor_moves={})
+                data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
@@ -1045,12 +1071,14 @@ def test_encounter_scene_opens_at_mains_shared_spot(tmp_path, monkeypatch):
                     agnea=dict(involves=[], status='staged', where='festival_grounds', spot='the raspberry thicket'),
                     throne=dict(involves=[], status='settled', outcome='Throné minds the tavern.',
                                where='cropdale', spot=None))
-                data = dict(call='adjudicate', verdicts=verdicts,
-                           encounters=[{'mains': ['agnea'], 'minor': []}])
+                data = dict(call='adjudicate',
+                           encounters=[{'mains': ['agnea'], 'minor': ['Witness']}],
+                           ops=[dict(op='introduce', name='Witness', where='festival_grounds',
+                                     spot='the raspberry thicket', wants=['Watch'], commitments=[])])
             elif self.request['call'] == 'offscreen':
                 data = offscreen_echo(self.request)
             else:
-                data = dict(call='scene_round', outcome=None, minor_moves={})
+                data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
@@ -1065,4 +1093,4 @@ def test_encounter_scene_opens_at_mains_shared_spot(tmp_path, monkeypatch):
     scenes = read_scenes(world)
     assert len(scenes) == 1
     assert scenes[0].place == 'festival_grounds' and scenes[0].spot == 'the raspberry thicket'
-    assert scenes[0].participants == ['agnea']
+    assert scenes[0].participants == ['agnea', 'Witness']

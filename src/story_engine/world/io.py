@@ -128,7 +128,7 @@ def read_events(world_dir: Path) -> list[Event]:
     return events
 
 
-def commit_event(world_dir: Path, event: Event) -> Event:
+def commit_event(world_dir: Path, event: Event, *, authority=None) -> Event:
     """Assign the next persisted ID and append. World writes are sequential."""
     require_genesis(world_dir)
     events = read_events(world_dir)
@@ -138,8 +138,22 @@ def commit_event(world_dir: Path, event: Event) -> Event:
     info = WorldInfo.model_validate(_read_json(world_dir / "world.json"))
     if event.intent is not None and event.actor not in info.characters:
         raise ValueError("only main characters may have private intent")
-    state = validate_state(world_dir, reduce_ops(load_state(world_dir), event.ops,
-                                               event_id=event.id, scene=event.scene))
+    if (event.resolves is None) != (event.resolution is None):
+        raise ValueError('resolves and resolution must be supplied together')
+    if event.resolves is not None:
+        target = next((old for old in events if old.id == event.resolves), None)
+        if (event.scene is None or target is None or target.scene != event.scene
+                or target.type not in {'action', 'speech'} or target.round is None):
+            raise ValueError('resolves must name an act in the same scene')
+        if any(old.resolves == event.resolves and old.resolution != 'pending' for old in events):
+            raise ValueError('winning act is already resolved')
+    state = load_state(world_dir)
+    if authority is not None:
+        from .permissions import validate_ops
+        state = validate_ops(state, event, authority)
+    else:
+        state = reduce_ops(state, event.ops, event_id=event.id, scene=event.scene)
+    state = validate_state(world_dir, state)
     with (world_dir / "events.jsonl").open("a", encoding="utf-8") as stream:
         stream.write(event.model_dump_json() + "\n")
         stream.flush()

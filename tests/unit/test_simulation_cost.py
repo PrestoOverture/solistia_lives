@@ -53,7 +53,7 @@ def rows(run):
 @pytest.mark.parametrize('kind', ['world', 'character', 'initializer'])
 def test_cumulative_cost_and_world_event_delta(tmp_path, monkeypatch, kind):
     state = load_state(ROOT / 'tests/fixtures/worlds/agnea_throne')
-    adjudicate = dict(call='adjudicate', verdicts={}, encounters=[])
+    adjudicate = dict(call='adjudicate', encounters=[])
     action = dict(call='action', intent='Wait', move='wait', urge=0, action='', say='')
     module = {'world': world_agent, 'character': character, 'initializer': initializer}[kind]
     valid = adjudicate if kind == 'world' else action
@@ -104,18 +104,15 @@ def test_scene_cost_cap_stops_immediately(tmp_path, monkeypatch, payer):
                                         [(action, .10), (action, .15)])
     state = load_state(world)
     resolution = dict(call='scene_round', outcome=None, minor_moves={})
-    if payer == 'world':
-        # Character calls total exactly the cap; the World call crosses it.
-        class WorldClient:
-            def __init__(self, *, options): pass
-            async def __aenter__(self): return self
-            async def __aexit__(self, *args): closed.append(True)
-            async def query(self, request): requests.append(request)
-            async def receive_response(self):
-                yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(resolution), total_cost_usd=.01)
-        monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
-    else:
-        monkeypatch.setattr(world_agent, 'ClaudeSDKClient', character.ClaudeSDKClient)
+    class WorldClient:
+        def __init__(self, *, options): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): closed.append(True)
+        async def query(self, request): requests.append(request)
+        async def receive_response(self):
+            yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(resolution),
+                                total_cost_usd=.26 if payer == 'world' else 0)
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
 
     async def exercise():
         async with TickSession(world, run, root=ROOT) as session:
@@ -125,7 +122,7 @@ def test_scene_cost_cap_stops_immediately(tmp_path, monkeypatch, payer):
             assert session.spend_usd == pytest.approx(.25 if payer == 'character' else .26)
 
     asyncio.run(exercise())
-    assert len(requests) == (2 if payer == 'character' else 3)
+    assert len(requests) == (3 if payer == 'character' else 1)
     assert len(closed) == 4
     assert rows(run)[-1]['type'] == 'cost_cap_reached'
     assert rows(run)[-1]['spend_usd'] == pytest.approx(.25 if payer == 'character' else .26)

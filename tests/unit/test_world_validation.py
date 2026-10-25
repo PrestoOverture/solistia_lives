@@ -12,22 +12,12 @@ from pydantic import ValidationError
 from story_engine.agents import world as world_agent
 from story_engine.config import load_configs
 from story_engine.trace import TraceWriter
-from story_engine.world.io import load_state, save_state
+from story_engine.world.io import commit_event, load_state, save_state
 from story_engine.world.models import Person
+from story_engine.world.permissions import Authority
+from world_replies import round_reply
 
 ROOT = Path(__file__).resolve().parents[2]
-
-
-def _settled(where, outcome, spot=None):
-    return dict(involves=[], status='settled', outcome=outcome, where=where, spot=spot)
-
-
-def _staged(where, spot=None):
-    return dict(involves=[], status='staged', where=where, spot=spot)
-
-
-def _adjudicate_reply(verdicts, encounters=None):
-    return dict(call='adjudicate', verdicts=verdicts, encounters=encounters or [])
 
 
 def _offscreen_reply(state, events=None, situation_notes=None):
@@ -58,37 +48,6 @@ def _fake_client(replies, requests):
     return FakeClient
 
 
-def _run_resolve(world, run, monkeypatch, state, choices, replies):
-    requests = []
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient',
-                        _fake_client(iter([json.dumps(reply) for reply in replies]), requests))
-    models, settings = load_configs()
-
-    async def exercise():
-        async with world_agent.WorldAgent(ROOT, run, world, models.world,
-                                         settings.agent_max_turns, TraceWriter(run)) as agent:
-            async with world_agent.OffscreenAgent(ROOT, run, world, models.world,
-                                                  settings.agent_max_turns, TraceWriter(run)) as offscreen:
-                return await agent.resolve(state, choices, [], offscreen=offscreen)
-
-    return asyncio.run(exercise()), requests
-
-
-def _run_round(world, run, monkeypatch, state, last_winner, reply):
-    requests = []
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', _fake_client(iter([json.dumps(reply)]), requests))
-    models, settings = load_configs()
-
-    async def exercise():
-        async with world_agent.WorldAgent(ROOT, run, world, models.world,
-                                         settings.agent_max_turns, TraceWriter(run)) as agent:
-            return await agent.round(state, [], place='festival_grounds',
-                                     main_present=['agnea', 'throne'], minor_present=['Tam'],
-                                     last_winner=last_winner)
-
-    return asyncio.run(exercise()), requests
-
-
 @pytest.mark.parametrize('case,scene,last_winner,content,event_type', [
     ('tick', False, None, 'The wind rises.', 'world'),
     ('subject', True, None, 'Throné rises.', 'world'),
@@ -112,7 +71,8 @@ def test_world_content_accepted_with_no_text_judgment(tmp_path, monkeypatch, cas
     if scene:
         event = dict(place='festival_grounds', actor=actor, type=event_type,
                      content=content, perceived_by=['agnea'])
-        reply = dict(call='scene_round', outcome=event, minor_moves={})
+        last_winner = {'id': 42, 'actor': 'agnea', 'round': 1}
+        reply = round_reply({'last_winner': last_winner}, outcome=event)
     else:
         event = dict(place='festival_grounds', actor=actor, type=event_type, content=content, intent=None)
         reply = _offscreen_reply(state, events=[event])
@@ -145,7 +105,7 @@ def test_world_content_accepted_with_no_text_judgment(tmp_path, monkeypatch, cas
             if scene:
                 return await agent.round(state, [], place='festival_grounds',
                                          main_present=['agnea', 'throne'], minor_present=[],
-                                         last_winner=last_winner)
+                                         last_winner=last_winner, scene="1", round_number=2)
             return await agent.offscreen(state, {s.id for s in state.situations if s.status == 'open'})
 
     result = asyncio.run(exercise())
@@ -159,74 +119,6 @@ def test_world_content_accepted_with_no_text_judgment(tmp_path, monkeypatch, cas
         events, _updated, _notes = result
         assert events[0].content == content
     assert state == load_state(world)
-
-
-def test_adjudicate_settled_outcome_event_and_staged_solo_scene(tmp_path, monkeypatch):
-    """A settled verdict becomes an `of: <slug>` event at the verdict's place, and the
-    character's `where`/`spot` match the verdict; a staged character left out of every
-    encounter gets its own solo attempt encounter (D26, D28)."""
-    world, run = tmp_path / 'world', tmp_path / 'run'
-    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
-    run.mkdir()
-    state = load_state(world)
-    choices = {'agnea': {'where': 'cropdale', 'spot': None, 'aim': 'Visit the stalls.',
-                        'intent': 'Buy some raspberries'},
-              'throne': {'where': 'festival_grounds', 'spot': 'the raspberry thicket',
-                        'aim': 'Search the thicket for the thief.', 'intent': 'Catch the thief'}}
-    adjudicate = _adjudicate_reply({
-        'agnea': _settled('cropdale', 'Agnea buys a basket of raspberries.'),
-        'throne': _staged('festival_grounds', spot='the raspberry thicket'),
-    })
-    offscreen = _offscreen_reply(state)
-    (events, updated, _notes, encounters, statuses), requests = _run_resolve(
-        world, run, monkeypatch, state, choices, [adjudicate, offscreen])
-    assert len(requests) == 2
-    outcome = next(event for event in events if event.of == 'agnea')
-    assert outcome.content == 'Agnea buys a basket of raspberries.'
-    assert outcome.place == 'cropdale'
-    assert updated.characters['agnea'].where == 'cropdale'
-    assert updated.characters['throne'].where == 'festival_grounds'
-    assert updated.characters['throne'].spot == 'the raspberry thicket'
-    assert statuses == {'agnea': 'settled', 'throne': 'staged'}
-    assert any(encounter.mains == ['throne'] for encounter in encounters)
-
-
-def test_adjudicate_staged_verdict_with_outcome_fails_schema():
-    """A staged verdict carries no outcome field (it is forbidden by the schema)."""
-    with pytest.raises(ValidationError):
-        world_agent.Staged.model_validate(
-            dict(involves=[], status='staged', where='cropdale', spot=None, outcome='Should not be allowed.'))
-    with pytest.raises(ValidationError):
-        world_agent.AdjudicateReply.model_validate(dict(
-            call='adjudicate',
-            verdicts={'throne': dict(involves=[], status='staged', where='cropdale', spot=None, outcome='Nope.')},
-            encounters=[]))
-
-
-def test_offscreen_request_has_no_main_character_plan_or_intent(tmp_path, monkeypatch):
-    """The off-screen request carries only off-screen state and call metadata (D29)."""
-    world, run = tmp_path / 'world', tmp_path / 'run'
-    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
-    run.mkdir()
-    state = load_state(world)
-    choices = {'throne': {'where': 'festival_grounds', 'spot': 'the raspberry thicket',
-                         'aim': 'Secretly follow Tam without being seen.',
-                         'intent': 'Catch the thief in the act'}}
-    adjudicate = _adjudicate_reply({
-        'throne': _settled('festival_grounds', 'Throné finds nothing unusual.',
-                           spot='the raspberry thicket'),
-    })
-    offscreen = _offscreen_reply(state)
-    (_events, _updated, _notes, _encounters, _statuses), requests = _run_resolve(
-        world, run, monkeypatch, state, choices, [adjudicate, offscreen])
-    assert len(requests) == 2
-    offscreen_request = json.loads(requests[1])
-    assert set(offscreen_request) == {'call', 'reply', 'state'}
-    assert set(offscreen_request['state']) == {'clock', 'places', 'people', 'situations'}
-    assert 'Throné finds nothing unusual.' not in requests[1]
-    assert all('touches' not in item for item in offscreen_request['state']['situations'])
-    assert 'Secretly follow Tam' not in requests[1]
-    assert 'Catch the thief' not in requests[1]
 
 
 def test_offscreen_reply_omitting_people_keeps_them(tmp_path, monkeypatch):
@@ -253,277 +145,138 @@ def test_offscreen_reply_omitting_people_keeps_them(tmp_path, monkeypatch):
     assert updated.people['Gus'].wants == ['Save the contest']
 
 
-def test_encounter_mains_at_different_spots_rejected(tmp_path, monkeypatch):
-    """An encounter's main characters must share one verdict place and spot; listing two
-    whose verdicts don't is rejected and retried."""
+
+
+@pytest.fixture
+def workspace(tmp_path):
     world, run = tmp_path / 'world', tmp_path / 'run'
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     run.mkdir()
-    state = load_state(world)
-    bad = _adjudicate_reply({
-        'agnea': _settled('festival_grounds', 'Agnea waits by the stage.', spot='by the stage'),
-        'throne': _settled('festival_grounds', 'Throné waits by the stalls.', spot='by the stalls'),
-    }, encounters=[{'mains': ['agnea', 'throne'], 'minor': []}])
-    good = _adjudicate_reply({
-        'agnea': _settled('festival_grounds', 'Agnea waits by the stage.', spot='by the stage'),
-        'throne': _settled('festival_grounds', 'Throné joins her by the stage.', spot='by the stage'),
-    }, encounters=[{'mains': ['agnea', 'throne'], 'minor': []}])
-    offscreen = _offscreen_reply(state)
+    return world, run
+
+
+def call_agent(workspace, monkeypatch, replies, *, scene=False, state=None, winner=None, retries=None, closing=False):
+    world, run = workspace
+    state = state or load_state(world)
     requests = []
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient',
-                        _fake_client(iter([json.dumps(bad), json.dumps(good), json.dumps(offscreen)]), requests))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', _fake_client(iter(map(json.dumps, replies)), requests))
     models, settings = load_configs()
-
+    role = models.world if retries is None else models.world.model_copy(update={'retries': retries})
     async def exercise():
-        async with world_agent.WorldAgent(ROOT, run, world, models.world,
-                                         settings.agent_max_turns, TraceWriter(run)) as agent:
-            async with world_agent.OffscreenAgent(ROOT, run, world, models.world,
-                                                  settings.agent_max_turns, TraceWriter(run)) as offscreen:
-                return await agent.resolve(state, {'agnea': {}, 'throne': {}}, [], offscreen=offscreen)
-
-    _events, updated, _notes, encounters, _statuses = asyncio.run(exercise())
-    assert len(requests) == 3
-    assert updated.characters['agnea'].spot == updated.characters['throne'].spot == 'by the stage'
-    assert encounters[0].mains == ['agnea', 'throne']
-    failures = [row for row in map(json.loads, (run / 'trace.jsonl').read_text().splitlines())
-               if row['type'] == 'world_validation_failed']
-    assert len(failures) == 1 and 'share one place and spot' in failures[0]['error']
-    assert 'agnea' in failures[0]['error'] and 'throne' in failures[0]['error']
+        async with world_agent.WorldAgent(ROOT, run, world, role, settings.agent_max_turns, TraceWriter(run)) as agent:
+            if scene:
+                return await agent.round(state, [], place='festival_grounds', main_present=['agnea', 'throne'],
+                                         minor_present=list(state.people), last_winner=winner,
+                                         scene='1', round_number=2, closing=closing)
+            return await agent.adjudicate(state, {'agnea': {'kind': 'attempt'}}, [])
+    return exercise, requests
 
 
-def test_world_of_scene_round_accepted_for_previous_winner(tmp_path, monkeypatch):
-    """A scene_round outcome may set `of` to the previous round's winner, a main character."""
-    world, run = tmp_path / 'world', tmp_path / 'run'
-    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
-    run.mkdir()
-    state = load_state(world)
-    event = dict(place='festival_grounds', actor='world', of='throne', type='world',
-                 content='Throné tracks Tam and finds him near the stalls.', perceived_by=['agnea'])
-    reply = dict(call='scene_round', outcome=event, minor_moves={})
-    result, requests = _run_round(world, run, monkeypatch, state,
-                                  {'actor': 'throne', 'move': 'act'}, reply)
-    outcome, _minor_moves, _state = result
-    assert len(requests) == 1
-    assert outcome.of == 'throne'
+@pytest.mark.parametrize('field,value', [
+    ('verdicts', {'agnea': {'status': 'settled', 'outcome': 'A result'}}),
+    ('verdicts', {'agnea': {'status': 'staged'}}),
+    ('outcome', 'A result'), ('situation_updates', [{'id': 'x', 'status': 'resolved'}]),
+])
+def test_encounter_shape_has_no_result_authority(field, value):
+    with pytest.raises(ValidationError):
+        world_agent.AdjudicateReply.model_validate({'call': 'adjudicate', field: value})
 
 
-def test_round_rejects_minor_move_without_known_person(tmp_path, monkeypatch):
-    """A minor_moves name that is neither an existing people entry here nor in new_people is rejected and retried."""
-    world, run = tmp_path / 'world', tmp_path / 'run'
-    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
-    run.mkdir()
-    state = load_state(world)
-    bad = dict(call='scene_round', outcome=None,
-              minor_moves={'Mystery': dict(move='act', urge=1, to=None, action='Waves.', say='Hello!')})
-    good = dict(call='scene_round', outcome=None, minor_moves={})
-    requests = []
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient',
-                        _fake_client(iter([json.dumps(bad), json.dumps(good)]), requests))
-    models, settings = load_configs()
-
-    async def exercise():
-        async with world_agent.WorldAgent(ROOT, run, world, models.world,
-                                         settings.agent_max_turns, TraceWriter(run)) as agent:
-            return await agent.round(state, [], place='festival_grounds',
-                                     main_present=['agnea', 'throne'], minor_present=[],
-                                     last_winner=None)
-
-    outcome, minor_moves, result_state = asyncio.run(exercise())
-    assert outcome is None and minor_moves == {}
-    assert result_state == state
-    assert len(requests) == 2
-    failures = [row for row in map(json.loads, (run / 'trace.jsonl').read_text().splitlines())
-                if row['type'] == 'world_validation_failed']
-    assert len(failures) == 1
-    assert 'Mystery' in failures[0]['error']
-    assert load_state(world) == state
+@pytest.mark.parametrize('bad', [
+    dict(mains=['agnea', 'throne'], minor=[]),
+    dict(mains=['stranger'], minor=[]),
+    dict(mains=['agnea'], minor=['Unknown']),
+    dict(mains=['agnea'], minor=['Host']),
+])
+def test_encounter_references_and_same_spot_retry(workspace, monkeypatch, bad):
+    state = load_state(workspace[0])
+    state.characters['throne'].spot = 'stage'
+    state.people['Host'] = Person(where='festival_grounds', spot='stage', wants=['Watch'], commitments=[])
+    exercise, requests = call_agent(workspace, monkeypatch,
+                                    [dict(call='adjudicate', encounters=[bad]), dict(call='adjudicate')], state=state)
+    event, encounters, updated = asyncio.run(exercise())
+    assert len(requests) == 2 and encounters == []
+    assert updated == state and event.ops == []
 
 
-def test_round_new_people_entry_persists_to_state_json(tmp_path, monkeypatch):
-    """A minor who joins with a new_people entry is added to the world's people and saved."""
-    world, run = tmp_path / 'world', tmp_path / 'run'
-    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
-    run.mkdir()
-    state = load_state(world)
-    reply = dict(call='scene_round', outcome=None,
-                minor_moves={'Gus': dict(move='act', urge=1, to=None, action='Waves.', say='Hello!')},
-                new_people={'Gus': dict(where='festival_grounds', wants=['Catch up with Agnea'], commitments=[])})
-    result, requests = _run_round(world, run, monkeypatch, state, None, reply)
-    outcome, minor_moves, result_state = result
-    assert len(requests) == 1
-    assert 'Gus' in minor_moves
-    assert result_state.people['Gus'].where == 'festival_grounds'
-    saved = load_state(world)
-    assert saved.people['Gus'].where == 'festival_grounds'
-    assert saved.people['Gus'].wants == ['Catch up with Agnea']
+def test_encounter_introduces_and_normalizes_people_without_writing(workspace, monkeypatch):
+    state = load_state(workspace[0])
+    reply = dict(call='adjudicate', ops=[dict(op='introduce', name='Merchant Tam', where='festival_grounds',
+                                            wants=['Sell fruit'], commitments=[])],
+                 encounters=[dict(mains=['agnea'], minor=['  MÉRCHANT_tam  '])])
+    exercise, requests = call_agent(workspace, monkeypatch, [reply])
+    event, encounters, updated = asyncio.run(exercise())
+    assert len(requests) == 1 and encounters[0].minor == ['Merchant Tam']
+    assert 'Merchant Tam' in updated.people and load_state(workspace[0]) == state
+    commit_event(workspace[0], event, authority=Authority('encounter'))
+    assert load_state(workspace[0]) == updated
 
 
-def test_round_request_includes_present_minor_people_entries(tmp_path, monkeypatch):
-    """The scene-round request carries the people entries of the minor participants present."""
-    world, run = tmp_path / 'world', tmp_path / 'run'
-    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
-    run.mkdir()
-    state = load_state(world)
-    state.people['Tam'] = Person(where='festival_grounds', wants=['Find a quiet corner'], commitments=[])
-    save_state(world, state)
-    state = load_state(world)
-    reply = dict(call='scene_round', outcome=None, minor_moves={})
-    result, requests = _run_round(world, run, monkeypatch, state, None, reply)
-    assert len(requests) == 1
-    request = json.loads(requests[0])
-    assert request['people'] == {'Tam': {'where': 'festival_grounds', 'spot': None,
-                                         'wants': ['Find a quiet corner'], 'commitments': []}}
-
-
-def test_world_of_scene_round_rejects_non_winner(tmp_path, monkeypatch):
-    """`of` naming a main character who was not the previous round's winner is rejected."""
-    world, run = tmp_path / 'world', tmp_path / 'run'
-    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
-    run.mkdir()
-    state = load_state(world)
-    event = dict(place='festival_grounds', actor='world', of='throne', type='world',
-                 content='Throné tracks Tam and finds him near the stalls.', perceived_by=['agnea'])
-    reply = dict(call='scene_round', outcome=event, minor_moves={})
-    requests = []
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient',
-                        _fake_client(iter([json.dumps(reply), json.dumps(reply)]), requests))
-    models, settings = load_configs()
-
-    async def exercise():
-        async with world_agent.WorldAgent(ROOT, run, world, models.world,
-                                         settings.agent_max_turns, TraceWriter(run)) as agent:
-            return await agent.round(state, [], place='festival_grounds',
-                                     main_present=['agnea', 'throne'], minor_present=['Tam'],
-                                     last_winner={'actor': 'agnea', 'move': 'act'})
-
-    with pytest.raises(world_agent.SessionError, match='World event of must name'):
-        asyncio.run(exercise())
-
-
-def test_round_matches_people_names_ignoring_case(tmp_path, monkeypatch):
-    """People are data references: 'Garud' in minor_moves resolves to the `garud` entry."""
-    from story_engine.world.models import Person
-    world, run = tmp_path / 'world', tmp_path / 'run'
-    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
-    run.mkdir()
-    state = load_state(world)
-    state.people['garud'] = Person(where='festival_grounds', wants=['Watch his daughter dance'], commitments=[])
-    reply = dict(call='scene_round', outcome=None,
-                 minor_moves={'Garud': dict(move='wait', urge=0, to=None, action='', say='')})
-    (outcome, minor_moves, _state), _requests = _run_round(world, run, monkeypatch, state, None, reply)
-    assert list(minor_moves) == ['garud']
+@pytest.mark.parametrize('op', [dict(op='move', who='agnea', place='cropdale', spot=None),
+                                 dict(op='situation', id='festival_textile_theft', status='resolved')])
+def test_encounter_rejects_ops_outside_its_authority(workspace, monkeypatch, op):
+    exercise, requests = call_agent(workspace, monkeypatch,
+                                    [dict(call='adjudicate', ops=[op]), dict(call='adjudicate')])
+    asyncio.run(exercise())
+    assert len(requests) == 2 and 'may not commit' in requests[1]
 
 
 @pytest.mark.parametrize('retries', [None, 3])
 @pytest.mark.parametrize('recover', [False, True])
-def test_adjudicate_retry_budget(tmp_path, monkeypatch, retries, recover):
-    world, run = tmp_path / 'world', tmp_path / 'run'
-    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
-    run.mkdir()
-    state = load_state(world)
-    models, settings = load_configs()
-    role = models.world if retries is None else models.world.model_copy(update={'retries': retries})
-    attempts = role.retries + 1
-    good = _adjudicate_reply({'agnea': _staged('cropdale')})
-    replies = ['{}'] * (attempts - 1) + [json.dumps(good) if recover else '{}']
-    requests = []
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', _fake_client(iter(replies), requests))
-
-    async def exercise():
-        async with world_agent.WorldAgent(ROOT, run, world, role,
-                                         settings.agent_max_turns, TraceWriter(run)) as agent:
-            return await agent.adjudicate(state, {'agnea': {}}, [])
-
+def test_adjudicate_retry_budget(workspace, monkeypatch, retries, recover):
+    count = (1 if retries is None else retries) + 1
+    replies = [{}] * (count - 1) + [dict(call='adjudicate') if recover else {}]
+    exercise, requests = call_agent(workspace, monkeypatch, replies, retries=retries)
     if recover:
-        verdicts, _, _ = asyncio.run(exercise())
-        assert verdicts['agnea'].status == 'staged'
+        event, encounters, _ = asyncio.run(exercise())
+        assert event.ops == [] and encounters == []
     else:
         with pytest.raises(world_agent.SessionError, match='World validation failed after'):
             asyncio.run(exercise())
-    assert len(requests) == attempts
+    assert len(requests) == count
 
 
-@pytest.mark.parametrize("status", ["settled", "staged"])
-def test_verdict_requires_involves(status):
-    data = dict(status=status, where="cropdale")
-    if status == "settled":
-        data["outcome"] = "Waits."
-    with pytest.raises(ValidationError, match="involves"):
-        world_agent.AdjudicateReply.model_validate(
-            _adjudicate_reply({"agnea": data}))
-    model = world_agent.Settled if status == "settled" else world_agent.Staged
-    assert list(model.model_fields)[:2] == ["involves", "status"]
+@pytest.mark.parametrize('resolution', ['succeeded', 'failed', 'pending', 'none'])
+def test_scene_resolves_only_the_supplied_winning_act(workspace, monkeypatch, resolution):
+    winner = dict(id=42, actor='throne', round=1)
+    good = dict(call='scene_round', resolves=42, resolution=resolution, outcome='An unchecked fact.')
+    exercise, requests = call_agent(workspace, monkeypatch, [dict(good, resolves=41), good],
+                                    scene=True, winner=winner)
+    event, _, _ = asyncio.run(exercise())
+    assert len(requests) == 2 and event.resolves == 42 and event.of == 'throne'
+    assert event.actor == 'world' and event.scene == '1' and event.round == 1
+    assert event.resolution == resolution
 
 
-@pytest.mark.parametrize("involves,minor", [
-    (["  MÉRCHANT_tam  "], ["Merchant Tam"]),
-    (["Unknown Person"], []),
-    (["throne"], []),
-    ([], []),
-])
-@pytest.mark.parametrize("existing_encounter", [False, True])
-def test_involves_forces_staging_without_retry(tmp_path, monkeypatch, involves, minor, existing_encounter):
-    world, run = tmp_path / 'world', tmp_path / 'run'
-    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
-    run.mkdir()
-    state = load_state(world)
-    state.people['Merchant Tam'] = Person(where='cropdale', wants=['Sell berries'], commitments=[])
-    outcome = 'An outcome whose text is never inspected.'
-    verdict = _settled('cropdale', outcome, spot='by the stall') | dict(involves=involves)
-    encounter = [dict(mains=['agnea', 'throne'], minor=[])] if existing_encounter else []
-    reply = _adjudicate_reply({
-        'agnea': verdict,
-        'throne': _settled('cropdale', 'Waits.', spot='by the stall'),
-    }, encounter)
-    (events, updated, _notes, encounters, statuses), requests = _run_resolve(
-        world, run, monkeypatch, state, {'agnea': {}, 'throne': {}},
-        [reply, _offscreen_reply(state)])
-    assert len(requests) == 2  # exactly adjudicate + offscreen, no validation retry
-    assert statuses['agnea'] == ('staged' if involves else 'settled')
-    assert updated.characters['agnea'].where == 'cropdale'
-    assert updated.characters['agnea'].spot == 'by the stall'
-    outcomes = [event for event in events if event.of == 'agnea']
-    assert [event.content for event in outcomes] == ([] if involves else [outcome])
-    assert len(encounters) == (1 if existing_encounter or involves else 0)
-    if encounters:
-        assert encounters[0].minor == minor
-        assert encounters[0].mains == (['agnea', 'throne'] if existing_encounter else ['agnea'])
-    trace = list(map(json.loads, (run / 'trace.jsonl').read_text().splitlines()))
-    assert not any(row['type'] == 'world_validation_failed' for row in trace)
-    forced = [row for row in trace if row['type'] == 'verdict_forced_staged']
-    assert len(forced) == bool(involves)
-    if forced:
-        assert {key: forced[0][key] for key in ('slug', 'involves', 'outcome', 'day', 'part')} == dict(
-            slug='agnea', involves=involves, outcome=outcome,
-            day=state.clock.day, part=state.clock.part)
+@pytest.mark.parametrize('fields', [dict(outcome='No winner'), dict(resolves=42), dict(resolution='none'),
+                                    dict(actor='agnea'), dict(scene='forged'), dict(round=99), dict(of='throne')])
+def test_scene_metadata_and_resolution_schema(fields):
+    with pytest.raises(ValidationError):
+        world_agent.RoundResolution.model_validate(dict(call='scene_round', **fields))
 
 
-def test_involves_person_elsewhere_forces_staging_without_adding_minor(tmp_path, monkeypatch):
-    world, run = tmp_path / 'world', tmp_path / 'run'
-    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
-    run.mkdir()
-    state = load_state(world)
-    state.people['Merchant Tam'] = Person(
-        where='festival_grounds', wants=['Sell berries'], commitments=[])
-    outcome = 'An outcome whose text is never inspected.'
-    involves = ['  MÉRCHANT_tam  ']
-    reply = _adjudicate_reply({
-        'agnea': _settled('cropdale', outcome) | dict(involves=involves),
-    })
-    (events, _updated, _notes, encounters, statuses), requests = _run_resolve(
-        world, run, monkeypatch, state, {'agnea': {}},
-        [reply, _offscreen_reply(state)])
+def test_scene_minor_references_introductions_and_name_matching(workspace, monkeypatch):
+    state = load_state(workspace[0])
+    state.people['garud'] = Person(where='festival_grounds', wants=['Watch'], commitments=[])
+    move = dict(move='wait', urge=0, action='', say='')
+    good = dict(call='scene_round', minor_moves={'Garud': move, 'Host': move},
+                ops=[dict(op='introduce', name='Host', where='festival_grounds', wants=['Help'], commitments=[])])
+    exercise, requests = call_agent(workspace, monkeypatch,
+                                    [dict(call='scene_round', minor_moves={'Unknown': move}), good],
+                                    scene=True, state=state)
+    event, minors, updated = asyncio.run(exercise())
+    assert len(requests) == 2 and set(minors) == {'garud', 'Host'}
+    assert updated.people['Host'].wants == ['Help']
+    assert json.loads(requests[0])['people'] == {'garud': state.people['garud'].model_dump()}
+    assert load_state(workspace[0]).people == {}
+    assert event.ops[0].op == 'introduce'
 
-    assert len(requests) == 2  # exactly adjudicate + offscreen, no validation retry
-    assert statuses == {'agnea': 'staged'}
-    assert events == []
-    assert len(encounters) == 1
-    assert encounters[0].mains == ['agnea']
-    assert encounters[0].minor == []
-    trace = list(map(json.loads, (run / 'trace.jsonl').read_text().splitlines()))
-    assert not any(row['type'] == 'world_validation_failed' for row in trace)
-    forced = [row for row in trace if row['type'] == 'verdict_forced_staged']
-    assert len(forced) == 1
-    assert {key: forced[0][key] for key in ('slug', 'involves', 'outcome', 'day', 'part')} == dict(
-        slug='agnea', involves=involves, outcome=outcome,
-        day=state.clock.day, part=state.clock.part)
+
+@pytest.mark.parametrize('resolution', ['pending', 'none'])
+def test_closing_resolution_requires_final_result_and_no_bids(workspace, monkeypatch, resolution):
+    reply = dict(call='scene_round', resolves=42, resolution=resolution,
+                 minor_moves={'Host': dict(move='wait', urge=0)} if resolution == 'none' else {})
+    exercise, _ = call_agent(workspace, monkeypatch, [reply, reply], scene=True,
+                             winner=dict(id=42, actor='agnea', round=1), closing=True)
+    with pytest.raises(world_agent.SessionError, match='closing resolution'):
+        asyncio.run(exercise())

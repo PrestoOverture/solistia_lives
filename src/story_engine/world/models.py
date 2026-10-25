@@ -126,7 +126,7 @@ class Event(WorldModel):
 
     @property
     def op_only(self) -> bool:
-        return bool(self.ops) and not self.content
+        return self.type == "state_change" and not self.content
 
 
 class SceneRecord(WorldModel):

@@ -91,11 +91,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
                     raise RuntimeError('fake error')
                 if self.request['call'] == 'adjudicate':
                     # Keep the characters apart so this test exercises the day orchestration.
-                    data = dict(call='adjudicate', encounters=[], verdicts=dict(
-                        agnea=dict(involves=[], status='settled', outcome='Agnea looks around Cropdale.',
-                                  where='cropdale', spot=None),
-                        throne=dict(involves=[], status='settled', outcome='Throné stays at the festival grounds.',
-                                   where='festival_grounds', spot=None)))
+                    data = dict(call='adjudicate', encounters=[])
                 else:
                     data = dict(call='offscreen', events=[], people={},
                                situations=[s.model_dump(include={"id", "status", "next", "due", "people"}) for s in state.situations],
@@ -108,7 +104,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
                 reply = json.dumps(dict(call='end_of_day',
                                         summary='# Today\nVisited the stalls.\n## Changed\nFound a plan.\n## Wants\nRest.'))
             elif self.request.get('call') == 'part_of_day':
-                reply = json.dumps(dict(call='plan', intent='Explore', where='cropdale',
+                reply = json.dumps(dict(call='plan', kind='go', intent='Explore', where='cropdale' if self is clients[0] else 'festival_grounds',
                                         spot=None, aim='Look around the stalls.'))
             else:
                 reply = json.dumps(dict(call='action', intent='Explore', move='act', urge=2,
@@ -127,6 +123,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
         args += ['--dry-run']
     result = CliRunner().invoke(app, args)
     run = next((tmp_path / 'runs').iterdir())
+    assert not any(e.of is not None and e.scene is None for e in read_events(world))
     meta = RunMeta.model_validate_json((run / 'meta.json').read_bytes())
     trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     assert meta.mode == 'simulation' and meta.world_id == 'test' and meta.day == 1

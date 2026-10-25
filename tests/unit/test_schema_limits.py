@@ -4,12 +4,12 @@ import pytest
 from pydantic import TypeAdapter, ValidationError
 
 from story_engine.agents.character import Action, Plan
-from story_engine.agents.world import MinorMove, WorldEvent
+from story_engine.agents.world import MinorMove, OffscreenEvent, RoundResolution
 from story_engine.world.models import Event
 
 VALID_ACTION = dict(call="action", intent="Find some quiet", move="act", urge=2,
                     action="Throné checks the doorway.", say="")
-VALID_PLAN = dict(call="plan", intent="Find somewhere quiet", where="cropdale",
+VALID_PLAN = dict(call="plan", kind="go", intent="Find somewhere quiet", where="cropdale",
                   spot=None, aim="Walk to the tavern.")
 VALID_MINOR_MOVE = dict(move="act", urge=1, to=None, action="Waves.", say="Hello!")
 VALID_WORLD_EVENT = {"place": "festival_grounds", "actor": "world", "type": "world", "content": "x"}
@@ -23,12 +23,14 @@ VALID_EVENT = dict(id=1, day=1, part="morning", place="cropdale", actor="world",
     (Action, "say", 400),
     (MinorMove, "action", 180),
     (MinorMove, "say", 400),
-    (WorldEvent, "content", 280),
+    (OffscreenEvent, "content", 280),
     (Plan, "aim", 140),
+    (RoundResolution, "outcome", 280),
 ])
 def test_schema_declares_max_length(model, field, max_length):
     schema = TypeAdapter(model).json_schema()
-    assert schema["properties"][field]["maxLength"] == max_length
+    entry = schema["properties"][field]
+    assert entry.get("maxLength", entry.get("anyOf", [{}])[0].get("maxLength")) == max_length
 
 
 @pytest.mark.parametrize("model,valid,field,max_length", [
@@ -36,8 +38,9 @@ def test_schema_declares_max_length(model, field, max_length):
     (Action, VALID_ACTION, "say", 400),
     (MinorMove, VALID_MINOR_MOVE, "action", 180),
     (MinorMove, VALID_MINOR_MOVE, "say", 400),
-    (WorldEvent, VALID_WORLD_EVENT, "content", 280),
+    (OffscreenEvent, VALID_WORLD_EVENT, "content", 280),
     (Plan, VALID_PLAN, "aim", 140),
+    (RoundResolution, dict(call="scene_round", resolves=1, resolution="none"), "outcome", 280),
 ])
 def test_over_length_value_fails_validation(model, valid, field, max_length):
     with pytest.raises(ValidationError, match="at most .* characters"):

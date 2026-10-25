@@ -14,9 +14,11 @@ from story_engine.config import load_configs
 from story_engine.kb import normalize_slug
 from story_engine.trace import TraceWriter
 from story_engine.world.io import (
-    append_event, append_scene, load_state, read_events, read_scenes, commit_state, write_memory,
+    append_event, append_scene, commit_event, load_state, read_events, read_scenes, commit_state, write_memory,
 )
 from story_engine.world.models import Clock, Event, SceneRecord, WorldState
+from story_engine.world.ops import ClockOp, Move
+from story_engine.world.permissions import Authority
 
 
 class CostCapReached(RuntimeError):
@@ -124,12 +126,24 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
         append_event(world_dir, Event(
             id=0, **state.clock.model_dump(), place=place, actor=slug,
             type='plan', content=plan.aim, intent=plan.intent, perceived_by=[slug]))
-    events, updated, notes, encounters, statuses = await session.world.resolve(
-        state, {slug: plan.model_dump() for slug, plan in plans.items()}, read_events(world_dir),
-        offscreen=session.offscreen)
-    for event in events:
-        append_event(world_dir, event)
-    updated = commit_state(world_dir, updated)
+    positions = {slug: ((plan.where, plan.spot) if plan.kind == 'go' else
+                         (state.characters[slug].where, state.characters[slug].spot))
+                 for slug, plan in plans.items()}
+    for slug, plan in plans.items():
+        if plan.kind == 'go':
+            commit_event(world_dir, Event(
+                id=0, **state.clock.model_dump(), place=plan.where, actor=slug,
+                type='action', content=f'{slug} goes to {plan.where}.',
+                perceived_by=[other for other, position in positions.items()
+                              if position == (plan.where, plan.spot)],
+                ops=[Move(who=slug, place=plan.where, spot=plan.spot)]),
+                authority=Authority('code'))
+    state = load_state(world_dir)
+    encounter_event, encounters, _ = await session.world.adjudicate(
+        state, {slug: plan.model_dump() for slug, plan in plans.items()}, read_events(world_dir))
+    if encounter_event.ops:
+        commit_event(world_dir, encounter_event, authority=Authority('encounter'))
+    updated = load_state(world_dir)
     groups = {}
     for slug, character in updated.characters.items():
         groups.setdefault((character.where, character.spot), []).append(slug)
@@ -150,14 +164,22 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
         minors = list(minors_by_spot.get((place, spot), []))
         # A staged plan opens a scene even alone (D26): the outcome of an uncertain
         # attempt is never settled off-screen.
-        staged = any(statuses.get(slug) == 'staged' for slug in present)
+        staged = any(plans[slug].kind == 'attempt' for slug in present)
         if len(present) >= 2 or (len(present) == 1 and (minors or staged)):
             updated = await run_scene(world_dir, session, updated, place, present, minors, spot=spot)
+    open_situations = {s.id for s in updated.situations if s.status == 'open'}
+    events, updated, notes = await session.offscreen.offscreen(updated, open_situations)
+    updated = commit_state(world_dir, updated)
+    for event in events:
+        append_event(world_dir, event)
     parts = session.settings.parts_of_day
     index = parts.index(state.clock.part) + 1
-    updated.clock = Clock(day=state.clock.day + (index == len(parts)),
-                          part=parts[index % len(parts)])
-    updated = commit_state(world_dir, updated)
+    commit_event(world_dir, Event(
+        id=0, **state.clock.model_dump(), place=updated.places[0].slug, actor='world',
+        type='state_change', content='', perceived_by=[],
+        ops=[ClockOp(day=state.clock.day + (index == len(parts)), part=parts[index % len(parts)])]),
+        authority=Authority('code'))
+    updated = load_state(world_dir)
     session.trace.write('situation_notes', day=state.clock.day, part=state.clock.part,
                         situation_notes=notes)
     return updated
@@ -199,77 +221,87 @@ def resolve_addressee(to, main_present, minor_present):
 async def run_scene(world_dir, session, state, place, main_present, minor_present, *, spot=None):
     scene_id = str(len(read_scenes(world_dir)) + 1)
     main_present, minor_present = list(main_present), list(minor_present)
-    # A one-character attempt is a scene with just that main character and the World (§6.2);
-    # it never ends merely for having fewer than two participants.
     solo_attempt = len(main_present) == 1 and not minor_present
-    all_participants = list(main_present) + [name for name in minor_present if name not in main_present]
+    all_participants = list(main_present) + list(minor_present)
     last_act, notes = {}, session.scene_notes
-    pending_to, quiet, last_winner = None, 0, None
+    pending_to, quiet = None, 0
+    unresolved = []
     first_event_id, last_event_id = None, None
     reason = 'part_over'
 
-    def log(event, round_number):
-        nonlocal first_event_id, last_event_id
-        saved = append_event(world_dir, event.model_copy(update={'scene': scene_id, 'round': round_number}))
+    def log(event, authority):
+        nonlocal first_event_id, last_event_id, state
+        saved = commit_event(world_dir, event, authority=authority)
+        state = load_state(world_dir)
         first_event_id = first_event_id if first_event_id is not None else saved.id
         last_event_id = saved.id
         return saved
 
+    async def resolve(round_number, before, closing=False):
+        nonlocal state
+        target = unresolved[0] if unresolved else None
+        outcome, minors, _ = await session.world.round(
+            state, before, place=place, main_present=main_present, minor_present=minor_present,
+            last_winner=target, scene=scene_id, round_number=round_number, closing=closing)
+        if outcome.ops or outcome.resolves is not None or outcome.content:
+            log(outcome, Authority('scene_round'))
+        finished = target is not None and outcome.resolution != 'pending'
+        if finished:
+            unresolved.pop(0)
+        return minors, finished
+
     for round_number in range(1, session.settings.scene_cap + 1):
+        before = read_events(world_dir)
+        minor_moves, finished = await resolve(round_number, before)
+        if solo_attempt and finished:
+            reason = 'resolved'
+            round_number -= 1
+            break
         before = read_events(world_dir)
         main_moves = {}
         for slug in main_present:
+            # Each main sees the same facts, including the previous act's resolution,
+            # and none of the other participants' current choices.
             main_moves[slug] = await session.characters[slug].act(before, note=notes.pop(slug, None))
-        outcome, minor_moves, state = await session.world.round(
-            state, before, place=place, main_present=main_present, minor_present=minor_present,
-            last_winner=last_winner)
-        if outcome:
-            # The outcome resolves the previous round's winning move.
-            log(outcome, round_number - 1 if round_number > 1 else None)
-        # A minor joins only when the World brings them in with a move here; an
-        # unresolved `to` from the previous round's winner never creates one.
         for name, move in minor_moves.items():
             if move.move != 'leave' and name not in minor_present:
                 minor_present.append(name)
-                all_participants.append(name)
-        # Re-resolve who was addressed against the now-current participants: the
-        # World may have just brought in the very name that was spoken to.
+                if name not in all_participants:
+                    all_participants.append(name)
         addressee = resolve_addressee(pending_to, main_present, minor_present)
         moves = {**main_moves, **minor_moves}
         winner, floor = choose_floor(moves, addressee, last_act)
         session.trace.write('scene_round', round=round_number, place=place, scene=scene_id,
                             moves={key: move.model_dump() for key, move in moves.items()},
                             winner=winner, floor=floor)
-        happened = {}
         for key, move in moves.items():
             is_main = key in main_present
             if move.move == 'act' and key != winner:
                 if is_main:
                     notes[key] = f"Your move didn't happen: {winner} took the floor."
                 continue
-            if move.move == 'wait' and (not is_main or not move.action.strip()):
+            if move.move == 'wait' and (not is_main or not (move.action.strip() or move.ops)):
                 continue
-            happened[key] = move.model_dump()
             content = ' '.join(value for value in (move.action, move.say if move.move != 'wait' else '') if value)
             if move.move == 'leave':
                 content = (content + f' {key} leaves.').strip()
-            log(Event(
+            saved = log(Event(
                 id=0, **state.clock.model_dump(), place=place, actor=key,
                 type='speech' if move.move == 'act' and move.say else 'action',
-                content=content, intent=move.intent if is_main else None, perceived_by=list(main_present)),
-                round_number)
+                content=content, intent=move.intent if is_main else None, perceived_by=list(main_present),
+                scene=scene_id, round=round_number, ops=move.ops),
+                Authority('character_scene' if is_main else 'person_scene', key))
+            if key == winner:
+                unresolved.append({'id': saved.id, 'actor': key, 'round': round_number, **move.model_dump()})
         if winner:
             last_act[winner] = round_number
             pending_to = moves[winner].to
-            last_winner = {'actor': winner, **moves[winner].model_dump()}
-        else:
-            last_winner = None
-            if not any(move.move == 'leave' for move in moves.values()):
-                pending_to = None
-        main_present = [slug for slug in main_present if moves[slug].move != 'leave'
-                        and state.characters[slug].where == place]
+        elif not any(move.move == 'leave' for move in moves.values()):
+            pending_to = None
+        main_present = [slug for slug in main_present if moves[slug].move != 'leave']
         minor_present = [name for name in minor_present
-                         if name not in moves or moves[name].move != 'leave']
+                         if (name not in moves or moves[name].move != 'leave')
+                         and (state.people[name].where, state.people[name].spot) == (place, spot)]
         quiet = 0 if winner else quiet + 1
         total = len(main_present) + len(minor_present)
         if not main_present:
@@ -281,6 +313,9 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
         if quiet >= 2:
             reason = 'quiet'
             break
+    # Resolve every outstanding winner, including the final floor holder at cap/leave.
+    while unresolved:
+        await resolve(round_number, read_events(world_dir), closing=True)
     session.trace.write('scene_ended', place=place, scene=scene_id, reason=reason, rounds=round_number)
     append_scene(world_dir, SceneRecord(
         id=scene_id, day=state.clock.day, part=state.clock.part, place=place, spot=spot,

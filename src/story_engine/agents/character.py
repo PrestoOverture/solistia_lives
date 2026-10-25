@@ -15,6 +15,8 @@ from story_engine.config import Role
 from story_engine.trace import TraceWriter
 from story_engine.world.io import load_state, read_events
 from story_engine.world.models import Event, PartOfDay
+from story_engine.world.ops import Op
+from story_engine.world.permissions import Authority, validate_ops
 
 
 class Action(BaseModel):
@@ -27,6 +29,7 @@ class Action(BaseModel):
     to: str | None = None
     action: str = Field(max_length=180)
     say: str = Field(max_length=400)
+    ops: list[Op] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def valid_action(self) -> Self:
@@ -46,8 +49,9 @@ class Plan(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     call: Literal["plan"]
+    kind: Literal["go", "attempt"]
     intent: str
-    where: str
+    where: str | None = None
     spot: str | None = None
     aim: str = Field(max_length=140)
 
@@ -55,8 +59,10 @@ class Plan(BaseModel):
     def valid_plan(self) -> Self:
         if not self.intent.strip():
             raise ValueError("intent must be non-empty")
-        if not self.where.strip():
-            raise ValueError("where must be non-empty")
+        if self.kind == 'go' and (not self.where or not self.where.strip()):
+            raise ValueError("go needs a destination where")
+        if self.kind == 'attempt' and (self.where is not None or self.spot is not None):
+            raise ValueError("attempt acts at the current spot; only go has a destination")
         if not self.aim.strip():
             raise ValueError("aim must be non-empty")
         return self
@@ -157,7 +163,8 @@ class CharacterAgent:
             if not event.op_only and self.slug in event.perceived_by and event.id not in self.seen:
                 events.append(event.model_dump(exclude={"intent", "perceived_by"}))
                 self.seen.add(event.id)
-        request = json.dumps({**(self.opening if self.turn == 1 else {}), "perceived": events,
+        current = load_state(self.world_dir).characters[self.slug]
+        request = json.dumps({**(self.opening if self.turn == 1 else {'self': current.model_dump()}), "perceived": events,
                               **({"note": note} if note else {}),
                               **({"call": "end_of_day", "reply": "JSON {call: 'end_of_day', summary: 'Markdown: what happened, what changed, what you want now'}"} if summary else {}),
                               **({"call": "day_start", "reply": "JSON with call: 'day_start' and 1-3 revised goals"} if day_start else {}),
@@ -198,8 +205,17 @@ class CharacterAgent:
                 if summary:
                     return EndOfDay.model_validate(payload).summary
                 if part:
-                    return Plan.model_validate(payload)
-                return Action.model_validate(payload)
+                    plan = Plan.model_validate(payload)
+                    if plan.kind == 'go' and plan.where not in {p.slug for p in load_state(self.world_dir).places}:
+                        raise ValueError('go where must name a place in state')
+                    return plan
+                action = Action.model_validate(payload)
+                state = load_state(self.world_dir)
+                validate_ops(state, Event(
+                    id=0, **state.clock.model_dump(), place=state.characters[self.slug].where,
+                    actor=self.slug, type='action', content=action.action, perceived_by=[],
+                    scene='current', round=1, ops=action.ops), Authority('character_scene', self.slug))
+                return action
             except ValueError as error:
                 if attempt == self.role.retries:
                     raise SessionError(f"Character action validation failed after {'one retry' if self.role.retries == 1 else str(self.role.retries) + ' retries'}: {error}") from None

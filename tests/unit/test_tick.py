@@ -26,11 +26,7 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     state.clock.part = part
     save_state(world, state)
     requests, clients = [], []
-    adjudicate_reply = dict(call='adjudicate', verdicts={
-        'agnea': dict(involves=[], status='settled', outcome='Agnea heads into Cropdale.', where='cropdale', spot=None),
-        'throne': dict(involves=[], status='settled', outcome='Throné stays at the festival grounds.',
-                      where='festival_grounds', spot=None),
-    }, encounters=[])
+    adjudicate_reply = dict(call='adjudicate', encounters=[])
     offscreen_reply = dict(
         call='offscreen',
         events=[dict(place='cropdale', actor='world', type='world', content='The stalls open.', intent=None)],
@@ -59,7 +55,8 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
 
         async def receive_response(self):
             data = next(world_replies) if self.is_world else dict(
-                call='plan', intent='Visit the stalls', where='cropdale', spot=None,
+                call='plan', kind='go', intent='Visit the stalls',
+                where='cropdale' if self is clients[0] else 'festival_grounds', spot=None,
                 aim='Heads to the stalls.')
             yield ResultMessage('success', 1, 1, False, 1, 'fake',
                                 usage={'input_tokens': 3}, result=json.dumps(data))
@@ -77,7 +74,7 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     all_events = read_events(world)
     assert load_state(world) == type(result).model_validate_json((world / "state.json").read_text())
     events = [event for event in all_events if not event.op_only]
-    assert [event.actor for event in events] == ['agnea', 'throne', 'world', 'world', 'world']
+    assert [event.actor for event in events] == ['agnea', 'throne', 'agnea', 'throne', 'world']
     assert [event.id for event in all_events] == list(range(1, len(all_events) + 1))
     assert all(event.part == part and event.day == 1 for event in events)
     for event in events[:2]:
@@ -85,10 +82,9 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
         assert event.perceived_by == [event.actor]
         assert event.type == 'plan' and event.intent == 'Visit the stalls'
         assert event.content == 'Heads to the stalls.'
-    outcomes = {event.of: event for event in events if event.of}
-    assert outcomes['agnea'].content == 'Agnea heads into Cropdale.' and outcomes['agnea'].place == 'cropdale'
-    assert (outcomes['throne'].content == 'Throné stays at the festival grounds.'
-            and outcomes['throne'].place == 'festival_grounds')
+    assert not any(event.of is not None for event in all_events)
+    assert events[2].ops[0].who == 'agnea' and events[2].place == 'cropdale'
+    assert events[3].ops[0].who == 'throne' and events[3].place == 'festival_grounds'
     offscreen_event = events[-1]
     assert offscreen_event.of is None
     assert offscreen_event.content == 'The stalls open.' and offscreen_event.place == 'cropdale'

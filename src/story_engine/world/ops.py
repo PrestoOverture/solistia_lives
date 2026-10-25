@@ -93,12 +93,12 @@ Op = Annotated[Move | Introduce | PlaceOp | Promise | Release | Wants | Goals | 
 OPS = TypeAdapter(list[Op])
 
 
-def reduce_ops(state: WorldState, ops: list[Op], *, event_id: int, scene: str | None = None) -> WorldState:
+def reduce_ops(state: WorldState, ops: list[Op], *, event_id: int, scene: str | None = None, start_index: int = 0) -> WorldState:
     """Never mutate the input; a bad op rejects the entire group."""
     if not ops:
         return state
     state = WorldState.model_validate(state.model_dump())
-    for index, op in enumerate(ops):
+    for index, op in enumerate(ops, start_index):
         data = state.model_dump()
         members = {**data['characters'], **data['people']}
         if isinstance(op, Move):

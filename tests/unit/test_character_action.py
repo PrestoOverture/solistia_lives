@@ -155,7 +155,8 @@ def test_two_calls_share_session_and_only_send_new_perceptions(tmp_path, monkeyp
     asyncio.run(exercise())
     assert len(instances) == 1 and lifecycle == ["enter", "exit"]
     assert "memory" not in json.loads(requests[0])
-    assert json.loads(requests[1]) == {"perceived": [new.model_dump(exclude={"intent", "perceived_by"})],
+    assert json.loads(requests[1]) == {"self": load_state(agent.world_dir).characters[agent.slug].model_dump(),
+                                     "perceived": [new.model_dump(exclude={"intent", "perceived_by"})],
                                        "call": "scene_move", "reply": "JSON with call: 'action'"}
     assert "private" not in requests[0] and "Hello!" not in requests[1]
     assert [json.loads(line)["turn"] for line in (run / "retrieval.jsonl").read_text().splitlines()] == [1, 2]
@@ -298,7 +299,7 @@ def test_choose_returns_plan(tmp_path, monkeypatch):
     shutil.copytree(ROOT / "tests/fixtures/worlds/agnea_throne", world)
     run = tmp_path / "run"
     run.mkdir()
-    plan = dict(call="plan", intent="Find somewhere quiet", where="cropdale",
+    plan = dict(call="plan", kind="go", intent="Find somewhere quiet", where="cropdale",
                spot="the tavern's upper floor", aim="Walk to the tavern and look around.")
 
     class FakeClient:
@@ -332,8 +333,8 @@ def test_choose_returns_plan(tmp_path, monkeypatch):
 def test_plan_aim_over_max_length_rejected_then_retried(tmp_path, monkeypatch):
     """`aim` fails its schema length cap at 141 chars and is rejected, then retried."""
     too_long = "a" * 141
-    bad = dict(call="plan", intent="Find somewhere quiet", where="cropdale", spot=None, aim=too_long)
-    good = dict(call="plan", intent="Find somewhere quiet", where="cropdale", spot=None, aim="Walk to the tavern.")
+    bad = dict(call="plan", kind="go", intent="Find somewhere quiet", where="cropdale", spot=None, aim=too_long)
+    good = dict(call="plan", kind="go", intent="Find somewhere quiet", where="cropdale", spot=None, aim="Walk to the tavern.")
     agent, instances, requests, lifecycle, run = setup_agent(
         tmp_path, monkeypatch, iter([json.dumps(bad), json.dumps(good)]))
 

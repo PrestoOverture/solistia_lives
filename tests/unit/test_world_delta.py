@@ -52,7 +52,7 @@ def session_setup(tmp_path, monkeypatch):
         async def receive_response(self):
             reply = {
                 "day_start": dict(call="day_start", situations=[new_situation]),
-                "adjudicate": dict(call="adjudicate", verdicts={}),
+                "adjudicate": dict(call="adjudicate"),
                 "scene_round": dict(call="scene_round"),
                 "offscreen": dict(call="offscreen", places=self.offscreen_places),
             }[self.call]
@@ -78,7 +78,7 @@ async def invoke(agent, call, state):
         return await agent.adjudicate(state, {}, [])
     if call == "scene_round":
         return await agent.round(state, [], place="cropdale", main_present=["agnea"],
-                                 minor_present=[], last_winner=None)
+                                 minor_present=[], last_winner=None, scene="1", round_number=1)
     return await agent.offscreen(state, set())
 
 

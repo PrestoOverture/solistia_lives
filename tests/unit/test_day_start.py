@@ -326,64 +326,39 @@ def test_character_day_start_goal_count_retries_once(workspace, monkeypatch, goa
     assert len(clients[0].calls) == 2
 
 
-def test_offscreen_isolated_persistent_client_and_adjudicated_state(workspace, monkeypatch):
+def test_offscreen_isolated_persistent_client_and_scene_state(workspace, monkeypatch):
     world, run = workspace
     state = load_state(world)
-    situation_id = state.situations[0].id
+    state.situations[0].status = 'resolved'
+    save_state(world, state)
     (world / 'scene_context.md').write_text('PRIVATE SCENE CONTEXT')
     append_event(world, Event(id=0, day=1, part='morning', place='cropdale', actor='agnea',
-                             type='plan', content='PRIVATE PLAN', intent='PRIVATE INTENT',
-                             perceived_by=['agnea']))
+                             type='plan', content='PRIVATE PLAN', intent='PRIVATE INTENT', perceived_by=['agnea']))
     offscreen_requests = []
-
     def respond(client, request):
-        assert request['reply']
         if request['call'] == 'adjudicate':
-            return dict(call='adjudicate', verdicts={
-                'agnea': dict(involves=[], status='settled', where='cropdale', outcome='PRIVATE OUTCOME')},
-                situation_updates=[dict(id=situation_id, status='resolved')])
+            return dict(call='adjudicate')
         if request['call'] == 'scene_round':
-            return dict(call='scene_round', outcome=None, minor_moves={})
-        assert request['call'] == 'offscreen'
+            return dict(call='scene_round')
         offscreen_requests.append(request)
         if len(offscreen_requests) == 1:
-            assert set(request) == {'call', 'reply', 'state'}
-            assert set(request['state']) == {'clock', 'places', 'people', 'situations'}
             assert request['state']['situations'][0]['status'] == 'resolved'
+            assert set(request['state']) == {'clock', 'places', 'people', 'situations'}
+            assert all('touches' not in s for s in request['state']['situations'])
         else:
-            assert set(request) == {'call', 'reply', 'state_changes'}
             assert request['state_changes'] == {}
-        assert load_state(world).situations[0].status == 'resolved'
-        # Assert keys recursively, not just at the request's top level.
-        def keys(value):
-            if isinstance(value, dict):
-                return set(value) | set().union(*(keys(v) for v in value.values()))
-            if isinstance(value, list):
-                return set().union(*(keys(v) for v in value))
-            return set()
-        assert not keys(request) & {'characters', 'outcomes', 'touches', 'intent', 'intents', 'events', 'choices'}
-        for secret in ('PRIVATE PLAN', 'PRIVATE INTENT', 'PRIVATE OUTCOME', 'PRIVATE SCENE'):
+        for secret in ('PRIVATE PLAN', 'PRIVATE INTENT', 'PRIVATE SCENE CONTEXT'):
             assert secret not in json.dumps(request) and secret not in client.options.system_prompt
-        return dict(call='offscreen', places=[], situations=[],
-                    situation_notes={s.id: 'Unchanged.' for s in load_state(world).situations
-                                     if s.status == 'open'})
-
+        return dict(call='offscreen', situation_notes={s.id: 'Unchanged.' for s in state.situations if s.status == 'open'})
     clients = fake_sdk(monkeypatch, respond)
-
     async def exercise():
         async with simulation.TickSession(world, run, root=ROOT) as session:
-            current = state
             for _ in range(2):
-                _, current, _, _, _ = await session.world.resolve(
-                    current, {'agnea': {'aim': 'PRIVATE PLAN', 'intent': 'PRIVATE INTENT'}},
-                    read_events(world), offscreen=session.offscreen)
-                await session.world.round(current, read_events(world), place='cropdale',
-                                          main_present=['agnea'], minor_present=[],
-                                          last_winner={'actor': 'agnea', 'intent': 'PRIVATE INTENT'})
-            return current
-
-    result = asyncio.run(exercise())
-    assert result.situations[0].status == 'resolved'
+                await session.world.adjudicate(state, {'agnea': {'kind': 'attempt', 'intent': 'PRIVATE INTENT'}}, read_events(world))
+                await session.world.round(state, read_events(world), place='cropdale', main_present=['agnea'],
+                                          minor_present=[], last_winner=None, scene='1', round_number=1)
+                await session.offscreen.offscreen(state, {s.id for s in state.situations if s.status == 'open'})
+    asyncio.run(exercise())
     assert len(clients) == 4 and all(client.closed for client in clients)
     assert [r['call'] for r in clients[2].calls] == ['adjudicate', 'scene_round'] * 2
     assert clients[3].calls == offscreen_requests and len(offscreen_requests) == 2
