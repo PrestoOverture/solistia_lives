@@ -16,7 +16,7 @@ from story_engine.trace import TraceWriter
 from story_engine.world.io import load_state, read_events, read_scenes
 from story_engine.world.models import WorldInfo
 
-Metric = Literal['interactions_staged', 'state_follows_log', 'canon_and_scope', 'continuity']
+Metric = Literal['state_follows_log', 'canon_and_scope', 'continuity']
 
 
 class Finding(StrictModel):
@@ -55,7 +55,6 @@ async def judge(root, run_dir, payload, role, max_turns, trace, cost):
     )
     record_api_host(run_dir, options.env.get('ANTHROPIC_BASE_URL'))
     allowed_ids = {row['id'] for key in ('events', 'previous_events') for row in payload[key]}
-    outcome_ids = {row['id'] for row in payload['outcomes']}
     request = json.dumps(payload, ensure_ascii=False)
     async with ClaudeSDKClient(options=options) as client:
         for attempt in range(role.retries + 1):
@@ -83,11 +82,6 @@ async def judge(root, run_dir, payload, role, max_turns, trace, cost):
                 for finding in reply.findings:
                     if not finding.event_ids and not finding.state_refs:
                         raise ValueError('every finding must cite at least one event id or state_ref')
-                    if finding.metric == 'interactions_staged':
-                        invalid = set(finding.event_ids) - outcome_ids
-                        if invalid:
-                            raise ValueError('interactions_staged may cite only outcomes of the day: '
-                                             f'{sorted(invalid)}')
                     if finding.metric == 'continuity' and payload['day'] == 1:
                         raise ValueError('continuity findings are not allowed on day 1')
                 return reply.findings

@@ -301,23 +301,41 @@ class WorldAgent(_WorldSession):
                     event, updated = None, state
                 keys = {_key(name): name for name in updated.people}
                 encounters = []
+                name_drops = []
+
+                def reject_name(name, main, error):
+                    if attempt < self.role.retries:
+                        raise ValueError(error)
+                    name_drops.append(dict(name=name, main=main, error=error))
+
                 for encounter in reply.encounters:
-                    if set(encounter.mains) - state.characters.keys():
-                        raise ValueError("encounter mains must name main characters")
-                    spots = {(state.characters[slug].where, state.characters[slug].spot)
-                             for slug in encounter.mains}
-                    if len(spots) != 1:
-                        raise ValueError("encounter mains must share one place and spot")
+                    # The first valid main anchors this listing; scenes still group mains by state.
+                    main = next((slug for slug in encounter.mains if slug in state.characters), None)
+                    mains = []
+                    spot = ((state.characters[main].where, state.characters[main].spot)
+                            if main is not None else None)
+                    for slug in encounter.mains:
+                        character = state.characters.get(slug)
+                        if character is None:
+                            reject_name(slug, main, 'encounter mains must name main characters')
+                        elif (character.where, character.spot) != spot:
+                            reject_name(slug, main, 'encounter mains must share one place and spot')
+                        else:
+                            mains.append(slug)
+                    if not mains:
+                        continue
                     minors = []
                     for name in encounter.minor:
                         name = keys.get(_key(name), name)
                         person = updated.people.get(name)
-                        if person is None or (person.where, person.spot) not in spots:
-                            raise ValueError('encounter minor must name a person at the same place and spot')
-                        if name not in minors:
+                        if person is None or (person.where, person.spot) != spot:
+                            reject_name(name, main, 'encounter minor must name a person at the same place and spot')
+                        elif name not in minors:
                             minors.append(name)
-                    encounters.append(Encounter(mains=encounter.mains, minor=minors))
+                    encounters.append(Encounter(mains=mains, minor=minors))
                 self._trace_drops('adjudicate', dropped)
+                for fields in name_drops:
+                    self.trace.write('encounter_name_dropped', call='adjudicate', turn=self.turn, **fields)
                 return event, encounters, updated
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,

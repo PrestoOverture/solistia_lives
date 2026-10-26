@@ -13,7 +13,7 @@ from story_engine.agents.character import Action
 from story_engine.agents.sdk import SessionError
 from story_engine.config import load_configs
 from story_engine.trace import TraceWriter
-from story_engine.world.io import commit_event, load_state, read_events
+from story_engine.world.io import commit_event, load_state, read_events, read_scenes
 from story_engine.world.models import Person, WorldState
 from story_engine.world.permissions import Authority
 from test_day_start import fake_sdk, situation
@@ -103,6 +103,86 @@ def test_mocked_day_continues_after_offscreen_op_drop(workspace, monkeypatch, fa
         assert drop['event']['ops'] == forbidden['ops']
     feedback = [r for r in clients[3].calls if isinstance(r, str)]
     assert len(feedback) == 4 and all('may not commit situation' in r for r in feedback)
+    assert all((world / 'memory' / f'{slug}.md').exists() for slug in initial.characters)
+
+
+@pytest.mark.parametrize('failure', ['minor_spot', 'minor_place', 'minor_unknown', 'main_spot', 'schema'])
+def test_mocked_day_encounter_name_retry_and_schema_failure(workspace, monkeypatch, failure):
+    world, run = workspace
+    initial = load_state(world)
+    if failure == 'minor_place':
+        initial.people['Host'].where = 'cropdale'
+    else:
+        initial.people['Host'].spot = 'elsewhere'
+    if failure == 'main_spot':
+        initial.characters['throne'].spot = 'elsewhere'
+        initial.characters['hikari'] = initial.characters['agnea'].model_copy(deep=True)
+        info_path = world / 'world.json'
+        info = json.loads(info_path.read_text())
+        info['characters'] = list(initial.characters)
+        info_path.write_text(json.dumps(info))
+    for path in ('genesis.json', 'state.json'):
+        (world / path).write_text(initial.model_dump_json())
+    bad_name = 'Unknown' if failure == 'minor_unknown' else 'Host'
+
+    def respond(client, request):
+        if isinstance(request, str):
+            request = next(r for r in reversed(client.calls) if isinstance(r, dict))
+        call = request['call']
+        if call == 'part_of_day':
+            character = list(initial.characters.values())[clients.index(client)]
+            return dict(call='plan', kind='go', intent='Visit', aim='Walk to the stalls.',
+                        where=character.where, spot=character.spot)
+        if call == 'adjudicate':
+            ops = [] if 'Vendor' in load_state(world).people else [
+                dict(op='introduce', name='Vendor', where='festival_grounds', spot=None,
+                     wants=['Sell fruit'], commitments=[])]
+            encounter = dict(mains=list(initial.characters), minor=['Vendor'])
+            if failure != 'main_spot':
+                encounter['minor'].append(bad_name)
+            if failure == 'schema':
+                encounter['unexpected'] = True
+            return dict(call=call, ops=ops, encounters=[encounter])
+        if call == 'scene_round':
+            return dict(call=call)
+        if call == 'scene_move':
+            return dict(call='action', intent='Watch', move='wait', urge=0, action='', say='')
+        if call == 'end_of_day':
+            return dict(call=call, summary='Visited the stalls.')
+        assert call == 'offscreen'
+        return dict(call=call, situation_notes={s.id: 'Unchanged.' for s in initial.situations})
+
+    clients = fake_sdk(monkeypatch, respond)
+    original = simulation.TickSession
+    monkeypatch.setattr(simulation, 'TickSession', lambda w, r: original(w, r, root=ROOT))
+    if failure == 'schema':
+        with pytest.raises(SessionError, match='Extra inputs are not permitted'):
+            asyncio.run(simulation.run_day(world, run))
+        assert_fold(world, initial)
+        assert read_events(world) == read_scenes(world) == []
+        assert rows(run, 'encounter_name_dropped') == []
+        assert len(rows(run, 'world_validation_failed')) == 2
+        return
+
+    result = asyncio.run(simulation.run_day(world, run))
+    assert result.clock.model_dump() == dict(day=2, part='morning')
+    assert_fold(world, result)
+    assert 'Vendor' in result.people
+    assert sum(op.op == 'introduce' for e in read_events(world) for op in e.ops) == 1
+    scenes = read_scenes(world)
+    assert len(scenes) == 4
+    expected = ['agnea', 'hikari', 'Vendor'] if failure == 'main_spot' else ['agnea', 'throne', 'Vendor']
+    assert all(scene.participants == expected for scene in scenes)
+    drops = rows(run, 'encounter_name_dropped')
+    assert len(drops) == 4
+    for drop in drops:
+        assert drop['call'] == 'adjudicate' and drop['main'] == 'agnea'
+        assert drop['name'] == ('throne' if failure == 'main_spot' else bad_name)
+        assert drop['error'] == ('encounter mains must share one place and spot' if failure == 'main_spot'
+                                 else 'encounter minor must name a person at the same place and spot')
+    assert len(rows(run, 'world_validation_failed')) == 4
+    world_client = clients[len(initial.characters)]
+    assert len([request for request in world_client.calls if isinstance(request, str)]) == 4
     assert all((world / 'memory' / f'{slug}.md').exists() for slug in initial.characters)
 
 

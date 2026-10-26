@@ -193,6 +193,30 @@ def test_encounter_references_and_same_spot_retry(workspace, monkeypatch, bad):
     assert updated == state and event.ops == []
 
 
+@pytest.mark.parametrize('mains,expected,names', [
+    (['agnea', 'throne'], ['agnea'], ['throne']),
+    (['Unknown', 'agnea'], ['agnea'], ['Unknown']),
+    (['Unknown'], [], ['Unknown']),
+    (['Unknown', 'agnea', 'throne'], ['agnea'], ['Unknown', 'throne']),
+])
+def test_encounter_drops_only_invalid_mains_after_retry(workspace, monkeypatch, mains, expected, names):
+    state = load_state(workspace[0])
+    state.characters['throne'].spot = 'stage'
+    reply = dict(call='adjudicate', encounters=[dict(mains=mains)])
+    exercise, requests = call_agent(workspace, monkeypatch, [reply, reply], state=state)
+    event, encounters, updated = asyncio.run(exercise())
+    assert len(requests) == 2
+    assert [e.mains for e in encounters] == ([expected] if expected else [])
+    assert updated == state and event.ops == []
+    drops = [row for row in map(json.loads, (workspace[1] / 'trace.jsonl').read_text().splitlines())
+             if row['type'] == 'encounter_name_dropped']
+    assert [row['name'] for row in drops] == names
+    assert all(row['call'] == 'adjudicate' and row['turn'] == 1 for row in drops)
+    assert all(row['main'] == ('agnea' if expected else None) for row in drops)
+    assert all(row['error'] == ('encounter mains must share one place and spot' if row['name'] == 'throne'
+                               else 'encounter mains must name main characters') for row in drops)
+
+
 def test_encounter_introduces_and_normalizes_people_without_writing(workspace, monkeypatch):
     state = load_state(workspace[0])
     reply = dict(call='adjudicate', ops=[dict(op='introduce', name='Merchant Tam', where='festival_grounds',

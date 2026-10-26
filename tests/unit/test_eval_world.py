@@ -96,6 +96,8 @@ def test_default_day_and_read_only(world, monkeypatch, part, finished):
     run, data = report()
     assert data['day'] == 1 and data['completion'] is finished
     assert 'new_situations' not in data
+    assert 'interactions_staged' not in result.output
+    assert 'interactions_staged' not in (run / 'world_report.json').read_text()
     assert files(world) == before
     assert all(files(Path('runs'))[k] == v for k, v in old_runs.items())
     assert (run / 'retrieval.jsonl').exists() and (run / 'trace.jsonl').exists()
@@ -194,9 +196,6 @@ def test_unknown_event_retry_once(world, monkeypatch, recover):
 
 @pytest.mark.parametrize('recover', [False, True])
 @pytest.mark.parametrize('metric,event_ids,state_refs,error', [
-    ('interactions_staged', [2], [], 'interactions_staged may cite only outcomes of the day: [2]'),
-    ('interactions_staged', [3], [], 'interactions_staged may cite only outcomes of the day: [3]'),
-    ('interactions_staged', [4], [], 'interactions_staged may cite only outcomes of the day: [4]'),
     ('canon_and_scope', [], [], 'every finding must cite at least one event id or state_ref'),
     ('continuity', [1], [], 'continuity findings are not allowed on day 1'),
 ])
@@ -210,7 +209,7 @@ def test_reference_rules_retry_once(world, monkeypatch, recover, metric, event_i
                                  perceived_by=['agnea'], scene=scene, of=of))
     bad = {'findings': [dict(metric=metric, event_ids=event_ids, state_refs=state_refs,
                              explanation='Unchecked free text.')]}
-    good = {'findings': [dict(metric='interactions_staged', event_ids=[1], state_refs=[],
+    good = {'findings': [dict(metric='state_follows_log', event_ids=[2], state_refs=[],
                               explanation='Unchecked free text.')]}
     calls, options, life = fake(monkeypatch, [bad, good if recover else bad])
     before = files(world)
@@ -229,7 +228,8 @@ def test_reference_rules_retry_once(world, monkeypatch, recover, metric, event_i
 
 
 @pytest.mark.parametrize('metric,event_ids,state_refs', [
-    ('interactions_staged', [1], []),
+    ('state_follows_log', [1], []),
+    ('state_follows_log', [2], ['characters.throne.where']),
     ('state_follows_log', [], ['characters.throne.where']),
     ('canon_and_scope', [2], []),
 ])
@@ -246,6 +246,18 @@ def test_valid_reference_reply_passes(world, monkeypatch, metric, event_ids, sta
     assert result.exit_code == 0, result.output
     assert len(calls) == 1
     assert report()[1]['findings'] == good['findings']
+    assert 'interactions_staged' not in result.output
+    run, _ = report()
+    assert 'interactions_staged' not in (run / 'world_report.json').read_text()
+
+
+def test_retired_metric_is_absent_from_judge_schema_and_prompt(world, monkeypatch):
+    finish(world)
+    _, options, _ = fake(monkeypatch, [{'findings': []}])
+    result = invoke('test')
+    assert result.exit_code == 0, result.output
+    assert 'interactions_staged' not in json.dumps(options[0].output_format)
+    assert 'interactions_staged' not in Path('prompts/world_judge.md').read_text()
 
 
 def test_multiple_worlds_explicit_day_sequential(world, monkeypatch):
