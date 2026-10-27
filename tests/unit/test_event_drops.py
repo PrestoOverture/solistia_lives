@@ -329,3 +329,99 @@ def test_bad_minor_move_drops_only_its_event(workspace, monkeypatch):
     assert drop['event']['actor'] == 'Host' and drop['event']['resolves'] is None
     assert drop['event']['ops'] == bad_ops
     assert_fold(world, state)
+
+
+def test_closing_ignores_minor_moves_and_commits_resolution(workspace, monkeypatch):
+    world, run = workspace
+
+    def respond(client, request):
+        if isinstance(request, str):
+            request = next(r for r in reversed(client.calls) if isinstance(r, dict))
+        if not request['closing']:
+            return dict(call='scene_round')
+        return dict(call='scene_round', resolution='succeeded', ops=[
+            dict(op='place', slug='festival_grounds', add_details=['Resolution committed'])],
+            minor_moves={
+                'Unknown': dict(move='act', urge=3, action='Unknown acts.', ops=[
+                    dict(op='wants', person='Host', wants=['Must not commit'])])})
+
+    clients = fake_sdk(monkeypatch, respond)
+
+    class Character:
+        async def act(self, before, note=None):
+            return Action(call='action', intent='Try', move='act', urge=2, action='Agnea tries.', say='')
+
+    async def exercise():
+        async with open_agent(workspace) as agent:
+            session = SimpleNamespace(world=agent, characters={'agnea': Character()}, scene_notes={},
+                                      settings=SimpleNamespace(scene_cap=1), trace=TraceWriter(run))
+            return await simulation.run_scene(world, session, load_state(world), 'festival_grounds', ['agnea'], [])
+
+    state = asyncio.run(exercise())
+    events = read_events(world)
+    act, = [e for e in events if e.actor == 'agnea']
+    resolution, = [e for e in events if e.resolves == act.id]
+    assert resolution.resolution == 'succeeded'
+    assert 'Resolution committed' in next(p for p in state.places if p.slug == 'festival_grounds').details
+    assert state.people['Host'].wants == ['Help']
+    assert not any(e.actor in {'Host', 'Unknown'} for e in events)
+    ignored, = rows(run, 'closing_minor_moves_ignored')
+    assert ignored['names'] == ['Unknown']
+    assert len(clients[0].calls) == 2
+    assert rows(run, 'world_validation_failed') == []
+    assert_fold(world, state)
+
+
+@pytest.mark.parametrize('failure', ['spot', 'place', 'name'])
+def test_minor_reference_drop_preserves_resolution_and_valid_move(workspace, monkeypatch, failure):
+    from story_engine.world.models import Event
+
+    world, run = workspace
+    state = load_state(world)
+    state.people['Baker'] = Person(where='festival_grounds', wants=['Bake'], commitments=[])
+    if failure == 'spot':
+        state.people['Host'].spot = 'elsewhere'
+    elif failure == 'place':
+        state.people['Host'].where = 'cropdale'
+    for path in ('genesis.json', 'state.json'):
+        (world / path).write_text(state.model_dump_json())
+    act = commit_event(world, Event(id=0, **state.clock.model_dump(), place='festival_grounds',
+                                   actor='agnea', type='action', content='Agnea asks.', perceived_by=['agnea'],
+                                   scene='1', round=1))
+    bad_name = 'Unknown' if failure == 'name' else 'Host'
+    reason = ('minor_moves person must be at the same spot' if failure == 'spot' else
+              'minor_moves name must be a people entry at this place')
+    reply = dict(call='scene_round', resolution='succeeded', ops=[
+        dict(op='place', slug='festival_grounds', add_details=['Resolution committed'])], minor_moves={
+        bad_name: dict(move='act', urge=3, action='Invalid move.', ops=[
+            dict(op='wants', person='Host', wants=['Must not commit'])]),
+        'Baker': dict(move='act', urge=2, action='Baker helps.', ops=[
+            dict(op='wants', person='Baker', wants=['Help'])])})
+    clients = fake_sdk(monkeypatch, lambda *_: reply)
+
+    async def exercise():
+        async with open_agent(workspace) as agent:
+            event, minors, updated = await agent.round(
+                state, read_events(world), place='festival_grounds', main_present=['agnea'],
+                minor_present=['Host', 'Baker'], last_winner=dict(id=act.id, actor='agnea'),
+                scene='1', round_number=2)
+            assert set(minors) == {'Baker'}
+            commit_event(world, event, authority=Authority('scene_round'))
+            commit_event(world, Event(id=0, **updated.clock.model_dump(), place='festival_grounds',
+                                     actor='Baker', type='action', content=minors['Baker'].action,
+                                     perceived_by=['agnea'], scene='1', round=2, ops=minors['Baker'].ops),
+                         authority=Authority('person_scene', 'Baker'))
+
+    asyncio.run(exercise())
+    assert len(clients[0].calls) == 2 and reason in clients[0].calls[1]
+    assert len(rows(run, 'world_validation_failed')) == 1
+    drop, = rows(run, 'minor_move_dropped')
+    assert {key: drop[key] for key in ('call', 'turn', 'name', 'reason')} == dict(
+        call='scene_round', turn=1, name=bad_name, reason=reason)
+    final = load_state(world)
+    assert final.people['Host'].wants == ['Help']
+    assert final.people['Baker'].wants == ['Help']
+    assert 'Resolution committed' in next(p for p in final.places if p.slug == 'festival_grounds').details
+    assert len([e for e in read_events(world) if e.resolves == act.id]) == 1
+    assert [e.actor for e in read_events(world)] == ['agnea', 'world', 'Baker']
+    assert_fold(world, final)

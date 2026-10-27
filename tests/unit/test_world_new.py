@@ -113,6 +113,30 @@ def test_valid_world(repo, state, monkeypatch):
     assert "## Location\nCropdale" in sessions[1].options.system_prompt
 
 
+def test_starting_schema_requires_exact_input_characters(repo, state, monkeypatch):
+    from story_engine.world.models import WorldState
+
+    source = Path(__file__).resolve().parents[2]
+    for slug in ('hikari', 'ochette'):
+        (repo / f'cards/{slug}.md').write_bytes((source / f'cards/{slug}.md').read_bytes())
+    state['characters'] = {slug: value for slug, value in zip(
+        ['hikari', 'ochette'], state['characters'].values())}
+    for situation in state['situations']:
+        situation['touches'] = ['hikari']
+    sessions = fake_sdk(monkeypatch, [state])
+    args = ARGS.copy()
+    args[args.index('--characters') + 1] = 'hikari,ochette'
+    result = CliRunner().invoke(app, args)
+    assert result.exit_code == 0, result.output
+    schema = sessions[1].options.output_format['schema']['properties']['characters']
+    assert schema['required'] == ['hikari', 'ochette']
+    assert list(schema['properties']) == ['hikari', 'ochette']
+    assert schema['additionalProperties'] is False
+    assert schema['minProperties'] == schema['maxProperties'] == 2
+    character_schema = WorldState.model_json_schema()['properties']['characters']['additionalProperties']
+    assert all(value == character_schema for value in schema['properties'].values())
+
+
 @pytest.mark.parametrize("wrapper", ["```json\n{}\n```", "```\n{}\n```",
                                     "Here is the state:\n{}\nReady."])
 def test_wrapped_state_validates_first_attempt(repo, state, monkeypatch, wrapper):

@@ -77,6 +77,15 @@ async def starting_state(
     schema = WorldState.model_json_schema()
     del schema["properties"]["clock"]
     schema["required"].remove("clock")
+    character_schema = schema["properties"]["characters"]["additionalProperties"]
+    schema["properties"]["characters"] = {
+        "type": "object",
+        "properties": {slug: character_schema for slug in characters},
+        "required": list(characters),
+        "additionalProperties": False,
+        "minProperties": len(characters),
+        "maxProperties": len(characters),
+    }
     options = session_options(root, run_dir, role, prompt, max_turns, hooks,
                               output_format={"type": "json_schema", "schema": schema})
     record_api_host(run_dir, options.env.get("ANTHROPIC_BASE_URL"))

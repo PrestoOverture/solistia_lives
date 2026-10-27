@@ -376,8 +376,6 @@ class WorldAgent(_WorldSession):
                     raise ValueError('the winning act needs a resolution')
                 if closing and reply.resolution == 'pending':
                     raise ValueError('closing resolution must finish the winning act')
-                if closing and reply.minor_moves:
-                    raise ValueError('closing resolution has no next minor moves')
                 event = Event(id=0, **state.clock.model_dump(), place=place, actor='world',
                               of=(last_winner['actor'] if last_winner and last_winner['actor'] in state.characters else None),
                               type='world' if reply.outcome else 'state_change', content=reply.outcome or '',
@@ -390,13 +388,20 @@ class WorldAgent(_WorldSession):
                     event, updated = None, state
                 keys = {_key(name): name for name in updated.people}
                 minors = {}
-                for name, move in reply.minor_moves.items():
+                move_drops = []
+                for name, move in ({} if closing else reply.minor_moves).items():
                     name = keys.get(_key(name), name)
                     person = updated.people.get(name)
+                    reason = None
                     if person is None or person.where != place:
-                        raise ValueError('minor_moves name must be a people entry at this place')
-                    if main_present and person.spot != updated.characters[main_present[0]].spot:
-                        raise ValueError('minor_moves person must be at the same spot')
+                        reason = 'minor_moves name must be a people entry at this place'
+                    elif main_present and person.spot != updated.characters[main_present[0]].spot:
+                        reason = 'minor_moves person must be at the same spot'
+                    if reason is not None:
+                        if attempt < self.role.retries:
+                            raise ValueError(reason)
+                        move_drops.append(dict(name=name, reason=reason))
+                        continue
                     content = ' '.join(value for value in (move.action, move.say if move.move != 'wait' else '') if value)
                     if move.move == 'leave':
                         content = (content + f' {name} leaves.').strip()
@@ -409,6 +414,11 @@ class WorldAgent(_WorldSession):
                         continue
                     minors[name] = move
                 self._trace_drops('closing_resolution' if closing else 'scene_round', dropped)
+                if closing and reply.minor_moves:
+                    self.trace.write('closing_minor_moves_ignored', call='closing_resolution',
+                                     turn=self.turn, names=list(reply.minor_moves))
+                for fields in move_drops:
+                    self.trace.write('minor_move_dropped', call='scene_round', turn=self.turn, **fields)
                 return event, minors, updated
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,

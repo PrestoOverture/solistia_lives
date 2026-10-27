@@ -291,13 +291,18 @@ def test_scene_minor_references_introductions_and_name_matching(workspace, monke
 
 
 @pytest.mark.parametrize('resolution', ['pending', 'none'])
-def test_closing_resolution_requires_final_result_and_no_bids(workspace, monkeypatch, resolution):
+def test_closing_resolution_requires_final_result_and_ignores_bids(workspace, monkeypatch, resolution):
     reply = dict(call='scene_round', resolution=resolution,
                  minor_moves={'Host': dict(move='wait', urge=0)} if resolution == 'none' else {})
-    exercise, _ = call_agent(workspace, monkeypatch, [reply, reply], scene=True,
+    exercise, requests = call_agent(workspace, monkeypatch, [reply, reply], scene=True,
                              winner=dict(id=42, actor='agnea', round=1), closing=True)
-    with pytest.raises(world_agent.SessionError, match='closing resolution'):
-        asyncio.run(exercise())
+    if resolution == 'pending':
+        with pytest.raises(world_agent.SessionError, match='closing resolution'):
+            asyncio.run(exercise())
+    else:
+        event, minors, _ = asyncio.run(exercise())
+        assert event.resolution == 'none' and minors == {}
+        assert len(requests) == 1
 
 
 @pytest.mark.parametrize('closing', [False, True])
