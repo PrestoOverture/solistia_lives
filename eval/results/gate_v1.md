@@ -77,3 +77,14 @@ Floors (prd §6.1): Lore ≥ 4, Voice ≥ 3, Readability ≥ 3, total ≥ 10.
 - **lore:** Agnea's canonical competition is the Grand Gala in Merry Hills, but the story repeatedly calls her victory winning the 'Festival of Grace,' confusing the event's name even though it also mentions the Grand Gala correctly. Merry Hills, the Stage of the Moon and Sun, and the quiet episode after the Moonshade Order's fall otherwise fit the setting; Elena expecting Osvald's visit can reasonably be a subsequent development in their relationship.
 - **voice:** Temenos's 'I've been on my feet for at least twenty minutes today' and his distinction between interrogation and conversation capture his teasing, perceptive manner, while Agnea's affectionate hug fits her warmth. Osvald's repeated 'variables,' 'data, not optimism,' and 'collective variable' turn his scholarly reserve into an overextended mathematics routine, and the long exchanges about choosing one's path give the characters a shared, generic counseling register.
 - **readability:** The opening smell of lamp oil and roses establishes the theater clearly, and Agnea incorporating her stumble into the dance gives the episode a satisfying payoff. Repeated reassurance, repeated declarations of a 'real' smile or laugh, and the closing sequence of equations, variables, questions, and roads overexplain the emotional arc. At 3,227 whitespace-delimited words including the title, it exceeds the requested 2,000–3,000 words, and the lengthy dressing-room conversations crowd out the requested emphasis on narration.
+
+## 5.3 Author read (2026-10-28, partial: the four judge failures)
+
+| Case | Judge | Author | Disagreement |
+|---|---|---|---|
+| agnea_throne_2 | FAIL (lore 3) | **PASS, with reservations** | Lore: the judge was wrong (KB: Sebastian cuts Marietta's throat, Mother finishes her). Author's reservations: Agnea nearly falls 4 times, so clumsiness reads as a disorder rather than a trait; the ending's run of explanations of peace and friendship undercuts the earlier restraint. Over-emphasis, not hallucination. |
+| hikari_ochette_2 | FAIL (lore 2, Benkei dead) | FAIL | The author accepted the judge's Benkei claim, but `kb/characters/hikari/benkei.md` has Benkei alive at Ku's liberation. **To be re-read.** |
+| osvald_temenos_agnea_1 | FAIL (3/3/3) | **FAIL** | Agrees: the story slips into Agnea's interior monologue, breaking close third person from one POV per scene (prd §5). |
+| osvald_temenos_agnea_2 | FAIL (3/3/3) | **PASS** | The judge was wrong on Festival of Grace vs Grand Gala (KB aliases), but mixing the two names invites the confusion. Over the word limit (3,227); the author would still pass it. |
+
+Not yet read by the author: agnea_throne_1 (engine term leak) and osvald_temenos_2 (left open), plus the four judge passes.

@@ -76,8 +76,24 @@ class StoredLogCheck(LogCheck):
     located: bool
 
 
-ValidatorReply = Annotated[ExtractReply | VerdictReply, Field(discriminator='call')]
-LogValidatorReply = Annotated[ExtractReply | VerdictReply | LogReply, Field(discriminator='call')]
+class ContractFinding(StrictModel):
+    paragraph: int
+    quote: str
+    kind: Literal['pov', 'meta', 'left_open', 'scope']
+    reason: str
+
+
+class ContractReply(StrictModel):
+    call: Literal['contract']
+    findings: list[ContractFinding]
+
+
+class StoredContractFinding(ContractFinding):
+    located: bool
+
+
+ValidatorReply = Annotated[ExtractReply | VerdictReply | ContractReply, Field(discriminator='call')]
+LogValidatorReply = Annotated[ExtractReply | VerdictReply | LogReply | ContractReply, Field(discriminator='call')]
 
 
 class CheckedClaim(Claim):
@@ -95,6 +111,7 @@ class ValidationRound(StrictModel):
     contradicted: int
     unverified: list[CheckedClaim]
     log: list[StoredLogCheck] | None = None
+    contract: list[StoredContractFinding] = Field(default_factory=list)
 
 
 class Validation(StrictModel):
@@ -142,13 +159,15 @@ async def _call(client, request, *, parse, check, hooks, trace, cost, options, s
     raise AssertionError('unreachable')
 
 
-def _options(root, run_dir, role, max_turns, schema, verdicts=False, log=False):
+def _options(root, run_dir, role, max_turns, schema, verdicts=False, log=False, contract=False):
     hooks = KBHooks(root, run_dir, 'validator', 1)
     prompt = (root / 'prompts/validator_extract.md').read_text()
     if verdicts:
         prompt += '\n' + (root / 'prompts/validator_verdict.md').read_text()
     if log:
         prompt += '\n' + (root / 'prompts/validator_log.md').read_text()
+    if contract:
+        prompt += '\n' + (root / 'prompts/validator_contract.md').read_text()
     options = session_options(root, run_dir, role, prompt, max_turns, hooks,
                               tools=['Read', 'Grep'], output_format=json_schema_output(schema))
     record_api_host(run_dir, options.env.get('ANTHROPIC_BASE_URL'))
@@ -221,6 +240,12 @@ def _normalize_evidence(text):
     return ' '.join(text.split())
 
 
+def _quote_located(quote, paragraph):
+    fragments = [_normalize_evidence(part) for part in re.split(r'…|\.{3}', quote)]
+    fragments = [part for part in fragments if part]
+    return bool(fragments) and all(part in paragraph for part in fragments)
+
+
 async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns: int,
                         trace, cost: SessionCost, log_input: dict | None = None) -> Validation:
     from story_engine.kb.entities import prefilter
@@ -230,7 +255,7 @@ async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns
         sentence.sentence_id = i
     schema = LogValidatorReply if log_input is not None else ValidatorReply
     hooks, options = _options(root, run_dir, role, max_turns, schema, verdicts=True,
-                              log=log_input is not None)
+                              log=log_input is not None, contract=True)
     log = None
     paragraphs = [dict(id=i, text=part) for i, part in enumerate(
         (part.strip() for part in re.split(r"\n[ \t]*\n", strip_markers(text)) if part.strip()), 1)]
@@ -262,6 +287,13 @@ async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns
         if not isinstance(reply, ExtractReply):
             raise ValueError('expected call: extract')
         _check_claims(reply.claims, sentences, root)
+
+    def check_contract(reply):
+        if not isinstance(reply, ContractReply):
+            raise ValueError('expected call: contract')
+        unknown = {finding.paragraph for finding in reply.findings} - paragraph_text.keys()
+        if unknown:
+            raise ValueError(f'unknown paragraph ids: {sorted(unknown)}')
 
     async with ClaudeSDKClient(options=options) as client:
         common = dict(role=role, hooks=hooks, trace=trace, cost=cost, options=options,
@@ -302,11 +334,7 @@ async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns
             log = []
             for paragraph in reply.paragraphs:
                 for entry in paragraph.lines:
-                    fragments = [_normalize_evidence(part)
-                                 for part in re.split(r'…|\.{3}', entry.quote)]
-                    fragments = [part for part in fragments if part]
-                    located = bool(fragments) and all(
-                        part in paragraph_text[paragraph.id] for part in fragments)
+                    located = _quote_located(entry.quote, paragraph_text[paragraph.id])
                     if not located:
                         trace.write('log_quote_not_found', quote=entry.quote, verdict=entry.verdict)
                     log.append(StoredLogCheck(**(entry.model_dump() | {
@@ -314,6 +342,18 @@ async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns
                         'scene': log_input['scene'] if entry.verdict == 'contradicted' else None,
                         'located': located,
                     })))
+        hooks.turn += 1
+        reply = await _call(client, json.dumps(dict(
+            call='contract', paragraphs=paragraphs,
+            style_specification=(root / 'prompts/style_spec.md').read_text(encoding='utf-8')),
+            ensure_ascii=False),
+            check=check_contract, stage='contract', **common)
+        contract = []
+        for finding in reply.findings:
+            located = _quote_located(finding.quote, paragraph_text[finding.paragraph])
+            if not located:
+                trace.write('contract_quote_not_found', **finding.model_dump())
+            contract.append(StoredContractFinding(**finding.model_dump(), located=located))
     checked = [CheckedClaim(**c.model_dump(), **(by_id[i].model_dump(exclude={'claim_id'}) |
                            (dict(verdict='unverified', claimed_verdict=by_id[i].verdict)
                             if i in failed else {})))
@@ -322,8 +362,8 @@ async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns
         round=1, claims=checked,
         not_in_kb=[c for c in checked if isinstance(c, CheckedClaim) and c.verdict == 'not_in_kb'],
         contradicted=sum(isinstance(c, CheckedClaim) and c.verdict == 'contradicted' for c in checked)
-        + sum(entry.verdict == 'contradicted' for entry in log or []),
-        log=log,
+        + sum(entry.verdict == 'contradicted' for entry in log or []) + len(contract),
+        log=log, contract=contract,
         unverified=[c for c in checked if isinstance(c, CheckedClaim) and c.verdict == 'unverified'],
     )])
     return report

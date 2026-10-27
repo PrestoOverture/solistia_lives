@@ -39,6 +39,8 @@ STORY_B = "# A Quiet Resolve\n\nAgnea let the moment settle.\n"
 def world(tmp_path, monkeypatch):
     for name in ('config', 'prompts', 'cards'):
         shutil.copytree(ROOT / name, tmp_path / name)
+    (tmp_path / 'docs').mkdir()
+    shutil.copy(ROOT / 'docs/prd.md', tmp_path / 'docs/prd.md')
     world = tmp_path / 'worlds/test'
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     append_event(world, Event(id=1, day=1, part='morning', place='cropdale', scene='A', round=1,
@@ -70,7 +72,7 @@ def world(tmp_path, monkeypatch):
     commit_fixture_changes(world, state)
     (tmp_path / 'kb').mkdir()
     (tmp_path / 'kb/agnea.md').write_text('---\nname: Agnea\naliases: []\n---\n')
-    fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])])
+    fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[]), dict(call='contract', findings=[])])
     monkeypatch.chdir(tmp_path)
     return world
 
@@ -124,7 +126,7 @@ def fake_narrator(monkeypatch, reply=REPLY_A):
 
 
 def test_two_acts_previous_acts_and_story_join(world, monkeypatch):
-    validation_calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])])
+    validation_calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[]), dict(call='contract', findings=[])])
     fake_curator(monkeypatch, [json.dumps(EPISODE)])
     calls, options, lifecycle = fake_narrator(monkeypatch, [REPLY_A, REPLY_B])
     result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1'])
@@ -147,7 +149,7 @@ def test_two_acts_previous_acts_and_story_join(world, monkeypatch):
     story = (run / 'story.md').read_text()
     assert story == STORY_A + '\n\n---\n\n' + STORY_B
     assert '<!--' not in story
-    assert [json.loads(call)['call'] for call in validation_calls] == ['extract', 'verdicts']
+    assert [json.loads(call)['call'] for call in validation_calls] == ['extract', 'verdicts', 'contract']
     sentences = json.loads(validation_calls[0])['sentences']
     assert any('Agnea laughed.' in row['text'] for row in sentences)
     assert any('Agnea let the moment settle.' in row['text'] for row in sentences)
@@ -315,7 +317,7 @@ def test_episode_from_rejects_old_format(world, monkeypatch):
 
 
 def test_stop_after_act_then_continue(world, monkeypatch):
-    validation_calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])])
+    validation_calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[]), dict(call='contract', findings=[])])
     fake_curator(monkeypatch, [json.dumps(EPISODE)])
     calls, _, _ = fake_narrator(monkeypatch, [REPLY_A, REPLY_B])
     result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1', '--stop-after', 'act:1'])
@@ -359,9 +361,10 @@ def test_validation_fixes_only_joined_text(world, monkeypatch, fix_rounds):
     fake_narrator(monkeypatch, [REPLY_A, REPLY_B] + [json.dumps(dict(edits=[dict(
         fixes=[1], old_string='Agnea laughed.', new_string='Agnea smiled.')]))])
     replies = [dict(call='extract', claims=[claim(1, 'canon_fact', entities=['agnea'])]),
-               dict(call='verdicts', verdicts=[verdict(file='kb/agnea.md') | dict(evidence='name: Agnea')])]
+               dict(call='verdicts', verdicts=[verdict(file='kb/agnea.md') | dict(evidence='name: Agnea')]),
+               dict(call='contract', findings=[])]
     if fix_rounds:
-        replies += [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])]
+        replies += [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[]), dict(call='contract', findings=[])]
     validation_calls, _, _ = fake(monkeypatch, replies)
     result = CliRunner().invoke(app, ['world', 'tell', 'test', '--day', '1'])
     assert result.exit_code == (0 if fix_rounds else 1), result.output

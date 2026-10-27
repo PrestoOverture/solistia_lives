@@ -4,7 +4,7 @@ import itertools
 import json
 import re
 from pathlib import Path
-from typing import Self
+from typing import Literal, Self
 
 from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
@@ -260,11 +260,21 @@ class LogFixItem(BaseModel):
     paragraph: int
 
 
+class ContractFixItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: int
+    paragraph: int
+    quote: str
+    kind: Literal['pov', 'meta', 'left_open', 'scope']
+    reason: str
+
+
 class StoredFixEdit(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     round: int
-    fixes: list[KBFixItem | LogFixItem]
+    fixes: list[KBFixItem | LogFixItem | ContractFixItem]
     old_string: str
     new_string: str
 
@@ -335,4 +345,6 @@ def _fix_items(round):
              for claim in round.claims if isinstance(claim, CheckedClaim) and claim.verdict == 'contradicted']
     items += [entry.model_dump(include={'quote', 'reason', 'scene', 'paragraph'})
               for entry in round.log or [] if entry.verdict == 'contradicted']
+    items += [finding.model_dump(include={'paragraph', 'quote', 'kind', 'reason'})
+              for finding in round.contract]
     return [dict(id=i, **item) for i, item in enumerate(items, 1)]

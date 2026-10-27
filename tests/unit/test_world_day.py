@@ -29,6 +29,8 @@ def files(path):
 def test_world_day(tmp_path, monkeypatch, failure, stop_after):
     for name in ('config', 'prompts', 'cards'):
         shutil.copytree(ROOT / name, tmp_path / name)
+    (tmp_path / 'docs').mkdir()
+    shutil.copy(ROOT / 'docs/prd.md', tmp_path / 'docs/prd.md')
     for slug in ('agnea', 'throne'):
         destination = tmp_path / 'kb/characters' / slug
         destination.mkdir(parents=True)
@@ -127,7 +129,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
     monkeypatch.setattr(narrator, 'ClaudeSDKClient', FakeClient)
     monkeypatch.setattr(character, 'ClaudeSDKClient', FakeClient)
     monkeypatch.setattr(world_agent, 'ClaudeSDKClient', FakeClient)
-    fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])])
+    fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[]), dict(call='contract', findings=[])])
     args = ['world', 'run', 'test'] + (['--stop-after', 'day'] if stop_after else [])
     if failure == 'dry_run':
         args += ['--dry-run']

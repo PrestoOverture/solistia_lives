@@ -8,7 +8,7 @@ from story_engine.agents import narrator, validation
 from story_engine.agents.narrator import FixReply, _apply_edits, _check_edits
 from story_engine.cli import app
 from test_extract import claim, fake, workspace as extract_workspace
-from test_validation import workspace, verdict, log_world, log_entry, log_reply
+from test_validation import workspace, verdict, log_world, log_entry, log_reply, contract_finding
 
 
 def setup_fake(monkeypatch, replies):
@@ -19,7 +19,8 @@ def setup_fake(monkeypatch, replies):
 
 def check(kind='contradicted'):
     return [dict(call='extract', claims=[claim(1, 'canon_fact')]),
-            dict(call='verdicts', verdicts=[verdict(kind=kind)])]
+            dict(call='verdicts', verdicts=[verdict(kind=kind)]),
+            dict(call='contract', findings=[])]
 
 
 def edit(old='assertion', new='correction'):
@@ -47,9 +48,9 @@ def test_fix_clean(workspace, monkeypatch):
     assert (directory / 'draft.md').read_text() == original
     report = json.loads((directory / 'validation.json').read_text())
     assert [r['round'] for r in report['rounds']] == [1, 2]
-    assert json.loads(calls[3])['sentences'] == [dict(sentence_id=1, text='Temenos made an correction.', entities=['temenos'])]
-    assert json.loads(calls[2])['text'] == original
-    items = json.loads(calls[2])['fixes']
+    assert json.loads(calls[4])['sentences'] == [dict(sentence_id=1, text='Temenos made an correction.', entities=['temenos'])]
+    assert json.loads(calls[3])['text'] == original
+    items = json.loads(calls[3])['fixes']
     assert items == [dict(id=1, quote='Uninspected quote.', claim='Uninspected assertion.',
                           reason='Uninspected reason.', evidence='name: Temenos', source='kb/temenos.md')]
     assert json.loads((directory / 'edits.json').read_text()) == [dict(round=1, fixes=items, old_string='assertion', new_string='correction')]
@@ -71,7 +72,7 @@ def test_bad_match_retry_failure(workspace, monkeypatch, old):
     calls, _, _ = setup_fake(monkeypatch, check() + [edit(old), edit(old)])
     result = run()
     assert result.exit_code == 1
-    assert len(calls) == 4 and 'occur exactly once' in calls[-1]
+    assert len(calls) == 5 and 'occur exactly once' in calls[-1]
     directory, meta = artifacts()
     assert meta['status'] == 'failed' and 'after one retry' in meta['error']
     assert (directory / 'validation.json').exists()
@@ -88,7 +89,7 @@ def test_exhausted(workspace, monkeypatch, limit):
     directory, meta = artifacts()
     assert meta['status'] == 'failed'
     assert meta['error'] == f'contradictions remain after {limit} fix rounds'
-    assert len(calls) == (5 if limit else 2)
+    assert len(calls) == (7 if limit else 3)
     assert (directory / 'draft.md').read_text() == 'Temenos assertion.'
     assert len(json.loads((directory / 'validation.json').read_text())['rounds']) == limit + 1
     assert (directory / 'edits.json').exists() and not (directory / 'story.md').exists()
@@ -100,7 +101,7 @@ def test_no_fix_for_uncertain(workspace, monkeypatch, kind):
     replies = check('not_in_kb')
     if kind == 'unverified':
         bad = dict(call='verdicts', verdicts=[verdict() | dict(evidence='missing evidence')])
-        replies = [replies[0], bad, bad]
+        replies = [replies[0], bad, bad, dict(call='contract', findings=[])]
     calls, options, _ = setup_fake(monkeypatch, replies)
     result = run()
     assert result.exit_code == 0, result.output
@@ -115,7 +116,7 @@ def test_persistent_fixer(workspace, monkeypatch):
     calls, options, _ = setup_fake(monkeypatch, check() + [edit()] + check() + [edit('correction', 'truth')] + check('supported'))
     assert run('--rounds', '2').exit_code == 0
     assert len(options) == 4  # three validator sessions, one fixer
-    assert json.loads(calls[5])['text'] == 'Temenos correction.'
+    assert json.loads(calls[7])['text'] == 'Temenos correction.'
     directory, _ = artifacts()
     assert [r['round'] for r in json.loads((directory / 'validation.json').read_text())['rounds']] == [1, 2, 3]
 
@@ -130,20 +131,44 @@ def test_default_rounds_and_negative(workspace, monkeypatch):
     calls, _, _ = setup_fake(monkeypatch, check())
     assert run('--rounds', '-1').exit_code == 2
     assert calls == []
-    assert run().exit_code == 1 and len(calls) == 2
+    assert run().exit_code == 1 and len(calls) == 3
     assert artifacts()[1]['error'] == 'contradictions remain after 0 fix rounds'
 
 
 def test_log_only_fix(log_world, monkeypatch):
     initial = [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[]),
-               log_reply(log_entry(verdict='contradicted', events=[]))]
+               log_reply(log_entry(verdict='contradicted', events=[])),
+               dict(call='contract', findings=[])]
     clean = [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[]),
-             dict(call='log', paragraphs=[dict(id=1, lines=[])])]
+             dict(call='log', paragraphs=[dict(id=1, lines=[])]),
+             dict(call='contract', findings=[])]
     calls, _, _ = setup_fake(monkeypatch, initial + [edit('No entities here.', 'He waited.')] + clean)
     result = run('--world', 'tiny', '--scene', 'chosen')
     assert result.exit_code == 0, result.output
-    assert json.loads(calls[3])['fixes'] == [dict(id=1, quote='No entities here.', reason='Same action.', scene='chosen', paragraph=2)]
-    assert json.loads(calls[6])['paragraphs'] == [dict(id=1, text='“Hello,” he said.\nHe waited.')]
+    assert json.loads(calls[4])['fixes'] == [dict(id=1, quote='No entities here.', reason='Same action.', scene='chosen', paragraph=2)]
+    assert json.loads(calls[7])['paragraphs'] == [dict(id=1, text='“Hello,” he said.\nHe waited.')]
+
+
+def test_contract_only_fix(workspace, monkeypatch):
+    original = 'Temenos waited.\n\nA second paragraph.'
+    Path('input.md').write_text(original)
+    finding = contract_finding(quote='A second paragraph.', kind='meta')
+    clean = [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])]
+    calls, _, _ = setup_fake(monkeypatch, clean + [dict(call='contract', findings=[finding]),
+        edit('A second paragraph.', 'The wind fell silent.')] + clean + [dict(call='contract', findings=[])])
+    result = run()
+    assert result.exit_code == 0, result.output
+    assert json.loads(calls[3])['fixes'] == [dict(id=1, **finding)]
+    assert json.loads(calls[6])['paragraphs'] == [dict(id=1, text='The wind fell silent.')]
+    directory, meta = artifacts()
+    assert meta['status'] == 'passed'
+    assert (directory / 'story.md').read_text() == original.replace('A second paragraph.', 'The wind fell silent.')
+    report = validation.Validation.model_validate_json((directory / 'validation.json').read_text())
+    assert [round.contradicted for round in report.rounds] == [1, 0]
+    assert report.rounds[1].contract == []
+    assert json.loads((directory / 'edits.json').read_text()) == [dict(
+        round=1, fixes=[dict(id=1, **finding)], old_string='A second paragraph.',
+        new_string='The wind fell silent.')]
 
 
 @pytest.mark.parametrize('text,edits,expected,changed', [

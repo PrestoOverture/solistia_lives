@@ -28,6 +28,10 @@ def verdict(claim_id=0, kind='contradicted', file='kb/temenos.md'):
                 reason='Uninspected reason.', verdict=kind, source=file)
 
 
+def contract_reply(*findings):
+    return dict(call='contract', findings=list(findings))
+
+
 def run_story():
     Path('input.md').write_bytes(b'Temenos made an assertion.\n\nNo entities here.\n')
     return CliRunner().invoke(app, ['eval', 'validate', 'input.md'])
@@ -37,15 +41,15 @@ def test_round_cli_and_single_session(workspace, monkeypatch):
     replies = [extracted(), dict(call='verdicts', verdicts=[
         verdict(4, 'supported'), verdict(2, 'not_in_kb', None), verdict(),
     ])]
-    calls, options, life = fake(monkeypatch, replies)
+    calls, options, life = fake(monkeypatch, replies + [contract_reply()])
     result = run_story()
     assert result.exit_code == 0, result.output
     assert 'contradicted=1' in result.output
     assert 'Uninspected quote. [kb/temenos.md]' in result.output
     assert 'not_in_kb=1' in result.output
     assert len(options) == 1 and life == ['enter', 'exit']
-    assert len(calls) == 2
-    first, second = map(json.loads, calls)
+    assert len(calls) == 3
+    first, second, _ = map(json.loads, calls)
     assert first == dict(call='extract', sentences=[dict(
         sentence_id=1, text='Temenos made an assertion.', entities=['temenos'])])
     assert second.pop('sources') == {name: Path(name).read_text() for name in
@@ -63,7 +67,7 @@ def test_round_cli_and_single_session(workspace, monkeypatch):
     for i, v in [(0, verdict()), (2, verdict(2, 'not_in_kb', None)), (4, verdict(4, 'supported'))]:
         expected[i] |= {k: value for k, value in v.items() if k != 'claim_id'}
         expected[i]['claimed_verdict'] = None
-    assert data == dict(rounds=[dict(round=1, claims=expected, not_in_kb=[expected[2]], contradicted=1, unverified=[], log=None)])
+    assert data == dict(rounds=[dict(round=1, claims=expected, not_in_kb=[expected[2]], contradicted=1, unverified=[], log=None, contract=[])])
     assert Validation.model_validate(data).model_dump() == data
     meta = json.loads((run / 'meta.json').read_text())
     assert meta['mode'] == 'validate' and meta['status'] == 'passed'
@@ -82,10 +86,10 @@ def test_verdict_retry_once_and_failure(workspace, monkeypatch, bad, error, reco
     extraction = dict(call='extract', claims=[claim(1, 'canon_fact')])
     invalid = dict(call='verdicts', verdicts=bad)
     corrected = dict(call='verdicts', verdicts=[verdict()])
-    calls, options, life = fake(monkeypatch, [extraction, invalid, corrected if recover else invalid])
+    calls, options, life = fake(monkeypatch, [extraction, invalid, corrected if recover else invalid] + [contract_reply()])
     result = run_story()
     assert result.exit_code == (0 if recover else 1), result.output
-    assert len(calls) == 3 and error in calls[2]
+    assert len(calls) == (3 + int(recover)) and error in calls[2]
     assert len(options) == 1 and life == ['enter', 'exit']
     run = next(Path('runs').iterdir())
     meta = json.loads((run / 'meta.json').read_text())
@@ -94,11 +98,11 @@ def test_verdict_retry_once_and_failure(workspace, monkeypatch, bad, error, reco
         assert 'after one retry' in meta['error'] and error in meta['error']
         assert not (run / 'validation.json').exists()
     usage = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
-    assert [row['stage'] for row in usage if row['type'] == 'stage_usage'] == ['extract', 'verdicts', 'verdicts']
+    assert [row['stage'] for row in usage if row['type'] == 'stage_usage'] == ['extract', 'verdicts', 'verdicts'] + (['contract'] if recover else [])
 
 
-def test_empty_claims_still_two_calls(workspace, monkeypatch):
-    calls, options, life = fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])])
+def test_empty_claims_still_checks_contract(workspace, monkeypatch):
+    calls, options, life = fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])] + [contract_reply()])
     Path('input.md').write_text('No known entities.')
     result = CliRunner().invoke(app, ['eval', 'validate', 'input.md'])
     assert result.exit_code == 0, result.output
@@ -123,7 +127,7 @@ def test_models_file_configures_validator(workspace, monkeypatch, custom):
         config['validator'] = dict(model=config['narrator']['model'], effort='low', thinking='adaptive')
         models_file.write_text(yaml.safe_dump(config))
     _, options, _ = fake(monkeypatch, [dict(call='extract', claims=[]),
-                                       dict(call='verdicts', verdicts=[])])
+                                       dict(call='verdicts', verdicts=[])] + [contract_reply()])
     Path('input.md').write_text('Temenos made an assertion.')
     args = ['eval', 'validate', 'input.md']
     if custom:
@@ -156,13 +160,13 @@ def test_missing_evidence_retries_once_then_fails(workspace, monkeypatch, kind, 
     invalid = verdict(kind=kind) | dict(evidence=evidence)
     calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=[claim(1, 'canon_fact')]),
                                    dict(call='verdicts', verdicts=[invalid]),
-                                   dict(call='verdicts', verdicts=[invalid])])
+                                   dict(call='verdicts', verdicts=[invalid])] + [contract_reply()])
     result = run_story()
     assert result.exit_code == 0, result.output
     assert 'unverified=1' in result.output
     assert f'claimed_verdict={kind}' in result.output
     assert claim(1, 'canon_fact')['claim'] in result.output
-    assert len(calls) == 3
+    assert len(calls) == 4
     request = json.loads(calls[2])
     assert request['call'] == 'verdicts'
     assert request['claims'] == [dict(claim_id=0, **claim(1, 'canon_fact'))]
@@ -202,10 +206,10 @@ def test_markdown_evidence_passes(workspace, monkeypatch, formatted, plain, reve
     path.write_text(path.read_text() + '\n' + source)
     reply = verdict() | dict(evidence=evidence)
     calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=[claim(1, 'canon_fact')]),
-                                   dict(call='verdicts', verdicts=[reply])])
+                                   dict(call='verdicts', verdicts=[reply])] + [contract_reply()])
     result = run_story()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 2
+    assert len(calls) == 3
 
 
 def test_bare_bracket_evidence_passes(workspace, monkeypatch):
@@ -213,9 +217,9 @@ def test_bare_bracket_evidence_passes(workspace, monkeypatch):
     path.write_text(path.read_text() + '\n- [Mother](../../characters/throne/mother.md) – Co-leader and administrator')
     reply = verdict() | dict(evidence='[Mother] – Co-leader and administrator')
     calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=[claim(1, 'canon_fact')]),
-                                   dict(call='verdicts', verdicts=[reply])])
+                                   dict(call='verdicts', verdicts=[reply])] + [contract_reply()])
     result = run_story()
-    assert len(calls) == 2
+    assert len(calls) == 3
     assert result.exit_code == 0, result.output
     run = next(Path('runs').iterdir())
     checked = json.loads((run / 'validation.json').read_text())['rounds'][0]['claims'][0]
@@ -230,10 +234,10 @@ def test_ellipsis_evidence_passes(workspace, monkeypatch, ellipsis):
     path.write_text(path.read_text() + '\n**First fragment**.\nUnquoted passage.\nLast fragment.')
     reply = verdict() | dict(evidence=f'{ellipsis} First fragment. {ellipsis} Last fragment. {ellipsis}')
     calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=[claim(1, 'canon_fact')]),
-                                   dict(call='verdicts', verdicts=[reply])])
+                                   dict(call='verdicts', verdicts=[reply])] + [contract_reply()])
     result = run_story()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 2
+    assert len(calls) == 3
 
 
 @pytest.mark.parametrize('source', ['kb/temenos.md', 'cards/temenos.md', 'prompts/world_premise.md'])
@@ -241,10 +245,10 @@ def test_normalized_evidence_passes(workspace, monkeypatch, source):
     Path(source).write_text(Path(source).read_text() + '\nHe met [his colleague](../people/colleague.md)\n  before the journey.')
     reply = verdict(file=source) | dict(evidence='He met his colleague   before\nthe journey.')
     calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=[claim(1, 'canon_fact')]),
-                                   dict(call='verdicts', verdicts=[reply])])
+                                   dict(call='verdicts', verdicts=[reply])] + [contract_reply()])
     result = run_story()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 2
+    assert len(calls) == 3
 
 
 @pytest.mark.parametrize('source', ['prompts/world_judge.md', 'config/models.yaml',
@@ -278,7 +282,7 @@ def test_only_claim_entity_traveler_cards_supplied(workspace, monkeypatch, offse
     claims = [claim(1, 'canon_fact', selected + ['other']),
               claim(1, 'invented_detail', ['temenos'])]
     calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=claims),
-                                   dict(call='verdicts', verdicts=[verdict()])])
+                                   dict(call='verdicts', verdicts=[verdict()])] + [contract_reply()])
     assert run_story().exit_code == 0
     sources = json.loads(calls[1])['sources']
     assert sources == {name: Path(name).read_text() for name in
@@ -294,10 +298,10 @@ def test_evidence_reask_only_failing_claim(workspace, monkeypatch, recover):
         dict(call='extract', claims=claims),
         dict(call='verdicts', verdicts=[verdict(0), invalid]),
         dict(call='verdicts', verdicts=[replacement]),
-    ])
+    ] + [contract_reply()])
     result = run_story()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 3
+    assert len(calls) == 4
     assert len(options) == 1 and life == ['enter', 'exit']
     assert json.loads(calls[2])['claims'] == [dict(claim_id=1, **claims[1])]
     run = next(Path('runs').iterdir())
@@ -323,10 +327,10 @@ def test_evidence_reask_schema_and_source_retry(workspace, monkeypatch, bad, rec
         dict(call='extract', claims=[claim(1, 'canon_fact')]),
         dict(call='verdicts', verdicts=[invalid]), bad_reply,
         dict(call='verdicts', verdicts=[verdict()]) if recover else bad_reply,
-    ])
+    ] + [contract_reply()])
     result = run_story()
     assert result.exit_code == (0 if recover else 1), result.output
-    assert len(calls) == 4
+    assert len(calls) == (4 + int(recover))
     assert 'Reply validation failed for verdicts' in calls[3]
     run = next(Path('runs').iterdir())
     assert (run / 'validation.json').exists() == recover
@@ -337,10 +341,10 @@ def test_all_evidence_failures_collected(workspace, monkeypatch):
     invalid = [verdict(i) | dict(evidence='Absent evidence.') for i in range(2)]
     calls, _, _ = fake(monkeypatch, [dict(call='extract', claims=claims),
                                    dict(call='verdicts', verdicts=invalid),
-                                   dict(call='verdicts', verdicts=invalid)])
+                                   dict(call='verdicts', verdicts=invalid)] + [contract_reply()])
     result = run_story()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 3
+    assert len(calls) == 4
     request = json.loads(calls[2])
     assert request['claims'] == [dict(claim_id=i, **c) for i, c in enumerate(claims)]
     assert [error['claim_id'] for error in request['errors']] == [0, 1]
@@ -394,10 +398,10 @@ def run_log(*options):
 def test_log_input_single_session_and_legacy_rounds(log_world, monkeypatch):
     from story_engine.agents.narrator import act_beats, act_scene_events
 
-    calls, options, life = fake(monkeypatch, log_replies(log_entry(events=[1, 2, 3])))
+    calls, options, life = fake(monkeypatch, log_replies(log_entry(events=[1, 2, 3])) + [contract_reply()])
     result = run_log()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 3 and len(options) == 1 and life == ['enter', 'exit']
+    assert len(calls) == 4 and len(options) == 1 and life == ['enter', 'exit']
     request = json.loads(calls[2])
     assert request == dict(call='log', paragraphs=[dict(id=1, text='Temenos waited.'),
                           dict(id=2, text='“Hello,” he said.\nNo entities here.')], scene='chosen',
@@ -408,6 +412,8 @@ def test_log_input_single_session_and_legacy_rounds(log_world, monkeypatch):
     assert request['beats'][0]['round'] is None
     assert [e['id'] for e in request['beats'][0]['events']] == [2, 3]
     assert Path('prompts/validator_log.md').read_text() in options[0].system_prompt
+    assert json.loads(calls[3])['call'] == 'contract'
+    assert json.loads(calls[3])['paragraphs'] == request['paragraphs']
     assert 'log_contradicted=0' in result.output
 
 
@@ -418,10 +424,10 @@ def test_log_input_single_session_and_legacy_rounds(log_world, monkeypatch):
 @pytest.mark.parametrize('recover', [False, True])
 def test_log_whole_reply_retry(log_world, monkeypatch, entry, error, recover):
     replies = log_replies(entry) + [log_reply(log_entry() if recover else entry)]
-    calls, options, life = fake(monkeypatch, replies)
+    calls, options, life = fake(monkeypatch, replies + [contract_reply()])
     result = run_log()
     assert result.exit_code == (0 if recover else 1), result.output
-    assert len(calls) == 4 and error in calls[3]
+    assert len(calls) == (4 + int(recover)) and error in calls[3]
     assert len(options) == 1 and life == ['enter', 'exit']
     run = next(Path('runs').iterdir())
     assert (run / 'validation.json').exists() == recover
@@ -436,10 +442,10 @@ def test_log_whole_reply_retry(log_world, monkeypatch, entry, error, recover):
 
 def test_log_contradiction_count_scene_and_print(log_world, monkeypatch):
     entry = log_entry(verdict='contradicted', events=[])
-    calls, _, _ = fake(monkeypatch, log_replies(entry))
+    calls, _, _ = fake(monkeypatch, log_replies(entry) + [contract_reply()])
     result = run_log()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 3
+    assert len(calls) == 4
     assert 'contradicted=1' in result.output
     assert 'log_contradicted=1' in result.output
     assert 'No entities here. [scene chosen]' in result.output
@@ -464,21 +470,22 @@ def test_log_invalid_context_before_model(log_world, monkeypatch, args, message)
 
 def test_no_log_prompt_and_null(workspace, monkeypatch):
     calls, options, _ = fake(monkeypatch, [dict(call='extract', claims=[]),
-                                         dict(call='verdicts', verdicts=[])])
+                                         dict(call='verdicts', verdicts=[])] + [contract_reply()])
     result = run_story()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 2
+    assert len(calls) == 3
     assert options[0].system_prompt == (Path('prompts/validator_extract.md').read_text()
-                                        + '\n' + Path('prompts/validator_verdict.md').read_text())
+                                        + '\n' + Path('prompts/validator_verdict.md').read_text()
+                                        + '\n' + Path('prompts/validator_contract.md').read_text())
     run = next(Path('runs').iterdir())
     assert json.loads((run / 'validation.json').read_text())['rounds'][0]['log'] is None
 
 
 def test_log_quote_normalization(log_world, monkeypatch):
-    calls, _, _ = fake(monkeypatch, log_replies(log_entry(quote='"Hello," he said.')))
+    calls, _, _ = fake(monkeypatch, log_replies(log_entry(quote='"Hello," he said.')) + [contract_reply()])
     result = run_log()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 3
+    assert len(calls) == 4
 
 
 def test_log_retry_collects_all_problems(log_world, monkeypatch):
@@ -487,10 +494,10 @@ def test_log_retry_collects_all_problems(log_world, monkeypatch):
     bad = log_reply(log_entry(quote=first, events=[999]),
                     log_entry(quote=second, events=[]))
     calls, _, _ = fake(monkeypatch, log_replies(log_entry())[:2]
-                        + [bad, log_reply(log_entry())])
+                        + [bad, log_reply(log_entry())] + [contract_reply()])
     result = run_log()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 4
+    assert len(calls) == 5
     retry = calls[3]
     assert f"event ids outside this act's log: {first[:60]!r}: [999]" in retry
     assert 'log quote not found' not in retry
@@ -502,10 +509,10 @@ def test_log_retry_collects_all_problems(log_world, monkeypatch):
 def test_log_interrupted_quote_located(log_world, monkeypatch, ellipsis):
     Path('input.md').write_text('"And second," Gus continued, "I was sorting"')
     entry = log_entry(quote=f'And second, {ellipsis} I was sorting')
-    calls, _, _ = fake(monkeypatch, log_replies(entry))
+    calls, _, _ = fake(monkeypatch, log_replies(entry) + [contract_reply()])
     result = run_log()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 3
+    assert len(calls) == 4
     run = next(Path('runs').iterdir())
     report = json.loads((run / 'validation.json').read_text())['rounds'][0]
     assert report['log'][0] == entry | dict(scene=None, located=True, paragraph=1)
@@ -517,10 +524,10 @@ def test_log_interrupted_quote_located(log_world, monkeypatch, ellipsis):
 @pytest.mark.parametrize('verdict', ['supported', 'contradicted'])
 def test_missing_log_quote_kept(log_world, monkeypatch, quote, verdict):
     entry = log_entry(quote=quote, verdict=verdict)
-    calls, _, _ = fake(monkeypatch, log_replies(entry))
+    calls, _, _ = fake(monkeypatch, log_replies(entry) + [contract_reply()])
     result = run_log()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 3
+    assert len(calls) == 4
     run = next(Path('runs').iterdir())
     assert json.loads((run / 'meta.json').read_text())['status'] == 'passed'
     report = json.loads((run / 'validation.json').read_text())['rounds'][0]
@@ -538,7 +545,7 @@ def test_log_transition_events_exclude_intent(log_world, monkeypatch):
     directory = Path('worlds/tiny')
     (directory / 'events.jsonl').write_text(
         ''.join(event.model_dump_json() + '\n' for event in log_world))
-    calls, _, _ = fake(monkeypatch, log_replies(log_entry()))
+    calls, _, _ = fake(monkeypatch, log_replies(log_entry()) + [contract_reply()])
     result = run_log()
     assert result.exit_code == 0, result.output
     transitions = json.loads(calls[2])['transition_events']
@@ -549,23 +556,24 @@ def test_log_transition_events_exclude_intent(log_world, monkeypatch):
 def test_log_request_marker_free_blank_line_paragraphs(log_world, monkeypatch):
     Path('input.md').write_text('\n<!-- r:1 -->\n\nFirst line.\nStill first.<!-- e:1 -->\n \t\n\nSecond.\n\n<!-- r:2 -->\n')
     reply = dict(call='log', paragraphs=[dict(id=1, lines=[]), dict(id=2, lines=[])])
-    calls, _, _ = fake(monkeypatch, log_replies(log_entry())[:2] + [reply])
+    calls, _, _ = fake(monkeypatch, log_replies(log_entry())[:2] + [reply] + [contract_reply()])
     result = run_log()
     assert result.exit_code == 0, result.output
     request = json.loads(calls[2])
     assert 'text' not in request
     assert request['paragraphs'] == [dict(id=1, text='First line.\nStill first.'),
                                      dict(id=2, text='Second.')]
+    assert json.loads(calls[3])['paragraphs'] == request['paragraphs']
 
 
 @pytest.mark.parametrize('recover', [False, True])
 def test_log_missing_paragraph_retries(log_world, monkeypatch, recover):
     bad = dict(call='log', paragraphs=[dict(id=1, lines=[])])
     calls, _, _ = fake(monkeypatch, log_replies(log_entry())[:2] + [
-        bad, log_reply(log_entry()) if recover else bad])
+        bad, log_reply(log_entry()) if recover else bad] + [contract_reply()])
     result = run_log()
     assert result.exit_code == (0 if recover else 1), result.output
-    assert len(calls) == 4
+    assert len(calls) == (4 + int(recover))
     assert 'missing paragraph ids: [2]' in calls[3]
     if not recover:
         assert 'after one retry' in result.output
@@ -589,12 +597,115 @@ def test_log_paragraph_and_event_problems_collected(log_world, monkeypatch):
 def test_log_quote_location_is_paragraph_local(log_world, monkeypatch, paragraph, located):
     entry = log_entry(quote='Temenos waited.')
     calls, _, _ = fake(monkeypatch, log_replies(entry)[:2] + [
-        log_reply(entry, paragraph=paragraph)])
+        log_reply(entry, paragraph=paragraph)] + [contract_reply()])
     result = run_log()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 3
+    assert len(calls) == 4
     run = next(Path('runs').iterdir())
     report = json.loads((run / 'validation.json').read_text())['rounds'][0]
     assert report['log'] == [entry | dict(paragraph=paragraph, located=located, scene=None)]
     trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     assert sum(row['type'] == 'log_quote_not_found' for row in trace) == int(not located)
+
+
+def contract_finding(**changes):
+    return dict(paragraph=2, quote='No entities here.', kind='pov',
+                reason='Uninspected contract reason.') | changes
+
+
+@pytest.mark.parametrize('kind', ['pov', 'meta', 'left_open', 'scope'])
+def test_contract_finding_stored_counted_and_fixed(workspace, monkeypatch, kind):
+    from story_engine.agents.narrator import _fix_items
+
+    finding = contract_finding(kind=kind)
+    calls, options, life = fake(monkeypatch, [
+        dict(call='extract', claims=[claim(1, 'canon_fact')]),
+        dict(call='verdicts', verdicts=[verdict()]),
+        dict(call='contract', findings=[finding]),
+    ])
+    result = run_story()
+    assert result.exit_code == 0, result.output
+    assert len(options) == 1 and life == ['enter', 'exit']
+    assert [json.loads(call)['call'] for call in calls] == ['extract', 'verdicts', 'contract']
+    request = json.loads(calls[2])
+    assert not Path('docs').exists()
+    assert request == dict(
+        call='contract', paragraphs=[dict(id=1, text='Temenos made an assertion.'),
+                                    dict(id=2, text='No entities here.')],
+        style_specification=Path('prompts/style_spec.md').read_text(encoding='utf-8'),
+    )
+    assert options[0].system_prompt.endswith(Path('prompts/validator_contract.md').read_text())
+    schema = options[0].output_format['schema']
+    assert schema['$defs']['ContractReply']['properties']['call']['const'] == 'contract'
+    assert 'located' not in schema['$defs']['ContractFinding']['properties']
+    directory = next(Path('runs').iterdir())
+    report = Validation.model_validate_json((directory / 'validation.json').read_text()).rounds[0]
+    assert [entry.model_dump() for entry in report.contract] == [finding | dict(located=True)]
+    assert report.contradicted == 2  # One canon contradiction plus one contract finding.
+    assert _fix_items(report)[-1] == dict(id=2, **finding)
+
+
+@pytest.mark.parametrize('recover', [False, True])
+def test_contract_unknown_paragraph_retries(workspace, monkeypatch, recover):
+    bad = dict(call='contract', findings=[contract_finding(paragraph=99)])
+    calls, options, life = fake(monkeypatch, [
+        dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[]),
+        bad, dict(call='contract', findings=[contract_finding()]) if recover else bad,
+    ])
+    result = run_story()
+    assert result.exit_code == (0 if recover else 1), result.output
+    assert len(calls) == 4 and 'unknown paragraph ids: [99]' in calls[3]
+    assert 'Reply validation failed for contract' in calls[3]
+    assert len(options) == 1 and life == ['enter', 'exit']
+    directory = next(Path('runs').iterdir())
+    assert (directory / 'validation.json').exists() == recover
+    trace = [json.loads(line) for line in (directory / 'trace.jsonl').read_text().splitlines()]
+    invalid = [row for row in trace if row['type'] == 'reply_invalid']
+    assert [row['attempt'] for row in invalid] == ([1] if recover else [1, 2])
+    assert all(row['stage'] == 'contract' for row in invalid)
+    if not recover:
+        assert 'after one retry' in result.output
+    else:
+        report = Validation.model_validate_json((directory / 'validation.json').read_text()).rounds[0]
+        assert report.contract[0].paragraph == 2 and report.contradicted == 1
+
+
+@pytest.mark.parametrize('quote,located', [
+    ('Absent quote.', False), ('Temenos made an assertion.', False),
+    ('', False), ('… ...', False), ('No entities here. … Absent.', False),
+    ('No entities … here.', True), ('No entities ... here.', True),
+])
+def test_contract_quote_location_is_paragraph_local(workspace, monkeypatch, quote, located):
+    from story_engine.agents.narrator import _fix_items
+
+    finding = contract_finding(quote=quote)
+    calls, _, _ = fake(monkeypatch, [
+        dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[]),
+        dict(call='contract', findings=[finding]),
+    ])
+    assert run_story().exit_code == 0
+    assert len(calls) == 3  # A missing quote is kept without a retry.
+    directory = next(Path('runs').iterdir())
+    report = Validation.model_validate_json((directory / 'validation.json').read_text()).rounds[0]
+    assert report.contract[0].model_dump() == finding | dict(located=located)
+    assert report.contradicted == 1 and _fix_items(report) == [dict(id=1, **finding)]
+    trace = [json.loads(line) for line in (directory / 'trace.jsonl').read_text().splitlines()]
+    missing = [row for row in trace if row['type'] == 'contract_quote_not_found']
+    assert len(missing) == int(not located)
+    if missing:
+        assert all(missing[0][key] == value for key, value in finding.items())
+    assert not any(row['type'] == 'reply_invalid' for row in trace)
+
+
+@pytest.mark.parametrize('kind,count', [('supported', 0), ('contradicted', 1)])
+def test_empty_contract_keeps_contradicted_count(workspace, monkeypatch, kind, count):
+    calls, _, _ = fake(monkeypatch, [
+        dict(call='extract', claims=[claim(1, 'canon_fact')]),
+        dict(call='verdicts', verdicts=[verdict(kind=kind)]),
+        contract_reply(),
+    ])
+    assert run_story().exit_code == 0
+    assert len(calls) == 3
+    directory = next(Path('runs').iterdir())
+    report = Validation.model_validate_json((directory / 'validation.json').read_text()).rounds[0]
+    assert report.contract == [] and report.contradicted == count

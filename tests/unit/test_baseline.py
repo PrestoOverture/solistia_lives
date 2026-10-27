@@ -46,6 +46,8 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
+    (tmp_path / 'docs').mkdir()
+    shutil.copy(source / 'docs/prd.md', tmp_path / 'docs/prd.md')
     monkeypatch.chdir(tmp_path)
     for key in ("ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL"):
         monkeypatch.delenv(key, raising=False)
@@ -73,9 +75,9 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
     monkeypatch.setattr(initializer, "ClaudeSDKClient", FakeInitializer)
     monkeypatch.setattr(baseline, "ClaudeSDKClient", UnexpectedWriter)
-    for name in ('validator_extract.md', 'validator_verdict.md', 'world_premise.md'):
+    for name in ('validator_extract.md', 'validator_verdict.md', 'validator_contract.md', 'world_premise.md'):
         shutil.copy(source / 'prompts' / name, tmp_path / 'prompts' / name)
-    fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])])
+    fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[]), dict(call='contract', findings=[])])
     fake_client = validation.ClaudeSDKClient
 
     class DraftValidator(fake_client):
@@ -433,4 +435,4 @@ def test_baseline_exhausts_configured_fix_rounds(repo, monkeypatch):
     assert len(report['rounds']) == 3 and report['rounds'][-1]['contradicted'] == 1
     assert len(json.loads((run_dir / 'edits.json').read_text())) == 2
     assert not (run_dir / 'story.md').exists()
-    assert len(calls) == 8
+    assert len(calls) == 11
