@@ -1,6 +1,7 @@
 """Read-only world-day evaluation: data metrics and one semantic judge session."""
 
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import Literal, get_args
 
@@ -14,7 +15,7 @@ from story_engine.config import StrictModel, load_configs
 from story_engine.runs import create_run, finish_run, record_api_host
 from story_engine.trace import TraceWriter
 from story_engine.world.io import load_state, read_events, read_scenes
-from story_engine.world.models import WorldInfo
+from story_engine.world.models import WorldInfo, WorldState
 
 Metric = Literal['state_follows_log', 'canon_and_scope', 'continuity']
 
@@ -47,14 +48,54 @@ class WorldReport(Findings):
     error: str | None = None
 
 
+def stale_candidates(state: WorldState, parts: list[str]) -> list[dict]:
+    """List data candidates only; whether an obligation was fulfilled is judged."""
+    now = (state.clock.day, parts.index(state.clock.part))
+    candidates = []
+    for group in ('characters', 'people'):
+        for name, member in getattr(state, group).items():
+            for index, commitment in enumerate(member.commitments):
+                if (commitment.day, parts.index(commitment.part)) < now:
+                    candidates.append(dict(
+                        kind='commitment', id=commitment.id,
+                        state_ref=f'{group}.{name}.commitments.{index}',
+                        owner=name, value=commitment.model_dump()))
+    for index, situation in enumerate(state.situations):
+        if situation.status == 'open' and (situation.due.day, parts.index(situation.due.part)) < now:
+            candidates.append(dict(kind='situation', id=situation.id,
+                                   state_ref=f'situations.{index}', value=situation.model_dump()))
+    return candidates
+
+
+def judge_output(payload: dict) -> dict:
+    """Constrain event-sourced state citations to the supplied candidates."""
+    output = json_schema_output(Findings)
+    if not payload.get('event_sourced') or not payload['stale_candidates']:
+        return output
+    schema = output['schema']
+    base = schema['$defs']['Finding']
+    other = deepcopy(base)
+    other['properties']['metric']['enum'] = ['canon_and_scope', 'continuity']
+    refs = [row['state_ref'] for row in payload['stale_candidates']]
+    state = deepcopy(base)
+    state['properties']['metric'] = {'type': 'string', 'const': 'state_follows_log'}
+    state['properties']['state_refs'] = {
+        'type': 'array', 'items': {'type': 'string', 'enum': refs}, 'minItems': 1}
+    schema['$defs']['Finding'] = {'anyOf': [other, state]}
+    return output
+
+
 async def judge(root, run_dir, payload, role, max_turns, trace, cost):
     hooks = KBHooks(root, run_dir, 'world_judge', 1)
     options = session_options(
         root, run_dir, role, (root / 'prompts/world_judge.md').read_text(), max_turns,
-        hooks, tools=['Read', 'Grep'], output_format=json_schema_output(Findings),
+        hooks, tools=['Read', 'Grep'], output_format=judge_output(payload),
     )
     record_api_host(run_dir, options.env.get('ANTHROPIC_BASE_URL'))
     allowed_ids = {row['id'] for key in ('events', 'previous_events') for row in payload[key]}
+    if payload.get('event_sourced') and not payload['stale_candidates']:
+        payload = {**payload, 'metrics_to_judge': ['canon_and_scope'] +
+                   (['continuity'] if payload['day'] >= 2 else [])}
     request = json.dumps(payload, ensure_ascii=False)
     async with ClaudeSDKClient(options=options) as client:
         for attempt in range(role.retries + 1):
@@ -76,16 +117,28 @@ async def judge(root, run_dir, payload, role, max_turns, trace, cost):
             result, structured = await run_call(receive_call(), role=role, trace=trace, stage="world_eval", agent="world_judge")
             try:
                 reply = Findings.model_validate(structured_reply(result, structured))
+                if payload.get('event_sourced') and not payload['stale_candidates']:
+                    ignored = [f for f in reply.findings if f.metric == 'state_follows_log']
+                    if ignored:
+                        trace.write('state_findings_ignored', reason='no_stale_candidates',
+                                    findings=[f.model_dump() for f in ignored])
+                    reply.findings = [f for f in reply.findings if f.metric != 'state_follows_log']
                 unknown = {i for f in reply.findings for i in f.event_ids} - allowed_ids
                 if unknown:
                     raise ValueError(f'unknown event ids: {sorted(unknown)}')
                 for finding in reply.findings:
                     if not finding.event_ids and not finding.state_refs:
                         raise ValueError('every finding must cite at least one event id or state_ref')
+                    if finding.metric == 'state_follows_log' and payload.get('event_sourced'):
+                        refs = {row['state_ref'] for row in payload['stale_candidates']}
+                        if not finding.state_refs or not set(finding.state_refs) <= refs:
+                            raise ValueError('state_follows_log must cite supplied stale candidate state_refs')
                     if finding.metric == 'continuity' and payload['day'] == 1:
                         raise ValueError('continuity findings are not allowed on day 1')
                 return reply.findings
             except ValueError as error:
+                trace.write('judge_validation_failed', attempt=attempt + 1,
+                            error=str(error), reply=structured)
                 if attempt == role.retries:
                     raise SessionError(f'World judge validation failed after {"one retry" if role.retries == 1 else str(role.retries) + " retries"}: {error}') from None
                 request = f'Reply validation failed: {error}\nReturn corrected structured output.'
@@ -133,6 +186,8 @@ async def evaluate_world(world_id: str, day: int | None = None,
         if end is not None:
             report.findings = await judge(Path.cwd(), run_dir, {
                 'day': day, 'end_state': end.model_dump(),
+                'event_sourced': (world_dir / 'genesis.json').exists(),
+                'stale_candidates': stale_candidates(end, settings.parts_of_day),
                 'events': [e.model_dump() for e in today],
                 'outcomes': [e.model_dump() for e in today if e.scene is None and e.of is not None],
                 'scenes': [s.model_dump() for s in scenes],

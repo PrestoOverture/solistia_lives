@@ -209,7 +209,7 @@ def test_reference_rules_retry_once(world, monkeypatch, recover, metric, event_i
                                  perceived_by=['agnea'], scene=scene, of=of))
     bad = {'findings': [dict(metric=metric, event_ids=event_ids, state_refs=state_refs,
                              explanation='Unchecked free text.')]}
-    good = {'findings': [dict(metric='state_follows_log', event_ids=[2], state_refs=[],
+    good = {'findings': [dict(metric='canon_and_scope', event_ids=[2], state_refs=[],
                               explanation='Unchecked free text.')]}
     calls, options, life = fake(monkeypatch, [bad, good if recover else bad])
     before = files(world)
@@ -228,9 +228,9 @@ def test_reference_rules_retry_once(world, monkeypatch, recover, metric, event_i
 
 
 @pytest.mark.parametrize('metric,event_ids,state_refs', [
-    ('state_follows_log', [1], []),
-    ('state_follows_log', [2], ['characters.throne.where']),
-    ('state_follows_log', [], ['characters.throne.where']),
+    ('canon_and_scope', [1], []),
+    ('canon_and_scope', [2], ['characters.throne.where']),
+    ('canon_and_scope', [], ['characters.throne.where']),
     ('canon_and_scope', [2], []),
 ])
 def test_valid_reference_reply_passes(world, monkeypatch, metric, event_ids, state_refs):
@@ -282,3 +282,117 @@ def test_non_session_error_includes_diagnostic(world, monkeypatch):
     result = invoke('test')
     assert result.exit_code == 1
     assert report()[1]['error'] == 'RuntimeError: test diagnostic'
+
+
+def test_stale_candidates_use_clock_order_and_cover_both_kinds(world):
+    from story_engine.world.models import Commitment
+    state = load_state(world)
+    state.clock.day, state.clock.part = 1, 'evening'
+    state.characters['agnea'].commitments = [
+        Commitment(id='past', what='Perform', where='cropdale', day=1, part='afternoon'),
+        Commitment(id='now', what='Stay', where='cropdale', day=1, part='evening'),
+        Commitment(id='future', what='Return', where='cropdale', day=2, part='morning'),
+    ]
+    state.situations[0].status = 'open'
+    state.situations[0].due.day, state.situations[0].due.part = 1, 'morning'
+    state.situations[1].status = 'resolved'
+    state.situations[2].due.day = 2
+    rows = evaluator.stale_candidates(state, ['morning', 'afternoon', 'evening', 'night'])
+    assert [row['id'] for row in rows] == ['past', state.situations[0].id]
+    assert rows[0]['state_ref'] == 'characters.agnea.commitments.0'
+    assert rows[1]['state_ref'] == 'situations.0'
+    assert rows[0]['value']['what'] == 'Perform'
+
+
+def test_event_sourced_judge_receives_candidates(world, monkeypatch):
+    finish(world)
+    calls, _, _ = fake(monkeypatch, [{'findings': []}])
+    result = invoke('test')
+    assert result.exit_code == 0, result.output
+    payload = json.loads(calls[0])
+    assert payload['event_sourced'] is True
+    assert payload['stale_candidates'] == evaluator.stale_candidates(
+        load_state(world), ['morning', 'afternoon', 'evening', 'night'])
+
+
+def test_event_sourced_rejects_whereabouts_finding(world, monkeypatch):
+    finish(world)
+    bad = {'findings': [dict(metric='state_follows_log', event_ids=[],
+                             state_refs=['characters.throne.where'], explanation='Moved.') ]}
+    calls, _, _ = fake(monkeypatch, [bad, {'findings': []}])
+    result = invoke('test')
+    assert result.exit_code == 0, result.output
+    assert 'supplied stale candidate state_refs' in calls[1]
+
+
+def test_stale_commitment_finding_is_accepted_for_person(world, monkeypatch):
+    from story_engine.world.models import Commitment, Person
+    state = load_state(world)
+    state.clock.day, state.clock.part = 2, 'morning'
+    state.people['Guest'] = Person(where='cropdale', wants=['Listen'], commitments=[
+        Commitment(id='guest-promise', what='Attend', where='cropdale', day=1, part='night')])
+    (world / 'genesis.json').write_text(state.model_dump_json(indent=2))
+    (world / 'state.json').write_text(state.model_dump_json(indent=2))
+    good = {'findings': [dict(metric='state_follows_log', event_ids=[],
+        state_refs=['people.Guest.commitments.0'],
+        explanation='guest-promise expired without recorded fulfillment or release.')]}
+    calls, _, _ = fake(monkeypatch, [good])
+    result = invoke('test')
+    assert result.exit_code == 0, result.output
+    assert report()[1]['findings'] == good['findings']
+    assert any(c['id'] == 'guest-promise' for c in json.loads(calls[0])['stale_candidates'])
+
+
+
+def test_judge_schema_constrains_state_findings_to_candidate_refs():
+    payload = dict(event_sourced=True, stale_candidates=[dict(state_ref='people.Guest.commitments.0')])
+    schema = evaluator.judge_output(payload)['schema']['$defs']['Finding']
+    other, state = schema['anyOf']
+    assert other['properties']['metric']['enum'] == ['canon_and_scope', 'continuity']
+    assert state['properties']['metric']['const'] == 'state_follows_log'
+    assert state['properties']['state_refs']['items']['enum'] == ['people.Guest.commitments.0']
+    assert state['properties']['state_refs']['minItems'] == 1
+    payload['stale_candidates'] = []
+    assert 'anyOf' not in evaluator.judge_output(payload)['schema']['$defs']['Finding']
+    assert 'anyOf' not in evaluator.judge_output(dict(event_sourced=False))['schema']['$defs']['Finding']
+
+
+def test_legacy_world_keeps_whereabouts_citations(world, monkeypatch):
+    finish(world)
+    (world / 'genesis.json').unlink()
+    good = {'findings': [dict(metric='state_follows_log', event_ids=[],
+                             state_refs=['characters.throne.where'], explanation='Legacy mismatch.')]}
+    calls, options, _ = fake(monkeypatch, [good])
+    result = invoke('test')
+    assert result.exit_code == 0, result.output
+    assert json.loads(calls[0])['event_sourced'] is False
+    assert 'anyOf' not in options[0].output_format['schema']['$defs']['Finding']
+    assert report()[1]['findings'] == good['findings']
+
+
+
+@pytest.mark.parametrize('day', [1, 2])
+def test_empty_candidates_skip_state_metric_without_losing_canon(world, monkeypatch, day):
+    finish(world, day + 1)
+    state = load_state(world)
+    for member in [*state.characters.values(), *state.people.values()]:
+        member.commitments = []
+    for situation in state.situations:
+        situation.status = 'resolved'
+    (world / 'genesis.json').write_text(state.model_dump_json(indent=2))
+    (world / 'state.json').write_text(state.model_dump_json(indent=2))
+    noise = dict(metric='state_follows_log', event_ids=[999],
+                 state_refs=['characters.throne.where'], explanation='Unrequested noise.')
+    canon = dict(metric='canon_and_scope', event_ids=[],
+                 state_refs=['people'], explanation='Canon evidence.')
+    calls, _, _ = fake(monkeypatch, [{'findings': [noise, canon]}])
+    result = invoke('test')
+    assert result.exit_code == 0, result.output
+    assert len(calls) == 1
+    assert json.loads(calls[0])['metrics_to_judge'] == (
+        ['canon_and_scope'] + (['continuity'] if day >= 2 else []))
+    run, data = report()
+    assert data['findings'] == [canon]
+    events = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
+    ignored = next(e for e in events if e['type'] == 'state_findings_ignored')
+    assert ignored['findings'] == [noise]
