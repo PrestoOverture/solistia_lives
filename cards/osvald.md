@@ -20,7 +20,7 @@
 - **Sentence patterns:** Short declaratives and flat verdicts. When he does speak at length, it is a structured argument from premise to conclusion. Feelings like love resist his definitions, so he deflects them with reasoning.
 
 ## Post-game motivation
-His reckoning with Harvey is behind him, and the One True Magic is his own. What matters now is his daughter Elena, who is healing in Conning Creek in Clarissa's care and has not yet been told the whole truth of who he is. He wants to earn back his place as her father at her pace, and to keep teaching her magic, as she once asked him to.
+His reckoning with Harvey is behind him, and the One True Magic is his own. What matters now is his daughter Elena, who lives in Conning Creek in Clarissa's care. She has recovered her memories and knows him again as her father; they have found each other at last. He wants to make up the years Harvey took from them, at her pace, and to keep teaching her magic, as she once asked him to.
 
 ## Emotional baseline
 Reserved and steady, with grief for his wife Rita still under the surface. The vengeance that drove him is spent. What remains is quieter: a dry, rarely voiced contentment among friends and a protective streak toward the young ones.
