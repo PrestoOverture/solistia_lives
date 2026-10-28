@@ -196,7 +196,7 @@ def test_baseline_session(repo: Path, monkeypatch: pytest.MonkeyPatch, thinking:
     retrieval = rows(run_dir / "retrieval.jsonl")
     assert [(r["agent"], r["tool"]) for r in retrieval] == [(role, tool) for role in ("initializer", "baseline") for tool in ("Read", "Grep", "Glob")]
     assert all(r["reason"] == f"{r['agent']} checking {r['tool']}." for r in retrieval)
-    trace = [e for e in rows(run_dir / "trace.jsonl") if e.get("agent") != "validator" and e.get("stage") != "validate"]
+    trace = [e for e in rows(run_dir / "trace.jsonl") if e.get("agent") not in ("validator", "validator_contract") and e.get("stage") != "validate"]
     assert [(e["type"], e.get("stage")) for e in trace] == [
         ("run_started", None),
         ("stage_started", "scene_context"), ("stage_usage", "scene_context"), ("stage_finished", "scene_context"),
@@ -263,7 +263,7 @@ def test_reused_context_skips_initializer(repo: Path, source_run: Path, monkeypa
     meta = RunMeta.model_validate_json((run_dir / "meta.json").read_text())
     assert meta.scene_context_from == source_run.name
     assert meta.status == "passed"
-    trace = [e for e in rows(run_dir / "trace.jsonl") if e.get("agent") != "validator" and e.get("stage") != "validate"]
+    trace = [e for e in rows(run_dir / "trace.jsonl") if e.get("agent") not in ("validator", "validator_contract") and e.get("stage") != "validate"]
     context_events = [e for e in trace if e.get("stage") == "scene_context"]
     assert len(context_events) == 1
     assert context_events[0]["type"] == "stage_reused"

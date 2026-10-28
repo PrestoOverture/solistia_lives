@@ -92,8 +92,8 @@ class StoredContractFinding(ContractFinding):
     located: bool
 
 
-ValidatorReply = Annotated[ExtractReply | VerdictReply | ContractReply, Field(discriminator='call')]
-LogValidatorReply = Annotated[ExtractReply | VerdictReply | LogReply | ContractReply, Field(discriminator='call')]
+ValidatorReply = Annotated[ExtractReply | VerdictReply, Field(discriminator='call')]
+LogValidatorReply = Annotated[ExtractReply | VerdictReply | LogReply, Field(discriminator='call')]
 
 
 class CheckedClaim(Claim):
@@ -159,15 +159,13 @@ async def _call(client, request, *, parse, check, hooks, trace, cost, options, s
     raise AssertionError('unreachable')
 
 
-def _options(root, run_dir, role, max_turns, schema, verdicts=False, log=False, contract=False):
+def _options(root, run_dir, role, max_turns, schema, verdicts=False, log=False):
     hooks = KBHooks(root, run_dir, 'validator', 1)
     prompt = (root / 'prompts/validator_extract.md').read_text()
     if verdicts:
         prompt += '\n' + (root / 'prompts/validator_verdict.md').read_text()
     if log:
         prompt += '\n' + (root / 'prompts/validator_log.md').read_text()
-    if contract:
-        prompt += '\n' + (root / 'prompts/validator_contract.md').read_text()
     options = session_options(root, run_dir, role, prompt, max_turns, hooks,
                               tools=['Read', 'Grep'], output_format=json_schema_output(schema))
     record_api_host(run_dir, options.env.get('ANTHROPIC_BASE_URL'))
@@ -255,7 +253,7 @@ async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns
         sentence.sentence_id = i
     schema = LogValidatorReply if log_input is not None else ValidatorReply
     hooks, options = _options(root, run_dir, role, max_turns, schema, verdicts=True,
-                              log=log_input is not None, contract=True)
+                              log=log_input is not None)
     log = None
     paragraphs = [dict(id=i, text=part) for i, part in enumerate(
         (part.strip() for part in re.split(r"\n[ \t]*\n", strip_markers(text)) if part.strip()), 1)]
@@ -342,12 +340,19 @@ async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns
                         'scene': log_input['scene'] if entry.verdict == 'contradicted' else None,
                         'located': located,
                     })))
-        hooks.turn += 1
+    hooks = KBHooks(root, run_dir, 'validator_contract', 1)
+    options = session_options(
+        root, run_dir, role, (root / 'prompts/validator_contract.md').read_text(),
+        max_turns, hooks, tools=['Read', 'Grep'], output_format=json_schema_output(ContractReply))
+    record_api_host(run_dir, options.env.get('ANTHROPIC_BASE_URL'))
+    async with ClaudeSDKClient(options=options) as client:
         reply = await _call(client, json.dumps(dict(
             call='contract', paragraphs=paragraphs,
             style_specification=(root / 'prompts/style_spec.md').read_text(encoding='utf-8')),
             ensure_ascii=False),
-            check=check_contract, stage='contract', **common)
+            check=check_contract, stage='contract', role=role, hooks=hooks, trace=trace,
+            cost=SessionCost(), options=options, parse=ContractReply.model_validate,
+            agent='validator_contract')
         contract = []
         for finding in reply.findings:
             located = _quote_located(finding.quote, paragraph_text[finding.paragraph])

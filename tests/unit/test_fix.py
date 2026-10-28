@@ -54,12 +54,12 @@ def test_fix_clean(workspace, monkeypatch):
     assert items == [dict(id=1, quote='Uninspected quote.', claim='Uninspected assertion.',
                           reason='Uninspected reason.', evidence='name: Temenos', source='kb/temenos.md')]
     assert json.loads((directory / 'edits.json').read_text()) == [dict(round=1, fixes=items, old_string='assertion', new_string='correction')]
-    assert options[1].tools == options[1].allowed_tools == ['Read']
-    assert options[1].model == meta['models']['narrator']['model']
+    assert options[2].tools == options[2].allowed_tools == ['Read']
+    assert options[2].model == meta['models']['narrator']['model']
     for name in ('narrator_fix.md', 'style_spec.md', 'world_premise.md'):
-        assert Path('prompts', name).read_text() in options[1].system_prompt
-    assert Path('cards/temenos.md').read_text() in options[1].system_prompt
-    assert life.count('enter') == 3
+        assert Path('prompts', name).read_text() in options[2].system_prompt
+    assert Path('cards/temenos.md').read_text() in options[2].system_prompt
+    assert life.count('enter') == 5
     trace = [json.loads(line) for line in (directory / 'trace.jsonl').read_text().splitlines()]
     usage = [row for row in trace if row.get('stage') == 'fix' and row['type'] == 'stage_usage']
     assert len(usage) == 1 and usage[0]['agent'] == 'narrator'
@@ -106,7 +106,7 @@ def test_no_fix_for_uncertain(workspace, monkeypatch, kind):
     result = run()
     assert result.exit_code == 0, result.output
     directory, meta = artifacts()
-    assert meta['status'] == 'passed' and len(options) == 1
+    assert meta['status'] == 'passed' and len(options) == 2
     assert (directory / 'story.md').read_text() == Path('input.md').read_text()
     assert json.loads((directory / 'edits.json').read_text()) == []
 
@@ -115,7 +115,7 @@ def test_persistent_fixer(workspace, monkeypatch):
     Path('input.md').write_text('Temenos assertion.')
     calls, options, _ = setup_fake(monkeypatch, check() + [edit()] + check() + [edit('correction', 'truth')] + check('supported'))
     assert run('--rounds', '2').exit_code == 0
-    assert len(options) == 4  # three validator sessions, one fixer
+    assert len(options) == 7  # three validator/contract session pairs, one fixer
     assert json.loads(calls[7])['text'] == 'Temenos correction.'
     directory, _ = artifacts()
     assert [r['round'] for r in json.loads((directory / 'validation.json').read_text())['rounds']] == [1, 2, 3]

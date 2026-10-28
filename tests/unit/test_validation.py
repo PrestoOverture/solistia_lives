@@ -37,7 +37,7 @@ def run_story():
     return CliRunner().invoke(app, ['eval', 'validate', 'input.md'])
 
 
-def test_round_cli_and_single_session(workspace, monkeypatch):
+def test_round_cli_and_validator_sessions(workspace, monkeypatch):
     replies = [extracted(), dict(call='verdicts', verdicts=[
         verdict(4, 'supported'), verdict(2, 'not_in_kb', None), verdict(),
     ])]
@@ -47,7 +47,7 @@ def test_round_cli_and_single_session(workspace, monkeypatch):
     assert 'contradicted=1' in result.output
     assert 'Uninspected quote. [kb/temenos.md]' in result.output
     assert 'not_in_kb=1' in result.output
-    assert len(options) == 1 and life == ['enter', 'exit']
+    assert len(options) == 2 and life == ['enter', 'exit', 'enter', 'exit']
     assert len(calls) == 3
     first, second, _ = map(json.loads, calls)
     assert first == dict(call='extract', sentences=[dict(
@@ -90,7 +90,8 @@ def test_verdict_retry_once_and_failure(workspace, monkeypatch, bad, error, reco
     result = run_story()
     assert result.exit_code == (0 if recover else 1), result.output
     assert len(calls) == (3 + int(recover)) and error in calls[2]
-    assert len(options) == 1 and life == ['enter', 'exit']
+    assert len(options) == 1 + int(recover)
+    assert life == ['enter', 'exit'] * (1 + int(recover))
     run = next(Path('runs').iterdir())
     meta = json.loads((run / 'meta.json').read_text())
     assert meta['status'] == ('passed' if recover else 'failed')
@@ -109,7 +110,7 @@ def test_empty_claims_still_checks_contract(workspace, monkeypatch):
     assert json.loads(calls[0]) == dict(call='extract', sentences=[])
     assert json.loads(calls[1]) == dict(call='verdicts', claims=[], sources={
         'prompts/world_premise.md': Path('prompts/world_premise.md').read_text()})
-    assert len(options) == 1
+    assert len(options) == 2
 
 
 def test_help():
@@ -135,7 +136,7 @@ def test_models_file_configures_validator(workspace, monkeypatch, custom):
     result = CliRunner().invoke(app, args)
     assert result.exit_code == 0, result.output
     role = config['validator']
-    assert len(options) == 1
+    assert len(options) == 2
     assert options[0].model == role['model']
     assert options[0].effort == role['effort']
     assert options[0].thinking == {'type': 'adaptive' if role['thinking'] == 'adaptive' else 'disabled'}
@@ -302,7 +303,7 @@ def test_evidence_reask_only_failing_claim(workspace, monkeypatch, recover):
     result = run_story()
     assert result.exit_code == 0, result.output
     assert len(calls) == 4
-    assert len(options) == 1 and life == ['enter', 'exit']
+    assert len(options) == 2 and life == ['enter', 'exit', 'enter', 'exit']
     assert json.loads(calls[2])['claims'] == [dict(claim_id=1, **claims[1])]
     run = next(Path('runs').iterdir())
     report = json.loads((run / 'validation.json').read_text())['rounds'][0]
@@ -395,13 +396,13 @@ def run_log(*options):
                                   *(options or ('--world', 'tiny', '--scene', 'chosen'))])
 
 
-def test_log_input_single_session_and_legacy_rounds(log_world, monkeypatch):
+def test_log_input_and_legacy_rounds(log_world, monkeypatch):
     from story_engine.agents.narrator import act_beats, act_scene_events
 
     calls, options, life = fake(monkeypatch, log_replies(log_entry(events=[1, 2, 3])) + [contract_reply()])
     result = run_log()
     assert result.exit_code == 0, result.output
-    assert len(calls) == 4 and len(options) == 1 and life == ['enter', 'exit']
+    assert len(calls) == 4 and len(options) == 2 and life == ['enter', 'exit', 'enter', 'exit']
     request = json.loads(calls[2])
     assert request == dict(call='log', paragraphs=[dict(id=1, text='Temenos waited.'),
                           dict(id=2, text='“Hello,” he said.\nNo entities here.')], scene='chosen',
@@ -428,7 +429,8 @@ def test_log_whole_reply_retry(log_world, monkeypatch, entry, error, recover):
     result = run_log()
     assert result.exit_code == (0 if recover else 1), result.output
     assert len(calls) == (4 + int(recover)) and error in calls[3]
-    assert len(options) == 1 and life == ['enter', 'exit']
+    assert len(options) == 1 + int(recover)
+    assert life == ['enter', 'exit'] * (1 + int(recover))
     run = next(Path('runs').iterdir())
     assert (run / 'validation.json').exists() == recover
     trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
@@ -475,8 +477,7 @@ def test_no_log_prompt_and_null(workspace, monkeypatch):
     assert result.exit_code == 0, result.output
     assert len(calls) == 3
     assert options[0].system_prompt == (Path('prompts/validator_extract.md').read_text()
-                                        + '\n' + Path('prompts/validator_verdict.md').read_text()
-                                        + '\n' + Path('prompts/validator_contract.md').read_text())
+                                        + '\n' + Path('prompts/validator_verdict.md').read_text())
     run = next(Path('runs').iterdir())
     assert json.loads((run / 'validation.json').read_text())['rounds'][0]['log'] is None
 
@@ -613,6 +614,67 @@ def contract_finding(**changes):
                 reason='Uninspected contract reason.') | changes
 
 
+@pytest.mark.parametrize('with_log', [False, True])
+def test_contract_uses_fresh_client_after_validator_closes(log_world, monkeypatch, with_log):
+    from claude_agent_sdk import ResultMessage
+    from story_engine.agents import validation
+    from story_engine.agents.sdk import json_schema_output
+
+    replies = iter(log_replies(log_entry())[:3 if with_log else 2] + [contract_reply()])
+    clients, life = [], []
+
+    class Client:
+        def __init__(self, *, options):
+            self.options = options
+            self.calls = []
+            self.id = len(clients)
+            life.append(('create', self.id))
+            clients.append(self)
+
+        async def __aenter__(self):
+            life.append(('enter', self.id))
+            return self
+
+        async def __aexit__(self, *args):
+            life.append(('exit', self.id))
+
+        async def query(self, request):
+            self.calls.append(json.loads(request))
+
+        async def receive_response(self):
+            yield ResultMessage('success', 1, 1, False, 1, 'fake',
+                                structured_output=next(replies), total_cost_usd=.1 * len(self.calls))
+
+    monkeypatch.setattr(validation, 'ClaudeSDKClient', Client)
+    result = run_log() if with_log else run_story()
+    assert result.exit_code == 0, result.output
+    assert life == [('create', 0), ('enter', 0), ('exit', 0),
+                    ('create', 1), ('enter', 1), ('exit', 1)]
+    validator, contract = clients
+    assert [call['call'] for call in validator.calls] == ['extract', 'verdicts'] + (['log'] if with_log else [])
+    assert [call['call'] for call in contract.calls] == ['contract']
+    contract_prompt = Path('prompts/validator_contract.md').read_text()
+    extract_prompt = Path('prompts/validator_extract.md').read_text()
+    assert contract.options.system_prompt == contract_prompt
+    assert extract_prompt not in contract.options.system_prompt
+    assert extract_prompt in validator.options.system_prompt
+    assert contract_prompt not in validator.options.system_prompt
+    schema = validator.options.output_format['schema']
+    assert 'ContractReply' not in schema['$defs']
+    assert {variant['$ref'].split('/')[-1] for variant in schema['properties']['reply']['anyOf']} == (
+        {'ExtractReply', 'VerdictReply'} | ({'LogReply'} if with_log else set()))
+    assert contract.options.output_format == json_schema_output(validation.ContractReply)
+    request = contract.calls[0]
+    assert request['style_specification'] == Path('prompts/style_spec.md').read_text()
+    if with_log:
+        assert request['paragraphs'] == validator.calls[2]['paragraphs']
+    directory = next(Path('runs').iterdir())
+    trace = [json.loads(line) for line in (directory / 'trace.jsonl').read_text().splitlines()]
+    usage = [row for row in trace if row['type'] == 'stage_usage']
+    assert [row['agent'] for row in usage] == ['validator'] * len(validator.calls) + ['validator_contract']
+    assert all(row['call_cost_usd'] == pytest.approx(.1) for row in usage)
+
+
 @pytest.mark.parametrize('kind', ['pov', 'meta', 'left_open', 'scope'])
 def test_contract_finding_stored_counted_and_fixed(workspace, monkeypatch, kind):
     from story_engine.agents.narrator import _fix_items
@@ -625,7 +687,7 @@ def test_contract_finding_stored_counted_and_fixed(workspace, monkeypatch, kind)
     ])
     result = run_story()
     assert result.exit_code == 0, result.output
-    assert len(options) == 1 and life == ['enter', 'exit']
+    assert len(options) == 2 and life == ['enter', 'exit', 'enter', 'exit']
     assert [json.loads(call)['call'] for call in calls] == ['extract', 'verdicts', 'contract']
     request = json.loads(calls[2])
     assert not Path('docs').exists()
@@ -634,9 +696,9 @@ def test_contract_finding_stored_counted_and_fixed(workspace, monkeypatch, kind)
                                     dict(id=2, text='No entities here.')],
         style_specification=Path('prompts/style_spec.md').read_text(encoding='utf-8'),
     )
-    assert options[0].system_prompt.endswith(Path('prompts/validator_contract.md').read_text())
-    schema = options[0].output_format['schema']
-    assert schema['$defs']['ContractReply']['properties']['call']['const'] == 'contract'
+    assert options[1].system_prompt == Path('prompts/validator_contract.md').read_text()
+    schema = options[1].output_format['schema']
+    assert schema['properties']['call']['const'] == 'contract'
     assert 'located' not in schema['$defs']['ContractFinding']['properties']
     directory = next(Path('runs').iterdir())
     report = Validation.model_validate_json((directory / 'validation.json').read_text()).rounds[0]
@@ -656,7 +718,7 @@ def test_contract_unknown_paragraph_retries(workspace, monkeypatch, recover):
     assert result.exit_code == (0 if recover else 1), result.output
     assert len(calls) == 4 and 'unknown paragraph ids: [99]' in calls[3]
     assert 'Reply validation failed for contract' in calls[3]
-    assert len(options) == 1 and life == ['enter', 'exit']
+    assert len(options) == 2 and life == ['enter', 'exit', 'enter', 'exit']
     directory = next(Path('runs').iterdir())
     assert (directory / 'validation.json').exists() == recover
     trace = [json.loads(line) for line in (directory / 'trace.jsonl').read_text().splitlines()]
