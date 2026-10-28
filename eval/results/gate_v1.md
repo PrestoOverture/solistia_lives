@@ -87,4 +87,17 @@ Floors (prd §6.1): Lore ≥ 4, Voice ≥ 3, Readability ≥ 3, total ≥ 10.
 | osvald_temenos_agnea_1 | FAIL (3/3/3) | **FAIL** | Agrees: the story slips into Agnea's interior monologue, breaking close third person from one POV per scene (prd §5). |
 | osvald_temenos_agnea_2 | FAIL (3/3/3) | **PASS** | The judge was wrong on Festival of Grace vs Grand Gala (KB aliases), but mixing the two names invites the confusion. Over the word limit (3,227); the author would still pass it. |
 
-Not yet read by the author: agnea_throne_1 (engine term leak) and osvald_temenos_2 (left open), plus the four judge passes.
+Remaining six, read 2026-10-28 (pass/fail only):
+
+| Case | Judge | Author | Note |
+|---|---|---|---|
+| agnea_throne_1 | PASS | PASS | Has flaws (engine-term leak, a broken sentence), fixable by more fix rounds |
+| osvald_temenos_2 | PASS | PASS | Has flaws (left open, short), fixable |
+| osvald_temenos_1 | PASS | PASS | Has flaws, fixable |
+| castti_partitio_1 | PASS | PASS | Has flaws, fixable |
+| castti_partitio_2 | PASS | PASS | Has flaws, fixable |
+| hikari_ochette_1 | PASS | **FAIL** | Broken logic: the garrison is "three days' ride south", yet they run there and arrive by sunset |
+
+## 5.4 Gate decision
+
+Author verdicts on all 10: **8/10 pass**. Fails: osvald_temenos_agnea_1 (POV slip) and hikari_ochette_1 (travel-time contradiction). The prd §6.5 gate (8/10) **passes, exactly at the threshold**. The author's standard was "a passing grade on homework": every story has flaws, and most look fixable with more fix rounds. Judge vs author disagreements: 5 of 10 (agnea_throne_2, hikari_ochette_2, and osvald_temenos_agnea_2 judge FAIL → author PASS; hikari_ochette_1 judge PASS → author FAIL; osvald_temenos_agnea_1 agrees FAIL but for different reasons). Three judge failures rested on wrong lore claims, a cross-family judge without KB access.
