@@ -45,6 +45,17 @@ Then the **validator** goes through it from the top. It picks out the sentences 
 
 When there's a contradiction, the writer **edits only the sentences at fault**, and the validator rechecks only the edited paragraphs, for up to three rounds. If it still isn't fixed after three, the story is marked failed, with the draft and full trace kept for debugging; it is never rewritten from scratch. Stories that pass can be read in the local web UI, with "story contract" notes at the end pointing out POV slips, wording that breaks the fiction, loose ends, and stakes too big for a short story. The notes are advisory and don't affect whether a story passes.
 
+## Sample stories
+
+Four stories the engine wrote, each passing the validator. They are in English, and they still have flaws: endings that explain too much, some lines that sound like generic advice.
+
+| Story | Travelers | Where |
+|---|---|---|
+| [The Peculiar Librarian](stories/the_peculiar_librarian.md) | Osvald & Temenos | Montwise |
+| [Red Dust Fever](stories/red_dust_fever.md) | Castti & Partitio | Crackridge |
+| [The Taste of Raspberries](stories/the_taste_of_raspberries.md) | Agnea & Throné | Cropdale |
+| [The Measure of a Mountain](stories/the_measure_of_a_mountain.md) | Osvald & Partitio | the Wildlands |
+
 ## How the world runs
 
 <p align="center"><img src="assets/world_flow.svg" alt="World simulation: a day has four parts, and each part runs plan, meet, play, and off-screen" width="100%"></p>
@@ -111,6 +122,7 @@ Model calls cost money; one story is about $0.70. Each run's spending cap is `ma
 | Path | What's there |
 |---|---|
 | `src/story_engine/` | CLI, agents, world model, simulation loop, local web UI, evaluation tools |
+| `stories/` | Sample stories that passed validation |
 | `prompts/`, `cards/` | Agent prompts and the eight travelers' character cards |
 | `kb/` | The knowledge base: Markdown files built from the wiki |
 | `preprocess/` | Prompts and check reports for the three knowledge-base build steps |

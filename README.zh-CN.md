@@ -45,6 +45,17 @@ Vide 被打败了，八位旅人的旅程也都告一段落，但他们的日子
 
 查出矛盾，写手**只改有问题的那几句**，校验器也只复查改动过的段落，最多来回三轮。三轮还没改好，这篇就算失败，草稿和完整的 trace 都留着方便排查，不会整篇重写。通过的故事可以在本地网页上读，文末附一份「故事契约」提示，指出视角跑偏、出戏的用词、没收尾的悬念和超出范围的大事件。这些只是参考，不影响故事过没过。
 
+## 写出来的故事
+
+下面四篇是写手写的，都通过了校验，原文是英文。它们并不完美，结尾常常解释得太多，有些台词也像泛泛的劝慰。
+
+| 故事 | 旅人 | 地点 |
+|---|---|---|
+| [The Peculiar Librarian](stories/the_peculiar_librarian.md) | Osvald、Temenos | Montwise |
+| [Red Dust Fever](stories/red_dust_fever.md) | Castti、Partitio | Crackridge |
+| [The Taste of Raspberries](stories/the_taste_of_raspberries.md) | Agnea、Throné | Cropdale |
+| [The Measure of a Mountain](stories/the_measure_of_a_mountain.md) | Osvald、Partitio | Wildlands |
+
 ## 世界怎么运转
 
 <p align="center"><img src="assets/world_flow.zh-CN.svg" alt="世界模拟：一天分四个时段，每个时段经过计划、碰面、上演、幕后四步" width="100%"></p>
@@ -111,6 +122,7 @@ uv run pytest tests/unit
 | 路径 | 内容 |
 |---|---|
 | `src/story_engine/` | CLI、各个 agent、世界模型、模拟循环、本地网页、评测工具 |
+| `stories/` | 通过校验的故事样本 |
 | `prompts/`、`cards/` | agent 的 prompt 和八位旅人的角色卡 |
 | `kb/` | 知识库，由 wiki 整理成的 Markdown 文件 |
 | `preprocess/` | 搭建知识库三个步骤的 prompt 和检查报告 |
