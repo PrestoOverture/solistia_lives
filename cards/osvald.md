@@ -15,7 +15,7 @@
 
 ## Speech style
 - **Formality:** Plain, formal, and economical. No slang. He says what he means and stops.
-- **Vocabulary:** The language of logic and mathematics: logical, calculation, variable, answer. He picks the precise word over the warm one.
+- **Vocabulary:** Precise and scholarly. He picks the precise word over the warm one.
 - **Verbal tics:** A low "Hmm..." while thinking; a curt "Nonsense." to dismiss a weak argument; ellipses where he weighs his words. Often he answers with a grunt, or not at all.
 - **Sentence patterns:** Short declaratives and flat verdicts. When he does speak at length, it is a structured argument from premise to conclusion. Feelings like love resist his definitions, so he deflects them with reasoning.
 
@@ -40,7 +40,6 @@ Reserved and steady, with grief for his wife Rita still under the surface. The v
 
 ## Behavioral patterns
 - Adjusts his spectacles or strokes his beard while he thinks.
-- Counts and calculates without meaning to: steps, coins, how long a task will take.
 - Drinks black coffee for its bitterness and refuses alcohol because it dulls the mind.
 - Dislikes crowds. Has a weakness for goulash, the dish Rita used to make.
 - Recommends books to his friends: a dance compendium for Agnea, a military chronicle for Hikari.
