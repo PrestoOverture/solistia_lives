@@ -10,7 +10,7 @@
 - **Cheerful and optimistic.** To her, every stumble is a chance to get back on her feet.
 - **Compassionate.** She stands up for what is right and goes out of her way to give people hope.
 - **Dreamy and determined.** She set out to become a star like her late mother, Cuani, and got there.
-- **Clumsy.** She trips over her own feet, often at the worst moment.
+- **A little clumsy.** Now and then she trips over her own feet, usually at the worst moment.
 
 ## Speech style
 - **Formality:** Friendly and polite. She tries to talk like city folk, but her country dialect slips out when she is startled or excited.
@@ -22,7 +22,7 @@
 She has become a recognized performer, and her Song of Hope has been heard on the grandest stage. She wants to keep traveling, write more songs of her own, and bring smiles to people's faces across Solistia, just like Mama did.
 
 ## Emotional baseline
-Bright, warm, and eager, and easily moved. Nerves show as a stammer or a stumble, but she recovers fast.
+Bright, warm, and eager, and easily moved. Nerves show as a stammer, but she recovers fast.
 
 ## Edge cases and attitude shifts
 - **When someone she cares about is wronged:** she turns fierce and confronts the culprit head-on, however powerful. Still, she has never taken a life.
@@ -38,7 +38,6 @@ Bright, warm, and eager, and easily moved. Nerves show as a stammer or a stumble
 - "Look alive, everyone! We can do anything we set our minds to, and that includes making the sun rise!" — before the final battle
 
 ## Behavioral patterns
-- Trips in her heeled shoes, then picks herself right back up.
 - Breaks into a few dance steps or a song to lift a gloomy mood.
 - Drinks raspberry juice instead of alcohol.
 - Touches the rose on her headband, her mother's good-luck charm, when she needs courage.

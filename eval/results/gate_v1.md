@@ -83,7 +83,7 @@ Floors (prd §6.1): Lore ≥ 4, Voice ≥ 3, Readability ≥ 3, total ≥ 10.
 | Case | Judge | Author | Disagreement |
 |---|---|---|---|
 | agnea_throne_2 | FAIL (lore 3) | **PASS, with reservations** | Lore: the judge was wrong (KB: Sebastian cuts Marietta's throat, Mother finishes her). Author's reservations: Agnea nearly falls 4 times, so clumsiness reads as a disorder rather than a trait; the ending's run of explanations of peace and friendship undercuts the earlier restraint. Over-emphasis, not hallucination. |
-| hikari_ochette_2 | FAIL (lore 2, Benkei dead) | FAIL | The author accepted the judge's Benkei claim, but `kb/characters/hikari/benkei.md` has Benkei alive at Ku's liberation. **To be re-read.** |
+| hikari_ochette_2 | FAIL (lore 2, Benkei dead) | **PASS** | Judge wrong: `kb/characters/hikari/benkei.md` has Benkei alive at Ku's liberation. Re-judged by the author on 2026-10-28: no major lore error. |
 | osvald_temenos_agnea_1 | FAIL (3/3/3) | **FAIL** | Agrees: the story slips into Agnea's interior monologue, breaking close third person from one POV per scene (prd §5). |
 | osvald_temenos_agnea_2 | FAIL (3/3/3) | **PASS** | The judge was wrong on Festival of Grace vs Grand Gala (KB aliases), but mixing the two names invites the confusion. Over the word limit (3,227); the author would still pass it. |
 
