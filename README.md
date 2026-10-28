@@ -47,7 +47,7 @@ When there's a contradiction, the writer **edits only the sentences at fault**, 
 
 ## Sample stories
 
-Four stories the engine wrote, each passing the validator. They are in English, and they still have flaws: endings that explain too much, some lines that sound like generic advice.
+Four stories the engine wrote, each passing the validator.
 
 | Story | Travelers | Where |
 |---|---|---|

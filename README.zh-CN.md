@@ -47,14 +47,14 @@ Vide 被打败了，八位旅人的旅程也都告一段落，但他们的日子
 
 ## 写出来的故事
 
-下面四篇是写手写的，都通过了校验，原文是英文。它们并不完美，结尾常常解释得太多，有些台词也像泛泛的劝慰。
+下面四篇是写手写的，都通过了校验。原文是英文，这里放的是中文译本。
 
 | 故事 | 旅人 | 地点 |
 |---|---|---|
-| [The Peculiar Librarian](stories/the_peculiar_librarian.md) | Osvald、Temenos | Montwise |
-| [Red Dust Fever](stories/red_dust_fever.md) | Castti、Partitio | Crackridge |
-| [The Taste of Raspberries](stories/the_taste_of_raspberries.md) | Agnea、Throné | Cropdale |
-| [The Measure of a Mountain](stories/the_measure_of_a_mountain.md) | Osvald、Partitio | Wildlands |
+| [古怪的图书管理员](stories/the_peculiar_librarian.zh-CN.md)（[英文原文](stories/the_peculiar_librarian.md)） | Osvald、Temenos | Montwise |
+| [赤尘热](stories/red_dust_fever.zh-CN.md)（[英文原文](stories/red_dust_fever.md)） | Castti、Partitio | Crackridge |
+| [覆盆子的滋味](stories/the_taste_of_raspberries.zh-CN.md)（[英文原文](stories/the_taste_of_raspberries.md)） | Agnea、Throné | Cropdale |
+| [丈量大山](stories/the_measure_of_a_mountain.zh-CN.md)（[英文原文](stories/the_measure_of_a_mountain.md)） | Osvald、Partitio | Wildlands |
 
 ## 世界怎么运转
 
