@@ -367,7 +367,7 @@ async def validate_text(text: str, *, root: Path, run_dir: Path, role, max_turns
         round=1, claims=checked,
         not_in_kb=[c for c in checked if isinstance(c, CheckedClaim) and c.verdict == 'not_in_kb'],
         contradicted=sum(isinstance(c, CheckedClaim) and c.verdict == 'contradicted' for c in checked)
-        + sum(entry.verdict == 'contradicted' for entry in log or []) + len(contract),
+        + sum(entry.verdict == 'contradicted' for entry in log or []),
         log=log, contract=contract,
         unverified=[c for c in checked if isinstance(c, CheckedClaim) and c.verdict == 'unverified'],
     )])

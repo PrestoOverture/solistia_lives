@@ -345,6 +345,4 @@ def _fix_items(round):
              for claim in round.claims if isinstance(claim, CheckedClaim) and claim.verdict == 'contradicted']
     items += [entry.model_dump(include={'quote', 'reason', 'scene', 'paragraph'})
               for entry in round.log or [] if entry.verdict == 'contradicted']
-    items += [finding.model_dump(include={'paragraph', 'quote', 'kind', 'reason'})
-              for finding in round.contract]
     return [dict(id=i, **item) for i, item in enumerate(items, 1)]

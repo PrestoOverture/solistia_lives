@@ -13,6 +13,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
+from story_engine.agents.validation import Validation
 from story_engine.config import ConfigError, load_configs
 from story_engine.kb import TRAVELERS, validate_input
 from story_engine.runs import RunInput, create_run
@@ -74,6 +75,17 @@ def _read_story(runs_dir: Path, run_id: str) -> Story | None:
                  len(text.split()), created_at, text)
 
 
+def _validator_notes(run_dir: Path) -> list:
+    path = run_dir / "validation.json"
+    if path.is_symlink():
+        return []
+    try:
+        report = Validation.model_validate_json(path.read_bytes())
+    except (OSError, ValueError):
+        return []
+    return report.rounds[-1].contract if report.rounds else []
+
+
 def create_app(runs_dir: Path = Path("runs")) -> FastAPI:
     """Serve stories and start baseline jobs in the given run directory."""
     runs_dir = runs_dir.resolve()
@@ -110,6 +122,7 @@ def create_app(runs_dir: Path = Path("runs")) -> FastAPI:
                 break
         return templates.TemplateResponse(request=request, name="story.html", context={
             "story": display_story(item), "content": markdown.markdown("".join(lines)),
+            "validator_notes": _validator_notes(runs_dir / run_id),
         })
 
     def form(request, *, selected=(), location="", situation="", error=None, status_code=200):

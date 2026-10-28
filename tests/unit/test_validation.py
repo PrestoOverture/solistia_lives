@@ -676,7 +676,7 @@ def test_contract_uses_fresh_client_after_validator_closes(log_world, monkeypatc
 
 
 @pytest.mark.parametrize('kind', ['pov', 'meta', 'left_open', 'scope'])
-def test_contract_finding_stored_counted_and_fixed(workspace, monkeypatch, kind):
+def test_contract_finding_stored_but_advisory(workspace, monkeypatch, kind):
     from story_engine.agents.narrator import _fix_items
 
     finding = contract_finding(kind=kind)
@@ -703,8 +703,9 @@ def test_contract_finding_stored_counted_and_fixed(workspace, monkeypatch, kind)
     directory = next(Path('runs').iterdir())
     report = Validation.model_validate_json((directory / 'validation.json').read_text()).rounds[0]
     assert [entry.model_dump() for entry in report.contract] == [finding | dict(located=True)]
-    assert report.contradicted == 2  # One canon contradiction plus one contract finding.
-    assert _fix_items(report)[-1] == dict(id=2, **finding)
+    assert report.contradicted == 1  # Only the canon contradiction counts.
+    assert _fix_items(report) == [dict(id=1, **report.claims[0].model_dump(
+        include={'quote', 'claim', 'reason', 'evidence', 'source'}))]
 
 
 @pytest.mark.parametrize('recover', [False, True])
@@ -729,7 +730,7 @@ def test_contract_unknown_paragraph_retries(workspace, monkeypatch, recover):
         assert 'after one retry' in result.output
     else:
         report = Validation.model_validate_json((directory / 'validation.json').read_text()).rounds[0]
-        assert report.contract[0].paragraph == 2 and report.contradicted == 1
+        assert report.contract[0].paragraph == 2 and report.contradicted == 0
 
 
 @pytest.mark.parametrize('quote,located', [
@@ -750,7 +751,7 @@ def test_contract_quote_location_is_paragraph_local(workspace, monkeypatch, quot
     directory = next(Path('runs').iterdir())
     report = Validation.model_validate_json((directory / 'validation.json').read_text()).rounds[0]
     assert report.contract[0].model_dump() == finding | dict(located=located)
-    assert report.contradicted == 1 and _fix_items(report) == [dict(id=1, **finding)]
+    assert report.contradicted == 0 and _fix_items(report) == []
     trace = [json.loads(line) for line in (directory / 'trace.jsonl').read_text().splitlines()]
     missing = [row for row in trace if row['type'] == 'contract_quote_not_found']
     assert len(missing) == int(not located)

@@ -61,6 +61,66 @@ def test_story_renders_markdown_and_header(tmp_path):
     assert 'href="http://testserver/"' in response.text
     assert "max-width: 65ch" in response.text
     assert "prefers-color-scheme: dark" in response.text
+    assert "<details" not in response.text and "Validator notes" not in response.text
+
+
+@pytest.mark.parametrize("has_findings", [False, True])
+def test_story_shows_only_last_round_validator_notes(tmp_path, has_findings):
+    from story_engine.agents.validation import Validation, ValidationRound
+
+    write_run(tmp_path, "notes")
+    findings = [dict(paragraph=1, kind=kind, quote=f"A <{kind}> memory.",
+                     reason=f"Check {kind} & context.", located=True)
+                for kind in ("pov", "meta", "left_open", "scope")]
+    rounds = [ValidationRound(round=number, claims=[], not_in_kb=[], contradicted=0,
+                              unverified=[], contract=notes)
+              for number, notes in enumerate([
+                  [dict(paragraph=1, kind="scope", quote="Earlier quote.",
+                        reason="Earlier reason.", located=True)],
+                  findings if has_findings else [],
+              ], 1)]
+    (tmp_path / "notes" / "validation.json").write_text(
+        Validation(rounds=rounds).model_dump_json(), encoding="utf-8")
+    with TestClient(create_app(tmp_path)) as client:
+        response = client.get("/story/notes")
+    assert response.status_code == 200
+    html = response.text
+    assert "Earlier quote." not in html and "Earlier reason." not in html
+    if has_findings:
+        assert html.index("</article>") < html.index("<details>")
+        assert "<summary>Validator notes</summary>" in html
+        assert "<details open" not in html
+        for finding in findings:
+            kind = finding["kind"]
+            assert f"<h2>{kind}</h2>" in html
+            assert f"A &lt;{kind}&gt; memory." in html
+            assert f"Check {kind} &amp; context." in html
+    else:
+        assert "<details" not in html and "Validator notes" not in html
+
+
+@pytest.mark.parametrize("report", ["{", '{"rounds": []}'])
+def test_story_tolerates_unusable_validation(tmp_path, report):
+    write_run(tmp_path, "notes")
+    (tmp_path / "notes" / "validation.json").write_text(report, encoding="utf-8")
+    with TestClient(create_app(tmp_path)) as client:
+        response = client.get("/story/notes")
+    assert response.status_code == 200
+    assert "Validator notes" not in response.text
+
+
+def test_story_does_not_read_symlinked_validation(tmp_path):
+    write_run(tmp_path, "notes")
+    (tmp_path / "notes" / "validation.json").symlink_to(tmp_path / "external.json")
+    (tmp_path / "external.json").write_text(json.dumps({"rounds": [{
+        "round": 1, "claims": [], "not_in_kb": [], "contradicted": 0, "unverified": [],
+        "contract": [dict(paragraph=1, kind="scope", quote="Private quote.",
+                          reason="Private reason.", located=True)],
+    }]}), encoding="utf-8")
+    with TestClient(create_app(tmp_path)) as client:
+        response = client.get("/story/notes")
+    assert response.status_code == 200
+    assert "Validator notes" not in response.text and "Private quote." not in response.text
 
 
 @pytest.mark.parametrize("run_id,mode,status,story", [

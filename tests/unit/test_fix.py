@@ -149,26 +149,35 @@ def test_log_only_fix(log_world, monkeypatch):
     assert json.loads(calls[7])['paragraphs'] == [dict(id=1, text='“Hello,” he said.\nHe waited.')]
 
 
-def test_contract_only_fix(workspace, monkeypatch):
+@pytest.mark.parametrize('kind', ['pov', 'meta', 'left_open', 'scope'])
+def test_contract_only_passes_without_fix_session(workspace, monkeypatch, kind):
     original = 'Temenos waited.\n\nA second paragraph.'
     Path('input.md').write_text(original)
-    finding = contract_finding(quote='A second paragraph.', kind='meta')
+    finding = contract_finding(quote='A second paragraph.', kind=kind)
     clean = [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[])]
-    calls, _, _ = setup_fake(monkeypatch, clean + [dict(call='contract', findings=[finding]),
-        edit('A second paragraph.', 'The wind fell silent.')] + clean + [dict(call='contract', findings=[])])
+    calls, options, life = setup_fake(monkeypatch, clean + [dict(call='contract', findings=[finding])])
     result = run()
     assert result.exit_code == 0, result.output
-    assert json.loads(calls[3])['fixes'] == [dict(id=1, **finding)]
-    assert json.loads(calls[6])['paragraphs'] == [dict(id=1, text='The wind fell silent.')]
+    assert [json.loads(call)['call'] for call in calls] == ['extract', 'verdicts', 'contract']
+    assert len(options) == 2 and life == ['enter', 'exit', 'enter', 'exit']
     directory, meta = artifacts()
     assert meta['status'] == 'passed'
-    assert (directory / 'story.md').read_text() == original.replace('A second paragraph.', 'The wind fell silent.')
+    assert (directory / 'story.md').read_text() == original
+    assert (directory / 'draft.md').read_text() == original
     report = validation.Validation.model_validate_json((directory / 'validation.json').read_text())
-    assert [round.contradicted for round in report.rounds] == [1, 0]
-    assert report.rounds[1].contract == []
-    assert json.loads((directory / 'edits.json').read_text()) == [dict(
-        round=1, fixes=[dict(id=1, **finding)], old_string='A second paragraph.',
-        new_string='The wind fell silent.')]
+    assert len(report.rounds) == 1 and report.rounds[0].contradicted == 0
+    assert report.rounds[0].contract[0].model_dump() == finding | dict(located=True)
+    assert json.loads((directory / 'edits.json').read_text()) == []
+    trace = [json.loads(line) for line in (directory / 'trace.jsonl').read_text().splitlines()]
+    assert not any(row.get('stage') == 'fix' for row in trace)
+
+
+def test_legacy_contract_edits_still_load():
+    stored = [dict(round=1, fixes=[dict(id=1, **contract_finding())],
+                   old_string='No entities here.', new_string='He waited.')]
+    edits = narrator.FixEdits.model_validate_json(json.dumps(stored))
+    assert isinstance(edits.root[0].fixes[0], narrator.ContractFixItem)
+    assert edits.model_dump() == stored
 
 
 @pytest.mark.parametrize('text,edits,expected,changed', [

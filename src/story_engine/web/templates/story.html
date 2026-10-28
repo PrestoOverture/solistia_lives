@@ -7,4 +7,16 @@
   <p class="metadata">{{ story.travelers | join(', ') }} · {{ story.location }} · {{ '{:,}'.format(story.word_count) }} words</p>
 </header>
 <article>{{ content | safe }}</article>
+{% if validator_notes %}
+<details>
+  <summary>Validator notes</summary>
+  {% for finding in validator_notes %}
+  <section>
+    <h2>{{ finding.kind }}</h2>
+    <blockquote>{{ finding.quote }}</blockquote>
+    <p>{{ finding.reason }}</p>
+  </section>
+  {% endfor %}
+</details>
+{% endif %}
 {% endblock %}
