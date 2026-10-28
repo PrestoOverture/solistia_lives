@@ -25,6 +25,16 @@ eval_app = typer.Typer(help="Evaluate generated stories.")
 
 
 @app.command()
+def web(port: int = typer.Option(8000, min=1, max=65535, help="Local server port")) -> None:
+    """Read passed baseline stories at http://127.0.0.1:8000."""
+    import uvicorn
+
+    from story_engine.web import create_app
+
+    uvicorn.run(create_app(), host="127.0.0.1", port=port)
+
+
+@app.command()
 def generate(
     characters: str = typer.Option(..., help="Comma-separated character slugs"),
     location: str = typer.Option(...),

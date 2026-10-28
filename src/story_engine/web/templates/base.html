@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Story library{% endblock %} · Solistia Lives</title>
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js" integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous" defer></script>
+  <style>
+    :root { color-scheme: light dark; --paper: #faf7f0; --ink: #29251f; --muted: #6d6255; --rule: #d9d0c1; --link: #73502a; }
+    @media (prefers-color-scheme: dark) {
+      :root { --paper: #201f1c; --ink: #e7e0d3; --muted: #b8ad9b; --rule: #494339; --link: #dfba87; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; font-size: 1.125rem; line-height: 1.85; }
+    main { max-width: 65ch; margin: 0 auto; padding: 3rem 1.25rem 6rem; }
+    h1, h2, h3 { line-height: 1.25; font-weight: normal; }
+    h1 { font-size: 2.25rem; }
+    h2 { font-size: 1.5rem; }
+    a { color: var(--link); text-underline-offset: .2em; }
+    a:hover { text-decoration-thickness: .15em; }
+    header { margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--rule); }
+    .metadata { color: var(--muted); font-family: system-ui, sans-serif; font-size: .875rem; line-height: 1.7; }
+    .library { list-style: none; padding: 0; }
+    .library li { padding: 1.25rem 0; border-bottom: 1px solid var(--rule); }
+    .library h2 { margin: 0 0 .5rem; }
+    article p { margin: 1.25em 0; }
+    article img { max-width: 100%; }
+    article pre { overflow-x: auto; }
+    article blockquote { margin-left: 1rem; padding-left: 1rem; border-left: 2px solid var(--rule); }
+    hr { border: 0; border-top: 1px solid var(--rule); margin: 2.5rem 0; }
+  </style>
+</head>
+<body hx-boost="true" hx-target="main" hx-select="main" hx-swap="outerHTML show:window:top">
+  <main>{% block content %}{% endblock %}</main>
+</body>
+</html>

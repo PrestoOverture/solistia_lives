@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ story.title }}{% endblock %}
+{% block content %}
+<header>
+  <a href="{{ url_for('library') }}">← Story library</a>
+  <h1>{{ story.title }}</h1>
+  <p class="metadata">{{ story.travelers | join(', ') }} · {{ story.location }} · {{ '{:,}'.format(story.word_count) }} words</p>
+</header>
+<article>{{ content | safe }}</article>
+{% endblock %}
