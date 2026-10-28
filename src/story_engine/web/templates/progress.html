@@ -1,0 +1,13 @@
+<section id="progress" aria-live="polite"{% if meta.status == 'running' %}
+  hx-get="{{ url_for('run', run_id=run_id) }}" hx-trigger="every 3s"
+  hx-target="this" hx-select="#progress" hx-swap="outerHTML"{% endif %}>
+  <p>Status: {{ meta.status }}</p>
+  <p>Current stage: {{ progress.stage }}</p>
+  <p>Validation round: {{ progress.validation_round }}</p>
+  <p>Elapsed: {{ progress.elapsed }} seconds</p>
+  {% if meta.status == 'passed' %}
+  <p><a href="{{ url_for('story', run_id=run_id) }}">Read story</a></p>
+  {% elif meta.status == 'failed' %}
+  <p role="alert">{{ meta.error or progress.error or 'Generation failed.' }}</p>
+  {% endif %}
+</section>

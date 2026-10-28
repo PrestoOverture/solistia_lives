@@ -57,6 +57,7 @@ def create_run(
     models_file: str = "config/models.yaml",
     world_id: str | None = None,
     day: int | None = None,
+    runs_dir: Path = Path("runs"),
 ) -> Path:
     now = datetime.now(timezone.utc)
     run_id = f"{now:%Y%m%d-%H%M%S}-{secrets.token_hex(3)}"
@@ -74,7 +75,7 @@ def create_run(
         prompt_hashes=_prompt_hashes(),
         status=status,
     )
-    run_dir = Path("runs") / run_id
+    run_dir = runs_dir / run_id
     run_dir.mkdir(parents=True, exist_ok=False)
     (run_dir / "meta.json").write_text(
         json.dumps(meta.model_dump(mode="json"), ensure_ascii=False, indent=2),

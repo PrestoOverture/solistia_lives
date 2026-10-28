@@ -26,7 +26,7 @@ eval_app = typer.Typer(help="Evaluate generated stories.")
 
 @app.command()
 def web(port: int = typer.Option(8000, min=1, max=65535, help="Local server port")) -> None:
-    """Read passed baseline stories at http://127.0.0.1:8000."""
+    """Read and generate baseline stories at http://127.0.0.1:8000."""
     import uvicorn
 
     from story_engine.web import create_app
@@ -90,58 +90,66 @@ def generate(
             models, status="running",
             scene_context_from=scene_context_from, models_file=str(models_file),
         )
-        trace = TraceWriter(run_dir)
-        trace.write("run_started", run_id=run_dir.name, mode=mode)
-        stage = "scene_context"
-        try:
-            if reused_context is not None:
-                (run_dir / "scene_context.md").write_bytes(reused_context)
-                trace.write("stage_reused", stage=stage, scene_context_from=scene_context_from)
-            else:
-                trace.write("stage_started", stage=stage, agent="initializer")
-                asyncio.run(scene_context(
-                    Path.cwd(), run_dir, character_slugs, location_slug, scenario,
-                    models.initializer, settings.scene_context_max_turns, trace,
-                ))
-                trace.write("stage_finished", stage=stage)
-            if stop_after == "scene_context":
-                status = "stopped"
-            else:
-                stage = "baseline_writer"
-                trace.write("stage_started", stage=stage, agent="baseline")
-                asyncio.run(baseline_writer(
-                    Path.cwd(), run_dir, character_slugs, location_slug, scenario,
-                    models.baseline, settings.words, settings.writer_max_turns, trace,
-                ))
-                story = (run_dir / "draft.md").read_bytes()
-                trace.write("stage_finished", stage=stage, word_count=len(story.decode("utf-8").split()))
-                stage = "validate"
-                text, report = asyncio.run(validate_and_fix(
-                    story.decode("utf-8"), root=Path.cwd(), run_dir=run_dir,
-                    models=models, settings=settings, trace=trace,
-                ))
-                if report.rounds[-1].contradicted:
-                    raise SessionError(f"contradictions remain after {settings.validation_rounds} fix rounds")
-                (run_dir / "story.md").write_text(text, encoding="utf-8")
-                typer.echo(f"not_in_kb={len(report.rounds[-1].not_in_kb)}")
-                status = "passed"
-            finish_run(run_dir, status)
-        except Exception as error:
-            # Exception messages can include credentials from the relay or SDK.
-            detail = str(error) if isinstance(error, SessionError) else type(error).__name__
-            stage = error.stage if isinstance(error, ValidationStageError) else stage
-            summary = f"{stage} failed: {detail}"
-            (run_dir / "story.md").unlink(missing_ok=True)
-            finish_run(run_dir, "failed", summary)
-            trace.write("stage_failed", stage=stage, error=summary)
-            trace.write("run_finished", status="failed")
-            typer.echo(f"{run_dir}: {summary}", err=True)
-            raise typer.Exit(code=1) from None
-        trace.write("run_finished", status=status)
-        typer.echo(run_dir)
+        _execute_generate(run_dir, character_slugs, location_slug, scenario, mode,
+                          stop_after, models, settings, reused_context, scene_context_from)
         return
     typer.echo("not implemented")
     raise typer.Exit(code=1)
+
+
+def _execute_generate(run_dir, character_slugs, location_slug, scenario, mode,
+                      stop_after, models, settings, reused_context=None, scene_context_from=None):
+    """Execute a prepared run, shared by the CLI and localhost background jobs."""
+    trace = TraceWriter(run_dir)
+    trace.write("run_started", run_id=run_dir.name, mode=mode)
+    stage = "scene_context"
+    try:
+        if reused_context is not None:
+            (run_dir / "scene_context.md").write_bytes(reused_context)
+            trace.write("stage_reused", stage=stage, scene_context_from=scene_context_from)
+        else:
+            trace.write("stage_started", stage=stage, agent="initializer")
+            asyncio.run(scene_context(
+                Path.cwd(), run_dir, character_slugs, location_slug, scenario,
+                models.initializer, settings.scene_context_max_turns, trace,
+            ))
+            trace.write("stage_finished", stage=stage)
+        if stop_after == "scene_context":
+            status = "stopped"
+        else:
+            stage = "baseline_writer"
+            trace.write("stage_started", stage=stage, agent="baseline")
+            asyncio.run(baseline_writer(
+                Path.cwd(), run_dir, character_slugs, location_slug, scenario,
+                models.baseline, settings.words, settings.writer_max_turns, trace,
+            ))
+            story = (run_dir / "draft.md").read_bytes()
+            trace.write("stage_finished", stage=stage, word_count=len(story.decode("utf-8").split()))
+            stage = "validate"
+            text, report = asyncio.run(validate_and_fix(
+                story.decode("utf-8"), root=Path.cwd(), run_dir=run_dir,
+                models=models, settings=settings, trace=trace,
+            ))
+            if report.rounds[-1].contradicted:
+                raise SessionError(f"contradictions remain after {settings.validation_rounds} fix rounds")
+            (run_dir / "story.md").write_text(text, encoding="utf-8")
+            typer.echo(f"not_in_kb={len(report.rounds[-1].not_in_kb)}")
+            status = "passed"
+        finish_run(run_dir, status)
+    except Exception as error:
+        # Exception messages can include credentials from the relay or SDK.
+        detail = str(error) if isinstance(error, SessionError) else type(error).__name__
+        stage = error.stage if isinstance(error, ValidationStageError) else stage
+        summary = f"{stage} failed: {detail}"
+        (run_dir / "story.md").unlink(missing_ok=True)
+        finish_run(run_dir, "failed", summary)
+        trace.write("stage_failed", stage=stage, error=summary)
+        trace.write("run_finished", status="failed")
+        typer.echo(f"{run_dir}: {summary}", err=True)
+        raise typer.Exit(code=1) from None
+    trace.write("run_finished", status=status)
+    typer.echo(run_dir)
+    return
 
 
 @kb_app.callback()

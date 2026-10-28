@@ -3,6 +3,7 @@
 <header>
   <p class="metadata">Solistia Lives</p>
   <h1>Story library</h1>
+  <a href="{{ url_for('new_story') }}">New story</a>
 </header>
 <ul class="library">
   {% for story in stories %}
