@@ -1,0 +1,195 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 860" width="1200" height="860" role="img" aria-label="世界模拟：一天分四个时段，每个时段经过计划、碰面、上演、幕后四步">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1330"/>
+      <stop offset="1" stop-color="#241f48"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c9a24a"/>
+      <stop offset="0.5" stop-color="#f3dc95"/>
+      <stop offset="1" stop-color="#c9a24a"/>
+    </linearGradient>
+    <linearGradient id="arc" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f6c46a"/>
+      <stop offset="0.5" stop-color="#ffe9b0"/>
+      <stop offset="0.8" stop-color="#e07a5f"/>
+      <stop offset="1" stop-color="#7d75c9"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe9b0" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#ffe9b0" stop-opacity="0"/>
+    </radialGradient>
+    <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10Z" fill="#e2c376"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif; }
+      .title { font-size: 28px; font-weight: 600; fill: url(#gold); }
+      .sub { font-size: 15px; fill: #b9b0d6; }
+      .h { font-size: 20px; font-weight: 600; fill: #f3e6c4; }
+      .h2 { font-size: 17px; font-weight: 600; fill: #f3e6c4; }
+      .t { font-size: 15px; fill: #ddd4ee; }
+      .dim { font-size: 13.5px; fill: #a59cc4; }
+      .lbl { font-size: 14px; font-weight: 600; fill: #e2c376; }
+      .card { fill: #1a1d44; stroke: #c9a24a; stroke-opacity: 0.55; stroke-width: 1.4; }
+      .side { fill: #161a3d; stroke: #7d75c9; stroke-opacity: 0.7; stroke-width: 1.3; }
+      .ico { fill: none; stroke: #f3dc95; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+      .num { font-size: 15px; font-weight: 700; fill: #0d1330; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="860" fill="url(#bg)"/>
+  <g fill="#f3dc95" opacity="0.5">
+    <circle cx="70" cy="40" r="1.6"/><circle cx="1130" cy="40" r="1.8"/><circle cx="1050" cy="80" r="1.1"/>
+    <circle cx="160" cy="76" r="1.1"/><circle cx="1160" cy="830" r="1.4"/><circle cx="30" cy="560" r="1.2"/>
+  </g>
+
+  <text x="600" y="50" text-anchor="middle" class="title">世界模拟：一天是怎么过的</text>
+  <text x="600" y="78" text-anchor="middle" class="sub">没有人写剧情。旅人各自做决定，World 结算结果；世界保存下来，明天接着过</text>
+
+  <!-- day start -->
+  <rect x="30" y="112" width="240" height="140" rx="14" class="side"/>
+  <text x="50" y="142" class="h2">新的一天开始</text>
+  <text x="50" y="168" class="dim">（从第 2 天起）</text>
+  <text x="50" y="196" class="t">· 旅人根据记忆修订目标</text>
+  <text x="50" y="222" class="t">· World 添上 1-3 件新事：</text>
+  <text x="50" y="244" class="dim">　麻烦、集会、约定、心愿、重逢</text>
+
+  <!-- day end -->
+  <rect x="930" y="112" width="240" height="140" rx="14" class="side"/>
+  <text x="950" y="142" class="h2">一天结束</text>
+  <text x="950" y="174" class="t">· 每位旅人写下当天的</text>
+  <text x="950" y="198" class="t">　记忆总结</text>
+  <text x="950" y="226" class="t">· 世界状态和事件日志</text>
+  <text x="950" y="248" class="t">　存档</text>
+
+  <!-- the sun's arc: four parts of the day -->
+  <path d="M300 230 Q600 40 900 230" fill="none" stroke="url(#arc)" stroke-width="2.4" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M272 182 H296" stroke="#e2c376" stroke-width="2" marker-end="url(#ag)"/>
+  <path d="M904 182 H926" stroke="#e2c376" stroke-width="2" marker-end="url(#ag)"/>
+  <g>
+    <circle cx="372" cy="190" r="34" fill="url(#glow)"/>
+    <circle cx="372" cy="190" r="12" fill="#f6c46a"/>
+    <path d="M352 196 H392" stroke="#0d1330" stroke-width="5"/>
+    <text x="372" y="230" text-anchor="middle" class="lbl">早上</text>
+
+    <circle cx="522" cy="142" r="38" fill="url(#glow)"/>
+    <circle cx="522" cy="142" r="14" fill="#ffe9b0"/>
+    <g stroke="#ffe9b0" stroke-width="2" stroke-linecap="round">
+      <path d="M522 116 V122 M522 162 V168 M496 142 H502 M542 142 H548 M504 124 L508 128 M536 156 L540 160 M540 124 L536 128 M504 160 L508 156"/>
+    </g>
+    <text x="522" y="190" text-anchor="middle" class="lbl">下午</text>
+
+    <circle cx="678" cy="142" r="36" fill="url(#glow)" opacity="0.7"/>
+    <circle cx="678" cy="142" r="13" fill="#e8925f"/>
+    <text x="678" y="190" text-anchor="middle" class="lbl">傍晚</text>
+
+    <path d="M836 178 A14 14 0 1 0 836 202 A10 10 0 1 1 836 178Z" fill="#c9c3f0"/>
+    <circle cx="806" cy="170" r="1.5" fill="#f3dc95"/><circle cx="850" cy="166" r="1.2" fill="#f3dc95"/>
+    <text x="828" y="230" text-anchor="middle" class="lbl">夜晚</text>
+  </g>
+  <text x="600" y="276" text-anchor="middle" class="sub">每个时段都把下面四步走一遍</text>
+
+  <!-- ① plan -->
+  <rect x="30" y="296" width="260" height="260" rx="14" class="card"/>
+  <circle cx="58" cy="326" r="14" fill="#e2c376"/><text x="58" y="331" text-anchor="middle" class="num">1</text>
+  <text x="82" y="333" class="h">计划</text>
+  <g class="ico" transform="translate(240 328)" stroke-width="2">
+    <path d="M0 -14 C-10 -14 -12 -4 -8 2 L0 14 L8 2 C12 -4 10 -14 0 -14Z"/><circle cx="0" cy="-5" r="3.5"/>
+  </g>
+  <text x="50" y="372" class="t">每位旅人各自决定：</text>
+  <text x="50" y="398" class="t">去哪里、做什么</text>
+  <text x="50" y="430" class="t">· 只是待在那里，或</text>
+  <text x="50" y="456" class="t">· 尝试做一件要紧的事</text>
+  <text x="50" y="492" class="dim">计划只是打算，不是事实；</text>
+  <text x="50" y="516" class="dim">别人看不到</text>
+
+  <!-- ② meet -->
+  <rect x="330" y="296" width="260" height="260" rx="14" class="card"/>
+  <circle cx="358" cy="326" r="14" fill="#e2c376"/><text x="358" y="331" text-anchor="middle" class="num">2</text>
+  <text x="382" y="333" class="h">碰面</text>
+  <g class="ico" transform="translate(540 328)" stroke-width="2">
+    <circle cx="-9" cy="-6" r="5"/><path d="M-18 12 Q-9 -2 0 12"/>
+    <circle cx="9" cy="-6" r="5"/><path d="M0 12 Q9 -2 18 12"/>
+  </g>
+  <text x="350" y="372" class="t">代码按计划移动旅人，</text>
+  <text x="350" y="398" class="t">World 说明每处有谁在</text>
+  <text x="350" y="430" class="t">· 两位旅人在同一处</text>
+  <text x="350" y="454" class="t">　→ 相遇，开一场戏</text>
+  <text x="350" y="482" class="t">· 有人尝试做事</text>
+  <text x="350" y="506" class="t">　→ 也开一场戏</text>
+  <text x="350" y="536" class="dim">结果只能在戏里产生</text>
+
+  <!-- ③ scene -->
+  <rect x="630" y="296" width="260" height="260" rx="14" class="card"/>
+  <circle cx="658" cy="326" r="14" fill="#e2c376"/><text x="658" y="331" text-anchor="middle" class="num">3</text>
+  <text x="682" y="333" class="h">上演</text>
+  <g class="ico" transform="translate(842 328)" stroke-width="2">
+    <path d="M-16 -12 H6 Q10 -12 10 -8 V2 Q10 6 6 6 H-6 L-12 12 V6 H-16 Q-20 6 -20 2 V-8 Q-20 -12 -16 -12Z"/>
+    <path d="M14 -4 H18 Q22 -4 22 0 V8 Q22 12 18 12 H16 V16 L11 12"/>
+  </g>
+  <text x="650" y="372" class="t">逐轮进行，每轮只有</text>
+  <text x="650" y="398" class="t">一人说话或行动</text>
+  <text x="650" y="430" class="t">· 被点名的人先回答</text>
+  <text x="650" y="456" class="t">· 着急的人可以打断</text>
+  <text x="650" y="482" class="t">· World 扮演配角，</text>
+  <text x="650" y="506" class="t">　并结算每个举动</text>
+  <text x="650" y="536" class="dim">没人再动就散场</text>
+
+  <!-- ④ off-screen -->
+  <rect x="930" y="296" width="240" height="260" rx="14" class="card"/>
+  <circle cx="958" cy="326" r="14" fill="#e2c376"/><text x="958" y="331" text-anchor="middle" class="num">4</text>
+  <text x="982" y="333" class="h">幕后</text>
+  <g class="ico" transform="translate(1130 328)" stroke-width="2">
+    <path d="M-18 -14 H18 M-18 -14 V14 M18 -14 V14"/>
+    <path d="M-18 -14 Q-6 0 -10 14 M18 -14 Q6 0 10 14"/>
+  </g>
+  <text x="950" y="372" class="t">World 在另一个会话里</text>
+  <text x="950" y="398" class="t">让镜头外的世界继续：</text>
+  <text x="950" y="430" class="t">· 配角各忙各的</text>
+  <text x="950" y="456" class="t">· 地点有了变化</text>
+  <text x="950" y="482" class="t">· 到期没人理的事作罢</text>
+  <text x="950" y="516" class="dim">它看不到旅人的信息，</text>
+  <text x="950" y="538" class="dim">也碰不了旅人</text>
+
+  <!-- step arrows -->
+  <path d="M292 426 H326" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M592 426 H626" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M892 426 H926" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M1050 558 V580 H160 V562" fill="none" stroke="#e2c376" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#ag)"/>
+  <rect x="540" y="568" width="120" height="24" fill="#1f1b44"/>
+  <text x="600" y="586" text-anchor="middle" class="lbl">下一个时段</text>
+
+  <!-- who decides -->
+  <text x="30" y="632" class="h2" fill="#f3dc95">谁在做决定</text>
+
+  <rect x="30" y="648" width="370" height="186" rx="14" class="side"/>
+  <g class="ico" transform="translate(64 684)" stroke-width="2">
+    <circle cx="0" cy="-6" r="7"/><path d="M-13 16 Q0 -2 13 16"/>
+  </g>
+  <text x="90" y="690" class="h2">旅人 agent（每人一个）</text>
+  <text x="50" y="724" class="t">· 角色卡定下性格和说话方式</text>
+  <text x="50" y="750" class="t">· 只知道自己亲眼所见、亲耳所闻</text>
+  <text x="50" y="776" class="t">· 带着自己的目标和记忆行动</text>
+  <text x="50" y="808" class="dim">没有人给旅人下指令</text>
+
+  <rect x="415" y="648" width="370" height="186" rx="14" class="side"/>
+  <g class="ico" transform="translate(449 684)" stroke-width="2">
+    <circle cx="0" cy="0" r="13"/><path d="M-13 0 H13 M0 -13 Q8 0 0 13 M0 -13 Q-8 0 0 13"/>
+  </g>
+  <text x="475" y="690" class="h2">World agent</text>
+  <text x="435" y="724" class="t">· 裁定旅人的尝试成不成</text>
+  <text x="435" y="750" class="t">· 扮演所有配角，推进时间</text>
+  <text x="435" y="776" class="t">· 不替旅人说话，不追求剧情</text>
+  <text x="435" y="808" class="dim">世界的每次变化都写成可检查的数据</text>
+
+  <rect x="800" y="648" width="370" height="186" rx="14" class="side"/>
+  <g class="ico" transform="translate(834 684)" stroke-width="2">
+    <rect x="-12" y="-14" width="24" height="28" rx="3"/><path d="M-6 -6 H6 M-6 0 H6 M-6 6 H2"/>
+  </g>
+  <text x="860" y="690" class="h2">世界档案</text>
+  <text x="820" y="724" class="t">· 世界状态：谁在哪、目标、</text>
+  <text x="820" y="748" class="t">　约定、配角、进行中的事</text>
+  <text x="820" y="776" class="t">· 事件日志：这个世界的正史</text>
+  <text x="820" y="808" class="dim">下次 world run 接着过下一天</text>
+</svg>

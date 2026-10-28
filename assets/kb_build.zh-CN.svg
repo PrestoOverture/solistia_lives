@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" role="img" aria-label="知识库搭建：游戏 wiki → 拉取 → 精修 → 链接 → 知识库">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1330"/>
+      <stop offset="1" stop-color="#241f48"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c9a24a"/>
+      <stop offset="0.5" stop-color="#f3dc95"/>
+      <stop offset="1" stop-color="#c9a24a"/>
+    </linearGradient>
+    <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10Z" fill="#e2c376"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif; }
+      .title { font-size: 28px; font-weight: 600; fill: url(#gold); }
+      .sub { font-size: 15px; fill: #b9b0d6; }
+      .h { font-size: 19px; font-weight: 600; fill: #f3e6c4; }
+      .h2 { font-size: 17px; font-weight: 600; fill: #f3e6c4; }
+      .big { font-size: 26px; font-weight: 700; fill: #f3dc95; }
+      .t { font-size: 14.5px; fill: #ddd4ee; }
+      .dim { font-size: 13.5px; fill: #a59cc4; }
+      .key { font-size: 14.5px; font-weight: 600; fill: #f09a82; }
+      .chip { font-size: 13.5px; font-weight: 600; fill: #f3e6c4; }
+      .card { fill: #1a1d44; stroke: #c9a24a; stroke-opacity: 0.55; stroke-width: 1.4; }
+      .kb { fill: #2a2448; stroke: #f3dc95; stroke-width: 2; }
+      .src { fill: #151838; stroke: #6f68a3; stroke-opacity: 0.7; stroke-width: 1.3; stroke-dasharray: 5 4; }
+      .side { fill: #161a3d; stroke: #7d75c9; stroke-opacity: 0.7; stroke-width: 1.3; }
+      .ico { fill: none; stroke: #f3dc95; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="600" fill="url(#bg)"/>
+  <g fill="#f3dc95" opacity="0.5">
+    <circle cx="80" cy="44" r="1.6"/><circle cx="1120" cy="38" r="1.8"/><circle cx="1040" cy="76" r="1.1"/>
+    <circle cx="170" cy="80" r="1.1"/><circle cx="1160" cy="570" r="1.4"/><circle cx="40" cy="575" r="1.2"/>
+  </g>
+
+  <text x="600" y="50" text-anchor="middle" class="title">知识库：从游戏 wiki 到可查证的设定</text>
+  <text x="600" y="78" text-anchor="middle" class="sub">分三步搭建，每一步只做一件事，做完都有检查</text>
+
+  <!-- source -->
+  <rect x="30" y="106" width="200" height="266" rx="14" class="src"/>
+  <g class="ico" transform="translate(130 140)">
+    <circle cx="0" cy="0" r="16"/><path d="M-16 0 H16 M0 -16 Q10 0 0 16 M0 -16 Q-10 0 0 16"/>
+  </g>
+  <text x="130" y="186" text-anchor="middle" class="h">游戏 wiki</text>
+  <text x="130" y="224" text-anchor="middle" class="big">≈ 4,700 页</text>
+  <text x="48" y="262" class="t">Fandom 上的</text>
+  <text x="48" y="286" class="t">八方旅人 wiki</text>
+  <text x="48" y="318" class="dim">涵盖整个系列：一代、</text>
+  <text x="48" y="340" class="dim">二代、手游……</text>
+
+  <!-- ① pull -->
+  <rect x="270" y="106" width="200" height="266" rx="14" class="card"/>
+  <g class="ico" transform="translate(370 140)">
+    <path d="M-14 -16 H6 L14 -8 V16 H-14Z"/><path d="M6 -16 V-8 H14"/><path d="M-6 2 L-1 7 L8 -3" stroke="#8cc79a"/>
+  </g>
+  <text x="370" y="186" text-anchor="middle" class="h">① 拉取</text>
+  <text x="370" y="224" text-anchor="middle" class="big">646 页</text>
+  <text x="288" y="262" class="t">逐页判断是否属于</text>
+  <text x="288" y="286" class="t">《八方旅人 2》</text>
+  <text x="288" y="318" class="t">原文完整保存，</text>
+  <text x="288" y="342" class="t">一字不改</text>
+
+  <!-- ② polish -->
+  <rect x="510" y="106" width="200" height="266" rx="14" class="card"/>
+  <g class="ico" transform="translate(610 140)">
+    <path d="M-12 14 L10 -8"/><path d="M6 -12 L14 -4"/><path d="M-12 14 L-16 18"/>
+    <path d="M-16 -14 L-12 -10 M-6 -18 V-13 M-18 -4 H-13" stroke-opacity="0.7"/>
+  </g>
+  <text x="610" y="186" text-anchor="middle" class="h">② 精修</text>
+  <text x="610" y="224" text-anchor="middle" class="big">514 个文件</text>
+  <text x="528" y="262" class="t">删掉玩法数据和</text>
+  <text x="528" y="286" class="t">其他作品的内容，</text>
+  <text x="528" y="310" class="t">整理格式、分类归档</text>
+  <text x="528" y="344" class="key">只许删，不许增</text>
+
+  <!-- ③ link -->
+  <rect x="750" y="106" width="200" height="266" rx="14" class="card"/>
+  <g class="ico" transform="translate(850 140)">
+    <path d="M-4 4 L4 -4"/>
+    <path d="M-2 -8 L4 -14 Q10 -18 14 -14 Q18 -10 14 -4 L8 2"/>
+    <path d="M2 8 L-4 14 Q-10 18 -14 14 Q-18 10 -14 4 L-8 -2"/>
+  </g>
+  <text x="850" y="186" text-anchor="middle" class="h">③ 链接</text>
+  <text x="850" y="224" text-anchor="middle" class="big">wiki → 本地</text>
+  <text x="768" y="262" class="t">wiki 链接改成</text>
+  <text x="768" y="286" class="t">知识库里的相对路径</text>
+  <text x="768" y="318" class="dim">目标不在库里，</text>
+  <text x="768" y="340" class="dim">就变回普通文字</text>
+
+  <!-- KB -->
+  <rect x="990" y="106" width="180" height="266" rx="14" class="kb"/>
+  <g class="ico" transform="translate(1080 140)">
+    <path d="M-18 -14 H-2 Q2 -14 2 -10 V16 Q2 12 -2 12 H-18Z"/>
+    <path d="M22 -14 H6 Q2 -14 2 -10 V16 Q2 12 6 12 H22Z"/>
+  </g>
+  <text x="1080" y="186" text-anchor="middle" class="h">知识库</text>
+  <text x="1080" y="214" text-anchor="middle" class="dim">Markdown 文件</text>
+  <g>
+    <rect x="1004" y="232" width="152" height="28" rx="14" fill="#3a2f55"/>
+    <text x="1020" y="251" class="chip">人物</text><text x="1140" y="251" text-anchor="end" class="chip" fill="#f3dc95">149</text>
+    <rect x="1004" y="266" width="152" height="28" rx="14" fill="#3a2f55"/>
+    <text x="1020" y="285" class="chip">地点</text><text x="1140" y="285" text-anchor="end" class="chip" fill="#f3dc95">204</text>
+    <rect x="1004" y="300" width="152" height="28" rx="14" fill="#3a2f55"/>
+    <text x="1020" y="319" class="chip">世界观</text><text x="1140" y="319" text-anchor="end" class="chip" fill="#f3dc95">84</text>
+    <rect x="1004" y="334" width="152" height="28" rx="14" fill="#3a2f55"/>
+    <text x="1020" y="353" class="chip">剧情</text><text x="1140" y="353" text-anchor="end" class="chip" fill="#f3dc95">77</text>
+  </g>
+
+  <!-- arrows -->
+  <path d="M232 239 H266" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M472 239 H506" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M712 239 H746" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M952 239 H986" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+
+  <!-- bottom panels -->
+  <rect x="30" y="408" width="370" height="160" rx="14" class="side"/>
+  <g class="ico" transform="translate(62 440)">
+    <path d="M0 -14 L12 -9 V0 Q12 10 0 15 Q-12 10 -12 0 V-9Z"/><path d="M-5 0 L-1 4 L6 -4" stroke="#8cc79a"/>
+  </g>
+  <text x="86" y="446" class="h2">层层复查</text>
+  <text x="50" y="482" class="t">· 每一步都附检查脚本，由 Claude 复跑：</text>
+  <text x="50" y="506" class="dim">　漏页、空页、错分、偷偷加了内容</text>
+  <text x="50" y="536" class="t">· 八位旅人的文件由作者亲自审阅</text>
+
+  <rect x="415" y="408" width="370" height="160" rx="14" class="side"/>
+  <g class="ico" transform="translate(447 440)">
+    <path d="M-12 -12 H12 V8 H2 L-6 15 V8 H-12Z"/><path d="M0 -6 V1 M0 4 V5"/>
+  </g>
+  <text x="471" y="446" class="h2">知识库就是正史</text>
+  <text x="435" y="482" class="t">· 校验器必须引用原文作为证据</text>
+  <text x="435" y="508" class="t">· 发现设定错了，就改知识库</text>
+  <text x="435" y="536" class="dim">旅人在结局之后的近况写在角色卡里</text>
+
+  <rect x="800" y="408" width="370" height="160" rx="14" class="side"/>
+  <g class="ico" transform="translate(832 440)">
+    <circle cx="-3" cy="-3" r="10"/><path d="M5 5 L13 13"/>
+  </g>
+  <text x="856" y="446" class="h2">怎么查</text>
+  <text x="820" y="482" class="t">· 不用向量库，按路径、名字、</text>
+  <text x="820" y="506" class="t">　链接直接读文件</text>
+  <text x="820" y="536" class="t">· 每次查阅都记进 trace</text>
+</svg>

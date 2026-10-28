@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 650" width="1200" height="650" role="img" aria-label="Single-agent writing: input, writer, validator, targeted fix, final story">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1330"/>
+      <stop offset="1" stop-color="#241f48"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c9a24a"/>
+      <stop offset="0.5" stop-color="#f3dc95"/>
+      <stop offset="1" stop-color="#c9a24a"/>
+    </linearGradient>
+    <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10Z" fill="#e2c376"/>
+    </marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10Z" fill="#e07a5f"/>
+    </marker>
+    <marker id="agr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10Z" fill="#8cc79a"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif; }
+      .title { font-size: 28px; font-weight: 600; fill: url(#gold); }
+      .sub { font-size: 15px; fill: #b9b0d6; }
+      .h { font-size: 20px; font-weight: 600; fill: #f3e6c4; }
+      .t { font-size: 15px; fill: #ddd4ee; }
+      .dim { font-size: 13.5px; fill: #a59cc4; }
+      .lbl { font-size: 14px; font-weight: 600; }
+      g > .lbl { font-size: 11.5px; }
+      .card { fill: #1a1d44; stroke: #c9a24a; stroke-opacity: 0.55; stroke-width: 1.4; }
+      .soft { fill: #151838; stroke: #6f68a3; stroke-opacity: 0.6; stroke-width: 1.2; stroke-dasharray: 5 4; }
+      .fix { fill: #2b1b33; stroke: #e07a5f; stroke-opacity: 0.8; stroke-width: 1.4; }
+      .ico { fill: none; stroke: #f3dc95; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="650" fill="url(#bg)"/>
+  <g fill="#f3dc95" opacity="0.5">
+    <circle cx="90" cy="40" r="1.6"/><circle cx="1110" cy="34" r="1.8"/><circle cx="1010" cy="70" r="1.1"/>
+    <circle cx="180" cy="80" r="1.1"/><circle cx="1150" cy="600" r="1.4"/><circle cx="40" cy="610" r="1.2"/>
+  </g>
+
+  <text x="600" y="50" text-anchor="middle" class="title">Single-agent writing: how a story gets written</text>
+  <text x="600" y="78" text-anchor="middle" class="sub">One writer drafts it, a validator checks every lore claim, and only the wrong parts get fixed</text>
+
+  <!-- 1 input -->
+  <rect x="40" y="105" width="250" height="270" rx="14" class="card"/>
+  <g class="ico" transform="translate(165 140)">
+    <circle cx="-22" cy="-8" r="6"/><path d="M-32 14 Q-22 -2 -12 14"/>
+    <circle cx="0" cy="-10" r="7"/><path d="M-12 14 Q0 -4 12 14"/>
+    <circle cx="22" cy="-8" r="6"/><path d="M12 14 Q22 -2 32 14"/>
+  </g>
+  <text x="165" y="190" text-anchor="middle" class="h">① Input</text>
+  <text x="62" y="225" class="t">· 2-3 travelers</text>
+  <text x="62" y="251" class="t">· A location from the KB</text>
+  <text x="62" y="277" class="t">· One opening line</text>
+  <rect x="58" y="298" width="214" height="62" rx="8" fill="#12142f"/>
+  <text x="70" y="322" class="dim">e.g. Osvald + Temenos</text>
+  <text x="70" y="346" class="dim">New Delsta, a scholarly visit</text>
+
+  <!-- 2 writer -->
+  <rect x="330" y="105" width="250" height="270" rx="14" class="card"/>
+  <g class="ico" transform="translate(455 138)">
+    <path d="M14 -18 Q-10 -12 -14 18"/><path d="M14 -18 Q12 6 -14 18"/><path d="M-14 18 L-18 24"/>
+    <path d="M-20 26 H14" stroke-opacity="0.6"/>
+  </g>
+  <text x="455" y="190" text-anchor="middle" class="h">② Writer</text>
+  <text x="352" y="225" class="t">· One strong model, one pass</text>
+  <text x="352" y="251" class="t">· Cards: voice, motives</text>
+  <text x="352" y="277" class="t">· KB: places, people</text>
+  <text x="352" y="303" class="t">· Follows the style spec</text>
+  <text x="352" y="329" class="t">· 2-4 acts, 2-3k words</text>
+  <text x="352" y="355" class="dim"></text>
+
+  <!-- 3 validator -->
+  <rect x="620" y="105" width="250" height="270" rx="14" class="card"/>
+  <g class="ico" transform="translate(745 138)">
+    <circle cx="-4" cy="-4" r="13"/><path d="M6 6 L18 18"/>
+    <path d="M-10 -4 L-5 1 L3 -9" stroke="#8cc79a"/>
+  </g>
+  <text x="745" y="190" text-anchor="middle" class="h">③ Validator</text>
+  <text x="642" y="225" class="t">1 Find sentences about lore</text>
+  <text x="642" y="251" class="t">2 Split them into claims</text>
+  <text x="642" y="277" class="t">3 Look each one up in the</text>
+  <text x="642" y="301" class="t">   KB and cards, quote evidence</text>
+  <g>
+    <rect x="633" y="322" width="67" height="30" rx="15" fill="#23402f"/>
+    <text x="666.5" y="341" text-anchor="middle" class="lbl" fill="#8cc79a">Supported</text>
+    <rect x="706" y="322" width="82" height="30" rx="15" fill="#4a2430"/>
+    <text x="747" y="341" text-anchor="middle" class="lbl" fill="#f09a82">Contradicted</text>
+    <rect x="794" y="322" width="63" height="30" rx="15" fill="#2c2c48"/>
+    <text x="825.5" y="341" text-anchor="middle" class="lbl" fill="#b9b0d6">Not in KB</text>
+  </g>
+
+  <!-- 4 final -->
+  <rect x="910" y="105" width="250" height="270" rx="14" class="card"/>
+  <g class="ico" transform="translate(1035 138)">
+    <rect x="-15" y="-18" width="30" height="36" rx="3"/>
+    <path d="M-20 -18 H20 M-20 18 H20"/><path d="M-8 -7 H8 M-8 1 H8 M-8 9 H4" stroke-opacity="0.7"/>
+  </g>
+  <text x="1035" y="190" text-anchor="middle" class="h">④ Final</text>
+  <text x="932" y="225" class="t">· No contradictions: pass</text>
+  <text x="932" y="251" class="t">· Read it in the web UI</text>
+  <rect x="928" y="272" width="214" height="88" rx="8" fill="#12142f"/>
+  <text x="940" y="296" class="dim">Advisory contract notes:</text>
+  <text x="940" y="320" class="dim">POV slips, meta wording,</text>
+  <text x="940" y="344" class="dim">loose ends, oversized stakes</text>
+
+  <!-- main arrows -->
+  <path d="M292 240 H326" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M582 240 H616" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M872 240 H906" stroke="#8cc79a" stroke-width="2.2" marker-end="url(#agr)"/>
+  <text x="889" y="226" text-anchor="middle" class="lbl" fill="#8cc79a">Pass</text>
+
+  <!-- fix loop -->
+  <path d="M715 378 V438" stroke="#e07a5f" stroke-width="2.2" marker-end="url(#ar)"/>
+  <text x="705" y="414" text-anchor="end" class="lbl" fill="#f09a82">Contradiction</text>
+  <path d="M775 438 V380" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <text x="785" y="414" class="lbl" fill="#e2c376">Recheck edited paragraphs only</text>
+
+  <rect x="545" y="442" width="400" height="112" rx="14" class="fix"/>
+  <text x="745" y="476" text-anchor="middle" class="h" fill="#f6c1b0">Targeted fix</text>
+  <text x="745" y="505" text-anchor="middle" class="t">Only flagged sentences get edited; no full rewrite</text>
+  <text x="745" y="531" text-anchor="middle" class="dim">Up to 3 rounds; still failing → marked failed, draft kept</text>
+
+  <!-- shared sources -->
+  <rect x="40" y="442" width="450" height="112" rx="14" class="soft"/>
+  <g class="ico" transform="translate(84 498)" stroke-width="1.8">
+    <path d="M-18 -16 H-2 Q2 -16 2 -12 V18 Q2 14 -2 14 H-18Z"/>
+    <path d="M22 -16 H6 Q2 -16 2 -12 V18 Q2 14 6 14 H22Z"/>
+  </g>
+  <text x="122" y="482" class="h" style="font-size:18px">Shared sources</text>
+  <text x="122" y="510" class="t">KB (built from the wiki) · cards · style spec</text>
+  <text x="122" y="536" class="dim">Writer writes from them; validator checks against them</text>
+  <path d="M400 440 L440 380" stroke="#6f68a3" stroke-width="1.6" stroke-dasharray="5 4" fill="none"/>
+  <path d="M480 448 Q560 420 640 380" stroke="#6f68a3" stroke-width="1.6" stroke-dasharray="5 4" fill="none"/>
+
+  <!-- footer -->
+  <line x1="40" y1="590" x2="1160" y2="590" stroke="#c9a24a" stroke-opacity="0.35"/>
+  <text x="600" y="622" text-anchor="middle" class="sub">MVP gate: 8 of 10 passed  ·  about $0.70 per story  ·  every step is traced</text>
+</svg>

@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 650" width="1200" height="650" role="img" aria-label="单 Agent 写作流程：输入、写手、校验器、定点修改、定稿">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1330"/>
+      <stop offset="1" stop-color="#241f48"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c9a24a"/>
+      <stop offset="0.5" stop-color="#f3dc95"/>
+      <stop offset="1" stop-color="#c9a24a"/>
+    </linearGradient>
+    <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10Z" fill="#e2c376"/>
+    </marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10Z" fill="#e07a5f"/>
+    </marker>
+    <marker id="agr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10Z" fill="#8cc79a"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif; }
+      .title { font-size: 28px; font-weight: 600; fill: url(#gold); }
+      .sub { font-size: 15px; fill: #b9b0d6; }
+      .h { font-size: 20px; font-weight: 600; fill: #f3e6c4; }
+      .t { font-size: 15px; fill: #ddd4ee; }
+      .dim { font-size: 13.5px; fill: #a59cc4; }
+      .lbl { font-size: 14px; font-weight: 600; }
+      .card { fill: #1a1d44; stroke: #c9a24a; stroke-opacity: 0.55; stroke-width: 1.4; }
+      .soft { fill: #151838; stroke: #6f68a3; stroke-opacity: 0.6; stroke-width: 1.2; stroke-dasharray: 5 4; }
+      .fix { fill: #2b1b33; stroke: #e07a5f; stroke-opacity: 0.8; stroke-width: 1.4; }
+      .ico { fill: none; stroke: #f3dc95; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="650" fill="url(#bg)"/>
+  <g fill="#f3dc95" opacity="0.5">
+    <circle cx="90" cy="40" r="1.6"/><circle cx="1110" cy="34" r="1.8"/><circle cx="1010" cy="70" r="1.1"/>
+    <circle cx="180" cy="80" r="1.1"/><circle cx="1150" cy="600" r="1.4"/><circle cx="40" cy="610" r="1.2"/>
+  </g>
+
+  <text x="600" y="50" text-anchor="middle" class="title">单 Agent 写作：一篇故事是怎么写出来的</text>
+  <text x="600" y="78" text-anchor="middle" class="sub">一个写手直接写，一个校验器逐条核对设定，有错只改错的地方</text>
+
+  <!-- ① 输入 -->
+  <rect x="40" y="105" width="250" height="270" rx="14" class="card"/>
+  <g class="ico" transform="translate(165 140)">
+    <circle cx="-22" cy="-8" r="6"/><path d="M-32 14 Q-22 -2 -12 14"/>
+    <circle cx="0" cy="-10" r="7"/><path d="M-12 14 Q0 -4 12 14"/>
+    <circle cx="22" cy="-8" r="6"/><path d="M12 14 Q22 -2 32 14"/>
+  </g>
+  <text x="165" y="190" text-anchor="middle" class="h">① 输入</text>
+  <text x="62" y="225" class="t">· 2-3 位旅人</text>
+  <text x="62" y="251" class="t">· 知识库里的一个地点</text>
+  <text x="62" y="277" class="t">· 一句开场情境</text>
+  <rect x="58" y="298" width="214" height="62" rx="8" fill="#12142f"/>
+  <text x="70" y="322" class="dim">例：Osvald + Temenos</text>
+  <text x="70" y="346" class="dim">新德尔斯塔，为学术事务进城</text>
+
+  <!-- ② 写手 -->
+  <rect x="330" y="105" width="250" height="270" rx="14" class="card"/>
+  <g class="ico" transform="translate(455 138)">
+    <path d="M14 -18 Q-10 -12 -14 18"/><path d="M14 -18 Q12 6 -14 18"/><path d="M-14 18 L-18 24"/>
+    <path d="M-20 26 H14" stroke-opacity="0.6"/>
+  </g>
+  <text x="455" y="190" text-anchor="middle" class="h">② 写手</text>
+  <text x="352" y="225" class="t">· 一个强模型一次写完</text>
+  <text x="352" y="251" class="t">· 角色卡：口吻、动机</text>
+  <text x="352" y="277" class="t">· 知识库：地点、人物</text>
+  <text x="352" y="303" class="t">· 遵循风格规范</text>
+  <text x="352" y="329" class="t">· 2-4 幕，2,000-3,000 词</text>
+  <text x="352" y="355" class="dim">　（故事本身是英文）</text>
+
+  <!-- ③ 校验器 -->
+  <rect x="620" y="105" width="250" height="270" rx="14" class="card"/>
+  <g class="ico" transform="translate(745 138)">
+    <circle cx="-4" cy="-4" r="13"/><path d="M6 6 L18 18"/>
+    <path d="M-10 -4 L-5 1 L3 -9" stroke="#8cc79a"/>
+  </g>
+  <text x="745" y="190" text-anchor="middle" class="h">③ 校验器</text>
+  <text x="642" y="225" class="t">1 挑出提到设定的句子</text>
+  <text x="642" y="251" class="t">2 拆成一条条设定陈述</text>
+  <text x="642" y="277" class="t">3 到知识库和角色卡里</text>
+  <text x="642" y="301" class="t">　找原文当证据，逐条判定</text>
+  <g>
+    <rect x="640" y="322" width="62" height="30" rx="15" fill="#23402f"/>
+    <text x="671" y="342" text-anchor="middle" class="lbl" fill="#8cc79a">相符</text>
+    <rect x="714" y="322" width="62" height="30" rx="15" fill="#4a2430"/>
+    <text x="745" y="342" text-anchor="middle" class="lbl" fill="#f09a82">矛盾</text>
+    <rect x="788" y="322" width="64" height="30" rx="15" fill="#2c2c48"/>
+    <text x="820" y="342" text-anchor="middle" class="lbl" fill="#b9b0d6">未收录</text>
+  </g>
+
+  <!-- ④ 定稿 -->
+  <rect x="910" y="105" width="250" height="270" rx="14" class="card"/>
+  <g class="ico" transform="translate(1035 138)">
+    <rect x="-15" y="-18" width="30" height="36" rx="3"/>
+    <path d="M-20 -18 H20 M-20 18 H20"/><path d="M-8 -7 H8 M-8 1 H8 M-8 9 H4" stroke-opacity="0.7"/>
+  </g>
+  <text x="1035" y="190" text-anchor="middle" class="h">④ 定稿</text>
+  <text x="932" y="225" class="t">· 没有矛盾即通过</text>
+  <text x="932" y="251" class="t">· 在本地网页里阅读</text>
+  <rect x="928" y="272" width="214" height="88" rx="8" fill="#12142f"/>
+  <text x="940" y="296" class="dim">「故事契约」提示，只供参考：</text>
+  <text x="940" y="320" class="dim">视角漂移、出戏用语、</text>
+  <text x="940" y="344" class="dim">留了悬念、格局越界</text>
+
+  <!-- main arrows -->
+  <path d="M292 240 H326" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M582 240 H616" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M872 240 H906" stroke="#8cc79a" stroke-width="2.2" marker-end="url(#agr)"/>
+  <text x="889" y="226" text-anchor="middle" class="lbl" fill="#8cc79a">通过</text>
+
+  <!-- fix loop -->
+  <path d="M715 378 V438" stroke="#e07a5f" stroke-width="2.2" marker-end="url(#ar)"/>
+  <text x="705" y="414" text-anchor="end" class="lbl" fill="#f09a82">有矛盾</text>
+  <path d="M775 438 V380" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <text x="785" y="414" class="lbl" fill="#e2c376">只复查改过的段落</text>
+
+  <rect x="545" y="442" width="400" height="112" rx="14" class="fix"/>
+  <text x="745" y="476" text-anchor="middle" class="h" fill="#f6c1b0">定点修改</text>
+  <text x="745" y="505" text-anchor="middle" class="t">写手只改被标为矛盾的句子，不推倒重写</text>
+  <text x="745" y="531" text-anchor="middle" class="dim">最多 3 轮；仍有矛盾就标为失败，保留草稿供排查</text>
+
+  <!-- shared sources -->
+  <rect x="40" y="442" width="450" height="112" rx="14" class="soft"/>
+  <g class="ico" transform="translate(84 498)" stroke-width="1.8">
+    <path d="M-18 -16 H-2 Q2 -16 2 -12 V18 Q2 14 -2 14 H-18Z"/>
+    <path d="M22 -16 H6 Q2 -16 2 -12 V18 Q2 14 6 14 H22Z"/>
+  </g>
+  <text x="122" y="482" class="h" style="font-size:18px">共同依据</text>
+  <text x="122" y="510" class="t">知识库（由游戏 wiki 整理）· 角色卡 · 风格规范</text>
+  <text x="122" y="536" class="dim">写手照着写，校验器照着查</text>
+  <path d="M400 440 L440 380" stroke="#6f68a3" stroke-width="1.6" stroke-dasharray="5 4" fill="none"/>
+  <path d="M480 448 Q560 420 640 380" stroke="#6f68a3" stroke-width="1.6" stroke-dasharray="5 4" fill="none"/>
+
+  <!-- footer -->
+  <line x1="40" y1="590" x2="1160" y2="590" stroke="#c9a24a" stroke-opacity="0.35"/>
+  <text x="600" y="622" text-anchor="middle" class="sub">MVP 验收：10 篇中 8 篇合格　·　每篇约 $0.7　·　每一步都留有 trace，可回溯</text>
+</svg>

@@ -1,0 +1,195 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 860" width="1200" height="860" role="img" aria-label="World simulation: a day has four parts, and each part runs plan, meet, play, and off-screen">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1330"/>
+      <stop offset="1" stop-color="#241f48"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c9a24a"/>
+      <stop offset="0.5" stop-color="#f3dc95"/>
+      <stop offset="1" stop-color="#c9a24a"/>
+    </linearGradient>
+    <linearGradient id="arc" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f6c46a"/>
+      <stop offset="0.5" stop-color="#ffe9b0"/>
+      <stop offset="0.8" stop-color="#e07a5f"/>
+      <stop offset="1" stop-color="#7d75c9"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe9b0" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#ffe9b0" stop-opacity="0"/>
+    </radialGradient>
+    <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10Z" fill="#e2c376"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif; }
+      .title { font-size: 28px; font-weight: 600; fill: url(#gold); }
+      .sub { font-size: 15px; fill: #b9b0d6; }
+      .h { font-size: 20px; font-weight: 600; fill: #f3e6c4; }
+      .h2 { font-size: 17px; font-weight: 600; fill: #f3e6c4; }
+      .t { font-size: 15px; fill: #ddd4ee; }
+      .dim { font-size: 13.5px; fill: #a59cc4; }
+      .lbl { font-size: 14px; font-weight: 600; fill: #e2c376; }
+      .card { fill: #1a1d44; stroke: #c9a24a; stroke-opacity: 0.55; stroke-width: 1.4; }
+      .side { fill: #161a3d; stroke: #7d75c9; stroke-opacity: 0.7; stroke-width: 1.3; }
+      .ico { fill: none; stroke: #f3dc95; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+      .num { font-size: 15px; font-weight: 700; fill: #0d1330; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="860" fill="url(#bg)"/>
+  <g fill="#f3dc95" opacity="0.5">
+    <circle cx="70" cy="40" r="1.6"/><circle cx="1130" cy="40" r="1.8"/><circle cx="1050" cy="80" r="1.1"/>
+    <circle cx="160" cy="76" r="1.1"/><circle cx="1160" cy="830" r="1.4"/><circle cx="30" cy="560" r="1.2"/>
+  </g>
+
+  <text x="600" y="50" text-anchor="middle" class="title">World simulation: how a day goes by</text>
+  <text x="600" y="78" text-anchor="middle" class="sub">Nobody writes the plot. Travelers choose for themselves, the World resolves it, and the world is saved for tomorrow</text>
+
+  <!-- day start -->
+  <rect x="30" y="112" width="240" height="140" rx="14" class="side"/>
+  <text x="50" y="142" class="h2">A new day begins</text>
+  <text x="50" y="168" class="dim">(from day 2 on)</text>
+  <text x="50" y="196" class="t">· Travelers revise goals</text>
+  <text x="50" y="222" class="t">· The World adds 1-3 things:</text>
+  <text x="50" y="244" class="dim">   troubles, occasions, reunions…</text>
+
+  <!-- day end -->
+  <rect x="930" y="112" width="240" height="140" rx="14" class="side"/>
+  <text x="950" y="142" class="h2">Day's end</text>
+  <text x="950" y="174" class="t">· Each traveler writes a</text>
+  <text x="950" y="198" class="t">   memory summary</text>
+  <text x="950" y="226" class="t">· World state and event log</text>
+  <text x="950" y="248" class="t">   are saved</text>
+
+  <!-- the sun's arc: four parts of the day -->
+  <path d="M300 230 Q600 40 900 230" fill="none" stroke="url(#arc)" stroke-width="2.4" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M272 182 H296" stroke="#e2c376" stroke-width="2" marker-end="url(#ag)"/>
+  <path d="M904 182 H926" stroke="#e2c376" stroke-width="2" marker-end="url(#ag)"/>
+  <g>
+    <circle cx="372" cy="190" r="34" fill="url(#glow)"/>
+    <circle cx="372" cy="190" r="12" fill="#f6c46a"/>
+    <path d="M352 196 H392" stroke="#0d1330" stroke-width="5"/>
+    <text x="372" y="230" text-anchor="middle" class="lbl">Morning</text>
+
+    <circle cx="522" cy="142" r="38" fill="url(#glow)"/>
+    <circle cx="522" cy="142" r="14" fill="#ffe9b0"/>
+    <g stroke="#ffe9b0" stroke-width="2" stroke-linecap="round">
+      <path d="M522 116 V122 M522 162 V168 M496 142 H502 M542 142 H548 M504 124 L508 128 M536 156 L540 160 M540 124 L536 128 M504 160 L508 156"/>
+    </g>
+    <text x="522" y="190" text-anchor="middle" class="lbl">Afternoon</text>
+
+    <circle cx="678" cy="142" r="36" fill="url(#glow)" opacity="0.7"/>
+    <circle cx="678" cy="142" r="13" fill="#e8925f"/>
+    <text x="678" y="190" text-anchor="middle" class="lbl">Evening</text>
+
+    <path d="M836 178 A14 14 0 1 0 836 202 A10 10 0 1 1 836 178Z" fill="#c9c3f0"/>
+    <circle cx="806" cy="170" r="1.5" fill="#f3dc95"/><circle cx="850" cy="166" r="1.2" fill="#f3dc95"/>
+    <text x="828" y="230" text-anchor="middle" class="lbl">Night</text>
+  </g>
+  <text x="600" y="276" text-anchor="middle" class="sub">Each part of the day runs these four steps</text>
+
+  <!-- ① plan -->
+  <rect x="30" y="296" width="260" height="260" rx="14" class="card"/>
+  <circle cx="58" cy="326" r="14" fill="#e2c376"/><text x="58" y="331" text-anchor="middle" class="num">1</text>
+  <text x="82" y="333" class="h">Plan</text>
+  <g class="ico" transform="translate(240 328)" stroke-width="2">
+    <path d="M0 -14 C-10 -14 -12 -4 -8 2 L0 14 L8 2 C12 -4 10 -14 0 -14Z"/><circle cx="0" cy="-5" r="3.5"/>
+  </g>
+  <text x="50" y="372" class="t">Each traveler decides alone:</text>
+  <text x="50" y="398" class="t">where to go, what to do</text>
+  <text x="50" y="430" class="t">· just be somewhere, or</text>
+  <text x="50" y="456" class="t">· try something that matters</text>
+  <text x="50" y="492" class="dim">A plan is an intention, not a</text>
+  <text x="50" y="516" class="dim">fact; nobody else sees it</text>
+
+  <!-- ② meet -->
+  <rect x="330" y="296" width="260" height="260" rx="14" class="card"/>
+  <circle cx="358" cy="326" r="14" fill="#e2c376"/><text x="358" y="331" text-anchor="middle" class="num">2</text>
+  <text x="382" y="333" class="h">Meet</text>
+  <g class="ico" transform="translate(540 328)" stroke-width="2">
+    <circle cx="-9" cy="-6" r="5"/><path d="M-18 12 Q-9 -2 0 12"/>
+    <circle cx="9" cy="-6" r="5"/><path d="M0 12 Q9 -2 18 12"/>
+  </g>
+  <text x="350" y="372" class="t">Code moves travelers per plan;</text>
+  <text x="350" y="398" class="t">the World says who is around</text>
+  <text x="350" y="430" class="t">· Two travelers in one spot</text>
+  <text x="350" y="454" class="t">   → they meet: a scene</text>
+  <text x="350" y="482" class="t">· Someone attempts a thing</text>
+  <text x="350" y="506" class="t">   → also a scene</text>
+  <text x="350" y="536" class="dim">Results happen only in scenes</text>
+
+  <!-- ③ scene -->
+  <rect x="630" y="296" width="260" height="260" rx="14" class="card"/>
+  <circle cx="658" cy="326" r="14" fill="#e2c376"/><text x="658" y="331" text-anchor="middle" class="num">3</text>
+  <text x="682" y="333" class="h">Play</text>
+  <g class="ico" transform="translate(842 328)" stroke-width="2">
+    <path d="M-16 -12 H6 Q10 -12 10 -8 V2 Q10 6 6 6 H-6 L-12 12 V6 H-16 Q-20 6 -20 2 V-8 Q-20 -12 -16 -12Z"/>
+    <path d="M14 -4 H18 Q22 -4 22 0 V8 Q22 12 18 12 H16 V16 L11 12"/>
+  </g>
+  <text x="650" y="372" class="t">Round by round; each round,</text>
+  <text x="650" y="398" class="t">one person speaks or acts</text>
+  <text x="650" y="430" class="t">· The addressee answers first</text>
+  <text x="650" y="456" class="t">· The urgent may interrupt</text>
+  <text x="650" y="482" class="t">· The World plays the extras</text>
+  <text x="650" y="506" class="t">   and resolves each act</text>
+  <text x="650" y="536" class="dim">Ends when nobody acts</text>
+
+  <!-- ④ off-screen -->
+  <rect x="930" y="296" width="240" height="260" rx="14" class="card"/>
+  <circle cx="958" cy="326" r="14" fill="#e2c376"/><text x="958" y="331" text-anchor="middle" class="num">4</text>
+  <text x="982" y="333" class="h">Off-screen</text>
+  <g class="ico" transform="translate(1130 328)" stroke-width="2">
+    <path d="M-18 -14 H18 M-18 -14 V14 M18 -14 V14"/>
+    <path d="M-18 -14 Q-6 0 -10 14 M18 -14 Q6 0 10 14"/>
+  </g>
+  <text x="950" y="372" class="t">In a separate session, the</text>
+  <text x="950" y="398" class="t">World keeps the rest moving:</text>
+  <text x="950" y="430" class="t">· extras go about their day</text>
+  <text x="950" y="456" class="t">· places change</text>
+  <text x="950" y="482" class="t">· overdue matters lapse</text>
+  <text x="950" y="516" class="dim">It can't see the travelers</text>
+  <text x="950" y="538" class="dim">and can't touch them</text>
+
+  <!-- step arrows -->
+  <path d="M292 426 H326" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M592 426 H626" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M892 426 H926" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M1050 558 V580 H160 V562" fill="none" stroke="#e2c376" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#ag)"/>
+  <rect x="515" y="568" width="170" height="24" fill="#1f1b44"/>
+  <text x="600" y="586" text-anchor="middle" class="lbl">next part of the day</text>
+
+  <!-- who decides -->
+  <text x="30" y="632" class="h2" fill="#f3dc95">Who decides</text>
+
+  <rect x="30" y="648" width="370" height="186" rx="14" class="side"/>
+  <g class="ico" transform="translate(64 684)" stroke-width="2">
+    <circle cx="0" cy="-6" r="7"/><path d="M-13 16 Q0 -2 13 16"/>
+  </g>
+  <text x="90" y="690" class="h2">Traveler agents (one each)</text>
+  <text x="50" y="724" class="t">· A card sets personality and voice</text>
+  <text x="50" y="750" class="t">· Knows only what it saw and heard</text>
+  <text x="50" y="776" class="t">· Acts on its own goals and memory</text>
+  <text x="50" y="808" class="dim">Nobody gives the travelers orders</text>
+
+  <rect x="415" y="648" width="370" height="186" rx="14" class="side"/>
+  <g class="ico" transform="translate(449 684)" stroke-width="2">
+    <circle cx="0" cy="0" r="13"/><path d="M-13 0 H13 M0 -13 Q8 0 0 13 M0 -13 Q-8 0 0 13"/>
+  </g>
+  <text x="475" y="690" class="h2">World agent</text>
+  <text x="435" y="724" class="t">· Rules whether attempts succeed</text>
+  <text x="435" y="750" class="t">· Plays all extras, keeps time</text>
+  <text x="435" y="776" class="t">· Never speaks for travelers; no plot goals</text>
+  <text x="435" y="808" class="dim">Every change is written as checkable data</text>
+
+  <rect x="800" y="648" width="370" height="186" rx="14" class="side"/>
+  <g class="ico" transform="translate(834 684)" stroke-width="2">
+    <rect x="-12" y="-14" width="24" height="28" rx="3"/><path d="M-6 -6 H6 M-6 0 H6 M-6 6 H2"/>
+  </g>
+  <text x="860" y="690" class="h2">World files</text>
+  <text x="820" y="724" class="t">· State: who is where, goals,</text>
+  <text x="820" y="748" class="t">   promises, extras, open matters</text>
+  <text x="820" y="776" class="t">· Event log: this world's canon</text>
+  <text x="820" y="808" class="dim">The next world run continues the day after</text>
+</svg>
