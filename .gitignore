@@ -16,3 +16,7 @@ AGENTS.md
 /assets/player/**
 !/assets/player/manifest.yaml
 !/assets/player/SOURCES.md
+!/assets/player/*/
+!/assets/player/gallery/*/
+!/assets/player/gallery/*/index.yaml
+!/assets/player/stages/*.yaml
