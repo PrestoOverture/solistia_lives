@@ -1,10 +1,8 @@
-backdrops:
-  crackridge: backdrops/crackridge.jpg
-  western_crackridge_wilds: backdrops/western_crackridge_wilds.jpg
-  new_delsta: backdrops/new_delsta.jpg
-  new_delsta_theater: backdrops/new_delsta_theater.jpg
-  cropdale: backdrops/cropdale.jpg
-  festival_grounds: backdrops/cropdale.jpg
+stand_ins:
+  montwise_library: montwise/library_exterior
+  flamechurch_cathedral: flamechurch/chapel
+  new_delsta_backstreets: new_delsta/back_alley
+  stage_of_the_moon_and_sun: merry_hills_shrine_entrance/shrine_courtyard
 sprites:
   agnea: sprites/agnea.webp
   castti: sprites/castti.webp

@@ -8,12 +8,27 @@
   .backdrop.evening { background: #be8c9e; }
   .backdrop.night { background: #293951; color: #f0ebdc; }
   .backdrop { position: relative; isolation: isolate; }
-  .backdrop-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
-  .backdrop.has-art { color: #fff5dd; text-shadow: 0 1px 3px #000; min-height: 22rem; display: flex; flex-direction: column; justify-content: space-between; }
-  .has-art::after { content: ""; position: absolute; inset: 0; z-index: -1; background: #e6c78120; pointer-events: none; }
-  .has-art.afternoon::after { background: #e6b44825; }
-  .has-art.evening::after { background: #9c3e6655; }
-  .has-art.night::after { background: #10234999; }
+  .backdrop-art { display: block; width: 100%; height: auto; }
+  .backdrop.has-art { padding: 0; }
+  .backdrop-art.darkened { filter: brightness(.48); }
+  .place-label { display: block; padding: .5rem; }
+  .has-art .place-label { position: absolute; top: 0; left: 0; color: #fff5dd; text-shadow: 0 1px 3px #000; }
+  .has-art .cast { position: absolute; inset: 0; padding: 0; display: block; }
+  .has-art .figure { position: absolute; left: var(--x); top: var(--y); height: var(--h); max-width: none;
+    transform: translate(-50%, -100%); width: auto; }
+  .has-art .sprite { height: 100%; max-width: none; }
+  .has-art .figure > span { display: none; }
+  .has-art .figure.speaking { outline: none; }
+  .has-art .figure.dimmed { opacity: 1; }
+  .figure[hidden] { display: none; }
+  .figure { --facing: 1; }
+  .sprite { transform: scaleX(var(--facing)); }
+  .figure.face-left { --facing: -1; }
+  .figure.speaking .sprite { animation: speaking-bob .65s ease-in-out infinite; }
+  @keyframes speaking-bob { 50% { transform: translateY(-3%) scaleX(var(--facing)); } }
+  .has-art .head { width: 45%; height: 32%; }
+  .has-art .body { width: 65%; height: 65%; }
+  .has-art .figure:has(.head) { width: var(--h); }
   .sprite { display: block; height: 8rem; width: auto; max-width: 100%; object-fit: contain; margin: auto; image-rendering: pixelated; }
   .figure.speaking .sprite { filter: drop-shadow(0 0 5px #ffe4a0); }
   .cast { display: flex; flex-wrap: wrap; justify-content: center; align-items: end; gap: 1rem; padding: 2rem .5rem 1rem; }
@@ -40,11 +55,12 @@
 <p class="metadata">Day {{ scene.day }} · {{ scene.part }} · {{ scene.rounds }} rounds</p>
 <div id="stage" tabindex="0" aria-label="Scene player; click to advance">
   <div class="backdrop {{ scene.part }}{% if backdrop %} has-art{% endif %}">{% if backdrop %}
-    <img class="backdrop-art" src="{{ url_for('player_asset', filename=backdrop) }}" alt="">
-    {% endif %}{{ place }}
+    <img class="backdrop-art{% if darken %} darkened{% endif %}" src="{{ url_for('player_asset', filename=backdrop) }}" alt="">
+    {% endif %}<span class="place-label">{{ place }}</span>
     <div class="cast">
     {% for name in scene.participants %}
-      <div class="figure" data-actor="{{ name }}">
+      <div class="figure" data-actor="{{ name }}" data-x="{{ stand[loop.index0].x if stand else loop.index0 }}"{% if stand %}
+           style="--x: {{ stand[loop.index0].x * 100 }}%; --y: {{ stand[loop.index0].y * 100 }}%; --h: {{ stand[loop.index0].h * 100 }}%; z-index: {{ (stand[loop.index0].y * 1000) | int }}"{% endif %}>
         {% if sprite_files.get(name) %}
         <img class="sprite" src="{{ url_for('player_asset', filename=sprite_files[name]) }}" alt="{{ travelers.get(name, name) }}">
         {% else %}
@@ -106,7 +122,24 @@
     document.getElementById('beat-counter').textContent = `${beats.length ? index + 1 : 0} / ${beats.length}`;
     previous.disabled = index === 0;
     next.disabled = index >= beats.length - 1;
-    stage.querySelectorAll('.figure').forEach(figure => {
+    // Replay facing from the full timeline so Back and the World toggle agree.
+    const figures = [...stage.querySelectorAll('.figure')];
+    const byActor = new Map(figures.map(figure => [figure.dataset.actor, figure]));
+    const facing = new Map();
+    let lastSpeaker = null;
+    const position = allBeats.indexOf(beat);
+    for (const prior of allBeats.slice(0, position + 1)) {
+      if (!prior.speaker || !byActor.has(prior.actor)) continue;
+      if (lastSpeaker && lastSpeaker !== prior.actor) {
+        const here = Number(byActor.get(prior.actor).dataset.x);
+        const there = Number(byActor.get(lastSpeaker).dataset.x);
+        facing.set(prior.actor, there < here);
+      }
+      lastSpeaker = prior.actor;
+    }
+    figures.forEach(figure => {
+      figure.hidden = Boolean(beat?.departed.includes(figure.dataset.actor));
+      figure.classList.toggle('face-left', facing.get(figure.dataset.actor) || false);
       const speaking = Boolean(beat?.speaker && figure.dataset.actor === beat.actor);
       figure.classList.toggle('speaking', speaking);
       figure.classList.toggle('dimmed', Boolean(beat?.speaker) && !speaking);

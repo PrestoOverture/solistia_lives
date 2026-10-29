@@ -267,7 +267,7 @@ def world_new(
 
 @world_app.command("backfill-lines")
 def world_backfill_lines(world_id: str = typer.Argument(...)) -> None:
-    """Fill scene action and spoken-line fields from recorded simulation moves."""
+    """Fill scene move, action and spoken-line fields from recorded simulation moves."""
     from story_engine.world.lines import backfill_lines
 
     try:

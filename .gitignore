@@ -20,3 +20,4 @@ AGENTS.md
 !/assets/player/gallery/*/
 !/assets/player/gallery/*/index.yaml
 !/assets/player/stages/*.yaml
+/output/

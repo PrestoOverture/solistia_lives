@@ -116,6 +116,7 @@ def test_scene_fake_sdk(tmp_path, monkeypatch, case):
     for event in read_events(world):
         if event.scene is not None and event.type in {'speech', 'action'}:
             recorded = next(row for row in rounds if row['round'] == event.round)['moves'][event.actor]
+            assert event.move == recorded['move']
             assert event.action == recorded['action']
             assert event.say == (recorded['say'] if recorded['move'] != 'wait' and recorded['say'] else None)
 

@@ -58,11 +58,12 @@ def test_backfill_join_idempotent_and_fold_unchanged(recorded_world):
     after = (world / 'events.jsonl').read_bytes()
     rows = [json.loads(line) for line in after.splitlines()]
     for before, row in zip(original, rows):
-        assert {k: v for k, v in row.items() if k not in {'action', 'say'}} == before
+        assert {k: v for k, v in row.items() if k not in {'move', 'action', 'say'}} == before
         if row['type'] == 'state_change':
             assert row == before
             continue
         move = moves[row['day']][row['actor']]
+        assert row['move'] == move['move']
         assert row['action'] == move['action']
         assert row['say'] == (move['say'] if move['move'] != 'wait' else None)
     assert load_state(world) == state

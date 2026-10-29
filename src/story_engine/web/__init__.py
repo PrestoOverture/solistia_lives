@@ -18,7 +18,10 @@ from story_engine.config import ConfigError, load_configs, load_settings
 from story_engine.kb import TRAVELERS, validate_input
 from story_engine.runs import RunInput, create_run
 from story_engine.web.jobs import generate_story
-from story_engine.web.player import asset_file, audio_file, load_art, read_world, scene_beats, valid_id
+from story_engine.web.player import (
+    asset_file, audio_file, load_art, read_world, scene_beats, scene_stage,
+    stage_images, stand_points, valid_id,
+)
 from story_engine.web.progress import read_progress
 
 
@@ -127,7 +130,7 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
     @app.get("/player-assets/{filename:path}")
     def player_asset(filename: str):
         art = load_art(player_assets_dir)
-        if filename not in {*art.backdrops.values(), *art.sprites.values()}:
+        if filename not in {*stage_images(player_assets_dir), *art.sprites.values()}:
             raise HTTPException(status_code=404, detail="Asset not found")
         path = asset_file(player_assets_dir, filename)
         if path is None:
@@ -154,11 +157,13 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
         except (OSError, ValueError):
             raise HTTPException(status_code=404, detail="Scene not found") from None
         art = load_art(player_assets_dir)
+        stage = scene_stage(player_assets_dir, record.place, record.spot, record.part, art)
         sprite_files = {name: art.sprites.get(name if name in TRAVELERS else "minor")
                         for name in record.participants}
         return templates.TemplateResponse(request=request, name="scene.html", context={
             "world_id": world_id, "scene": record, "beats": beats,
-            "backdrop": art.backdrops.get(record.place), "sprite_files": sprite_files,
+            "backdrop": stage.image, "darken": stage.darken,
+            "stand": stand_points(stage.stand, len(record.participants)), "sprite_files": sprite_files,
             "travelers": travelers, "place": locations.get(record.place, record.place),
             "player_settings": load_settings().model_dump(include={'player_reading_wpm', 'player_reading_min_ms'}),
         })

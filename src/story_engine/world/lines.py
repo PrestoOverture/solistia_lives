@@ -17,7 +17,7 @@ class _MoveLines(BaseModel):
 
 
 def backfill_lines(world_dir: Path, runs_dir: Path) -> int:
-    """Validate the entire join before atomically replacing only action/say fields."""
+    """Validate the entire join before atomically replacing only move/action/say fields."""
     moves = {}
     for meta_path in sorted(runs_dir.glob('*/meta.json')):
         meta = json.loads(meta_path.read_bytes(), object_pairs_hook=_unique_object)
@@ -53,7 +53,7 @@ def backfill_lines(world_dir: Path, runs_dir: Path) -> int:
             if event.type == 'speech':
                 raise ValueError(f'No matching move for speech event {event.id}: {key}')
             continue
-        fields = dict(action=move.action, say=move.say if move.move != 'wait' and move.say else None)
+        fields = dict(move=move.move, action=move.action, say=move.say if move.move != 'wait' and move.say else None)
         if all(name in data and data[name] == value for name, value in fields.items()):
             continue
         data.update(fields)
