@@ -9,3 +9,5 @@ writer_max_turns: 20
 suite_parallel: 5
 blind_root: ~/blind_packets
 parts_of_day: [morning, afternoon, evening, night]
+player_reading_wpm: 200
+player_reading_min_ms: 1500

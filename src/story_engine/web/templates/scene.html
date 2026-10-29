@@ -46,6 +46,7 @@
   <button id="previous" type="button">← Back</button>
   <span id="beat-counter" aria-live="polite"></span>
   <button id="next" type="button">Next →</button>
+  <label><input id="auto" type="checkbox"> Auto</label>
   <label><input id="show-world" type="checkbox"> Show World events</label>
 </div>
 <p class="metadata">Click the stage, Space or → to advance. ← goes back.</p>
@@ -58,9 +59,32 @@
   const toggle = document.getElementById('show-world');
   const previous = document.getElementById('previous');
   const next = document.getElementById('next');
+  const auto = document.getElementById('auto');
+  const settings = {{ player_settings | tojson }};
   let beats = allBeats.filter(beat => !beat.hidden);
   let index = 0;
+  let audio = null;
+  let timer = null;
+  function stopPlayback() {
+    clearTimeout(timer);
+    timer = null;
+    if (audio) {
+      audio.onended = audio.onerror = audio.onplaying = audio.onwaiting = null;
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+      audio = null;
+    }
+  }
+  function readingDelay(beat) {
+    clearTimeout(timer);
+    if (!auto.checked || !beat || index >= beats.length - 1) return;
+    const words = beat.text.trim().split(/\s+/).length;
+    timer = setTimeout(() => advance(1), Math.max(settings.player_reading_min_ms,
+      words * 60000 / settings.player_reading_wpm));
+  }
   function render() {
+    stopPlayback();
     const beat = beats[index];
     document.getElementById('speaker').textContent = beat?.speaker || '';
     document.getElementById('beat-text').textContent = beat?.text ?? 'No visible beats.';
@@ -72,6 +96,22 @@
       figure.classList.toggle('speaking', speaking);
       figure.classList.toggle('dimmed', Boolean(beat?.speaker) && !speaking);
     });
+    readingDelay(beat);
+    if (beat?.audio_url) {
+      const currentAudio = new Audio(beat.audio_url);
+      audio = currentAudio;
+      const fallback = () => {
+        if (audio === currentAudio) readingDelay(beat);
+      };
+      currentAudio.onplaying = () => {
+        if (audio === currentAudio) clearTimeout(timer);
+      };
+      currentAudio.onended = () => {
+        if (audio === currentAudio && auto.checked && index < beats.length - 1) advance(1);
+      };
+      currentAudio.onerror = currentAudio.onwaiting = fallback;
+      currentAudio.play().catch(fallback);
+    }
   }
   function advance(delta) {
     index = Math.max(0, Math.min(beats.length - 1, index + delta));
@@ -80,6 +120,9 @@
   stage.addEventListener('click', () => advance(1));
   previous.addEventListener('click', () => advance(-1));
   next.addEventListener('click', () => advance(1));
+  auto.addEventListener('change', render);
+  window.addEventListener('pagehide', stopPlayback, {once: true});
+  stage.addEventListener('htmx:beforeCleanupElement', stopPlayback);
   document.onkeydown = event => {
     if (!stage.isConnected || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName)) return;
     if (['Space', 'ArrowRight', 'ArrowLeft'].includes(event.code)) {

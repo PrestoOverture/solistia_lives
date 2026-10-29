@@ -61,6 +61,8 @@ class Settings(StrictModel):
     writer_max_turns: int = Field(gt=0)
     suite_parallel: int = Field(gt=0)
     blind_root: Path = Path("~/blind_packets")
+    player_reading_wpm: int = Field(default=200, gt=0)
+    player_reading_min_ms: int = Field(default=1500, gt=0)
 
 
 class ConfigError(Exception):

@@ -38,6 +38,7 @@ class Beat(BaseModel):
     speaker: str | None
     actor: str | None
     hidden: bool
+    audio_url: str | None = None
 
 
 def scene_beats(directory: Path, scene_id: str, names: dict[str, str]) -> list[dict]:
@@ -55,5 +56,18 @@ def scene_beats(directory: Path, scene_id: str, names: dict[str, str]) -> list[d
         for text, actor in fields:
             beats.append(Beat(event_id=event.id, text=text, actor=actor,
                               speaker=names.get(actor, actor) if actor else None,
-                              hidden=event.actor == "world").model_dump())
+                              hidden=event.actor == "world",
+                              audio_url=f'/world/{directory.name}/audio/{event.id}.mp3' if actor else None).model_dump())
     return beats
+
+
+def audio_file(worlds_dir: Path, world_id: str, event_id: str) -> Path | None:
+    if not valid_id(world_id) or re.fullmatch(r'[0-9]+', event_id) is None:
+        return None
+    directory = worlds_dir / world_id
+    audio = directory / 'audio'
+    path = audio / f'{event_id}.mp3'
+    if (directory.is_symlink() or audio.is_symlink() or path.is_symlink()
+            or path.resolve().parent != worlds_dir / world_id / 'audio'):
+        return None
+    return path if path.is_file() else None

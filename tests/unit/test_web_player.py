@@ -40,23 +40,24 @@ def test_scene_embeds_exact_ordered_beats_and_cast_without_writing(tmp_path):
         response = client.get('/world/player/scene/1')
         assert response.status_code == 200
         assert embedded_beats(response.text) == [
-            dict(event_id=2, text='Agnea waves.', speaker=None, actor=None, hidden=False),
-            dict(event_id=2, text='Hello, Mabel!', speaker='Agnea Bristarni', actor='agnea', hidden=False),
-            dict(event_id=3, text='The greeting succeeds.', speaker=None, actor=None, hidden=True),
-            dict(event_id=4, text='Welcome!', speaker='Mabel', actor='Mabel', hidden=False),
-            dict(event_id=5, text='Throné nods.', speaker=None, actor=None, hidden=False),
-            dict(event_id=6, text='Mabel smiles. "A whole unsplit legacy line."', speaker=None, actor=None, hidden=False),
-            dict(event_id=7, text='A bell rings.', speaker=None, actor=None, hidden=True),
-            dict(event_id=7, text='The festival begins.', speaker='world', actor='world', hidden=True),
+            dict(event_id=2, text='Agnea waves.', speaker=None, actor=None, hidden=False, audio_url=None),
+            dict(event_id=2, text='Hello, Mabel!', speaker='Agnea Bristarni', actor='agnea', hidden=False, audio_url='/world/player/audio/2.mp3'),
+            dict(event_id=3, text='The greeting succeeds.', speaker=None, actor=None, hidden=True, audio_url=None),
+            dict(event_id=4, text='Welcome!', speaker='Mabel', actor='Mabel', hidden=False, audio_url='/world/player/audio/4.mp3'),
+            dict(event_id=5, text='Throné nods.', speaker=None, actor=None, hidden=False, audio_url=None),
+            dict(event_id=6, text='Mabel smiles. "A whole unsplit legacy line."', speaker=None, actor=None, hidden=False, audio_url=None),
+            dict(event_id=7, text='A bell rings.', speaker=None, actor=None, hidden=True, audio_url=None),
+            dict(event_id=7, text='The festival begins.', speaker='world', actor='world', hidden=True, audio_url='/world/player/audio/7.mp3'),
         ]
         assert '<div class="backdrop morning">Cropdale' in response.text
         for actor in ['agnea', 'throne', 'Mabel']:
             assert f'class="figure" data-actor="{actor}"' in response.text
         assert 'id="show-world" type="checkbox">' in response.text
+        assert 'id="auto" type="checkbox"> Auto' in response.text
         assert 'intent' not in response.text
         second = client.get('/world/player/scene/2')
         assert '<div class="backdrop night">Cropdale' in second.text
-        assert embedded_beats(second.text) == [dict(event_id=8, text='Only in scene two.', speaker=None, actor=None, hidden=False)]
+        assert embedded_beats(second.text) == [dict(event_id=8, text='Only in scene two.', speaker=None, actor=None, hidden=False, audio_url=None)]
         assert client.post('/world/player/scene/1').status_code == 405
     assert before == {p: p.read_bytes() for p in FIXTURES.rglob('*') if p.is_file()}
     assert not list(tmp_path.iterdir())

@@ -9,16 +9,16 @@ import frontmatter
 
 import markdown
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from story_engine.agents.validation import Validation
-from story_engine.config import ConfigError, load_configs
+from story_engine.config import ConfigError, load_configs, load_settings
 from story_engine.kb import TRAVELERS, validate_input
 from story_engine.runs import RunInput, create_run
 from story_engine.web.jobs import generate_story
-from story_engine.web.player import read_world, scene_beats, valid_id
+from story_engine.web.player import audio_file, read_world, scene_beats, valid_id
 from story_engine.web.progress import read_progress
 
 
@@ -122,6 +122,13 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"))
             "worlds": items, "travelers": travelers, "locations": locations,
         })
 
+    @app.get("/world/{world_id}/audio/{event_id}.mp3")
+    def scene_audio(world_id: str, event_id: str):
+        path = audio_file(worlds_dir, world_id, event_id)
+        if path is None:
+            raise HTTPException(status_code=404, detail="Audio not found")
+        return FileResponse(path, media_type="audio/mpeg")
+
     @app.get("/world/{world_id}/scene/{scene_id}", response_class=HTMLResponse)
     def scene(request: Request, world_id: str, scene_id: str):
         world = read_world(worlds_dir, world_id)
@@ -137,6 +144,7 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"))
         return templates.TemplateResponse(request=request, name="scene.html", context={
             "world_id": world_id, "scene": record, "beats": beats,
             "travelers": travelers, "place": locations.get(record.place, record.place),
+            "player_settings": load_settings().model_dump(include={'player_reading_wpm', 'player_reading_min_ms'}),
         })
 
     @app.get("/story/{run_id}", response_class=HTMLResponse)

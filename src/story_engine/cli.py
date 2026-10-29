@@ -280,6 +280,26 @@ def world_backfill_lines(world_id: str = typer.Argument(...)) -> None:
     typer.echo(f"Updated {count} scene events")
 
 
+@world_app.command("voice")
+def world_voice(
+    world_id: str = typer.Argument(...),
+    scene: str | None = typer.Option(None, help="Render only this scene ID"),
+) -> None:
+    """Pre-render scene dialogue with edge-tts, skipping existing MP3s."""
+    from story_engine.web.player import valid_id
+    from story_engine.world.voice import load_voices, render_voice
+
+    try:
+        directory = Path('worlds') / world_id
+        if not valid_id(world_id) or directory.is_symlink() or not directory.is_dir():
+            raise ValueError('world_id must name an existing world')
+        rendered, skipped = asyncio.run(render_voice(directory, load_voices(), scene))
+    except Exception as error:
+        typer.echo(f'Voice rendering failed: {error}', err=True)
+        raise typer.Exit(code=1) from None
+    typer.echo(f'Rendered {rendered}, skipped {skipped}')
+
+
 @world_app.command("run")
 def world_run(
     world_id: str = typer.Argument(...),

@@ -1,0 +1,14 @@
+travelers:
+  agnea: en-US-EmmaNeural       # Female, 18: cheerful young performer
+  throne: en-US-AriaNeural     # Female, 23: controlled, confident
+  hikari: en-US-BrianNeural    # Male, 21: sincere young ruler
+  ochette: en-US-AnaNeural     # Female, 20: small, childlike and exuberant
+  castti: en-US-JennyNeural    # Female, 29: warm, reassuring healer
+  osvald: en-US-ChristopherNeural # Male, 38: mature, authoritative scholar
+  temenos: en-GB-RyanNeural    # Male, 30: polished, courteous inquisitor
+  partitio: en-US-GuyNeural    # Male, 24: energetic, passionate merchant
+minor:
+  - en-US-MichelleNeural
+  - en-US-EricNeural
+  - en-GB-SoniaNeural
+  - en-GB-ThomasNeural
