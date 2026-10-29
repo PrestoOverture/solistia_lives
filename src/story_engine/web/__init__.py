@@ -18,7 +18,7 @@ from story_engine.config import ConfigError, load_configs, load_settings
 from story_engine.kb import TRAVELERS, validate_input
 from story_engine.runs import RunInput, create_run
 from story_engine.web.jobs import generate_story
-from story_engine.web.player import audio_file, read_world, scene_beats, valid_id
+from story_engine.web.player import asset_file, audio_file, load_art, read_world, scene_beats, valid_id
 from story_engine.web.progress import read_progress
 
 
@@ -87,10 +87,12 @@ def _validator_notes(run_dir: Path) -> list:
     return report.rounds[-1].contract if report.rounds else []
 
 
-def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds")) -> FastAPI:
+def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
+               player_assets_dir: Path = Path("assets/player")) -> FastAPI:
     """Read stories and world scenes; start baseline jobs in the run directory."""
     runs_dir = runs_dir.resolve()
     worlds_dir = worlds_dir.resolve()
+    player_assets_dir = player_assets_dir.resolve()
     app = FastAPI(openapi_url=None, docs_url=None, redoc_url=None)
     travelers = {slug: _display_name(Path("kb/characters") / slug / f"{slug}.md")
                  for slug in sorted(TRAVELERS)}
@@ -122,6 +124,16 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"))
             "worlds": items, "travelers": travelers, "locations": locations,
         })
 
+    @app.get("/player-assets/{filename:path}")
+    def player_asset(filename: str):
+        art = load_art(player_assets_dir)
+        if filename not in {*art.backdrops.values(), *art.sprites.values()}:
+            raise HTTPException(status_code=404, detail="Asset not found")
+        path = asset_file(player_assets_dir, filename)
+        if path is None:
+            raise HTTPException(status_code=404, detail="Asset not found")
+        return FileResponse(path)
+
     @app.get("/world/{world_id}/audio/{event_id}.mp3")
     def scene_audio(world_id: str, event_id: str):
         path = audio_file(worlds_dir, world_id, event_id)
@@ -141,8 +153,12 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"))
             beats = scene_beats(worlds_dir / world_id, scene_id, travelers)
         except (OSError, ValueError):
             raise HTTPException(status_code=404, detail="Scene not found") from None
+        art = load_art(player_assets_dir)
+        sprite_files = {name: art.sprites.get(name if name in TRAVELERS else "minor")
+                        for name in record.participants}
         return templates.TemplateResponse(request=request, name="scene.html", context={
             "world_id": world_id, "scene": record, "beats": beats,
+            "backdrop": art.backdrops.get(record.place), "sprite_files": sprite_files,
             "travelers": travelers, "place": locations.get(record.place, record.place),
             "player_settings": load_settings().model_dump(include={'player_reading_wpm', 'player_reading_min_ms'}),
         })

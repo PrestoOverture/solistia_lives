@@ -3,6 +3,8 @@
 import re
 from pathlib import Path
 
+import yaml
+
 from pydantic import BaseModel
 
 from story_engine.world.io import read_events, read_scenes
@@ -71,3 +73,36 @@ def audio_file(worlds_dir: Path, world_id: str, event_id: str) -> Path | None:
             or path.resolve().parent != worlds_dir / world_id / 'audio'):
         return None
     return path if path.is_file() else None
+
+
+class PlayerArt(BaseModel):
+    backdrops: dict[str, str] = {}
+    sprites: dict[str, str] = {}
+
+
+def asset_file(directory: Path, filename: str) -> Path | None:
+    """Resolve only local image paths, including through symlinks."""
+    if "\\" in filename or Path(filename).is_absolute():
+        return None
+    try:
+        path = (directory / filename).resolve()
+        if (not path.is_relative_to(directory.resolve())
+                or path.suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+                or not path.is_file()):
+            return None
+    except (OSError, ValueError, RuntimeError):
+        return None
+    return path
+
+
+def load_art(directory: Path) -> PlayerArt:
+    """Missing local art keeps the P2 placeholders usable in public checkouts."""
+    try:
+        art = PlayerArt.model_validate(yaml.safe_load((directory / "manifest.yaml").read_text()))
+    except (OSError, ValueError, yaml.YAMLError):
+        return PlayerArt()
+    for mapping in (art.backdrops, art.sprites):
+        for slug, filename in list(mapping.items()):
+            if asset_file(directory, filename) is None:
+                del mapping[slug]
+    return art

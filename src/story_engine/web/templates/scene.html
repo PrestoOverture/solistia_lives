@@ -7,6 +7,15 @@
   .backdrop.afternoon { background: #e4cd91; }
   .backdrop.evening { background: #be8c9e; }
   .backdrop.night { background: #293951; color: #f0ebdc; }
+  .backdrop { position: relative; isolation: isolate; }
+  .backdrop-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+  .backdrop.has-art { color: #fff5dd; text-shadow: 0 1px 3px #000; min-height: 22rem; display: flex; flex-direction: column; justify-content: space-between; }
+  .has-art::after { content: ""; position: absolute; inset: 0; z-index: -1; background: #e6c78120; pointer-events: none; }
+  .has-art.afternoon::after { background: #e6b44825; }
+  .has-art.evening::after { background: #9c3e6655; }
+  .has-art.night::after { background: #10234999; }
+  .sprite { display: block; height: 8rem; width: auto; max-width: 100%; object-fit: contain; margin: auto; image-rendering: pixelated; }
+  .figure.speaking .sprite { filter: drop-shadow(0 0 5px #ffe4a0); }
   .cast { display: flex; flex-wrap: wrap; justify-content: center; align-items: end; gap: 1rem; padding: 2rem .5rem 1rem; }
   .figure { --figure-color: #808b8d; text-align: center; max-width: 9rem; transition: opacity .15s; }
   .figure[data-actor="agnea"] { --figure-color: #d276a3; }
@@ -30,11 +39,17 @@
 <h1>Scene {{ scene.id }}</h1>
 <p class="metadata">Day {{ scene.day }} · {{ scene.part }} · {{ scene.rounds }} rounds</p>
 <div id="stage" tabindex="0" aria-label="Scene player; click to advance">
-  <div class="backdrop {{ scene.part }}">{{ place }}
+  <div class="backdrop {{ scene.part }}{% if backdrop %} has-art{% endif %}">{% if backdrop %}
+    <img class="backdrop-art" src="{{ url_for('player_asset', filename=backdrop) }}" alt="">
+    {% endif %}{{ place }}
     <div class="cast">
     {% for name in scene.participants %}
       <div class="figure" data-actor="{{ name }}">
+        {% if sprite_files.get(name) %}
+        <img class="sprite" src="{{ url_for('player_asset', filename=sprite_files[name]) }}" alt="{{ travelers.get(name, name) }}">
+        {% else %}
         <div class="head" aria-hidden="true"></div><div class="body" aria-hidden="true"></div>
+        {% endif %}
         <span>{{ travelers.get(name, name) }}</span>
       </div>
     {% endfor %}

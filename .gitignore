@@ -11,3 +11,8 @@ __pycache__/
 CLAUDE.md
 AGENTS.md
 .env
+
+# Personal-use player art: commit only the manifest and provenance.
+/assets/player/**
+!/assets/player/manifest.yaml
+!/assets/player/SOURCES.md

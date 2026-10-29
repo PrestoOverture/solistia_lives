@@ -1,0 +1,17 @@
+backdrops:
+  crackridge: backdrops/crackridge.jpg
+  western_crackridge_wilds: backdrops/western_crackridge_wilds.jpg
+  new_delsta: backdrops/new_delsta.jpg
+  new_delsta_theater: backdrops/new_delsta_theater.jpg
+  cropdale: backdrops/cropdale.jpg
+  festival_grounds: backdrops/cropdale.jpg
+sprites:
+  agnea: sprites/agnea.webp
+  castti: sprites/castti.webp
+  hikari: sprites/hikari.webp
+  ochette: sprites/ochette.webp
+  osvald: sprites/osvald.webp
+  partitio: sprites/partitio.webp
+  temenos: sprites/temenos.webp
+  throne: sprites/throne.webp
+  minor: sprites/minor.webp
