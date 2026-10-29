@@ -11,3 +11,4 @@ blind_root: ~/blind_packets
 parts_of_day: [morning, afternoon, evening, night]
 player_reading_wpm: 200
 player_reading_min_ms: 1500
+voice_concurrency: 4

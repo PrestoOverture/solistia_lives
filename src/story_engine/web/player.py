@@ -48,21 +48,21 @@ def scene_beats(directory: Path, scene_id: str, names: dict[str, str]) -> list[d
             continue
         fields = []
         if event.action:
-            fields.append((event.action, None))
+            fields.append((event.action, None, '.action.mp3'))
         if event.say:
-            fields.append((event.say, event.actor))
+            fields.append((event.say, event.actor, '.mp3'))
         if not fields:
-            fields.append((event.content, None))
-        for text, actor in fields:
+            fields.append((event.content, None, None))
+        for text, actor, suffix in fields:
             beats.append(Beat(event_id=event.id, text=text, actor=actor,
                               speaker=names.get(actor, actor) if actor else None,
                               hidden=event.actor == "world",
-                              audio_url=f'/world/{directory.name}/audio/{event.id}.mp3' if actor else None).model_dump())
+                              audio_url=f'/world/{directory.name}/audio/{event.id}{suffix}' if suffix else None).model_dump())
     return beats
 
 
 def audio_file(worlds_dir: Path, world_id: str, event_id: str) -> Path | None:
-    if not valid_id(world_id) or re.fullmatch(r'[0-9]+', event_id) is None:
+    if not valid_id(world_id) or re.fullmatch(r'[0-9]+(?:\.action)?', event_id) is None:
         return None
     directory = worlds_dir / world_id
     audio = directory / 'audio'

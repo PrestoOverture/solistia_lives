@@ -69,7 +69,7 @@
     clearTimeout(timer);
     timer = null;
     if (audio) {
-      audio.onended = audio.onerror = audio.onplaying = audio.onwaiting = null;
+      audio.onended = audio.onerror = audio.onplaying = null;
       audio.pause();
       audio.removeAttribute('src');
       audio.load();
@@ -96,7 +96,6 @@
       figure.classList.toggle('speaking', speaking);
       figure.classList.toggle('dimmed', Boolean(beat?.speaker) && !speaking);
     });
-    readingDelay(beat);
     if (beat?.audio_url) {
       const currentAudio = new Audio(beat.audio_url);
       audio = currentAudio;
@@ -109,8 +108,10 @@
       currentAudio.onended = () => {
         if (audio === currentAudio && auto.checked && index < beats.length - 1) advance(1);
       };
-      currentAudio.onerror = currentAudio.onwaiting = fallback;
+      currentAudio.onerror = fallback;
       currentAudio.play().catch(fallback);
+    } else {
+      readingDelay(beat);
     }
   }
   function advance(delta) {

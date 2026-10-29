@@ -40,13 +40,13 @@ def test_scene_embeds_exact_ordered_beats_and_cast_without_writing(tmp_path):
         response = client.get('/world/player/scene/1')
         assert response.status_code == 200
         assert embedded_beats(response.text) == [
-            dict(event_id=2, text='Agnea waves.', speaker=None, actor=None, hidden=False, audio_url=None),
+            dict(event_id=2, text='Agnea waves.', speaker=None, actor=None, hidden=False, audio_url='/world/player/audio/2.action.mp3'),
             dict(event_id=2, text='Hello, Mabel!', speaker='Agnea Bristarni', actor='agnea', hidden=False, audio_url='/world/player/audio/2.mp3'),
             dict(event_id=3, text='The greeting succeeds.', speaker=None, actor=None, hidden=True, audio_url=None),
             dict(event_id=4, text='Welcome!', speaker='Mabel', actor='Mabel', hidden=False, audio_url='/world/player/audio/4.mp3'),
-            dict(event_id=5, text='Throné nods.', speaker=None, actor=None, hidden=False, audio_url=None),
+            dict(event_id=5, text='Throné nods.', speaker=None, actor=None, hidden=False, audio_url='/world/player/audio/5.action.mp3'),
             dict(event_id=6, text='Mabel smiles. "A whole unsplit legacy line."', speaker=None, actor=None, hidden=False, audio_url=None),
-            dict(event_id=7, text='A bell rings.', speaker=None, actor=None, hidden=True, audio_url=None),
+            dict(event_id=7, text='A bell rings.', speaker=None, actor=None, hidden=True, audio_url='/world/player/audio/7.action.mp3'),
             dict(event_id=7, text='The festival begins.', speaker='world', actor='world', hidden=True, audio_url='/world/player/audio/7.mp3'),
         ]
         assert '<div class="backdrop morning">Cropdale' in response.text

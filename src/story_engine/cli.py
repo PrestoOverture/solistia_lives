@@ -285,7 +285,7 @@ def world_voice(
     world_id: str = typer.Argument(...),
     scene: str | None = typer.Option(None, help="Render only this scene ID"),
 ) -> None:
-    """Pre-render scene dialogue with edge-tts, skipping existing MP3s."""
+    """Pre-render scene actions and dialogue with edge-tts, skipping existing MP3s."""
     from story_engine.web.player import valid_id
     from story_engine.world.voice import load_voices, render_voice
 
@@ -293,11 +293,12 @@ def world_voice(
         directory = Path('worlds') / world_id
         if not valid_id(world_id) or directory.is_symlink() or not directory.is_dir():
             raise ValueError('world_id must name an existing world')
-        rendered, skipped = asyncio.run(render_voice(directory, load_voices(), scene))
+        counts = asyncio.run(render_voice(directory, load_voices(), scene))
     except Exception as error:
         typer.echo(f'Voice rendering failed: {error}', err=True)
         raise typer.Exit(code=1) from None
-    typer.echo(f'Rendered {rendered}, skipped {skipped}')
+    for kind, (rendered, skipped) in counts.items():
+        typer.echo(f'{kind}: Rendered {rendered}, skipped {skipped}')
 
 
 @world_app.command("run")
