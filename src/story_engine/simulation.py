@@ -288,6 +288,7 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
             saved = log(Event(
                 id=0, **state.clock.model_dump(), place=place, actor=key,
                 type='speech' if move.move == 'act' and move.say else 'action',
+                action=move.action, say=move.say if move.move != 'wait' and move.say else None,
                 content=content, intent=move.intent if is_main else None, perceived_by=list(main_present),
                 scene=scene_id, round=round_number, ops=move.ops),
                 Authority('character_scene' if is_main else 'person_scene', key))

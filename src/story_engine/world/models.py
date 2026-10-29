@@ -120,6 +120,8 @@ class Event(WorldModel):
     of: str | None = None
     type: Literal["speech", "action", "world", "state_change", "plan"]
     content: str
+    action: str | None = None
+    say: str | None = None
     intent: str | None = None
     perceived_by: list[str]
     scene: str | None = None

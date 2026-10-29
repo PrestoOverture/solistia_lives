@@ -113,6 +113,12 @@ def test_scene_fake_sdk(tmp_path, monkeypatch, case):
     trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     rounds = [row for row in trace if row['type'] == 'scene_round']
     end = next(row for row in trace if row['type'] == 'scene_ended')
+    for event in read_events(world):
+        if event.scene is not None and event.type in {'speech', 'action'}:
+            recorded = next(row for row in rounds if row['round'] == event.round)['moves'][event.actor]
+            assert event.action == recorded['action']
+            assert event.say == (recorded['say'] if recorded['move'] != 'wait' and recorded['say'] else None)
+
     assert all(row['place'] == 'festival_grounds' for row in rounds)
     assert state.clock.part == 'afternoon'
     assert all(event.part == 'morning' and event.scene is None
@@ -235,6 +241,9 @@ def test_minor_joins_by_address_and_wins_floor(tmp_path, monkeypatch):
     assert rounds[0]['winner'] == 'agnea'
     assert rounds[1]['winner'] == 'Gus' and rounds[1]['floor'] == 'addressee'
     assert any(event.actor == 'Gus' and event.intent is None for event in read_events(world))
+    gus = next(event for event in read_events(world) if event.actor == 'Gus' and event.type == 'speech')
+    assert gus.action == 'Waves back.' and gus.say == 'There you are!'
+
 
 
 def test_minor_visible_wait_not_logged_but_floor_win_is(tmp_path, monkeypatch):

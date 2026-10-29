@@ -265,6 +265,21 @@ def world_new(
     typer.echo(world_dir)
 
 
+@world_app.command("backfill-lines")
+def world_backfill_lines(world_id: str = typer.Argument(...)) -> None:
+    """Fill scene action and spoken-line fields from recorded simulation moves."""
+    from story_engine.world.lines import backfill_lines
+
+    try:
+        if Path(world_id).name != world_id or world_id in ("", ".", ".."):
+            raise ValueError("world_id must be a world ID")
+        count = backfill_lines(Path("worlds") / world_id, Path("runs"))
+    except (OSError, ValueError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from None
+    typer.echo(f"Updated {count} scene events")
+
+
 @world_app.command("run")
 def world_run(
     world_id: str = typer.Argument(...),
