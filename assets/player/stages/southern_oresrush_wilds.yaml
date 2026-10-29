@@ -1,0 +1,49 @@
+default: wilds_trail
+spots:
+- id: wilds_trail
+  name: Wilds Trail
+  about: Rocky sandstone terrace overlooking the crossroads trail where a covered
+    wagon is parked.
+  day: Southern_Oresrush_Wilds_Trees.jpg
+  night: Southern_Oresrush_Wilds_Trees_Night.jpg
+  stand:
+  - x: 0.5
+    y: 0.59
+    h: 0.105
+  - x: 0.56
+    y: 0.59
+    h: 0.105
+  - x: 0.62
+    y: 0.59
+    h: 0.105
+  - x: 0.68
+    y: 0.59
+    h: 0.102
+  - x: 0.77
+    y: 0.6
+    h: 0.102
+  - x: 0.58
+    y: 0.66
+    h: 0.11
+- id: canyon_cache
+  name: Canyon Cache
+  about: Secluded sandstone ledge below a natural rock arch with an iron chest against
+    the cliff.
+  day: Southern_Oresrush_Wilds_Chest.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.59
+    h: 0.1
+  - x: 0.58
+    y: 0.57
+    h: 0.098
+  - x: 0.67
+    y: 0.56
+    h: 0.095
+  - x: 0.6
+    y: 0.65
+    h: 0.105
+  - x: 0.44
+    y: 0.61
+    h: 0.1

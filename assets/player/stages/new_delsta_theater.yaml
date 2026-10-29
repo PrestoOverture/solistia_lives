@@ -1,0 +1,68 @@
+default: auditorium_aisle
+spots:
+- id: auditorium_aisle
+  name: Auditorium Aisle
+  about: Red-carpeted central aisle between spiral gold columns, flanked by velvet
+    auditorium seating.
+  day: New_Delsta_Theater_Pillars.jpg
+  night: null
+  stand:
+  - x: 0.46
+    y: 0.62
+    h: 0.12
+  - x: 0.5
+    y: 0.6
+    h: 0.118
+  - x: 0.54
+    y: 0.62
+    h: 0.12
+  - x: 0.47
+    y: 0.76
+    h: 0.13
+  - x: 0.53
+    y: 0.76
+    h: 0.13
+- id: the_stage
+  name: The Grand Stage
+  about: Gilded theater stage framed by red velvet curtains and an opulent golden
+    peacock backdrop.
+  day: Dolcinaea_New_Delsta_Theater.jpg
+  night: null
+  stand:
+  - x: 0.44
+    y: 0.62
+    h: 0.1
+  - x: 0.5
+    y: 0.62
+    h: 0.1
+  - x: 0.56
+    y: 0.62
+    h: 0.1
+  - x: 0.4
+    y: 0.78
+    h: 0.115
+  - x: 0.5
+    y: 0.8
+    h: 0.115
+  - x: 0.6
+    y: 0.78
+    h: 0.115
+- id: auditorium_mezzanine
+  name: Auditorium Mezzanine
+  about: Elevated balcony aisle overlooking the plush seating rows and the crimson-curtained
+    stage.
+  day: New_Delsta_Theater.jpg
+  night: null
+  stand:
+  - x: 0.44
+    y: 0.69
+    h: 0.09
+  - x: 0.47
+    y: 0.65
+    h: 0.085
+  - x: 0.5
+    y: 0.6
+    h: 0.08
+  - x: 0.52
+    y: 0.56
+    h: 0.075

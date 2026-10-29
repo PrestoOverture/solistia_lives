@@ -1,0 +1,112 @@
+default: windmill_plaza
+spots:
+- id: windmill_plaza
+  name: Windmill Plaza
+  about: Main entrance plateau with the timber wind pump, the dark tome pedestal,
+    and stone steps to the upper tier.
+  day: Crackridge_Entrance.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.6
+    h: 0.115
+  - x: 0.42
+    y: 0.62
+    h: 0.115
+  - x: 0.57
+    y: 0.65
+    h: 0.115
+  - x: 0.62
+    y: 0.71
+    h: 0.125
+  - x: 0.48
+    y: 0.72
+    h: 0.125
+- id: chasm_overlook
+  name: Chasm Overlook
+  about: Timber platform jutting out over the foggy ravine where the legendary beast
+    Tera slumbers.
+  day: Crackridge_Chasm.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.6
+    h: 0.115
+  - x: 0.56
+    y: 0.6
+    h: 0.115
+  - x: 0.62
+    y: 0.6
+    h: 0.115
+  - x: 0.68
+    y: 0.61
+    h: 0.115
+  - x: 0.44
+    y: 0.64
+    h: 0.12
+- id: chasm_scaffolding
+  name: Chasm Scaffolding
+  about: Lower cliffside scaffolding platform with supply crates, barrels, and a ladder
+    descending into the chasm.
+  day: Crackridge_Scaffolding.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.6
+    h: 0.11
+  - x: 0.43
+    y: 0.61
+    h: 0.11
+  - x: 0.55
+    y: 0.58
+    h: 0.11
+  - x: 0.6
+    y: 0.52
+    h: 0.105
+  - x: 0.73
+    y: 0.42
+    h: 0.1
+- id: ridge_lookout
+  name: Ridge Lookout
+  about: Narrow rocky ridge jutting out between canyon walls toward the distant Wildlands
+    peaks.
+  day: Crackridge_View.jpg
+  night: Crackridge_View_Night.jpg
+  stand:
+  - x: 0.5
+    y: 0.6
+    h: 0.115
+  - x: 0.5
+    y: 0.53
+    h: 0.1
+  - x: 0.46
+    y: 0.64
+    h: 0.12
+  - x: 0.54
+    y: 0.64
+    h: 0.12
+  - x: 0.5
+    y: 0.68
+    h: 0.125
+- id: inn_terrace
+  name: Inn & Apothecary Terrace
+  about: Upper cliffside terrace outside the Crackridge Inn and Apothecary where townspeople
+    gather by torchlight.
+  day: null
+  night: Moonshade_Order_Townspeople.jpg
+  stand:
+  - x: 0.41
+    y: 0.66
+    h: 0.12
+  - x: 0.46
+    y: 0.64
+    h: 0.115
+  - x: 0.54
+    y: 0.68
+    h: 0.12
+  - x: 0.63
+    y: 0.68
+    h: 0.125
+  - x: 0.35
+    y: 0.66
+    h: 0.12

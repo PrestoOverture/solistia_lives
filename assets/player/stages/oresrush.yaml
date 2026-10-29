@@ -1,0 +1,153 @@
+default: main_street
+spots:
+- id: main_street
+  name: Main Street
+  about: Broad dirt road running beneath the wooden water tower past the saloon and
+    boardwalk storefronts.
+  day: Oresrush_Day.jpg
+  night: null
+  stand:
+  - x: 0.44
+    y: 0.59
+    h: 0.095
+  - x: 0.5
+    y: 0.6
+    h: 0.095
+  - x: 0.56
+    y: 0.58
+    h: 0.092
+  - x: 0.51
+    y: 0.66
+    h: 0.1
+  - x: 0.62
+    y: 0.54
+    h: 0.088
+- id: papps_house
+  name: Papp's House
+  about: Two-story frontier timber house and yard on the rocky red bluff overlooking
+    Oresrush.
+  day: Oresrush_Papp's_House.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.65
+    h: 0.105
+  - x: 0.55
+    y: 0.62
+    h: 0.1
+  - x: 0.43
+    y: 0.58
+    h: 0.095
+  - x: 0.68
+    y: 0.54
+    h: 0.09
+  - x: 0.8
+    y: 0.48
+    h: 0.085
+- id: town_center
+  name: Town Center
+  about: Commercial heart of town with wooden boardwalk storefronts and the community
+    bulletin board.
+  day: Oresrush_Center.jpg
+  night: null
+  stand:
+  - x: 0.48
+    y: 0.72
+    h: 0.1
+  - x: 0.36
+    y: 0.68
+    h: 0.095
+  - x: 0.58
+    y: 0.7
+    h: 0.098
+  - x: 0.44
+    y: 0.6
+    h: 0.092
+  - x: 0.65
+    y: 0.76
+    h: 0.102
+- id: stables
+  name: The Stables
+  about: Wooden horse barn and fenced dirt paddock below the eastern windmill.
+  day: Oresrush_Stables.jpg
+  night: null
+  stand:
+  - x: 0.32
+    y: 0.71
+    h: 0.098
+  - x: 0.42
+    y: 0.7
+    h: 0.098
+  - x: 0.52
+    y: 0.68
+    h: 0.095
+  - x: 0.6
+    y: 0.65
+    h: 0.092
+  - x: 0.44
+    y: 0.55
+    h: 0.088
+- id: tavern
+  name: Tavern Porch
+  about: Lantern-lit wooden boardwalk porch outside the Oresrush tavern and neighboring
+    armory.
+  day: null
+  night: Oresrush_Tavern.jpg
+  stand:
+  - x: 0.44
+    y: 0.59
+    h: 0.098
+  - x: 0.52
+    y: 0.59
+    h: 0.098
+  - x: 0.61
+    y: 0.59
+    h: 0.098
+  - x: 0.48
+    y: 0.73
+    h: 0.105
+  - x: 0.58
+    y: 0.74
+    h: 0.105
+- id: inn_balcony
+  name: Inn Upper Balcony
+  about: Second-story wooden terrace of the inn overlooking the town entrance road.
+  day: null
+  night: Oresrush_Upper_Level.jpg
+  stand:
+  - x: 0.32
+    y: 0.58
+    h: 0.095
+  - x: 0.39
+    y: 0.58
+    h: 0.095
+  - x: 0.46
+    y: 0.58
+    h: 0.095
+  - x: 0.53
+    y: 0.58
+    h: 0.095
+  - x: 0.58
+    y: 0.57
+    h: 0.092
+- id: saddlery
+  name: The Saddlery
+  about: Leatherworking shop interior with a wagon-wheel chandelier and curved counter.
+  day: Oresrush_Saddlery.jpg
+  night: null
+  stand:
+  - x: 0.53
+    y: 0.61
+    h: 0.105
+  - x: 0.45
+    y: 0.61
+    h: 0.105
+  - x: 0.61
+    y: 0.61
+    h: 0.105
+  - x: 0.48
+    y: 0.7
+    h: 0.112
+  - x: 0.58
+    y: 0.72
+    h: 0.112

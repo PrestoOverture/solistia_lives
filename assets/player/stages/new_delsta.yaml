@@ -1,0 +1,118 @@
+default: main_street
+spots:
+- id: main_street
+  name: Main Boulevard
+  about: Bustling central avenue lined with brick storefronts, taverns, and the grand
+    stone staircase.
+  day: New_Delsta_Epilogue.jpg
+  night: null
+  stand:
+  - x: 0.24
+    y: 0.72
+    h: 0.105
+  - x: 0.36
+    y: 0.76
+    h: 0.11
+  - x: 0.5
+    y: 0.74
+    h: 0.11
+  - x: 0.62
+    y: 0.7
+    h: 0.105
+  - x: 0.73
+    y: 0.72
+    h: 0.105
+  - x: 0.48
+    y: 0.58
+    h: 0.095
+- id: theater_plaza
+  name: Theater & Estate Plaza
+  about: Paved plaza before the wrought-iron gates of Diamante's Estate and the New
+    Delsta Theater.
+  day: New_Delsta_West.jpg
+  night: null
+  stand:
+  - x: 0.36
+    y: 0.6
+    h: 0.1
+  - x: 0.44
+    y: 0.6
+    h: 0.1
+  - x: 0.52
+    y: 0.6
+    h: 0.1
+  - x: 0.61
+    y: 0.59
+    h: 0.1
+  - x: 0.69
+    y: 0.58
+    h: 0.095
+  - x: 0.48
+    y: 0.74
+    h: 0.115
+- id: upper_promenade
+  name: Upper Promenade
+  about: Upper street with an outdoor sidewalk cafe, market stall, and steps toward
+    the theater.
+  day: null
+  night: New_Delsta_Street.jpg
+  stand:
+  - x: 0.24
+    y: 0.65
+    h: 0.105
+  - x: 0.38
+    y: 0.6
+    h: 0.1
+  - x: 0.5
+    y: 0.6
+    h: 0.1
+  - x: 0.62
+    y: 0.6
+    h: 0.1
+  - x: 0.5
+    y: 0.48
+    h: 0.085
+- id: central_staircase
+  name: Central Staircase
+  about: Wide stone staircase linking the lower boulevard and upper cafe terrace under
+    glowing lampposts.
+  day: null
+  night: New_Delsta_Nightlife.jpg
+  stand:
+  - x: 0.42
+    y: 0.72
+    h: 0.1
+  - x: 0.5
+    y: 0.7
+    h: 0.1
+  - x: 0.58
+    y: 0.68
+    h: 0.095
+  - x: 0.46
+    y: 0.56
+    h: 0.085
+  - x: 0.54
+    y: 0.54
+    h: 0.085
+- id: back_alley
+  name: Back Alley
+  about: Dim brick tenement courtyard with crates and an open manhole descending into
+    the Underground Waterway.
+  day: null
+  night: New_Delsta_City_Lights_at_Night.jpg
+  stand:
+  - x: 0.28
+    y: 0.72
+    h: 0.105
+  - x: 0.36
+    y: 0.74
+    h: 0.105
+  - x: 0.48
+    y: 0.78
+    h: 0.11
+  - x: 0.58
+    y: 0.72
+    h: 0.105
+  - x: 0.68
+    y: 0.75
+    h: 0.105

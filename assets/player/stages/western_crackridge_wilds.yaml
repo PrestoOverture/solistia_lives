@@ -1,0 +1,73 @@
+default: merchants_guild
+spots:
+- id: merchants_guild
+  name: Merchants' Guild Encampment
+  about: Cliffside headquarters of the Merchants' Guild with merchant tents, wares,
+    and a campfire.
+  day: Western_Crackridge_Wilds_Merchants'_Guild.jpg
+  night: null
+  stand:
+  - x: 0.58
+    y: 0.42
+    h: 0.08
+  - x: 0.68
+    y: 0.43
+    h: 0.08
+  - x: 0.36
+    y: 0.54
+    h: 0.092
+  - x: 0.45
+    y: 0.58
+    h: 0.095
+  - x: 0.5
+    y: 0.66
+    h: 0.102
+- id: cliff_terrace
+  name: Cliffside Terrace
+  about: Sunlit sandstone ledge perched above the canyon abyss with a ladder and oil
+    lantern.
+  day: Western_Crackridge_Wilds_Cliff.jpg
+  night: null
+  stand:
+  - x: 0.39
+    y: 0.59
+    h: 0.105
+  - x: 0.46
+    y: 0.57
+    h: 0.1
+  - x: 0.52
+    y: 0.56
+    h: 0.1
+  - x: 0.6
+    y: 0.57
+    h: 0.1
+  - x: 0.67
+    y: 0.59
+    h: 0.102
+  - x: 0.48
+    y: 0.66
+    h: 0.11
+- id: mine_scaffolding
+  name: Mine Scaffolding
+  about: Heavy wooden trestle platform and timber bridge spanning a deep canyon gorge.
+  day: Western_Crackridge_Wilds_Scaffolding.jpg
+  night: null
+  stand:
+  - x: 0.39
+    y: 0.6
+    h: 0.105
+  - x: 0.44
+    y: 0.63
+    h: 0.108
+  - x: 0.5
+    y: 0.61
+    h: 0.105
+  - x: 0.43
+    y: 0.43
+    h: 0.08
+  - x: 0.48
+    y: 0.42
+    h: 0.08
+  - x: 0.54
+    y: 0.41
+    h: 0.08

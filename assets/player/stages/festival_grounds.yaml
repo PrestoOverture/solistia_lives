@@ -1,0 +1,71 @@
+default: festival_clearing
+spots:
+- id: festival_clearing
+  name: Festival Clearing
+  about: Woodland clearing before the raised wooden stage, flanked by food stalls,
+    pavilion tent, and stools.
+  day: Festival_Grounds_Crowd.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.59
+    h: 0.11
+  - x: 0.43
+    y: 0.62
+    h: 0.115
+  - x: 0.57
+    y: 0.56
+    h: 0.105
+  - x: 0.65
+    y: 0.64
+    h: 0.115
+  - x: 0.36
+    y: 0.58
+    h: 0.11
+  - x: 0.52
+    y: 0.75
+    h: 0.125
+- id: entrance_path
+  name: Entrance Path
+  about: Wooded trail lined with rustic log fences, wreath banners, and overhead bunting
+    leading to the clearing.
+  day: Festival_Grounds_Banners.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.6
+    h: 0.11
+  - x: 0.44
+    y: 0.64
+    h: 0.115
+  - x: 0.55
+    y: 0.64
+    h: 0.115
+  - x: 0.5
+    y: 0.48
+    h: 0.095
+  - x: 0.5
+    y: 0.73
+    h: 0.125
+- id: dance_stage
+  name: Dance Stage
+  about: Raised wooden festival stage lit by torches and decorated with flower boxes
+    and painted castle scenery.
+  day: null
+  night: Festival_Grounds_Agnea.jpg
+  stand:
+  - x: 0.49
+    y: 0.54
+    h: 0.11
+  - x: 0.41
+    y: 0.54
+    h: 0.11
+  - x: 0.57
+    y: 0.54
+    h: 0.11
+  - x: 0.45
+    y: 0.72
+    h: 0.13
+  - x: 0.55
+    y: 0.72
+    h: 0.13

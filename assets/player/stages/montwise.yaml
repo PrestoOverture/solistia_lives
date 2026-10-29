@@ -1,0 +1,156 @@
+default: town_square
+spots:
+- id: town_square
+  name: Town Square
+  about: Central cobblestone plaza and old book market fronting the provisioner shop
+    and outdoor tavern tables.
+  day: Montwise_Center.jpg
+  night: null
+  stand:
+  - x: 0.38
+    y: 0.66
+    h: 0.11
+  - x: 0.46
+    y: 0.62
+    h: 0.105
+  - x: 0.54
+    y: 0.6
+    h: 0.105
+  - x: 0.64
+    y: 0.65
+    h: 0.11
+  - x: 0.72
+    y: 0.68
+    h: 0.115
+- id: library_exterior
+  name: Library Entrance
+  about: Stone courtyard terrace before the sculpted portico and double doors of the
+    Montwise Grand Library.
+  day: Montwise_Library_Exterior.jpg
+  night: null
+  stand:
+  - x: 0.35
+    y: 0.5
+    h: 0.085
+  - x: 0.44
+    y: 0.49
+    h: 0.085
+  - x: 0.5
+    y: 0.52
+    h: 0.085
+  - x: 0.56
+    y: 0.5
+    h: 0.085
+  - x: 0.64
+    y: 0.51
+    h: 0.085
+- id: town_entrance
+  name: Town Entrance Bridge
+  about: High stone arch bridge spanning the mountain gorge at the entrance to Montwise,
+    hung with red banners.
+  day: Montwise.jpg
+  night: null
+  stand:
+  - x: 0.38
+    y: 0.59
+    h: 0.105
+  - x: 0.46
+    y: 0.6
+    h: 0.105
+  - x: 0.54
+    y: 0.59
+    h: 0.105
+  - x: 0.63
+    y: 0.56
+    h: 0.1
+  - x: 0.7
+    y: 0.54
+    h: 0.095
+- id: arena_entrance
+  name: Underground Arena Entrance
+  about: Subterranean stone arcade beneath the bridge where a banner-flanked archway
+    descends to the arena.
+  day: Montwise_Arena_Entrance.jpg
+  night: null
+  stand:
+  - x: 0.46
+    y: 0.6
+    h: 0.1
+  - x: 0.52
+    y: 0.59
+    h: 0.1
+  - x: 0.58
+    y: 0.59
+    h: 0.1
+  - x: 0.65
+    y: 0.58
+    h: 0.095
+  - x: 0.71
+    y: 0.57
+    h: 0.095
+- id: moneylenders_manse_exterior
+  name: Moneylender's Manse Exterior
+  about: Hillside flagstone terrace flanked by cypress planters outside the moneylender's
+    residence.
+  day: Montwise_Manse_Exterior.jpg
+  night: null
+  stand:
+  - x: 0.36
+    y: 0.48
+    h: 0.085
+  - x: 0.44
+    y: 0.49
+    h: 0.085
+  - x: 0.5
+    y: 0.51
+    h: 0.085
+  - x: 0.56
+    y: 0.5
+    h: 0.085
+  - x: 0.64
+    y: 0.49
+    h: 0.085
+- id: moneylenders_manse_interior
+  name: Moneylender's Manse Interior
+  about: Lavish salon inside the moneylender's estate with crystal chandelier, wall
+    safes, and roulette table.
+  day: Montwise_Manse.jpg
+  night: null
+  stand:
+  - x: 0.34
+    y: 0.58
+    h: 0.1
+  - x: 0.42
+    y: 0.59
+    h: 0.1
+  - x: 0.5
+    y: 0.59
+    h: 0.1
+  - x: 0.59
+    y: 0.58
+    h: 0.1
+  - x: 0.67
+    y: 0.58
+    h: 0.1
+- id: the_well
+  name: Cliffside Well
+  about: Secluded lower cliff terrace with a timber-roofed stone well, torches, and
+    steps up to the square.
+  day: null
+  night: Montwise_Well.jpg
+  stand:
+  - x: 0.44
+    y: 0.58
+    h: 0.105
+  - x: 0.5
+    y: 0.58
+    h: 0.105
+  - x: 0.56
+    y: 0.56
+    h: 0.1
+  - x: 0.62
+    y: 0.54
+    h: 0.1
+  - x: 0.68
+    y: 0.52
+    h: 0.095

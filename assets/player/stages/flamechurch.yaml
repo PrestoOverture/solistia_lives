@@ -1,0 +1,121 @@
+default: chapel_hill
+spots:
+- id: chapel_hill
+  name: Chapel Hill
+  about: Cobblestone plaza atop the hill directly before the town chapel and neighboring
+    stone cottage.
+  day: Flamechurch_Hill.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.59
+    h: 0.11
+  - x: 0.43
+    y: 0.58
+    h: 0.11
+  - x: 0.57
+    y: 0.58
+    h: 0.11
+  - x: 0.64
+    y: 0.53
+    h: 0.1
+  - x: 0.36
+    y: 0.56
+    h: 0.105
+  - x: 0.5
+    y: 0.68
+    h: 0.12
+- id: chapel
+  name: Town Chapel
+  about: Sanctuary interior with stained-glass windows, a pipe organ, wooden pews,
+    and Pontiff Jörg's portrait.
+  day: Flamechurch_Chapel.jpg
+  night: Flamechurch_Chapel_Night.jpg
+  stand:
+  - x: 0.5
+    y: 0.6
+    h: 0.11
+  - x: 0.44
+    y: 0.64
+    h: 0.115
+  - x: 0.56
+    y: 0.64
+    h: 0.115
+  - x: 0.5
+    y: 0.53
+    h: 0.1
+  - x: 0.5
+    y: 0.74
+    h: 0.12
+  - x: 0.72
+    y: 0.63
+    h: 0.11
+- id: town_square
+  name: Town Square
+  about: Central village terrace with twin Sacred Flame braziers, the roofed water
+    well, and the inn.
+  day: null
+  night: Flamechurch_Temenos_and_Throne.jpg
+  stand:
+  - x: 0.47
+    y: 0.63
+    h: 0.11
+  - x: 0.53
+    y: 0.63
+    h: 0.11
+  - x: 0.5
+    y: 0.58
+    h: 0.105
+  - x: 0.6
+    y: 0.55
+    h: 0.1
+  - x: 0.39
+    y: 0.52
+    h: 0.095
+  - x: 0.5
+    y: 0.7
+    h: 0.115
+- id: tavern_lane
+  name: Tavern Lane
+  about: Cobblestone lane outside the timber-framed Flamechurch tavern, lit by a brazier
+    beside stacked crates.
+  day: null
+  night: Flamechurch_Town_Night.jpg
+  stand:
+  - x: 0.5
+    y: 0.59
+    h: 0.11
+  - x: 0.46
+    y: 0.66
+    h: 0.115
+  - x: 0.54
+    y: 0.66
+    h: 0.115
+  - x: 0.5
+    y: 0.74
+    h: 0.12
+  - x: 0.52
+    y: 0.49
+    h: 0.1
+- id: chapel_steps
+  name: Chapel Steps Terrace
+  about: Stone terrace at the foot of the chapel staircase with a wooden bench, handcart,
+    and market stalls.
+  day: null
+  night: Flamechurch_Night.jpg
+  stand:
+  - x: 0.5
+    y: 0.59
+    h: 0.11
+  - x: 0.56
+    y: 0.59
+    h: 0.11
+  - x: 0.61
+    y: 0.59
+    h: 0.11
+  - x: 0.67
+    y: 0.59
+    h: 0.11
+  - x: 0.42
+    y: 0.56
+    h: 0.105

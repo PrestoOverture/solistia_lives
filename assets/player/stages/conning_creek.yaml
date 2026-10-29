@@ -1,0 +1,90 @@
+default: town_center
+spots:
+- id: town_center
+  name: Town Center
+  about: Cobblestone plaza facing the tavern terrace and the stone staircase up to
+    the Guard Outpost.
+  day: Conning_Creek_Overview.jpg
+  night: null
+  stand:
+  - x: 0.39
+    y: 0.85
+    h: 0.125
+  - x: 0.45
+    y: 0.88
+    h: 0.13
+  - x: 0.32
+    y: 0.84
+    h: 0.125
+  - x: 0.43
+    y: 0.78
+    h: 0.12
+  - x: 0.58
+    y: 0.9
+    h: 0.13
+- id: marketplace
+  name: Seafood Marketplace
+  about: Open-air harbor market with canvas stalls selling fresh fish, fruit baskets,
+    and a covered wagon.
+  day: Conning_Creek_Ochette.jpg
+  night: null
+  stand:
+  - x: 0.43
+    y: 0.65
+    h: 0.115
+  - x: 0.36
+    y: 0.68
+    h: 0.12
+  - x: 0.49
+    y: 0.65
+    h: 0.115
+  - x: 0.42
+    y: 0.74
+    h: 0.125
+  - x: 0.53
+    y: 0.72
+    h: 0.12
+- id: guard_outpost_entrance
+  name: Guard Outpost Entrance
+  about: Broad stone staircase and iron gates leading up to the northern Guard Outpost
+    garrison.
+  day: Conning_Creek_Guardhouse.jpg
+  night: null
+  stand:
+  - x: 0.44
+    y: 0.92
+    h: 0.12
+  - x: 0.55
+    y: 0.92
+    h: 0.12
+  - x: 0.36
+    y: 0.91
+    h: 0.12
+  - x: 0.5
+    y: 0.75
+    h: 0.1
+  - x: 0.5
+    y: 0.6
+    h: 0.085
+- id: flowerbed_courtyard
+  name: Flowerbed Courtyard
+  about: Quiet residential cottage yard in the lower quarter with a fenced flowerbed
+    and outdoor dining table.
+  day: null
+  night: Conning_Creek_Flowerbed.jpg
+  stand:
+  - x: 0.5
+    y: 0.61
+    h: 0.115
+  - x: 0.55
+    y: 0.63
+    h: 0.115
+  - x: 0.6
+    y: 0.62
+    h: 0.11
+  - x: 0.45
+    y: 0.58
+    h: 0.11
+  - x: 0.48
+    y: 0.68
+    h: 0.12

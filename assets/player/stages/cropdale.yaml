@@ -1,0 +1,162 @@
+default: village_square
+spots:
+- id: village_square
+  name: Village Square
+  about: Cropdale's sunlit center with stone steps descending past festival canopies
+    toward the village tavern.
+  day: Cropdale.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.6
+    h: 0.115
+  - x: 0.42
+    y: 0.68
+    h: 0.12
+  - x: 0.52
+    y: 0.75
+    h: 0.125
+  - x: 0.61
+    y: 0.76
+    h: 0.12
+  - x: 0.5
+    y: 0.48
+    h: 0.1
+  - x: 0.38
+    y: 0.74
+    h: 0.115
+- id: watermill_bridge
+  name: Watermill Bridge
+  about: Arched stone bridge crossing the lily-covered village stream beside the waterwheel
+    cottage.
+  day: Cropdale_Bridge_Day.jpg
+  night: Cropdale_Bridge.jpg
+  stand:
+  - x: 0.5
+    y: 0.6
+    h: 0.115
+  - x: 0.56
+    y: 0.6
+    h: 0.115
+  - x: 0.62
+    y: 0.61
+    h: 0.115
+  - x: 0.44
+    y: 0.62
+    h: 0.115
+  - x: 0.38
+    y: 0.61
+    h: 0.11
+  - x: 0.7
+    y: 0.68
+    h: 0.12
+- id: agnea_house_exterior
+  name: Agnea's House Exterior
+  about: Thatched-roof Bristarni cottage with drying woven textiles, flower trellises,
+    and garden steps.
+  day: Cropdale_Agnea's_House.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.6
+    h: 0.115
+  - x: 0.43
+    y: 0.59
+    h: 0.115
+  - x: 0.51
+    y: 0.75
+    h: 0.125
+  - x: 0.45
+    y: 0.88
+    h: 0.135
+  - x: 0.74
+    y: 0.88
+    h: 0.135
+- id: agnea_house_interior
+  name: Agnea's House Interior
+  about: Warm interior of the Bristarni home with woven rugs, beds, dining table,
+    and stone fireplace.
+  day: Cropdale_Agnea's_House_Interior.jpg
+  night: null
+  stand:
+  - x: 0.45
+    y: 0.69
+    h: 0.125
+  - x: 0.54
+    y: 0.68
+    h: 0.125
+  - x: 0.68
+    y: 0.62
+    h: 0.115
+  - x: 0.36
+    y: 0.68
+    h: 0.12
+  - x: 0.46
+    y: 0.59
+    h: 0.115
+- id: garud_workshop
+  name: Garud's Room
+  about: Garud's tailor and weaving room inside the Bristarni house, equipped with
+    an upright loom and yarn spools.
+  day: Cropdale_Garud's_Room.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.6
+    h: 0.12
+  - x: 0.57
+    y: 0.6
+    h: 0.12
+  - x: 0.46
+    y: 0.57
+    h: 0.115
+  - x: 0.41
+    y: 0.61
+    h: 0.12
+  - x: 0.53
+    y: 0.68
+    h: 0.125
+- id: tavern
+  name: Cropdale Tavern
+  about: Lively village tavern interior with a raised wooden performance stage, bar
+    counter, and patron tables.
+  day: Cropdale_Tavern.jpg
+  night: null
+  stand:
+  - x: 0.55
+    y: 0.59
+    h: 0.12
+  - x: 0.64
+    y: 0.56
+    h: 0.115
+  - x: 0.38
+    y: 0.79
+    h: 0.12
+  - x: 0.52
+    y: 0.77
+    h: 0.12
+  - x: 0.7
+    y: 0.8
+    h: 0.12
+- id: hog_farm
+  name: Hog Farm
+  about: Thatched farmstead on Cropdale's northeastern edge where prized pigs graze
+    in a fenced yard.
+  day: Cropdale_Swine.jpg
+  night: null
+  stand:
+  - x: 0.49
+    y: 0.6
+    h: 0.115
+  - x: 0.44
+    y: 0.6
+    h: 0.115
+  - x: 0.39
+    y: 0.64
+    h: 0.12
+  - x: 0.45
+    y: 0.74
+    h: 0.13
+  - x: 0.18
+    y: 0.67
+    h: 0.11

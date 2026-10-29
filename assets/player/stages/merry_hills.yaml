@@ -1,0 +1,135 @@
+default: market_street
+spots:
+- id: market_street
+  name: Market Street
+  about: Bustling cobblestone thoroughfare lined with festival awnings, merchant stalls,
+    and street performers.
+  day: Merry_Hills.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.62
+    h: 0.11
+  - x: 0.44
+    y: 0.58
+    h: 0.105
+  - x: 0.56
+    y: 0.58
+    h: 0.105
+  - x: 0.62
+    y: 0.64
+    h: 0.11
+  - x: 0.53
+    y: 0.77
+    h: 0.125
+  - x: 0.5
+    y: 0.48
+    h: 0.095
+- id: tavern_yard
+  name: Tavern Yard
+  about: Stone terrace outside the rustic cliffside tavern where an elderly actor
+    performs.
+  day: Merry_Hills_Tavern.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.6
+    h: 0.11
+  - x: 0.42
+    y: 0.58
+    h: 0.105
+  - x: 0.58
+    y: 0.58
+    h: 0.105
+  - x: 0.35
+    y: 0.54
+    h: 0.1
+  - x: 0.5
+    y: 0.69
+    h: 0.12
+- id: great_bridge
+  name: Great Bridge
+  about: High stone bridge spanning the town gorge, hung with sun-and-moon tapestries.
+  day: Merry_Hills_Bridge.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.6
+    h: 0.11
+  - x: 0.44
+    y: 0.6
+    h: 0.11
+  - x: 0.56
+    y: 0.6
+    h: 0.11
+  - x: 0.64
+    y: 0.6
+    h: 0.11
+  - x: 0.37
+    y: 0.6
+    h: 0.11
+- id: inn_terrace
+  name: Inn & Grocer Terrace
+  about: Hillside cobblestone terrace outside the Merry Hills inn and vegetable grocer.
+  day: Merry_Hills_Stairs.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.59
+    h: 0.11
+  - x: 0.56
+    y: 0.64
+    h: 0.115
+  - x: 0.62
+    y: 0.72
+    h: 0.12
+  - x: 0.64
+    y: 0.56
+    h: 0.105
+  - x: 0.36
+    y: 0.38
+    h: 0.09
+- id: town_entrance
+  name: Town Entrance
+  about: Broad stone staircase climbing from the western mountain pass into the festival
+    promenade.
+  day: Merry_Hills_Entrance.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.59
+    h: 0.11
+  - x: 0.58
+    y: 0.57
+    h: 0.105
+  - x: 0.65
+    y: 0.53
+    h: 0.1
+  - x: 0.51
+    y: 0.68
+    h: 0.115
+  - x: 0.51
+    y: 0.8
+    h: 0.12
+- id: hillside_path
+  name: Hillside Path
+  about: Terraced path winding below the great bridge arches past stone cottages and
+    autumn trees.
+  day: Merry_Hills_Descent.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.58
+    h: 0.11
+  - x: 0.44
+    y: 0.56
+    h: 0.105
+  - x: 0.56
+    y: 0.56
+    h: 0.105
+  - x: 0.52
+    y: 0.7
+    h: 0.12
+  - x: 0.63
+    y: 0.3
+    h: 0.08

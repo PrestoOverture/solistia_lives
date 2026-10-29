@@ -1,0 +1,93 @@
+default: shrine_courtyard
+spots:
+- id: shrine_courtyard
+  name: Shrine Courtyard
+  about: Ceremonial stone avenue and amphitheater steps flanked by marble maiden statues
+    and braziers.
+  day: Merry_Hills_Shrine_Entrance.jpg
+  night: Merry_Hills_Shrine_Entrance_Night.jpg
+  stand:
+  - x: 0.5
+    y: 0.6
+    h: 0.11
+  - x: 0.44
+    y: 0.62
+    h: 0.11
+  - x: 0.56
+    y: 0.62
+    h: 0.11
+  - x: 0.48
+    y: 0.49
+    h: 0.095
+  - x: 0.58
+    y: 0.46
+    h: 0.09
+  - x: 0.5
+    y: 0.74
+    h: 0.12
+- id: shrine_portal
+  name: Shrine Portal
+  about: Grand marble staircase flanked by cypress trees and braziers leading to the
+    Shrine of Ul'sterra.
+  day: Merry_Hills_Shrine_Entrance_Center.jpg
+  night: null
+  stand:
+  - x: 0.5
+    y: 0.65
+    h: 0.11
+  - x: 0.5
+    y: 0.52
+    h: 0.095
+  - x: 0.5
+    y: 0.44
+    h: 0.085
+  - x: 0.66
+    y: 0.62
+    h: 0.11
+  - x: 0.34
+    y: 0.62
+    h: 0.11
+- id: east_terrace
+  name: East Banner Terrace
+  about: Cliffside terrace featuring a stone column draped in a sun-and-moon banner
+    and ringed by burning candles.
+  day: Merry_Hills_Shrine_Entrance_Banner.jpg
+  night: null
+  stand:
+  - x: 0.45
+    y: 0.6
+    h: 0.11
+  - x: 0.39
+    y: 0.62
+    h: 0.11
+  - x: 0.51
+    y: 0.59
+    h: 0.11
+  - x: 0.42
+    y: 0.72
+    h: 0.12
+  - x: 0.63
+    y: 0.44
+    h: 0.09
+- id: west_overlook
+  name: West Overlook
+  about: Stone parapet terrace overlooking the mountain canyon, guarded by a corner
+    brazier.
+  day: Merry_Hills_Shrine_Entrance_West.jpg
+  night: null
+  stand:
+  - x: 0.42
+    y: 0.58
+    h: 0.105
+  - x: 0.35
+    y: 0.54
+    h: 0.1
+  - x: 0.48
+    y: 0.5
+    h: 0.095
+  - x: 0.55
+    y: 0.64
+    h: 0.11
+  - x: 0.42
+    y: 0.68
+    h: 0.115
