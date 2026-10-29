@@ -1,0 +1,2 @@
+{"id":"1","day":1,"part":"morning","place":"cropdale","spot":null,"participants":["agnea","throne","Mabel"],"first_event_id":2,"last_event_id":7,"rounds":3,"end":"quiet"}
+{"id":"2","day":1,"part":"night","place":"cropdale","spot":null,"participants":["throne"],"first_event_id":8,"last_event_id":8,"rounds":1,"end":"resolved"}

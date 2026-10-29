@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Scene {{ scene.id }} · {{ place }}{% endblock %}
+{% block content %}
+<style>
+  #stage { border: 2px solid var(--rule); border-radius: .5rem; overflow: hidden; cursor: pointer; }
+  .backdrop { background: #b5d4d9; color: #18242b; text-align: center; padding: 1rem; }
+  .backdrop.afternoon { background: #e4cd91; }
+  .backdrop.evening { background: #be8c9e; }
+  .backdrop.night { background: #293951; color: #f0ebdc; }
+  .cast { display: flex; flex-wrap: wrap; justify-content: center; align-items: end; gap: 1rem; padding: 2rem .5rem 1rem; }
+  .figure { --figure-color: #808b8d; text-align: center; max-width: 9rem; transition: opacity .15s; }
+  .figure[data-actor="agnea"] { --figure-color: #d276a3; }
+  .figure[data-actor="throne"] { --figure-color: #9c76c7; }
+  .figure[data-actor="osvald"] { --figure-color: #be7652; }
+  .figure[data-actor="temenos"] { --figure-color: #bec2d2; }
+  .figure[data-actor="hikari"] { --figure-color: #ce5656; }
+  .figure[data-actor="ochette"] { --figure-color: #d8a441; }
+  .figure[data-actor="castti"] { --figure-color: #69ad99; }
+  .figure[data-actor="partitio"] { --figure-color: #678fc7; }
+  .figure .head { background: var(--figure-color); width: 2.5rem; height: 2.5rem; border-radius: 50%; margin: auto auto .25rem; }
+  .figure .body { background: var(--figure-color); width: 3.5rem; height: 5rem; border-radius: 1.5rem 1.5rem .3rem .3rem; margin: auto; }
+  .figure.dimmed { opacity: .3; }
+  .figure.speaking { outline: 2px solid var(--ink); outline-offset: .3rem; border-radius: .3rem; }
+  .textbox { border-top: 1px solid var(--rule); padding: 1.25rem; min-height: 12rem; white-space: pre-wrap; }
+  #speaker { font-weight: bold; }
+  #beat-text { margin: .5rem 0; }
+  .player-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1rem; }
+</style>
+<a href="{{ url_for('worlds') }}" hx-boost="false">← Worlds</a>
+<h1>Scene {{ scene.id }}</h1>
+<p class="metadata">Day {{ scene.day }} · {{ scene.part }} · {{ scene.rounds }} rounds</p>
+<div id="stage" tabindex="0" aria-label="Scene player; click to advance">
+  <div class="backdrop {{ scene.part }}">{{ place }}
+    <div class="cast">
+    {% for name in scene.participants %}
+      <div class="figure" data-actor="{{ name }}">
+        <div class="head" aria-hidden="true"></div><div class="body" aria-hidden="true"></div>
+        <span>{{ travelers.get(name, name) }}</span>
+      </div>
+    {% endfor %}
+    </div>
+  </div>
+  <div class="textbox" aria-live="polite"><div id="speaker"></div><p id="beat-text"></p></div>
+</div>
+<div class="player-controls">
+  <button id="previous" type="button">← Back</button>
+  <span id="beat-counter" aria-live="polite"></span>
+  <button id="next" type="button">Next →</button>
+  <label><input id="show-world" type="checkbox"> Show World events</label>
+</div>
+<p class="metadata">Click the stage, Space or → to advance. ← goes back.</p>
+<noscript>Enable JavaScript to play this scene.</noscript>
+<script id="beats" type="application/json">{{ beats | tojson }}</script>
+<script>
+(() => {
+  const allBeats = JSON.parse(document.getElementById('beats').textContent);
+  const stage = document.getElementById('stage');
+  const toggle = document.getElementById('show-world');
+  const previous = document.getElementById('previous');
+  const next = document.getElementById('next');
+  let beats = allBeats.filter(beat => !beat.hidden);
+  let index = 0;
+  function render() {
+    const beat = beats[index];
+    document.getElementById('speaker').textContent = beat?.speaker || '';
+    document.getElementById('beat-text').textContent = beat?.text ?? 'No visible beats.';
+    document.getElementById('beat-counter').textContent = `${beats.length ? index + 1 : 0} / ${beats.length}`;
+    previous.disabled = index === 0;
+    next.disabled = index >= beats.length - 1;
+    stage.querySelectorAll('.figure').forEach(figure => {
+      const speaking = Boolean(beat?.speaker && figure.dataset.actor === beat.actor);
+      figure.classList.toggle('speaking', speaking);
+      figure.classList.toggle('dimmed', Boolean(beat?.speaker) && !speaking);
+    });
+  }
+  function advance(delta) {
+    index = Math.max(0, Math.min(beats.length - 1, index + delta));
+    render();
+  }
+  stage.addEventListener('click', () => advance(1));
+  previous.addEventListener('click', () => advance(-1));
+  next.addEventListener('click', () => advance(1));
+  document.onkeydown = event => {
+    if (!stage.isConnected || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName)) return;
+    if (['Space', 'ArrowRight', 'ArrowLeft'].includes(event.code)) {
+      event.preventDefault();
+      advance(event.code === 'ArrowLeft' ? -1 : 1);
+    }
+  };
+  toggle.addEventListener('change', () => {
+    const current = beats[index];
+    beats = allBeats.filter(beat => toggle.checked || !beat.hidden);
+    const retained = beats.indexOf(current);
+    index = retained >= 0 ? retained : Math.max(0, Math.min(index, beats.length - 1));
+    render();
+  });
+  render();
+})();
+</script>
+{% endblock %}

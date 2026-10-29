@@ -1,0 +1,41 @@
+{
+  "clock": {
+    "day": 1,
+    "part": "morning"
+  },
+  "places": [
+    {
+      "slug": "cropdale",
+      "details": []
+    }
+  ],
+  "characters": {
+    "agnea": {
+      "where": "cropdale",
+      "spot": null,
+      "goals": [
+        "Visit the festival"
+      ],
+      "commitments": []
+    },
+    "throne": {
+      "where": "cropdale",
+      "spot": null,
+      "goals": [
+        "Visit the festival"
+      ],
+      "commitments": []
+    }
+  },
+  "people": {
+    "Mabel": {
+      "where": "cropdale",
+      "spot": null,
+      "wants": [
+        "Greet visitors"
+      ],
+      "commitments": []
+    }
+  },
+  "situations": []
+}

@@ -1,4 +1,4 @@
-"""Localhost story library and background baseline generation."""
+"""Localhost story library, world scene player, and baseline generation."""
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -18,6 +18,7 @@ from story_engine.config import ConfigError, load_configs
 from story_engine.kb import TRAVELERS, validate_input
 from story_engine.runs import RunInput, create_run
 from story_engine.web.jobs import generate_story
+from story_engine.web.player import read_world, scene_beats, valid_id
 from story_engine.web.progress import read_progress
 
 
@@ -86,9 +87,10 @@ def _validator_notes(run_dir: Path) -> list:
     return report.rounds[-1].contract if report.rounds else []
 
 
-def create_app(runs_dir: Path = Path("runs")) -> FastAPI:
-    """Serve stories and start baseline jobs in the given run directory."""
+def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds")) -> FastAPI:
+    """Read stories and world scenes; start baseline jobs in the run directory."""
     runs_dir = runs_dir.resolve()
+    worlds_dir = worlds_dir.resolve()
     app = FastAPI(openapi_url=None, docs_url=None, redoc_url=None)
     travelers = {slug: _display_name(Path("kb/characters") / slug / f"{slug}.md")
                  for slug in sorted(TRAVELERS)}
@@ -108,6 +110,34 @@ def create_app(runs_dir: Path = Path("runs")) -> FastAPI:
                    if (story := _read_story(runs_dir, path.name)) is not None]
         stories.sort(key=lambda story: (story.created_at, story.run_id), reverse=True)
         return templates.TemplateResponse(request=request, name="library.html", context={"stories": stories})
+
+    @app.get("/worlds", response_class=HTMLResponse)
+    def worlds(request: Request):
+        items = []
+        for path in sorted(worlds_dir.glob("*")):
+            if (world := read_world(worlds_dir, path.name)) is not None:
+                info, scenes = world
+                items.append(dict(id=path.name, info=info, scenes=scenes))
+        return templates.TemplateResponse(request=request, name="worlds.html", context={
+            "worlds": items, "travelers": travelers, "locations": locations,
+        })
+
+    @app.get("/world/{world_id}/scene/{scene_id}", response_class=HTMLResponse)
+    def scene(request: Request, world_id: str, scene_id: str):
+        world = read_world(worlds_dir, world_id)
+        if world is None or not valid_id(scene_id):
+            raise HTTPException(status_code=404, detail="Scene not found")
+        record = next((item for item in world[1] if item.id == scene_id), None)
+        if record is None:
+            raise HTTPException(status_code=404, detail="Scene not found")
+        try:
+            beats = scene_beats(worlds_dir / world_id, scene_id, travelers)
+        except (OSError, ValueError):
+            raise HTTPException(status_code=404, detail="Scene not found") from None
+        return templates.TemplateResponse(request=request, name="scene.html", context={
+            "world_id": world_id, "scene": record, "beats": beats,
+            "travelers": travelers, "place": locations.get(record.place, record.place),
+        })
 
     @app.get("/story/{run_id}", response_class=HTMLResponse)
     def story(request: Request, run_id: str):

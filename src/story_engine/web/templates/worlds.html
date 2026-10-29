@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Worlds{% endblock %}
+{% block content %}
+<h1>Worlds</h1>
+{% for world in worlds %}
+<section>
+  <h2>{% for name in world.info.characters %}{{ travelers.get(name, name) }}{% if not loop.last %}, {% endif %}{% endfor %}</h2>
+  <p>{{ locations.get(world.info.location, world.info.location) }} · {{ world.id }}</p>
+  <ul>
+  {% for scene in world.scenes %}
+    <li><a hx-boost="false" href="{{ url_for('scene', world_id=world.id, scene_id=scene.id) }}">Scene {{ scene.id }}</a>
+      · Day {{ scene.day }} · {{ scene.part }} · {{ locations.get(scene.place, scene.place) }}
+      · {% for name in scene.participants %}{{ travelers.get(name, name) }}{% if not loop.last %}, {% endif %}{% endfor %}
+      · {{ scene.rounds }} rounds</li>
+  {% endfor %}
+  </ul>
+</section>
+{% else %}
+<p>No simulated worlds yet.</p>
+{% endfor %}
+{% endblock %}
