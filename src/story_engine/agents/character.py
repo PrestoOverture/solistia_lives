@@ -11,6 +11,7 @@ from story_engine.agents.sdk import (
     run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
     session_options, structured_reply,
 )
+from story_engine.stages import load_catalogs, catalog_schema, spot_context, validate_spot
 from story_engine.config import Role
 from story_engine.trace import TraceWriter
 from story_engine.world.io import load_state, read_events
@@ -100,6 +101,7 @@ class CharacterAgent:
     ) -> None:
         self.root, self.run_dir, self.world_dir = root, run_dir, world_dir
         self.slug, self.role, self.max_turns, self.trace = slug, role, max_turns, trace
+        self.catalogs = load_catalogs(root)
         self.client = None
         self.opened = False
         self.turn = 0
@@ -126,7 +128,7 @@ class CharacterAgent:
         self.hooks = KBHooks(self.root, self.run_dir, agent=self.slug, turn=1)
         self.options = session_options(self.root, self.run_dir, self.role, prompt,
                                        self.max_turns, self.hooks,
-                                       output_format=json_schema_output(CharacterReply))
+                                       output_format=catalog_schema(json_schema_output(CharacterReply), self.catalogs))
         self.context = ClaudeSDKClient(options=self.options)
         self.client = await self.context.__aenter__()
         return self
@@ -163,12 +165,15 @@ class CharacterAgent:
             if not event.op_only and self.slug in event.perceived_by and event.id not in self.seen:
                 events.append(event.model_dump(exclude={"intent", "perceived_by"}))
                 self.seen.add(event.id)
-        current = load_state(self.world_dir).characters[self.slug]
+        state = load_state(self.world_dir)
+        current = state.characters[self.slug]
         request = json.dumps({**(self.opening if self.turn == 1 else {'self': current.model_dump()}), "perceived": events,
                               **({"note": note} if note else {}),
                               **({"call": "end_of_day", "reply": "JSON {call: 'end_of_day', summary: 'Markdown: what happened, what changed, what you want now'}"} if summary else {}),
                               **({"call": "day_start", "reply": "JSON with call: 'day_start' and one goals op for yourself (1-3 goals)"} if day_start else {}),
-                              **({"part": part, "call": "part_of_day", "reply": "JSON with call: 'plan'"} if part else {}),
+                              **({"places": [p.model_dump() for p in state.places],
+                                  "spots": spot_context(self.catalogs, [p.slug for p in state.places]),
+                                  "part": part, "call": "part_of_day", "reply": "JSON with call: 'plan'"} if part else {}),
                               # Each request names its reply type in the shared schema.
                               **({"call": "scene_move", "reply": "JSON with call: 'action'"}
                                  if not part and not summary and not day_start else {})},
@@ -213,6 +218,14 @@ class CharacterAgent:
                     plan = Plan.model_validate(payload)
                     if plan.kind == 'go' and plan.where not in {p.slug for p in load_state(self.world_dir).places}:
                         raise ValueError('go where must name a place in state')
+                    try:
+                        validate_spot(self.catalogs, plan.where, plan.spot)
+                    except ValueError as error:
+                        if attempt < self.role.retries:
+                            raise
+                        self.trace.write('plan_spot_cleared', agent=self.slug, turn=self.turn,
+                                         error=str(error), place=plan.where, spot=plan.spot)
+                        plan = plan.model_copy(update={'spot': None})
                     return plan
                 action = Action.model_validate(payload)
                 state = load_state(self.world_dir)

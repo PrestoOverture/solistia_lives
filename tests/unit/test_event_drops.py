@@ -115,7 +115,7 @@ def test_mocked_day_encounter_name_retry_and_schema_failure(workspace, monkeypat
     else:
         initial.people['Host'].spot = 'elsewhere'
     if failure == 'main_spot':
-        initial.characters['throne'].spot = 'elsewhere'
+        initial.characters['throne'].spot = 'entrance_path'
         initial.characters['hikari'] = initial.characters['agnea'].model_copy(deep=True)
         info_path = world / 'world.json'
         info = json.loads(info_path.read_text())

@@ -7,6 +7,7 @@ import yaml
 
 from pydantic import BaseModel, Field
 
+from story_engine.stages import StandPoint, StageSpot, StageCatalog, load_catalog
 from story_engine.world.io import read_events, read_scenes
 from story_engine.world.models import SceneRecord, WorldInfo
 
@@ -111,40 +112,10 @@ def load_art(directory: Path) -> PlayerArt:
     return art
 
 
-class StandPoint(BaseModel):
-    x: float = Field(ge=0, le=1)
-    y: float = Field(ge=0, le=1)
-    h: float = Field(gt=0, le=1)
-
-
-class StageSpot(BaseModel):
-    id: str
-    day: str | None = None
-    night: str | None = None
-    stand: list[StandPoint] = Field(min_length=1)
-
-
-class StageCatalog(BaseModel):
-    default: str
-    spots: list[StageSpot]
-
-
 class SceneStage(BaseModel):
     image: str | None = None
     darken: bool = False
     stand: list[StandPoint] = Field(default_factory=list)
-
-
-def load_catalog(directory: Path, place: str) -> StageCatalog | None:
-    if not valid_id(place):
-        return None
-    path = directory / "stages" / f"{place}.yaml"
-    try:
-        if not path.resolve().is_relative_to(directory.resolve()):
-            return None
-        return StageCatalog.model_validate(yaml.safe_load(path.read_text()))
-    except (OSError, ValueError, yaml.YAMLError):
-        return None
 
 
 def scene_stage(directory: Path, place: str, spot: str | None, part: str,

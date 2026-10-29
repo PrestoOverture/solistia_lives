@@ -325,7 +325,7 @@ def test_choose_returns_plan(tmp_path, monkeypatch):
     run = tmp_path / "run"
     run.mkdir()
     plan = dict(call="plan", kind="go", intent="Find somewhere quiet", where="cropdale",
-               spot="the tavern's upper floor", aim="Walk to the tavern and look around.")
+               spot="tavern", aim="Walk to the tavern and look around.")
 
     class FakeClient:
         def __init__(self, *, options):

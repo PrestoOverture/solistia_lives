@@ -11,6 +11,7 @@ from story_engine.agents.sdk import (
     run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
     session_options, structured_reply,
 )
+from story_engine.stages import load_catalogs, catalog_schema, spot_context, validate_spot, validate_spot_ops
 from story_engine.config import Role, load_settings
 from story_engine.agents.subjects import fold
 from story_engine.trace import TraceWriter
@@ -119,6 +120,7 @@ class _WorldSession:
                  role: Role, max_turns: int, trace: TraceWriter) -> None:
         self.root, self.run_dir, self.world_dir = root, run_dir, world_dir
         self.role, self.max_turns, self.trace = role, max_turns, trace
+        self.catalogs = load_catalogs(root)
         self.client = None
         self.opened = False
         self.seen: set[int] = set()
@@ -159,6 +161,8 @@ class _WorldSession:
                 changes["removed"] = removed
             payload = {"state_changes": changes}
         self.last_state = state
+        if 'state' in payload or 'places' in payload.get('state_changes', {}):
+            payload['spots'] = spot_context(self.catalogs, [p['slug'] for p in state['places']])
         return payload
 
     async def __aenter__(self) -> Self:
@@ -172,7 +176,7 @@ class _WorldSession:
         self.hooks = KBHooks(self.root, self.run_dir, agent=self.agent_name, turn=1)
         self.options = session_options(self.root, self.run_dir, self.role, prompt,
                                        self.max_turns, self.hooks,
-                                       output_format=json_schema_output(self.reply_type))
+                                       output_format=catalog_schema(json_schema_output(self.reply_type), self.catalogs))
         self.context = ClaudeSDKClient(options=self.options)
         self.client = await self.context.__aenter__()
         return self
@@ -217,6 +221,7 @@ class _WorldSession:
                      attempt: int, dropped: list[tuple[Event, str]]) -> WorldState | None:
         """Retry op rejections, then discard the whole atomic event group."""
         try:
+            validate_spot_ops(self.catalogs, event.ops)
             return validate_ops(state, event, authority)
         except ValueError as error:
             if attempt < self.role.retries:
@@ -485,6 +490,13 @@ class OffscreenAgent(_WorldSession):
                     if updated is None:
                         continue
                     places = {place.slug for place in updated.places}
+                    try:
+                        validate_spot(self.catalogs, raw.place, raw.spot)
+                    except ValueError as error:
+                        if attempt < self.role.retries:
+                            raise
+                        raw = raw.model_copy(update={'spot': None})
+                        self.trace.write('offscreen_spot_cleared', turn=self.turn, error=str(error))
                     resolved.append(self._build_offscreen_event(raw, updated, places))
                     new_state = updated
                 if open_situations - reply.situation_notes.keys():

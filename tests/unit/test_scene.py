@@ -1007,7 +1007,7 @@ def test_two_mains_same_place_different_spots_no_scene_same_spot_opens_one(tmp_p
             session.settings.scene_cap = 3
             return await run_tick(world, run, session=session)
 
-    same_spot = {'agnea': 'the tavern bar', 'throne': 'the orchard gate'}
+    same_spot = {'agnea': 'tavern', 'throne': 'watermill_bridge'}
     slugs = iter(['agnea', 'throne'])
     asyncio.run(exercise())
     assert read_scenes(world) == []
@@ -1015,7 +1015,7 @@ def test_two_mains_same_place_different_spots_no_scene_same_spot_opens_one(tmp_p
     world2, run2 = world.parent / 'world2', run.parent / 'run2'
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world2)
     run2.mkdir()
-    same_spot = {'agnea': 'the tavern bar', 'throne': 'the tavern bar'}
+    same_spot = {'agnea': 'tavern', 'throne': 'tavern'}
     slugs = iter(['agnea', 'throne'])
 
     async def exercise2():
@@ -1026,7 +1026,7 @@ def test_two_mains_same_place_different_spots_no_scene_same_spot_opens_one(tmp_p
     asyncio.run(exercise2())
     scenes = read_scenes(world2)
     assert len(scenes) == 1 and set(scenes[0].participants) == {'agnea', 'throne'}
-    assert scenes[0].spot == 'the tavern bar'
+    assert scenes[0].spot == 'tavern'
 
 
 def test_encounter_scene_opens_at_mains_shared_spot(tmp_path, monkeypatch):
@@ -1053,7 +1053,7 @@ def test_encounter_scene_opens_at_mains_shared_spot(tmp_path, monkeypatch):
 
         async def receive_response(self):
             if self.request.get('call') == 'part_of_day':
-                data = (plan(where='festival_grounds', spot='the raspberry thicket', aim='Search the thicket.')
+                data = (plan(where='festival_grounds', spot='festival_clearing', aim='Search the thicket.')
                        if self.slug == 'agnea' else plan(where='cropdale', aim='Mind the tavern.'))
             else:
                 self.round += 1
@@ -1076,13 +1076,13 @@ def test_encounter_scene_opens_at_mains_shared_spot(tmp_path, monkeypatch):
         async def receive_response(self):
             if self.request['call'] == 'adjudicate':
                 verdicts = dict(
-                    agnea=dict(involves=[], status='staged', where='festival_grounds', spot='the raspberry thicket'),
+                    agnea=dict(involves=[], status='staged', where='festival_grounds', spot='festival_clearing'),
                     throne=dict(involves=[], status='settled', outcome='Throné minds the tavern.',
                                where='cropdale', spot=None))
                 data = dict(call='adjudicate',
                            encounters=[{'mains': ['agnea'], 'minor': ['Witness']}],
                            ops=[dict(op='introduce', name='Witness', where='festival_grounds',
-                                     spot='the raspberry thicket', wants=['Watch'], commitments=[])])
+                                     spot='festival_clearing', wants=['Watch'], commitments=[])])
             elif self.request['call'] == 'offscreen':
                 data = offscreen_echo(self.request)
             else:
@@ -1100,5 +1100,5 @@ def test_encounter_scene_opens_at_mains_shared_spot(tmp_path, monkeypatch):
     asyncio.run(exercise())
     scenes = read_scenes(world)
     assert len(scenes) == 1
-    assert scenes[0].place == 'festival_grounds' and scenes[0].spot == 'the raspberry thicket'
+    assert scenes[0].place == 'festival_grounds' and scenes[0].spot == 'festival_clearing'
     assert scenes[0].participants == ['agnea', 'Witness']

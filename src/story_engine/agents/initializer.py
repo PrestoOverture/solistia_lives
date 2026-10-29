@@ -10,6 +10,7 @@ from story_engine.agents.sdk import (
     run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, session_error, session_options,
     structured_reply,
 )
+from story_engine.stages import load_catalogs, catalog_schema, spot_context, validate_spot
 from story_engine.config import Role
 from story_engine.runs import record_api_host
 from story_engine.trace import TraceWriter
@@ -74,6 +75,7 @@ async def starting_state(
                *(root / "cards" / f"{slug}.md" for slug in characters),
                run_dir / "scene_context.md"]
     prompt = "\n\n".join(path.read_text(encoding="utf-8") for path in sources)
+    catalogs = load_catalogs(root)
     schema = WorldState.model_json_schema()
     del schema["properties"]["clock"]
     schema["required"].remove("clock")
@@ -87,10 +89,10 @@ async def starting_state(
         "maxProperties": len(characters),
     }
     options = session_options(root, run_dir, role, prompt, max_turns, hooks,
-                              output_format={"type": "json_schema", "schema": schema})
+                              output_format=catalog_schema({"type": "json_schema", "schema": schema}, catalogs))
     record_api_host(run_dir, options.env.get("ANTHROPIC_BASE_URL"))
     request = json.dumps({"characters": characters, "location": location,
-                          "situation": situation,
+                          "situation": situation, "spots": spot_context(catalogs, catalogs),
                           "kb_path": str((root / "kb").resolve())}, ensure_ascii=False)
     places = {path.stem for path in (root / "kb/locations").rglob("*.md") if path.is_file()}
     cost = SessionCost()
@@ -142,6 +144,15 @@ async def starting_state(
                         raise ValueError("a starting state with two or more situations must have more than one kind")
                     if len({item.due.part for item in state.situations}) <= 1:
                         raise ValueError("a starting state with two or more situations must not have all the same due part")
+                for member in [*state.characters.values(), *state.people.values()]:
+                    try:
+                        validate_spot(catalogs, member.where, member.spot)
+                    except ValueError as error:
+                        if attempt < role.retries:
+                            raise
+                        trace.write('initial_spot_cleared', place=member.where,
+                                    spot=member.spot, error=str(error))
+                        member.spot = None
                 return state
             except ValueError as error:
                 trace.write(

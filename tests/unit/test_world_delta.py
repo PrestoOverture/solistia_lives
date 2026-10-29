@@ -213,7 +213,8 @@ def test_offscreen_deltas_exclude_main_character_and_touches_changes(session_set
         "removed": {"situations": [payloads[0]["state"]["situations"][0]["id"]]},
     }
     for payload in payloads:
-        assert set(payload) == {"call", "reply", "state" if "state" in payload else "state_changes"}
+        assert set(payload) == ({"call", "reply", "state", "spots"} if "state" in payload
+                                else {"call", "reply", "state_changes"})
         assert "characters" not in json.dumps(payload)
         assert "touches" not in json.dumps(payload)
         assert "Private new goal" not in json.dumps(payload)
