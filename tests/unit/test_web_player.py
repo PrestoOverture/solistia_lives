@@ -34,6 +34,15 @@ def test_worlds_lists_we_fixture_and_scenes(tmp_path):
         assert 'http://testserver/worlds' in client.get('/').text
 
 
+def test_scene_has_speech_bubble_and_narration_box(tmp_path):
+    with TestClient(create_app(runs_dir=tmp_path / 'runs', worlds_dir=FIXTURES,
+                              player_assets_dir=tmp_path / 'no-art')) as client:
+        response = client.get('/world/player/scene/1')
+        assert response.status_code == 200
+        assert 'id="speech-bubble"' in response.text
+        assert 'id="narration"' in response.text
+
+
 def test_scene_embeds_exact_ordered_beats_and_cast_without_writing(tmp_path):
     before = {p: p.read_bytes() for p in FIXTURES.rglob('*') if p.is_file()}
     with TestClient(create_app(runs_dir=tmp_path / 'runs', worlds_dir=FIXTURES, player_assets_dir=tmp_path / "no-art")) as client:
