@@ -2,7 +2,7 @@
 {% block title %}Scene {{ scene.id }} · {{ place }}{% endblock %}
 {% block content %}
 <style>
-  #stage { border: 2px solid var(--rule); border-radius: .5rem; overflow: hidden; cursor: pointer; }
+  #stage { border: 2px solid var(--rule); border-radius: .5rem; overflow: visible; cursor: pointer; }
   .backdrop { background: #b5d4d9; color: #18242b; text-align: center; padding: 1rem; }
   .backdrop.afternoon { background: #e4cd91; }
   .backdrop.evening { background: #be8c9e; }
@@ -47,16 +47,15 @@
   .figure.speaking { outline: 2px solid var(--ink); outline-offset: .3rem; border-radius: .3rem; }
   .textbox { border-top: 1px solid var(--rule); padding: 1.25rem; min-height: 12rem; white-space: pre-wrap; }
   #speech-bubble { position: absolute; z-index: 2000; width: max-content; max-width: 40%;
-    padding: .5rem .75rem; border: 2px solid #796343; border-radius: .6rem;
+    padding: .5rem .75rem 1.25rem; border: 2px solid #796343; border-radius: .6rem;
     background: #fff5df; color: #29251f; box-shadow: 0 2px 8px #0008;
     text-align: left; font-size: 1rem; line-height: 1.3; white-space: pre-wrap; overflow-wrap: anywhere; }
   #speech-bubble[hidden] { display: none; }
   #speech-bubble::after { content: ''; position: absolute; left: var(--tail-x); bottom: -9px;
     width: 14px; height: 14px; background: #fff5df; border-right: 2px solid #796343;
     border-bottom: 2px solid #796343; transform: translateX(-50%) rotate(45deg); }
-  #speech-bubble.below::after { top: -9px; bottom: auto; transform: translateX(-50%) rotate(225deg); }
   #bubble-name { display: block; font-weight: bold; }
-  #bubble-line { max-height: var(--line-height); overflow-y: auto; }
+  #bubble-more { position: absolute; right: .75rem; bottom: .1rem; font-size: .75rem; }
   #narration { height: 12rem; overflow-y: auto; }
   #beat-text { margin: .5rem 0; }
   .player-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1rem; }
@@ -81,7 +80,7 @@
       </div>
     {% endfor %}
     </div>
-    <div id="speech-bubble" aria-live="polite" hidden><span id="bubble-name"></span><div id="bubble-line"></div></div>
+    <div id="speech-bubble" aria-live="polite" hidden><span id="bubble-name"></span><div id="bubble-line"></div><span id="bubble-more" aria-hidden="true" hidden>▼</span></div>
   </div>
   <div id="narration" class="textbox" aria-live="polite"><p id="beat-text"></p></div>
 </div>
@@ -109,6 +108,10 @@
   const settings = {{ player_settings | tojson }};
   let beats = allBeats.filter(beat => !beat.hidden);
   let index = 0;
+  let pages = [];
+  let page = 0;
+  let audioFinished = false;
+  let audioFailed = false;
   let audio = null;
   let timer = null;
   function stopPlayback() {
@@ -122,50 +125,99 @@
       audio = null;
     }
   }
-  function readingDelay(beat) {
+  function readingDelay(text) {
     clearTimeout(timer);
-    if (!auto.checked || !beat || index >= beats.length - 1) return;
-    const words = beat.text.trim().split(/\s+/).length;
+    if (!auto.checked || next.disabled) return;
+    const words = text.trim().split(/\s+/).length;
     timer = setTimeout(() => advance(1), Math.max(settings.player_reading_min_ms,
       words * 60000 / settings.player_reading_wpm));
   }
+  function schedulePage() {
+    clearTimeout(timer);
+    if (!auto.checked) return;
+    if (page < pages.length - 1 || !audio || audioFailed) {
+      readingDelay(pages[page] ?? beats[index]?.text ?? '');
+    } else if (audioFinished && !next.disabled) {
+      advance(1);
+    }
+  }
+  function bubbleAnchor() {
+    const bounds = backdrop.getBoundingClientRect();
+    const figures = [...stage.querySelectorAll('.figure')].filter(item => !item.hidden);
+    const speaker = figures.find(item => item.dataset.actor === beats[index]?.actor);
+    const head = speaker?.getBoundingClientRect();
+    const x = head ? head.left + head.width / 2 - bounds.left : bounds.width / 2;
+    // Leave room for the speaker's bob and the tail above every visible head.
+    const y = figures.length ? Math.min(...figures.map(item => {
+      const rect = item.getBoundingClientRect();
+      return rect.top - rect.height * .03;
+    })) - bounds.top : bounds.height / 2;
+    return {bounds, x, y};
+  }
   function positionBubble() {
     if (bubble.hidden) return;
-    const bounds = backdrop.getBoundingClientRect();
-    const figure = [...stage.querySelectorAll('.figure')].find(item =>
-      item.dataset.actor === beats[index]?.actor && !item.hidden);
-    // Art figures' bounds start at (--x, --y - --h); placeholders use their actual head.
-    const head = figure?.getBoundingClientRect();
-    const x = head ? head.left + head.width / 2 - bounds.left : bounds.width / 2;
-    const y = head ? head.top - bounds.top : bounds.height / 2;
-    const gap = 12;
-    const margin = 10;
-    const below = y - bubble.offsetHeight - gap < margin;
-    bubble.classList.toggle('below', below);
-    // Keep very long lines readable by scrolling within the available stage height.
-    bubbleLine.style.setProperty('--line-height', `${Math.max(0, bounds.height - 2 * margin -
-      (bubble.offsetHeight - bubbleLine.clientHeight))}px`);
-    const left = Math.max(margin, Math.min(x - bubble.offsetWidth / 2,
-      bounds.width - bubble.offsetWidth - margin));
-    const top = below ? y + gap : y - bubble.offsetHeight - gap;
+    const {bounds, x, y} = bubbleAnchor();
+    const left = Math.max(10, Math.min(x - bubble.offsetWidth / 2,
+      bounds.width - bubble.offsetWidth - 10));
     bubble.style.left = `${left}px`;
-    bubble.style.top = `${Math.max(margin, Math.min(top, bounds.height - bubble.offsetHeight - margin))}px`;
+    bubble.style.top = `${y - bubble.offsetHeight - 12}px`;
     bubble.style.setProperty('--tail-x', `${Math.max(10, Math.min(x - left, bubble.offsetWidth - 10))}px`);
   }
-  const bubbleObserver = new ResizeObserver(positionBubble);
+  function showPage() {
+    bubbleLine.textContent = pages[page] ?? '';
+    document.getElementById('bubble-more').hidden = page >= pages.length - 1;
+    document.getElementById('beat-counter').textContent =
+      `${beats.length ? index + 1 : 0} / ${beats.length}` +
+      (pages.length ? ` · ${page + 1}/${pages.length}` : '');
+    previous.disabled = index === 0;
+    next.disabled = index >= beats.length - 1 && page >= pages.length - 1;
+    positionBubble();
+    schedulePage();
+  }
+  function paginate() {
+    const oldWord = pages.slice(0, page).join(' ').split(/\s+/).filter(Boolean).length;
+    pages = [];
+    if (!bubble.hidden) {
+      const words = beats[index].text.trim().split(/\s+/);
+      const {y} = bubbleAnchor();
+      bubbleLine.textContent = '';
+      const chrome = bubble.getBoundingClientRect().height;
+      const maxHeight = Math.max(parseFloat(getComputedStyle(bubble).lineHeight) * 2,
+        y - 12 - 10 - chrome);
+      let start = 0;
+      while (start < words.length) {
+        let end = start + 1;
+        // Measure each candidate in the actual bubble, keeping the largest fitting prefix.
+        while (end <= words.length) {
+          bubbleLine.textContent = words.slice(start, end).join(' ');
+          if (bubbleLine.getBoundingClientRect().height > maxHeight + .5 && end > start + 1) break;
+          end++;
+        }
+        const stop = end > words.length ? words.length : end - 1;
+        pages.push(words.slice(start, stop).join(' '));
+        start = stop;
+      }
+    }
+    page = 0;
+    let count = 0;
+    while (page < pages.length - 1 && count + pages[page].split(/\s+/).length <= oldWord) {
+      count += pages[page++].split(/\s+/).length;
+    }
+    showPage();
+  }
+  const bubbleObserver = new ResizeObserver(paginate);
   bubbleObserver.observe(backdrop);
   stage.addEventListener('htmx:beforeCleanupElement', () => bubbleObserver.disconnect());
   function render() {
     stopPlayback();
+    pages = [];
+    page = 0;
+    audioFinished = audioFailed = false;
     const beat = beats[index];
     bubble.hidden = !beat?.speaker;
     document.getElementById('bubble-name').textContent = beat?.speaker || '';
     bubbleLine.textContent = beat?.speaker ? beat.text : '';
-    bubbleLine.style.removeProperty('--line-height');
     document.getElementById('beat-text').textContent = beat?.speaker ? '' : (beat?.text ?? 'No visible beats.');
-    document.getElementById('beat-counter').textContent = `${beats.length ? index + 1 : 0} / ${beats.length}`;
-    previous.disabled = index === 0;
-    next.disabled = index >= beats.length - 1;
     // Replay facing from the full timeline so Back and the World toggle agree.
     const figures = [...stage.querySelectorAll('.figure')];
     const byActor = new Map(figures.map(figure => [figure.dataset.actor, figure]));
@@ -188,33 +240,42 @@
       figure.classList.toggle('speaking', speaking);
       figure.classList.toggle('dimmed', Boolean(beat?.speaker) && !speaking);
     });
-    positionBubble();
+    paginate();
     if (beat?.audio_url) {
       const currentAudio = new Audio(beat.audio_url);
       audio = currentAudio;
       const fallback = () => {
-        if (audio === currentAudio) readingDelay(beat);
-      };
-      currentAudio.onplaying = () => {
-        if (audio === currentAudio) clearTimeout(timer);
+        if (audio === currentAudio) {
+          audioFailed = true;
+          schedulePage();
+        }
       };
       currentAudio.onended = () => {
-        if (audio === currentAudio && auto.checked && index < beats.length - 1) advance(1);
+        if (audio === currentAudio) {
+          audioFinished = true;
+          if (page >= pages.length - 1) schedulePage();
+        }
       };
       currentAudio.onerror = fallback;
       currentAudio.play().catch(fallback);
-    } else {
-      readingDelay(beat);
     }
+    schedulePage();
   }
   function advance(delta) {
-    index = Math.max(0, Math.min(beats.length - 1, index + delta));
+    if (delta > 0 && page < pages.length - 1) {
+      page++;
+      showPage();
+      return;
+    }
+    const target = Math.max(0, Math.min(beats.length - 1, index + delta));
+    if (target === index) return;
+    index = target;
     render();
   }
   stage.addEventListener('click', () => advance(1));
   previous.addEventListener('click', () => advance(-1));
   next.addEventListener('click', () => advance(1));
-  auto.addEventListener('change', render);
+  auto.addEventListener('change', schedulePage);
   window.addEventListener('pagehide', stopPlayback, {once: true});
   stage.addEventListener('htmx:beforeCleanupElement', stopPlayback);
   document.onkeydown = event => {
