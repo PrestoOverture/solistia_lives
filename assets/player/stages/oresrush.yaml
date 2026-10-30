@@ -78,14 +78,14 @@ spots:
   - x: 0.42
     y: 0.7
     h: 0.098
-  - x: 0.52
-    y: 0.68
+  - x: 0.53
+    y: 0.79
     h: 0.095
   - x: 0.6
     y: 0.65
     h: 0.092
-  - x: 0.44
-    y: 0.55
+  - x: 0.65
+    y: 0.77
     h: 0.088
 - id: tavern
   name: Tavern Porch
@@ -106,8 +106,8 @@ spots:
   - x: 0.48
     y: 0.73
     h: 0.105
-  - x: 0.58
-    y: 0.74
+  - x: 0.52
+    y: 0.84
     h: 0.105
 - id: inn_balcony
   name: Inn Upper Balcony
@@ -115,8 +115,8 @@ spots:
   day: null
   night: Oresrush_Upper_Level.jpg
   stand:
-  - x: 0.32
-    y: 0.58
+  - x: 0.43
+    y: 0.57
     h: 0.095
   - x: 0.39
     y: 0.58
@@ -124,11 +124,11 @@ spots:
   - x: 0.46
     y: 0.58
     h: 0.095
-  - x: 0.53
-    y: 0.58
+  - x: 0.49
+    y: 0.59
     h: 0.095
-  - x: 0.58
-    y: 0.57
+  - x: 0.6
+    y: 0.56
     h: 0.092
 - id: saddlery
   name: The Saddlery

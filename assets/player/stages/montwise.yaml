@@ -19,8 +19,8 @@ spots:
   - x: 0.64
     y: 0.65
     h: 0.11
-  - x: 0.72
-    y: 0.68
+  - x: 0.69
+    y: 0.55
     h: 0.115
 - id: library_exterior
   name: Library Entrance
@@ -30,7 +30,7 @@ spots:
   night: null
   stand:
   - x: 0.35
-    y: 0.5
+    y: 0.55
     h: 0.085
   - x: 0.44
     y: 0.49
@@ -38,11 +38,11 @@ spots:
   - x: 0.5
     y: 0.52
     h: 0.085
-  - x: 0.56
-    y: 0.5
+  - x: 0.51
+    y: 0.61
     h: 0.085
-  - x: 0.64
-    y: 0.51
+  - x: 0.47
+    y: 0.61
     h: 0.085
 - id: town_entrance
   name: Town Entrance Bridge
@@ -63,8 +63,8 @@ spots:
   - x: 0.63
     y: 0.56
     h: 0.1
-  - x: 0.7
-    y: 0.54
+  - x: 0.64
+    y: 0.43
     h: 0.095
 - id: arena_entrance
   name: Underground Arena Entrance
@@ -118,7 +118,7 @@ spots:
   night: null
   stand:
   - x: 0.34
-    y: 0.58
+    y: 0.73
     h: 0.1
   - x: 0.42
     y: 0.59

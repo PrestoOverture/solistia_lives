@@ -7,14 +7,14 @@ spots:
   day: New_Delsta_Epilogue.jpg
   night: null
   stand:
-  - x: 0.24
-    y: 0.72
+  - x: 0.19
+    y: 0.8
     h: 0.105
-  - x: 0.36
-    y: 0.76
+  - x: 0.35
+    y: 0.65
     h: 0.11
-  - x: 0.5
-    y: 0.74
+  - x: 0.52
+    y: 0.84
     h: 0.11
   - x: 0.62
     y: 0.7
@@ -44,11 +44,11 @@ spots:
   - x: 0.61
     y: 0.59
     h: 0.1
-  - x: 0.69
-    y: 0.58
+  - x: 0.57
+    y: 0.7
     h: 0.095
-  - x: 0.48
-    y: 0.74
+  - x: 0.34
+    y: 0.72
     h: 0.115
 - id: upper_promenade
   name: Upper Promenade
@@ -61,7 +61,7 @@ spots:
     y: 0.65
     h: 0.105
   - x: 0.38
-    y: 0.6
+    y: 0.74
     h: 0.1
   - x: 0.5
     y: 0.6
@@ -79,8 +79,8 @@ spots:
   day: null
   night: New_Delsta_Nightlife.jpg
   stand:
-  - x: 0.42
-    y: 0.72
+  - x: 0.44
+    y: 0.85
     h: 0.1
   - x: 0.5
     y: 0.7
@@ -91,8 +91,8 @@ spots:
   - x: 0.46
     y: 0.56
     h: 0.085
-  - x: 0.54
-    y: 0.54
+  - x: 0.56
+    y: 0.81
     h: 0.085
 - id: back_alley
   name: Back Alley
@@ -107,8 +107,8 @@ spots:
   - x: 0.36
     y: 0.74
     h: 0.105
-  - x: 0.48
-    y: 0.78
+  - x: 0.53
+    y: 0.9
     h: 0.11
   - x: 0.58
     y: 0.72
