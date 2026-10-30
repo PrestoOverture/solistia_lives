@@ -275,3 +275,16 @@ def _strip_discriminator(node):
     if isinstance(node, list):
         return [_strip_discriminator(value) for value in node]
     return node
+
+
+def require_person_sex(output_format: dict) -> dict:
+    """Require sex only at model creation boundaries; historical artifacts stay optional."""
+    for name in ("Person", "Introduce"):
+        definition = output_format["schema"].get("$defs", {}).get(name)
+        if definition is not None:
+            definition["properties"]["sex"] = {
+                "type": "string", "enum": ["m", "f"],
+                "description": "The person's sex, male (m) or female (f), for appearance and voice.",
+            }
+            definition.setdefault("required", []).append("sex")
+    return output_format

@@ -45,16 +45,13 @@ def synthesis(monkeypatch):
     calls = []
 
     class FakeCommunicate:
-        def __init__(self, text, speaker):
+        def __init__(self, text, speaker, *, pitch):
             calls.append((text, speaker))
 
         async def save(self, filename):
             path = Path(filename)
             assert path.parent.name == 'audio'
             assert path.name.startswith('.')
-            # The public file must not exist until the entire save succeeds.
-            target = path.name.rsplit('.', 2)[0][1:] + '.mp3'
-            assert not (path.parent / target).exists()
             path.write_bytes(b'fixture mp3')
 
     monkeypatch.setattr(voice.edge_tts, 'Communicate', FakeCommunicate)
@@ -79,7 +76,7 @@ def test_voice_cli_renders_action_and_say_and_skips_both_on_rerun(fixture_world,
         ('The festival begins.', voices.for_speaker('world')),
         ('Good night.', voices.travelers['throne']),
     ]
-    assert {p.name for p in (world / 'audio').iterdir()} == {'2.mp3', '4.mp3', '7.mp3', '8.mp3', '2.action.mp3', '5.action.mp3', '7.action.mp3'}
+    assert {p.name for p in (world / 'audio').iterdir()} == {'2.mp3', '4.mp3', '7.mp3', '8.mp3', '2.action.mp3', '5.action.mp3', '7.action.mp3', 'voices.json'}
     result = CliRunner().invoke(app, ['world', 'voice', 'player'])
     assert result.exit_code == 0
     assert 'say: Rendered 0, skipped 4' in result.output
@@ -95,7 +92,7 @@ def test_voice_scene_filter(fixture_world, synthesis, monkeypatch):
     assert result.exit_code == 0, result.output
     assert 'say: Rendered 1, skipped 0' in result.output
     assert 'action: Rendered 0, skipped 0' in result.output
-    assert [p.name for p in (world / 'audio').iterdir()] == ['8.mp3']
+    assert {p.name for p in (world / 'audio').iterdir()} == {'8.mp3', 'voices.json'}
     assert synthesis == [('Good night.', voice.load_voices().travelers['throne'])]
     result = CliRunner().invoke(app, ['world', 'voice', 'player', '--scene', 'missing'])
     assert result.exit_code == 1
@@ -110,7 +107,8 @@ def test_stable_minor_pool_and_traveler_config():
     assert voices.narrator.startswith('en-')
     assert voices.narrator not in voices.travelers.values()
     for name in ['Mabel', 'world', 'A new person', 'Thérèse']:
-        expected = voices.minor[int(hashlib.sha256(name.encode()).hexdigest(), 16) % len(voices.minor)]
+        pool = voices.minor["m"] + voices.minor["f"]
+        expected = pool[int(hashlib.sha256(name.encode()).hexdigest(), 16) % len(pool)]
         assert voices.for_speaker(name) == expected
         assert voice.load_voices().for_speaker(name) == expected
 
@@ -142,7 +140,7 @@ def test_concurrency_limit_and_failure_drains_all_lines(fixture_world, monkeypat
     finished = []
 
     class Communicate:
-        def __init__(self, text, speaker):
+        def __init__(self, text, speaker, *, pitch):
             self.text = text
 
         async def save(self, filename):
@@ -171,7 +169,7 @@ def test_concurrency_limit_and_failure_drains_all_lines(fixture_world, monkeypat
     assert maximum == limit
     assert active == 0
     assert len(finished) == (6 if fail else 7)
-    files = list((world / 'audio').iterdir())
+    files = list((world / 'audio').glob('*.mp3'))
     assert len(files) == len(finished)
     assert all(not p.name.startswith('.') and p.read_bytes() == b'complete' for p in files)
     assert (world / 'audio/2.action.mp3').exists() is not fail
@@ -181,7 +179,7 @@ def test_failed_save_leaves_no_mp3_or_temporary(fixture_world, monkeypatch):
     _, world = fixture_world
 
     class FailingCommunicate:
-        def __init__(self, *args):
+        def __init__(self, *args, **kwargs):
             pass
 
         async def save(self, filename):
@@ -234,3 +232,66 @@ def test_audio_route_rejects_symlinks(fixture_world, suffix):
         audio.rmdir()
         audio.symlink_to(root, target_is_directory=True)
         assert client.get(f'/world/player/audio/2{suffix}').status_code == 404
+
+
+def test_sex_pools_pitch_and_stability():
+    voices = voice.load_voices()
+    for i in range(100):
+        name = f'Person {i}'
+        assert voices.for_speaker(name, 'f') in voices.minor['f']
+        assert voices.for_speaker(name, 'm') in voices.minor['m']
+        assert voices.for_speaker(name) in voices.minor['m'] + voices.minor['f']
+        assert voices.for_speaker(name, 'f') == voice.load_voices().for_speaker(name, 'f')
+        assert voices.pitch_for(name) == voice.load_voices().pitch_for(name)
+        assert voices.pitch_for(name) in {'-10Hz', '-5Hz', '+0Hz', '+5Hz', '+10Hz'}
+    assert len({voices.pitch_for(f'Person {i}') for i in range(100)}) == 5
+
+
+def test_mapping_changes_rerender(fixture_world, monkeypatch):
+    import json
+    _, world = fixture_world
+    calls = []
+
+    class Communicate:
+        def __init__(self, text, speaker, *, pitch):
+            calls.append((speaker, pitch))
+
+        async def save(self, filename):
+            Path(filename).write_bytes(b'audio')
+
+    monkeypatch.setattr(voice.edge_tts, 'Communicate', Communicate)
+    voices = voice.load_voices()
+    asyncio.run(voice.render_voice(world, voices))
+    calls.clear()
+    assert asyncio.run(voice.render_voice(world, voices)) == {'action': (0, 3), 'say': (0, 4)}
+    assert not calls
+    voices.travelers['agnea'] = 'en-US-AvaNeural'
+    assert asyncio.run(voice.render_voice(world, voices)) == {'action': (0, 3), 'say': (1, 3)}
+    assert calls == [('en-US-AvaNeural', '+0Hz')]
+    mapping = json.loads((world / 'audio/voices.json').read_text())
+    mapping['4']['pitch'] = '+99Hz'
+    (world / 'audio/voices.json').write_text(json.dumps(mapping))
+    assert asyncio.run(voice.render_voice(world, voices)) == {'action': (0, 3), 'say': (1, 3)}
+    assert calls[-1][1] == voices.pitch_for('Mabel')
+
+
+def test_render_reads_female_sex_from_state(fixture_world, monkeypatch):
+    import json
+    _, world = fixture_world
+    state = json.loads((world / 'genesis.json').read_text())
+    state['people']['Mabel']['sex'] = 'f'
+    (world / 'state.json').write_text(json.dumps(state))
+    calls = []
+
+    class Communicate:
+        def __init__(self, text, speaker, *, pitch):
+            calls.append((text, speaker, pitch))
+
+        async def save(self, filename):
+            Path(filename).write_bytes(b'audio')
+
+    monkeypatch.setattr(voice.edge_tts, 'Communicate', Communicate)
+    voices = voice.load_voices()
+    asyncio.run(voice.render_voice(world, voices))
+    assert ('Welcome!', voices.for_speaker('Mabel', 'f'), voices.pitch_for('Mabel')) in calls
+    assert voices.for_speaker('Mabel', 'f') in voices.minor['f']

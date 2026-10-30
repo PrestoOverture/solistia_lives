@@ -8,7 +8,7 @@ from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 
 from story_engine.agents.sdk import (
     run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, session_error, session_options,
-    structured_reply,
+    structured_reply, require_person_sex,
 )
 from story_engine.stages import load_catalogs, catalog_schema, spot_context, validate_spot
 from story_engine.config import Role
@@ -89,7 +89,7 @@ async def starting_state(
         "maxProperties": len(characters),
     }
     options = session_options(root, run_dir, role, prompt, max_turns, hooks,
-                              output_format=catalog_schema({"type": "json_schema", "schema": schema}, catalogs))
+                              output_format=catalog_schema(require_person_sex({"type": "json_schema", "schema": schema}), catalogs))
     record_api_host(run_dir, options.env.get("ANTHROPIC_BASE_URL"))
     request = json.dumps({"characters": characters, "location": location,
                           "situation": situation, "spots": spot_context(catalogs, catalogs),

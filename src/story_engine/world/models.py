@@ -58,6 +58,7 @@ class CharacterState(WorldModel):
 
 
 class Person(WorldModel):
+    sex: Literal['m', 'f'] | None = None
     where: str
     spot: str | None = None
     wants: list[str] = Field(min_length=1)

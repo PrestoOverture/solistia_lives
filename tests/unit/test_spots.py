@@ -1,4 +1,5 @@
 """W-spot: live choices use catalog ids; historical artifacts stay replayable."""
+from story_engine.agents.sdk import require_person_sex
 import asyncio
 import json
 from pathlib import Path
@@ -160,7 +161,7 @@ def test_world_spot_ops_retry_then_drop(workspace, monkeypatch, call, corrected)
     assert len(clients[0].calls) == 2 and 'must be a catalog id' in clients[0].calls[1]
     assert len(rows(run, 'event_dropped')) == (not corrected)
     assert clients[0].options.output_format == catalog_schema(
-        json_schema_output(OffscreenReply if call == 'offscreen' else WorldReply), load_catalogs(ROOT))
+        require_person_sex(json_schema_output(OffscreenReply if call == 'offscreen' else WorldReply)), load_catalogs(ROOT))
 
 
 @pytest.mark.parametrize('corrected', [False, True])

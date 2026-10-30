@@ -133,6 +133,8 @@ def player_art(tmp_path):
         "default: square\nspots:\n- id: square\n  day: day.png\n  night: night.png\n"
         "  stand: [{x: 0.4, y: 0.7, h: 0.1}, {x: 0.6, y: 0.7, h: 0.1}]\n"
         "- id: bridge\n  day: night.png\n  stand: [{x: 0.5, y: 0.6, h: 0.12}]\n")
+    (directory / "sprites/index.yaml").write_text(
+        "sprites:\n- {file: minor.png, who: townsperson, sex: f, view: front}\n")
     return directory
 
 
@@ -277,3 +279,37 @@ def test_departures_use_structured_moves_and_survive_hidden_beats(tmp_path):
     assert beats[0]['departed'] == []
     assert [b['departed'] for b in beats[1:]] == [['throne']] * 4
     assert beats[-2]['hidden']
+
+
+def test_minor_sprites_use_sex_and_stable_distinct_choices(tmp_path):
+    from story_engine.web.player import load_art, scene_sprites, town_sprites
+    import yaml
+    assets = tmp_path / 'assets'
+    (assets / 'sprites').mkdir(parents=True)
+    entries = []
+    for sex in ('m', 'f'):
+        for i in range(3):
+            filename = f'{sex}{i}.png'
+            (assets / 'sprites' / filename).write_bytes(b'fixture')
+            entries.append({'file': filename, 'who': 'townsperson', 'sex': sex, 'view': 'front'})
+    (assets / 'sprites/index.yaml').write_text(yaml.safe_dump({'sprites': entries}))
+    world = tmp_path / 'world'
+    world.mkdir()
+    state = json.loads((FIXTURES / 'player/genesis.json').read_text())
+    names = [f'Person {i}' for i in range(100)]
+    state['people'] = {name: {**state['people']['Mabel'], 'sex': 'f'} for name in names}
+    (world / 'state.json').write_text(json.dumps(state))
+    art = load_art(assets)
+    pools = town_sprites(assets)
+    for name in names:
+        first = scene_sprites(assets, world, [name], art)
+        assert first[name] in {f'sprites/f{i}.png' for i in range(3)}
+        assert first == scene_sprites(assets, world, [name], art)
+    cast = names[:3]
+    selected = scene_sprites(assets, world, cast, art)
+    assert len(set(selected.values())) == 3
+    assert selected == scene_sprites(assets, world, list(reversed(cast)), art)
+    with TestClient(create_app(runs_dir=tmp_path / 'runs', worlds_dir=FIXTURES,
+                               player_assets_dir=assets)) as client:
+        for filename in pools['m'] + pools['f']:
+            assert client.get('/player-assets/' + filename).status_code == 200

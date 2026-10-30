@@ -1,6 +1,7 @@
 """Read-only scene-player data from world artifacts."""
 
 import re
+import hashlib
 from pathlib import Path
 
 import yaml
@@ -8,6 +9,8 @@ import yaml
 from pydantic import BaseModel, Field
 
 from story_engine.stages import StandPoint, StageSpot, StageCatalog, load_catalog
+from story_engine.kb import TRAVELERS
+from story_engine.world.voice import read_people
 from story_engine.world.io import read_events, read_scenes
 from story_engine.world.models import SceneRecord, WorldInfo
 
@@ -165,3 +168,38 @@ def stage_images(directory: Path) -> set[str]:
                     if filename and asset_file(directory / "clean" / path.stem, filename):
                         images.add(f"clean/{path.stem}/{filename}")
     return images
+
+
+def town_sprites(directory: Path) -> dict[str, list[str]]:
+    pools = {'m': [], 'f': []}
+    try:
+        data = yaml.safe_load((directory / 'sprites/index.yaml').read_text())
+    except FileNotFoundError:
+        return pools
+    for item in data['sprites']:
+        if item.get('who') == 'townsperson' and item.get('view') == 'front' and item.get('sex') in pools:
+            filename = 'sprites/' + item['file']
+            if Path(filename).suffix.lower() == '.png' and asset_file(directory, filename):
+                pools[item['sex']].append(filename)
+    return pools
+
+
+def scene_sprites(directory: Path, world_dir: Path, participants: list[str], art: PlayerArt) -> dict[str, str | None]:
+    pools = town_sprites(directory)
+    people = read_people(world_dir)
+    result = {name: art.sprites.get(name) for name in participants if name in TRAVELERS}
+    used = set()
+    # Known-sex people reserve their smaller pools before unknown-sex people.
+    minors = [name for name in participants if name not in TRAVELERS]
+    for name in sorted(minors, key=lambda name: (name not in people or people[name].sex is None, name)):
+        sex = people[name].sex if name in people else None
+        pool = pools[sex] if sex in pools else pools['m'] + pools['f']
+        if not pool:
+            result[name] = None
+            continue
+        number = int.from_bytes(hashlib.sha256(name.encode('utf-8')).digest(), 'big')
+        choices = pool[number % len(pool):] + pool[:number % len(pool)]
+        chosen = next((filename for filename in choices if filename not in used), choices[0])
+        result[name] = chosen
+        used.add(chosen)
+    return result

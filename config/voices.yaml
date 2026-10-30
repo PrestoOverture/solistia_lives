@@ -9,7 +9,9 @@ travelers:
   temenos: en-GB-RyanNeural    # Male, 30: polished, courteous inquisitor
   partitio: en-US-GuyNeural    # Male, 24: energetic, passionate merchant
 minor:
-  - en-US-MichelleNeural
-  - en-US-EricNeural
-  - en-GB-SoniaNeural
-  - en-GB-ThomasNeural
+  m:
+    - en-US-EricNeural
+    - en-GB-ThomasNeural
+  f:
+    - en-US-MichelleNeural
+    - en-GB-SoniaNeural

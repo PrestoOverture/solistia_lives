@@ -280,6 +280,24 @@ def world_backfill_lines(world_id: str = typer.Argument(...)) -> None:
     typer.echo(f"Updated {count} scene events")
 
 
+@world_app.command("backfill-sex")
+def world_backfill_sex(
+    world_id: str = typer.Argument(...),
+    models_file: Path = typer.Option(Path("config/models.yaml"), "--models", help="Models YAML file"),
+) -> None:
+    """Fill missing minor-character sex using the world role model."""
+    from story_engine.world.sex import backfill_sex
+
+    try:
+        if Path(world_id).name != world_id or world_id in ("", ".", ".."):
+            raise ValueError("world_id must be a world ID")
+        updated, skipped = asyncio.run(backfill_sex(Path.cwd(), Path("worlds") / world_id, models_file))
+    except (OSError, ValueError, ConfigError, SessionError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from None
+    typer.echo(f"Updated {updated} people; skipped {skipped} people with sex")
+
+
 @world_app.command("voice")
 def world_voice(
     world_id: str = typer.Argument(...),

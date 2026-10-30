@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 
 from story_engine.agents.sdk import (
     run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
-    session_options, structured_reply,
+    session_options, structured_reply, require_person_sex,
 )
 from story_engine.stages import load_catalogs, catalog_schema, spot_context, validate_spot, validate_spot_ops
 from story_engine.config import Role, load_settings
@@ -176,7 +176,7 @@ class _WorldSession:
         self.hooks = KBHooks(self.root, self.run_dir, agent=self.agent_name, turn=1)
         self.options = session_options(self.root, self.run_dir, self.role, prompt,
                                        self.max_turns, self.hooks,
-                                       output_format=catalog_schema(json_schema_output(self.reply_type), self.catalogs))
+                                       output_format=catalog_schema(require_person_sex(json_schema_output(self.reply_type)), self.catalogs))
         self.context = ClaudeSDKClient(options=self.options)
         self.client = await self.context.__aenter__()
         return self

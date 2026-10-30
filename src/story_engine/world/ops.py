@@ -17,6 +17,7 @@ class Move(WorldModel):
 class Introduce(WorldModel):
     op: Literal['introduce'] = 'introduce'
     name: str
+    sex: Literal['m', 'f'] | None = None
     where: str
     spot: str | None = None
     wants: list[str] = Field(min_length=1)
