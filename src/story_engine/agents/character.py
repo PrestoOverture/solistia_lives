@@ -54,6 +54,7 @@ class Plan(BaseModel):
     intent: str
     where: str | None = None
     spot: str | None = None
+    seek: str | None = None
     aim: str = Field(max_length=140)
 
     @model_validator(mode="after")
@@ -167,12 +168,14 @@ class CharacterAgent:
                 self.seen.add(event.id)
         state = load_state(self.world_dir)
         current = state.characters[self.slug]
+        seek_keys = sorted((set(state.characters) - {self.slug}) | set(state.people))
         request = json.dumps({**(self.opening if self.turn == 1 else {'self': current.model_dump()}), "perceived": events,
                               **({"note": note} if note else {}),
                               **({"call": "end_of_day", "reply": "JSON {call: 'end_of_day', summary: 'Markdown: what happened, what changed, what you want now'}"} if summary else {}),
                               **({"call": "day_start", "reply": "JSON with call: 'day_start' and one goals op for yourself (1-3 goals)"} if day_start else {}),
                               **({"places": [p.model_dump() for p in state.places],
                                   "spots": spot_context(self.catalogs, [p.slug for p in state.places]),
+                                  "seek_schema": {"enum": [*seek_keys, None], "default": None},
                                   "part": part, "call": "part_of_day", "reply": "JSON with call: 'plan'"} if part else {}),
                               # Each request names its reply type in the shared schema.
                               **({"call": "scene_move", "reply": "JSON with call: 'action'"}
@@ -218,6 +221,13 @@ class CharacterAgent:
                     plan = Plan.model_validate(payload)
                     if plan.kind == 'go' and plan.where not in {p.slug for p in load_state(self.world_dir).places}:
                         raise ValueError('go where must name a place in state')
+                    if plan.seek is not None and (plan.kind != 'go' or plan.seek not in seek_keys):
+                        error = 'seek must name another main character or a person in state, and only go may seek'
+                        if attempt < self.role.retries:
+                            raise ValueError(error)
+                        self.trace.write('plan_seek_cleared', agent=self.slug, turn=self.turn,
+                                         error=error, seek=plan.seek)
+                        plan = plan.model_copy(update={'seek': None})
                     try:
                         validate_spot(self.catalogs, plan.where, plan.spot)
                     except ValueError as error:

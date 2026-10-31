@@ -108,6 +108,41 @@ class TickSession:
         return await self.stack.__aexit__(*args)
 
 
+def _plan_positions(state, plans, trace):
+    """Resolve simultaneous destinations, anchoring each seek cycle once."""
+    fallback = {slug: ((plan.where, plan.spot) if plan.kind == 'go' else
+                       (state.characters[slug].where, state.characters[slug].spot))
+                for slug, plan in plans.items()}
+    resolved = {name: (person.where, person.spot) for name, person in state.people.items()}
+    visiting = []
+
+    def resolve(slug):
+        if slug in resolved:
+            return resolved[slug]
+        if slug in visiting:
+            cycle = visiting[visiting.index(slug):]
+            anchor = fallback[min(cycle)]
+            resolved.update({member: anchor for member in cycle})
+            return anchor
+        visiting.append(slug)
+        plan = plans[slug]
+        position = fallback[slug]
+        if plan.kind == 'go' and plan.seek is not None:
+            target = resolve(plan.seek)
+            if slug not in resolved:
+                if target[0] in {state.characters[slug].where, plan.where}:
+                    position = target
+                else:
+                    trace.write('seek_unreached', agent=slug, seek=plan.seek,
+                                target_place=target[0], place=plan.where, spot=plan.spot)
+        visiting.pop()
+        if slug not in resolved:
+            resolved[slug] = position
+        return resolved[slug]
+
+    return {slug: resolve(slug) for slug in plans}
+
+
 async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> WorldState:
     """Resolve one tick using the world's open day session; including scenes before advancing the clock."""
     if not session.active or (session.world_dir, session.run_dir) != (world_dir, run_dir):
@@ -126,17 +161,17 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
         append_event(world_dir, Event(
             id=0, **state.clock.model_dump(), place=place, actor=slug,
             type='plan', content=plan.aim, intent=plan.intent, perceived_by=[slug]))
-    positions = {slug: ((plan.where, plan.spot) if plan.kind == 'go' else
-                         (state.characters[slug].where, state.characters[slug].spot))
-                 for slug, plan in plans.items()}
+    positions = _plan_positions(state, plans, session.trace)
     for slug, plan in plans.items():
         if plan.kind == 'go':
+            place, spot = positions[slug]
             commit_event(world_dir, Event(
-                id=0, **state.clock.model_dump(), place=plan.where, actor=slug,
-                type='action', content=f'{slug} goes to {plan.where}.',
+                id=0, **state.clock.model_dump(), place=place, actor=slug,
+                type='action', content=(f'{slug} goes to find {plan.seek}.' if plan.seek is not None
+                                        else f'{slug} goes to {plan.where}.'),
                 perceived_by=[other for other, position in positions.items()
-                              if position == (plan.where, plan.spot)],
-                ops=[Move(who=slug, place=plan.where, spot=plan.spot)]),
+                              if position == (place, spot)],
+                ops=[Move(who=slug, place=place, spot=spot)]),
                 authority=Authority('code'))
     state = load_state(world_dir)
     encounter_event, encounters, _ = await session.world.adjudicate(
