@@ -76,7 +76,11 @@ async def starting_state(
                run_dir / "scene_context.md"]
     prompt = "\n\n".join(path.read_text(encoding="utf-8") for path in sources)
     catalogs = load_catalogs(root)
+    places = {path.stem for path in (root / "kb/locations").rglob("*.md") if path.is_file()}
     schema = WorldState.model_json_schema()
+    for model, field in [("Place", "slug"), ("CharacterState", "where"),
+                         ("Person", "where"), ("Commitment", "where")]:
+        schema["$defs"][model]["properties"][field]["enum"] = sorted(places)
     del schema["properties"]["clock"]
     schema["required"].remove("clock")
     character_schema = schema["properties"]["characters"]["additionalProperties"]
@@ -94,7 +98,6 @@ async def starting_state(
     request = json.dumps({"characters": characters, "location": location,
                           "situation": situation, "spots": spot_context(catalogs, catalogs),
                           "kb_path": str((root / "kb").resolve())}, ensure_ascii=False)
-    places = {path.stem for path in (root / "kb/locations").rglob("*.md") if path.is_file()}
     cost = SessionCost()
     async with ClaudeSDKClient(options=options) as client:
         for attempt in range(role.retries + 1):

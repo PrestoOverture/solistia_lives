@@ -1,0 +1,230 @@
+{
+  "characters": {
+    "agnea": {
+      "commitments": [
+        {
+          "day": 1,
+          "id": "agnea_festival_performance",
+          "part": "evening",
+          "what": "Perform a dance at the festival clearing for the villagers",
+          "where": "Festival Grounds dance stage"
+        }
+      ],
+      "goals": [
+        "Show Throné the beauty of her hometown and the warmth of country life",
+        "Share the joy of the festival with her friend",
+        "Write new songs inspired by their journey together"
+      ],
+      "spot": "village_square",
+      "where": "cropdale"
+    },
+    "throne": {
+      "commitments": [],
+      "goals": [
+        "Experience a peaceful village life far from the shadows of New Delsta",
+        "Support Agnea while learning what freedom and normalcy feel like",
+        "Find moments of quiet away from crowds"
+      ],
+      "spot": "village_square",
+      "where": "cropdale"
+    }
+  },
+  "people": {
+    "garud": {
+      "commitments": [
+        {
+          "day": 1,
+          "part": "afternoon",
+          "what": "Finish weaving a ceremonial banner for the festival",
+          "where": "Garud's workshop"
+        }
+      ],
+      "sex": "m",
+      "wants": [
+        "Ensure Agnea is safe and happy",
+        "Meet the friend his daughter has brought home",
+        "Restore the village's textile traditions"
+      ],
+      "where": "garud_workshop"
+    },
+    "gus": {
+      "commitments": [
+        {
+          "day": 1,
+          "part": "morning",
+          "what": "Serve raspberry juice and peach dishes to festival-goers",
+          "where": "Cropdale tavern"
+        },
+        {
+          "day": 1,
+          "part": "afternoon",
+          "what": "Close up the tavern and head to the festival",
+          "where": "Cropdale tavern"
+        }
+      ],
+      "sex": "m",
+      "wants": [
+        "Welcome Agnea home properly",
+        "Keep the tavern running smoothly during the festival",
+        "Convince Agnea to perform one song at the tavern"
+      ],
+      "where": "tavern"
+    },
+    "mira": {
+      "commitments": [],
+      "sex": "f",
+      "wants": [
+        "Stop the village council from selling the old textile loom to outsiders",
+        "Preserve her grandmother's weaving legacy"
+      ],
+      "where": "watermill_bridge"
+    },
+    "pala": {
+      "commitments": [
+        {
+          "day": 1,
+          "part": "afternoon",
+          "what": "Compete in the raspberry eating contest",
+          "where": "Festival Grounds festival clearing"
+        }
+      ],
+      "sex": "f",
+      "wants": [
+        "Spend time with her older sister",
+        "Win the raspberry eating contest",
+        "Hear stories about Agnea's adventures"
+      ],
+      "where": "village_square"
+    }
+  },
+  "places": [
+    {
+      "details": [
+        "Cropdale's sunlit center with stone steps descending past festival canopies toward the village tavern",
+        "Villagers are setting up garlands and raspberry-themed decorations",
+        "Children run between stalls carrying baskets of fresh peaches",
+        "The air smells of baking peach pies and sweet raspberry preserves"
+      ],
+      "slug": "village_square"
+    },
+    {
+      "details": [
+        "Arched stone bridge crossing the lily-covered village stream beside the waterwheel cottage",
+        "The waterwheel turns slowly, creaking rhythmically",
+        "A young woman stands at the bridge rail, staring at the water with a troubled expression",
+        "Local children whisper about the benevolent stream spirit"
+      ],
+      "slug": "watermill_bridge"
+    },
+    {
+      "details": [
+        "Thatched-roof Bristarni cottage with drying woven textiles, flower trellises, and garden steps",
+        "Agnea's childhood home, warm and welcoming",
+        "Textiles of traditional patterns hang on lines, evidence of Garud's craft",
+        "The rose trellis is in full bloom"
+      ],
+      "slug": "agnea_house_exterior"
+    },
+    {
+      "details": [
+        "Garud's tailor and weaving room inside the Bristarni house, equipped with an upright loom and yarn spools",
+        "The loom holds a half-finished ceremonial banner with intricate patterns",
+        "Bolts of fabric and spools of colored thread fill the shelves",
+        "Sunlight streams through the window, illuminating floating dust motes"
+      ],
+      "slug": "garud_workshop"
+    },
+    {
+      "details": [
+        "Lively village tavern interior with a raised wooden performance stage, bar counter, and patron tables",
+        "Gus is busy preparing raspberry juice and peach dishes for the festival rush",
+        "The stage where Agnea used to perform for neighbors sits empty",
+        "Villagers chat excitedly about the evening's festival performance"
+      ],
+      "slug": "tavern"
+    },
+    {
+      "details": [
+        "Woodland clearing before the raised wooden stage, flanked by food stalls, pavilion tent, and stools",
+        "The clearing is being prepared for tonight's festivities",
+        "Stalls are stocked with raspberry pies, peach jams, and fresh juices",
+        "The raspberry eating contest platform is being assembled"
+      ],
+      "slug": "festival_clearing"
+    },
+    {
+      "details": [
+        "Raised wooden festival stage lit by torches and decorated with flower boxes and painted castle scenery",
+        "The stage where Agnea performed her farewell dance before leaving Cropdale",
+        "Torches stand unlit, waiting for evening",
+        "The painted castle scenery has faded slightly but remains charming"
+      ],
+      "slug": "dance_stage"
+    },
+    {
+      "details": [
+        "Thatched farmstead on Cropdale's northeastern edge where prized pigs graze in a fenced yard",
+        "The hog farmer is tending to his animals",
+        "The farm is quiet and peaceful, away from the festival preparations"
+      ],
+      "slug": "hog_farm"
+    }
+  ],
+  "situations": [
+    {
+      "due": {
+        "day": 2,
+        "part": "afternoon"
+      },
+      "id": "loom_sale_dispute",
+      "kind": "trouble",
+      "next": "If no one intervenes, the merchant will arrive tomorrow afternoon with payment, and the council will finalize the sale, shipping the loom away by evening.",
+      "people": [
+        "mira",
+        "garud"
+      ],
+      "status": "open",
+      "summary": "Mira learns that the village council plans to sell her late grandmother's antique textile loom to a wealthy merchant from Montwise tomorrow afternoon, ending Cropdale's last connection to its weaving heritage.",
+      "touches": [
+        "Agnea wants to preserve Cropdale's traditions and bring hope to those who have lost it",
+        "Garud is working to restore the village's textile craft and would be devastated to lose the historic loom"
+      ]
+    },
+    {
+      "due": {
+        "day": 1,
+        "part": "evening"
+      },
+      "id": "festival_reunion",
+      "kind": "reunion",
+      "next": "The gathering will happen at the dance stage this evening whether or not Agnea is prepared, and the villagers' expectations are high.",
+      "people": [
+        "pala",
+        "gus"
+      ],
+      "status": "open",
+      "summary": "Pala has invited all of Agnea's childhood friends to attend her evening performance, hoping to give her sister a proper homecoming celebration and hear about her journey to stardom.",
+      "touches": [
+        "Agnea's goal to bring smiles through performance",
+        "Agnea's commitment to perform at the festival tonight"
+      ]
+    },
+    {
+      "due": {
+        "day": 1,
+        "part": "night"
+      },
+      "id": "throned_quiet_wish",
+      "kind": "wish",
+      "next": "If Throné doesn't find space for herself, the festival's overwhelming cheer and crowds will leave her exhausted and unable to genuinely enjoy Agnea's performance.",
+      "people": [],
+      "status": "open",
+      "summary": "Throné hopes to find a quiet moment away from the festival crowds to simply watch the stream and feel what peace tastes like, but worries she'll disappoint Agnea if she steps away.",
+      "touches": [
+        "Throné's goal to experience peaceful village life and learn what freedom feels like",
+        "Throné's dislike of crowds and need for solitude",
+        "Agnea's compassion and desire to support those she cares about"
+      ]
+    }
+  ]
+}
