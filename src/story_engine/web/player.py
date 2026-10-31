@@ -207,7 +207,7 @@ def scene_sprites(directory: Path, world_dir: Path, participants: list[str], art
 
 
 def traveler_views(directory: Path) -> dict[str, dict[str, dict]]:
-    """Read field views and their actual PNG heights, relative to each front."""
+    """Read traveler and townsperson field views, with front-relative PNG heights."""
     try:
         entries = yaml.safe_load((directory / 'sprites/index.yaml').read_text())['sprites']
     except FileNotFoundError:
@@ -215,7 +215,11 @@ def traveler_views(directory: Path) -> dict[str, dict[str, dict]]:
     result = {}
     for item in entries:
         name, view = item.get('who'), item.get('view')
-        if name not in TRAVELERS or item.get('file') != f'{name}_{view}.png':
+        if name == 'townsperson':
+            name = 'npc_' + item.get('id', '')
+        elif name not in TRAVELERS:
+            continue
+        if item.get('file') != f'{name}_{view}.png':
             continue
         if view not in {'front', 'left', 'right', 'back'}:
             continue
@@ -253,8 +257,6 @@ def replay_views(beats: list[dict], participants: list[str], points: list[StandP
                 target = min(others, key=lambda name: (positions[name][0] - sx) ** 2
                              + (positions[name][1] - sy) ** 2)
             for name in visible:
-                if name not in TRAVELERS:
-                    continue
                 toward = target if name == speaker else speaker
                 if toward is None:
                     continue

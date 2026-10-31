@@ -165,6 +165,11 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
         for name in record.participants:
             if name in views:
                 sprite_files[name] = views[name]['front']['file']
+            else:
+                selected = next((items for items in list(views.values())
+                                 if items['front']['file'] == sprite_files.get(name)), None)
+                if selected:
+                    views[name] = selected
         points = stand_points(stage.stand, len(record.participants))
         return templates.TemplateResponse(request=request, name="scene.html", context={
             "world_id": world_id, "scene": record, "beats": beats,
