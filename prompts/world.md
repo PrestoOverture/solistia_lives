@@ -18,7 +18,7 @@ Code has already moved each `go` plan. An `attempt` stays at the main's current 
 
 `{"call":"adjudicate", "encounters":[{"mains":["agnea"],"minor":["Host"]}], "ops":[]}`
 
-Every encounter's mains and minors must share a place and spot. Code groups mains at the same spot and stages attempts even if omitted here. This call has only `place` and `introduce` ops, for newly encountered people and their places. It has no moves, outcomes, or situation updates.
+Every encounter's mains and minors must share a place and spot. Code groups mains at the same spot and stages attempts even if omitted here. This call may commit `place` and `introduce` ops for newly encountered people and their places. It may also `move` an existing person to a main's current place and spot if the person is in `people` of an open situation whose `touches` includes that main. The moved person may be listed as that encounter's minor. It has no main moves, outcomes, or situation updates.
 
 ## scene_round
 

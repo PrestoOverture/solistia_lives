@@ -58,7 +58,9 @@ class AdjudicateReply(BaseModel):
     model_config = ConfigDict(extra="forbid")
     call: Literal["adjudicate"]
     encounters: list[Encounter] = Field(default_factory=list)
-    ops: list[Op] = Field(default_factory=list)
+    ops: list[Op] = Field(default_factory=list, description=(
+        'place and introduce ops; move ops for a person in an open situation whose touches '
+        "includes a main at the target place and spot."))
 
 
 class OffscreenReply(BaseModel):
@@ -279,7 +281,7 @@ class WorldAgent(_WorldSession):
         return new_events
 
     async def adjudicate(self, state: WorldState, choices: dict, events: list[Event]):
-        """Encounter call: identify people at mains' current spots, introduce people/places."""
+        """Identify people at mains' spots, including arrivals linked by open situations."""
         if self.client is None:
             raise SessionError("WorldAgent must be opened as an async context manager")
         self.turn += 1

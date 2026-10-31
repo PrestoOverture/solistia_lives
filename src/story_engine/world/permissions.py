@@ -23,6 +23,12 @@ def validate_ops(state: WorldState, event: Event, authority: Authority) -> World
         if isinstance(op, Move):
             allowed = ((call == 'code' and op.who in state.characters)
                        or (world and call != 'encounter' and op.who in state.people))
+            if call == 'encounter' and op.who in state.people:
+                allowed = any(
+                    s.status == 'open' and op.who in s.people
+                    and any((state.characters[main].where, state.characters[main].spot)
+                            == (op.place, op.spot) for main in s.touches)
+                    for s in state.situations)
         elif isinstance(op, Introduce):
             allowed = call in {'encounter', 'scene_round', 'day_start'}
         elif isinstance(op, PlaceOp):
@@ -45,15 +51,16 @@ def validate_ops(state: WorldState, event: Event, authority: Authority) -> World
         elif isinstance(op, SituationOp):
             allowed = (call == 'scene_round' and event.scene is not None
                        and event.resolves is not None and event.resolution is not None)
-            if call == 'offscreen':
+            if call in {'offscreen', 'code'}:
                 situation = next((s for s in state.situations if s.id == op.id), None)
                 parts = authority.parts_of_day
                 if not parts:
-                    raise ValueError('offscreen situation checks require the configured parts_of_day')
-                allowed = (situation is not None and op.status == 'dropped'
+                    raise ValueError(f'{call} situation checks require the configured parts_of_day')
+                allowed = (situation is not None and situation.status == 'open' and op.status == 'dropped'
                            and op.model_fields_set - {'op', 'id'} == {'status'}
-                           and (situation.due.day, parts.index(situation.due.part))
-                           <= (state.clock.day, parts.index(state.clock.part)))
+                           and ((situation.due.day, parts.index(situation.due.part))
+                                < (state.clock.day, parts.index(state.clock.part))
+                                or (call == 'offscreen' and situation.due == state.clock)))
         elif isinstance(op, ClockOp):
             allowed = call == 'code'
         if call == 'person_scene':

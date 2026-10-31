@@ -17,7 +17,7 @@ from story_engine.world.io import (
     append_event, append_scene, commit_event, load_state, read_events, read_scenes, write_memory,
 )
 from story_engine.world.models import Clock, Event, SceneRecord, WorldState
-from story_engine.world.ops import ClockOp, Move
+from story_engine.world.ops import ClockOp, Move, SituationOp
 from story_engine.world.permissions import Authority
 
 
@@ -174,11 +174,15 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
     updated = load_state(world_dir)
     parts = session.settings.parts_of_day
     index = parts.index(state.clock.part) + 1
+    clock = ClockOp(day=state.clock.day + (index == len(parts)), part=parts[index % len(parts)])
+    expired = [SituationOp(id=s.id, status='dropped') for s in updated.situations
+               if s.status == 'open' and (s.due.day, parts.index(s.due.part))
+               < (clock.day, parts.index(clock.part))]
     commit_event(world_dir, Event(
         id=0, **state.clock.model_dump(), place=updated.places[0].slug, actor='world',
         type='state_change', content='', perceived_by=[],
-        ops=[ClockOp(day=state.clock.day + (index == len(parts)), part=parts[index % len(parts)])]),
-        authority=Authority('code'))
+        ops=[clock, *expired]),
+        authority=Authority('code', parts_of_day=tuple(parts)))
     updated = load_state(world_dir)
     session.trace.write('situation_notes', day=state.clock.day, part=state.clock.part,
                         situation_notes=notes)

@@ -159,3 +159,74 @@ def test_promise_provenance_ids_and_atomic_permission_rejection(state):
     with pytest.raises(ValueError, match='may not commit goals'):
         validate_ops(state, event, Authority('scene_round'))
     assert state.model_dump() == snapshot
+
+
+@pytest.mark.parametrize('case', ['linked', 'unlinked', 'resolved', 'dropped', 'other_spot', 'other_place', 'other_main', 'main_move'])
+def test_encounter_move_requires_open_link_to_target_main(state, case):
+    state.characters['agnea'].spot = 'stage'
+    state.characters['throne'].spot = 'door'
+    raw = dict(op='move', who='Host', place='town', spot='stage')
+    if case == 'unlinked':
+        state.situations[0].people = []
+    elif case in {'resolved', 'dropped'}:
+        state.situations[0].status = case
+    elif case == 'other_spot':
+        raw['spot'] = 'door'
+    elif case == 'other_place':
+        state.places.append(Place(slug='elsewhere', details=[]))
+        raw['place'] = 'elsewhere'
+    elif case == 'other_main':
+        state.situations[0].touches = ['throne']
+    elif case == 'main_move':
+        raw['who'] = 'agnea'
+    event = Event(id=8, **state.clock.model_dump(), place='town', actor='world',
+                  type='state_change', content='', perceived_by=[], ops=OPS.validate_python([raw]))
+    if case == 'linked':
+        assert validate_ops(state, event, Authority('encounter')).people['Host'].spot == 'stage'
+    else:
+        with pytest.raises(ValueError, match='may not commit move'):
+            validate_ops(state, event, Authority('encounter'))
+
+
+@pytest.mark.parametrize('call', ['offscreen', 'code'])
+@pytest.mark.parametrize('status', ['open', 'resolved', 'dropped'])
+@pytest.mark.parametrize('part', ['morning', 'afternoon', 'evening'])
+def test_situation_drop_requires_open_and_due_boundary(state, call, status, part):
+    state.clock.part = part
+    state.situations[0].status = status
+    event = Event(id=8, **state.clock.model_dump(), place='town', actor='world',
+                  type='state_change', content='', perceived_by=[],
+                  ops=OPS.validate_python([dict(op='situation', id='s1', status='dropped')]))
+    authority = Authority(call, parts_of_day=('morning', 'afternoon', 'evening', 'night'))
+    accepted = status == 'open' and (part == 'evening' or (part == 'afternoon' and call == 'offscreen'))
+    if accepted:
+        assert validate_ops(state, event, authority).situations[0].status == 'dropped'
+    else:
+        with pytest.raises(ValueError, match='may not commit situation'):
+            validate_ops(state, event, authority)
+
+
+def test_encounter_checks_intermediate_state(state):
+    # The first move is allowed; the second cannot use the person's new location
+    # as a substitute for the linked main's actual spot.
+    state.characters['agnea'].spot = 'stage'
+    event = Event(id=8, **state.clock.model_dump(), place='town', actor='world',
+                  type='state_change', content='', perceived_by=[], ops=OPS.validate_python([
+                      dict(op='move', who='Host', place='town', spot='stage'),
+                      dict(op='move', who='Host', place='town', spot='door')]))
+    with pytest.raises(ValueError, match='may not commit move'):
+        validate_ops(state, event, Authority('encounter'))
+    assert state.people['Host'].spot is None
+
+
+def test_code_drop_checks_clock_op_intermediate_state(state):
+    state.clock.part = 'morning'
+    event = Event(id=8, **state.clock.model_dump(), place='town', actor='world',
+                  type='state_change', content='', perceived_by=[], ops=OPS.validate_python([
+                      dict(op='clock', day=1, part='evening'),
+                      dict(op='situation', id='s1', status='dropped')]))
+    authority = Authority('code', parts_of_day=('morning', 'afternoon', 'evening', 'night'))
+    assert validate_ops(state, event, authority).situations[0].status == 'dropped'
+    event.ops.reverse()
+    with pytest.raises(ValueError, match='may not commit situation'):
+        validate_ops(state, event, authority)

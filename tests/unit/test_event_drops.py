@@ -89,7 +89,9 @@ def test_mocked_day_continues_after_offscreen_op_drop(workspace, monkeypatch, fa
     result = asyncio.run(simulation.run_day(world, run))
     assert result.clock.model_dump() == dict(day=2, part='morning')
     assert_fold(world, result)
-    assert result.situations == initial.situations
+    assert all(s.status == 'dropped' for s in result.situations)
+    assert [s.model_dump(exclude={'status'}) for s in result.situations] == [
+        s.model_dump(exclude={'status'}) for s in initial.situations]
     assert 'discarded' not in {p.slug for p in result.places}
     assert 'Open stalls' in next(p for p in result.places if p.slug == 'cropdale').details
     assert len([e for e in read_events(world) if e.content == valid['content']]) == 4
