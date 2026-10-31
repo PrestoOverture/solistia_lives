@@ -81,6 +81,7 @@ async def starting_state(
     for model, field in [("Place", "slug"), ("CharacterState", "where"),
                          ("Person", "where"), ("Commitment", "where")]:
         schema["$defs"][model]["properties"][field]["enum"] = sorted(places)
+    schema["$defs"]["Situation"]["properties"]["touches"]["items"]["enum"] = list(characters)
     del schema["properties"]["clock"]
     schema["required"].remove("clock")
     character_schema = schema["properties"]["characters"]["additionalProperties"]
