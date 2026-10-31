@@ -73,13 +73,13 @@ At the end of the day, each traveler writes a memory of the day and carries it i
 
 Every change in the world, such as someone moving, making a promise, or a matter moving forward, is written to the event log as a typed operation. The world's current state is computed from the log step by step, so description alone changes nothing. The log is this world's canon, and that is what lets the world keep going.
 
-## Next
+## Next (in development)
 
 <p align="center"><img src="assets/scene_player.jpg" alt="The scene player: four beats at the Festival Grounds at night, Agnea and Throné talking in speech bubbles, with a long line paged across two bubbles" width="100%"></p>
 
 The meetings and conversations in the log will one day become scenes you can watch and hear.
 
-Lamplight in a small town. A few familiar figures. A line of dialogue. A voice.
+Shiny afternoon in a small town. A few familiar figures. A line of dialogue. A voice.
 
 Who, where, and what was said is up to the world.
 
@@ -89,7 +89,7 @@ A personal project, still in progress.
 
 - **Done:** the knowledge base; the writer, lore validation, and the fix loop; the evaluation kit and 10-story test suite; the local web UI (writing and reading). The MVP gate passed with 8 of 10 stories ([gate_v1.md](eval/results/gate_v1.md)).
 - **World engine:** world creation, traveler and World agents, round-by-round scenes, and world state computed from the event log are all built, and the single-day world metrics pass ([world_we_v1.md](eval/results/world_we_v1.md)). Multi-day behavior hasn't been measured yet.
-- **Next:** the scene player; see [Next](#next).
+- **Next:** the scene player; see [Next](#next-in-development).
 
 ## Quick start
 
