@@ -75,7 +75,7 @@ Every change in the world, such as someone moving, making a promise, or a matter
 
 ## Next
 
-<p align="center"><img src="assets/scene_player.jpg" alt="The scene player: Festival Grounds at night; Agnea greets Throné in a speech bubble above her head" width="100%"></p>
+<p align="center"><img src="assets/scene_player.jpg" alt="The scene player: four beats at the Festival Grounds at night, Agnea and Throné talking in speech bubbles, with a long line paged across two bubbles" width="100%"></p>
 
 The meetings and conversations in the log will one day become scenes you can watch and hear.
 

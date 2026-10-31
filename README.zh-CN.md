@@ -75,7 +75,7 @@ Vide 被打败了，八位旅人的旅程也都告一段落，但他们的日子
 
 ## 下一幕
 
-<p align="center"><img src="assets/scene_player.jpg" alt="场景播放器：夜晚的庆典广场，Agnea 头顶的对话气泡里，她在招呼 Throné" width="100%"></p>
+<p align="center"><img src="assets/scene_player.jpg" alt="场景播放器：夜晚的庆典广场上的四个片段，Agnea 和 Throné 用对话气泡交谈，一句长台词分两页显示" width="100%"></p>
 
 日志里记下的那些相遇和对话，以后会变成能看、能听的场景。
 
