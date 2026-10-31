@@ -401,12 +401,22 @@ class WorldAgent(_WorldSession):
             try:
                 reply = RoundResolution.model_validate(structured_reply(result, structured_output))
                 target = last_winner['id'] if last_winner else None
+                resolution_error = None
                 if target is None and reply.resolution is not None:
-                    raise ValueError('a resolution needs a winning act')
-                if target is not None and reply.resolution is None:
-                    raise ValueError('the winning act needs a resolution')
-                if closing and reply.resolution == 'pending':
-                    raise ValueError('closing resolution must finish the winning act')
+                    resolution_error = 'a resolution needs a winning act'
+                elif target is not None and reply.resolution is None:
+                    resolution_error = 'the winning act needs a resolution'
+                elif closing and reply.resolution == 'pending':
+                    resolution_error = 'closing resolution must finish the winning act'
+                if resolution_error is not None:
+                    if attempt < self.role.retries:
+                        raise ValueError(resolution_error)
+                    self.trace.write('resolution_ignored' if target is None else 'resolution_defaulted',
+                                     call='closing_resolution' if closing else 'scene_round',
+                                     turn=self.turn, error=resolution_error, reply=reply.model_dump())
+                    reply = reply.model_copy(update={
+                        'resolution': None if target is None else 'none',
+                        'outcome': None if target is None else reply.outcome, 'ops': []})
                 event = Event(id=0, **state.clock.model_dump(), place=place, actor='world',
                               of=(last_winner['actor'] if last_winner and last_winner['actor'] in state.characters else None),
                               type='world' if reply.outcome else 'state_change', content=reply.outcome or '',

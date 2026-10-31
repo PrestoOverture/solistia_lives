@@ -63,8 +63,6 @@ class Plan(BaseModel):
             raise ValueError("intent must be non-empty")
         if self.kind == 'go' and (not self.where or not self.where.strip()):
             raise ValueError("go needs a destination where")
-        if self.kind == 'attempt' and (self.where is not None or self.spot is not None):
-            raise ValueError("attempt acts at the current spot; only go has a destination")
         if not self.aim.strip():
             raise ValueError("aim must be non-empty")
         return self
@@ -219,10 +217,10 @@ class CharacterAgent:
                     return EndOfDay.model_validate(payload).summary
                 if part:
                     plan = Plan.model_validate(payload)
-                    if plan.kind == 'go' and plan.where not in {p.slug for p in load_state(self.world_dir).places}:
-                        raise ValueError('go where must name a place in state')
-                    if plan.seek is not None and (plan.kind != 'go' or plan.seek not in seek_keys):
-                        error = 'seek must name another main character or a person in state, and only go may seek'
+                    if plan.where is not None and plan.where not in {p.slug for p in load_state(self.world_dir).places}:
+                        raise ValueError('where must name a place in state')
+                    if plan.seek is not None and plan.seek not in seek_keys:
+                        error = 'seek must name another main character or a person in state'
                         if attempt < self.role.retries:
                             raise ValueError(error)
                         self.trace.write('plan_seek_cleared', agent=self.slug, turn=self.turn,

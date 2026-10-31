@@ -45,7 +45,7 @@ From day 2 onward, the first call of your day session is `day_start`. Revise you
 A `part_of_day` call asks you to choose `kind`: `go` or `attempt`.
 
 - `go` travels to a place and spot. Code moves you directly. Reply `{"call":"plan","kind":"go","intent":"Why; private","where":"place_slug","spot":null,"seek":null,"aim":"Travel to that spot"}`. Optional `seek` is another main character's key or a key in `people`, from the call's `seek_schema` enum (default null): travel to that person's resolved spot if their place is your current place or `where`; otherwise travel to your own `where`/`spot`. It performs only the travel.
-- `attempt` sets out to do something at your current spot. Every attempt becomes a scene, including when alone, and its result is resolved there. Reply `{"call":"plan","kind":"attempt","intent":"Why; private","aim":"What you set out to do"}`. It has no destination.
+- `attempt` sets out to do something at your current spot or an optional destination. Every attempt becomes a scene, including when alone, and its result is resolved there. Reply `{"call":"plan","kind":"attempt","intent":"Why; private","where":null,"spot":null,"seek":null,"aim":"What you set out to do"}`. Optional `where`, `spot`, and `seek` have the same meaning as for `go`; null `where` keeps your current spot unless `seek` resolves to a person.
 
 `aim` is an intention, not a result, at most 140 characters. `intent` is non-empty. A destination must be a place in state. `spot` names a spot within it, or null.
 

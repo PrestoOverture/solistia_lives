@@ -296,13 +296,11 @@ def test_closing_resolution_requires_final_result_and_ignores_bids(workspace, mo
                  minor_moves={'Host': dict(move='wait', urge=0)} if resolution == 'none' else {})
     exercise, requests = call_agent(workspace, monkeypatch, [reply, reply], scene=True,
                              winner=dict(id=42, actor='agnea', round=1), closing=True)
+    event, minors, _ = asyncio.run(exercise())
+    assert event.resolution == 'none' and event.ops == [] and minors == {}
+    assert len(requests) == (2 if resolution == 'pending' else 1)
     if resolution == 'pending':
-        with pytest.raises(world_agent.SessionError, match='closing resolution'):
-            asyncio.run(exercise())
-    else:
-        event, minors, _ = asyncio.run(exercise())
-        assert event.resolution == 'none' and minors == {}
-        assert len(requests) == 1
+        assert 'closing resolution must finish the winning act' in requests[1]
 
 
 @pytest.mark.parametrize('closing', [False, True])
@@ -324,6 +322,7 @@ def test_model_supplied_resolves_is_a_schema_error(workspace, monkeypatch, closi
 @pytest.mark.parametrize('winner,resolution', [(None, 'none'), (dict(id=42, actor='agnea', round=1), None)])
 def test_scene_resolution_requires_exactly_an_outstanding_winner(workspace, monkeypatch, winner, resolution):
     reply = dict(call='scene_round', resolution=resolution)
-    exercise, _ = call_agent(workspace, monkeypatch, [reply, reply], scene=True, winner=winner)
-    with pytest.raises(world_agent.SessionError, match='winning act'):
-        asyncio.run(exercise())
+    exercise, requests = call_agent(workspace, monkeypatch, [reply, reply], scene=True, winner=winner)
+    event, _, _ = asyncio.run(exercise())
+    assert len(requests) == 2 and 'winning act' in requests[1]
+    assert event.resolution == ('none' if winner else None) and event.ops == []

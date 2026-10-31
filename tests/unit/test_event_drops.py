@@ -427,3 +427,70 @@ def test_minor_reference_drop_preserves_resolution_and_valid_move(workspace, mon
     assert len([e for e in read_events(world) if e.resolves == act.id]) == 1
     assert [e.actor for e in read_events(world)] == ['agnea', 'world', 'Baker']
     assert_fold(world, final)
+
+
+@pytest.mark.parametrize('failure', ['no_winner', 'missing', 'closing_pending'])
+def test_resolution_mismatch_repaired_after_retry(workspace, monkeypatch, failure):
+    world, run = workspace
+    recorded = json.loads((ROOT / 'tests/fixtures/world_resolution_no_winner.json').read_text())
+    bad_ops = [dict(op='place', slug='festival_grounds', add_details=['Must not commit'])]
+    reason = {'no_winner': 'a resolution needs a winning act',
+              'missing': 'the winning act needs a resolution',
+              'closing_pending': 'closing resolution must finish the winning act'}[failure]
+
+    def respond(client, request):
+        if isinstance(request, str):
+            request = next(r for r in reversed(client.calls) if isinstance(r, dict))
+        if failure == 'no_winner':
+            # Replay the exact recorded reply, then also exercise discarded ops and retained moves.
+            return recorded if exact else dict(recorded, ops=bad_ops, minor_moves={
+                'Host': dict(move='wait', urge=0, action='Host watches.',
+                             ops=[dict(op='wants', person='Host', wants=['Stay'])])})
+        if request['last_winner'] is None:
+            return dict(call='scene_round')
+        return dict(call='scene_round', resolution='pending' if failure == 'closing_pending' else None,
+                    outcome='An unfinished result.' if failure == 'closing_pending' else None, ops=bad_ops)
+
+    clients = fake_sdk(monkeypatch, respond)
+
+    class Character:
+        async def act(self, before, note=None):
+            return Action(call='action', intent='Try', move='act' if failure != 'no_winner' else 'wait',
+                          urge=2 if failure != 'no_winner' else 0,
+                          action='Agnea tries.' if failure != 'no_winner' else '', say='')
+
+    async def exercise():
+        async with open_agent(workspace) as agent:
+            original_round = agent.round
+
+            async def checked_round(*args, **kwargs):
+                result = await original_round(*args, **kwargs)
+                if failure == 'no_winner' and not exact:
+                    assert result[1]['Host'].ops[0].wants == ['Stay']
+                return result
+
+            agent.round = checked_round
+            session = SimpleNamespace(world=agent, characters={'agnea': Character()}, scene_notes={},
+                                      settings=SimpleNamespace(scene_cap=1), trace=TraceWriter(run))
+            return await simulation.run_scene(world, session, load_state(world),
+                                              'festival_grounds', ['agnea'], ['Host'])
+
+    # Both the unchanged recorded response and an op-bearing response must survive.
+    for exact in ([True, False] if failure == 'no_winner' else [False]):
+        state = asyncio.run(exercise())
+        assert 'Must not commit' not in next(p for p in state.places if p.slug == 'festival_grounds').details
+        assert_fold(world, state)
+    events = read_events(world)
+    resolutions = [e for e in events if e.resolves is not None]
+    if failure == 'no_winner':
+        assert resolutions == []
+        assert not any(e.content == recorded['outcome'] for e in events)
+        assert state.people['Host'].wants == ['Help']
+        assert len(rows(run, 'resolution_ignored')) == 2
+    else:
+        resolution, = resolutions
+        assert resolution.resolution == 'none' and resolution.ops == []
+        assert len(rows(run, 'resolution_defaulted')) == 1
+    assert all(reason in r for c in clients for r in c.calls if isinstance(r, str))
+    assert len(rows(run, 'world_validation_failed')) == (2 if failure == 'no_winner' else 1)
+    assert all(len(c.calls) == (2 if failure == 'no_winner' else 3) for c in clients)

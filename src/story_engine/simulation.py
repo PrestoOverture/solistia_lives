@@ -110,7 +110,7 @@ class TickSession:
 
 def _plan_positions(state, plans, trace):
     """Resolve simultaneous destinations, anchoring each seek cycle once."""
-    fallback = {slug: ((plan.where, plan.spot) if plan.kind == 'go' else
+    fallback = {slug: ((plan.where, plan.spot) if plan.where is not None else
                        (state.characters[slug].where, state.characters[slug].spot))
                 for slug, plan in plans.items()}
     resolved = {name: (person.where, person.spot) for name, person in state.people.items()}
@@ -127,7 +127,7 @@ def _plan_positions(state, plans, trace):
         visiting.append(slug)
         plan = plans[slug]
         position = fallback[slug]
-        if plan.kind == 'go' and plan.seek is not None:
+        if plan.seek is not None:
             target = resolve(plan.seek)
             if slug not in resolved:
                 if target[0] in {state.characters[slug].where, plan.where}:
@@ -163,7 +163,7 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
             type='plan', content=plan.aim, intent=plan.intent, perceived_by=[slug]))
     positions = _plan_positions(state, plans, session.trace)
     for slug, plan in plans.items():
-        if plan.kind == 'go':
+        if plan.where is not None or plan.seek is not None:
             place, spot = positions[slug]
             commit_event(world_dir, Event(
                 id=0, **state.clock.model_dump(), place=place, actor=slug,
