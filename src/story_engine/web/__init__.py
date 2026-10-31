@@ -19,7 +19,7 @@ from story_engine.kb import TRAVELERS, validate_input
 from story_engine.runs import RunInput, create_run
 from story_engine.web.jobs import generate_story
 from story_engine.web.player import (
-    asset_file, audio_file, load_art, read_world, scene_beats, scene_stage,
+    asset_file, audio_file, display_name, load_art, read_world, scene_beats, scene_stage,
     stage_images, stand_points, valid_id, town_sprites, scene_sprites, traveler_views, replay_views,
 )
 from story_engine.web.progress import read_progress
@@ -108,6 +108,7 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
         return item
 
     templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
+    templates.env.globals["person"] = lambda slug: display_name(slug, travelers)
 
     @app.get("/", response_class=HTMLResponse)
     def library(request: Request):

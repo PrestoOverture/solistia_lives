@@ -69,11 +69,11 @@
       <div class="figure" data-actor="{{ name }}" data-x="{{ stand[loop.index0].x if stand else loop.index0 }}"{% if stand %}
            style="--x: {{ stand[loop.index0].x * 100 }}%; --y: {{ stand[loop.index0].y * 100 }}%; --h: {{ stand[loop.index0].h * 100 }}%; z-index: {{ (stand[loop.index0].y * 1000) | int }}"{% endif %}>
         {% if sprite_files.get(name) %}
-        <img class="sprite" src="{{ url_for('player_asset', filename=sprite_files[name]) }}" alt="{{ travelers.get(name, name) }}">
+        <img class="sprite" src="{{ url_for('player_asset', filename=sprite_files[name]) }}" alt="{{ person(name) }}">
         {% else %}
         <div class="head" aria-hidden="true"></div><div class="body" aria-hidden="true"></div>
         {% endif %}
-        <span>{{ travelers.get(name, name) }}</span>
+        <span>{{ person(name) }}</span>
       </div>
     {% endfor %}
     </div>
@@ -141,24 +141,29 @@
       advance(1);
     }
   }
-  function bubbleAnchor() {
+  function bubbleAnchor(width) {
     const bounds = backdrop.getBoundingClientRect();
     const figures = [...stage.querySelectorAll('.figure')].filter(item => !item.hidden);
     const speaker = figures.find(item => item.dataset.actor === beats[index]?.actor);
     const head = speaker?.getBoundingClientRect();
     const x = head ? head.left + head.width / 2 - bounds.left : bounds.width / 2;
-    // Leave room for the speaker's bob and the tail above every visible head.
-    const y = figures.length ? Math.min(...figures.map(item => {
+    // The bubble spans [left, left + width]; it clears only the heads under that span.
+    width = width ?? bounds.width * .4;
+    const left = Math.max(10, Math.min(x - width / 2, bounds.width - width - 10));
+    const under = figures.filter(item => {
+      const rect = item.getBoundingClientRect();
+      return item === speaker || (rect.right - bounds.left > left && rect.left - bounds.left < left + width);
+    });
+    // Leave room for the speaker's bob and the tail.
+    const y = under.length ? Math.min(...under.map(item => {
       const rect = item.getBoundingClientRect();
       return rect.top - rect.height * .03;
     })) - bounds.top : bounds.height / 2;
-    return {bounds, x, y};
+    return {x, y, left};
   }
   function positionBubble() {
     if (bubble.hidden) return;
-    const {bounds, x, y} = bubbleAnchor();
-    const left = Math.max(10, Math.min(x - bubble.offsetWidth / 2,
-      bounds.width - bubble.offsetWidth - 10));
+    const {x, y, left} = bubbleAnchor(bubble.offsetWidth);
     bubble.style.left = `${left}px`;
     bubble.style.top = `${y - bubble.offsetHeight - 12}px`;
     bubble.style.setProperty('--tail-x', `${Math.max(10, Math.min(x - left, bubble.offsetWidth - 10))}px`);
@@ -174,29 +179,40 @@
     positionBubble();
     schedulePage();
   }
+  const sentences = new Intl.Segmenter('en', {granularity: 'sentence'});
   function paginate() {
     const oldWord = pages.slice(0, page).join(' ').split(/\s+/).filter(Boolean).length;
     pages = [];
     if (!bubble.hidden) {
-      const words = beats[index].text.trim().split(/\s+/);
       const {y} = bubbleAnchor();
       bubbleLine.textContent = '';
       const chrome = bubble.getBoundingClientRect().height;
       const maxHeight = Math.max(parseFloat(getComputedStyle(bubble).lineHeight) * 2,
         y - 12 - 10 - chrome);
-      let start = 0;
-      while (start < words.length) {
-        let end = start + 1;
-        // Measure each candidate in the actual bubble, keeping the largest fitting prefix.
-        while (end <= words.length) {
-          bubbleLine.textContent = words.slice(start, end).join(' ');
-          if (bubbleLine.getBoundingClientRect().height > maxHeight + .5 && end > start + 1) break;
-          end++;
+      const fits = text => {
+        bubbleLine.textContent = text;
+        return bubbleLine.getBoundingClientRect().height <= maxHeight + .5;
+      };
+      // Pages hold whole sentences; only a sentence too long for one bubble splits by words.
+      let current = '';
+      for (const {segment} of sentences.segment(beats[index].text.trim())) {
+        const sentence = segment.trim();
+        if (!sentence) continue;
+        if (fits(current ? `${current} ${sentence}` : sentence)) {
+          current = current ? `${current} ${sentence}` : sentence;
+          continue;
         }
-        const stop = end > words.length ? words.length : end - 1;
-        pages.push(words.slice(start, stop).join(' '));
-        start = stop;
+        if (current) pages.push(current);
+        current = '';
+        for (const word of sentence.split(/\s+/)) {
+          if (current && !fits(`${current} ${word}`)) {
+            pages.push(current);
+            current = '';
+          }
+          current = current ? `${current} ${word}` : word;
+        }
       }
+      if (current) pages.push(current);
     }
     page = 0;
     let count = 0;

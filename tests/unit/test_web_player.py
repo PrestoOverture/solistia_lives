@@ -56,7 +56,7 @@ def test_scene_embeds_exact_ordered_beats_and_cast_without_writing(tmp_path):
             dict(departed=[], event_id=5, text='Throné nods.', speaker=None, actor=None, hidden=False, audio_url='/world/player/audio/5.action.mp3'),
             dict(departed=[], event_id=6, text='Mabel smiles. "A whole unsplit legacy line."', speaker=None, actor=None, hidden=False, audio_url=None),
             dict(departed=[], event_id=7, text='A bell rings.', speaker=None, actor=None, hidden=True, audio_url='/world/player/audio/7.action.mp3'),
-            dict(departed=[], event_id=7, text='The festival begins.', speaker='world', actor='world', hidden=True, audio_url='/world/player/audio/7.mp3'),
+            dict(departed=[], event_id=7, text='The festival begins.', speaker='World', actor='world', hidden=True, audio_url='/world/player/audio/7.mp3'),
         ]
         assert '<div class="backdrop morning">' in response.text
         assert "Cropdale" in response.text
@@ -417,3 +417,9 @@ def test_townspeople_with_views_turn_toward_speaker(tmp_path, player_art):
         assert timeline[1]['Mabel'] == 'left'
         for view in views['Mabel'].values():
             assert client.get('/player-assets/' + view['file']).status_code == 200
+
+
+def test_display_name_shows_minor_ids_as_words():
+    from story_engine.web.player import display_name
+    assert display_name('agnea', {'agnea': 'Agnea Bristarni'}) == 'Agnea Bristarni'
+    assert display_name('brother_camden', {}) == 'Brother Camden'

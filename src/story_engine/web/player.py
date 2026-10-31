@@ -49,6 +49,11 @@ class Beat(BaseModel):
     departed: list[str] = Field(default_factory=list)
 
 
+def display_name(slug: str, names: dict[str, str]) -> str:
+    """A traveler's KB name, or a minor character's id shown as words."""
+    return names.get(slug) or slug.replace('_', ' ').title()
+
+
 def scene_beats(directory: Path, scene_id: str, names: dict[str, str]) -> list[dict]:
     beats = []
     departed = []
@@ -66,7 +71,7 @@ def scene_beats(directory: Path, scene_id: str, names: dict[str, str]) -> list[d
             fields.append((event.content, None, None))
         for text, actor, suffix in fields:
             beats.append(Beat(event_id=event.id, text=text, actor=actor, departed=list(departed),
-                              speaker=names.get(actor, actor) if actor else None,
+                              speaker=display_name(actor, names) if actor else None,
                               hidden=event.actor == "world",
                               audio_url=f'/world/{directory.name}/audio/{event.id}{suffix}' if suffix else None).model_dump())
     return beats
