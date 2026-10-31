@@ -21,11 +21,8 @@
   .has-art .figure.speaking { outline: none; }
   .has-art .figure.dimmed { opacity: 1; }
   .figure[hidden] { display: none; }
-  .figure { --facing: 1; }
-  .sprite { transform: scaleX(var(--facing)); }
-  .figure.face-left { --facing: -1; }
   .figure.speaking .sprite { animation: speaking-bob .65s ease-in-out infinite; }
-  @keyframes speaking-bob { 50% { transform: translateY(-3%) scaleX(var(--facing)); } }
+  @keyframes speaking-bob { 50% { transform: translateY(-3%); } }
   .has-art .head { width: 45%; height: 32%; }
   .has-art .body { width: 65%; height: 65%; }
   .has-art .figure:has(.head) { width: var(--h); }
@@ -96,6 +93,9 @@
 <script id="beats" type="application/json">{{ beats | tojson }}</script>
 <script>
 (() => {
+  const viewTimeline = {{ view_timeline | tojson }};
+  const spriteViews = {{ sprite_views | tojson }};
+  const assetBase = {{ url_for('player_asset', filename='') | string | tojson }};
   const allBeats = JSON.parse(document.getElementById('beats').textContent);
   const stage = document.getElementById('stage');
   const backdrop = stage.querySelector('.backdrop');
@@ -220,22 +220,24 @@
     document.getElementById('beat-text').textContent = beat?.speaker ? '' : (beat?.text ?? 'No visible beats.');
     // Replay facing from the full timeline so Back and the World toggle agree.
     const figures = [...stage.querySelectorAll('.figure')];
-    const byActor = new Map(figures.map(figure => [figure.dataset.actor, figure]));
-    const facing = new Map();
-    let lastSpeaker = null;
     const position = allBeats.indexOf(beat);
-    for (const prior of allBeats.slice(0, position + 1)) {
-      if (!prior.speaker || !byActor.has(prior.actor)) continue;
-      if (lastSpeaker && lastSpeaker !== prior.actor) {
-        const here = Number(byActor.get(prior.actor).dataset.x);
-        const there = Number(byActor.get(lastSpeaker).dataset.x);
-        facing.set(prior.actor, there < here);
-      }
-      lastSpeaker = prior.actor;
-    }
+    const views = viewTimeline[position] || {};
     figures.forEach(figure => {
       figure.hidden = Boolean(beat?.departed.includes(figure.dataset.actor));
-      figure.classList.toggle('face-left', facing.get(figure.dataset.actor) || false);
+      const name = figure.dataset.actor;
+      const files = spriteViews[name];
+      if (files) {
+        const view = files[views[name]] ? views[name] : 'front';
+        const sprite = figure.querySelector('.sprite');
+        figure.dataset.view = view;
+        sprite.src = assetBase + files[view].file;
+        if (backdrop.classList.contains('has-art')) {
+          const h = parseFloat(figure.style.getPropertyValue('--h'));
+          figure.style.height = `${h * files[view].scale}%`;
+        } else {
+          sprite.style.height = `${8 * files[view].scale}rem`;
+        }
+      }
       const speaking = Boolean(beat?.speaker && figure.dataset.actor === beat.actor);
       figure.classList.toggle('speaking', speaking);
       figure.classList.toggle('dimmed', Boolean(beat?.speaker) && !speaking);

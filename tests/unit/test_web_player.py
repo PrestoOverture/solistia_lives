@@ -313,3 +313,60 @@ def test_minor_sprites_use_sex_and_stable_distinct_choices(tmp_path):
                                player_assets_dir=assets)) as client:
         for filename in pools['m'] + pools['f']:
             assert client.get('/player-assets/' + filename).status_code == 200
+
+
+def test_three_travelers_replay_field_views(tmp_path, player_art):
+    from story_engine.web.player import replay_views, StandPoint, traveler_views
+    import struct
+    import zlib
+    import yaml
+
+    names = ['agnea', 'throne', 'temenos']
+    entries = []
+    def chunk(kind, data):
+        return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
+
+    for name in names:
+        for view in ['front', 'left', 'right', 'back']:
+            filename = f'{name}_{view}.png'
+            # Heights differ deliberately to test front-relative scaling.
+            height = 40 if view == 'front' else 36
+            image = (b'\x89PNG\r\n\x1a\n'
+                     + chunk(b'IHDR', struct.pack('>IIBBBBB', 1, height, 8, 6, 0, 0, 0))
+                     + chunk(b'IDAT', zlib.compress(b'\x00\xff\x00\x00\xff' * height))
+                     + chunk(b'IEND', b''))
+            (player_art / 'sprites' / filename).write_bytes(image)
+            entries.append(dict(file=filename, who=name, view=view))
+    (player_art / 'sprites/index.yaml').write_text(yaml.safe_dump({'sprites': entries}))
+    files = traveler_views(player_art)
+    assert files['agnea']['right']['scale'] == .9
+    assert files['agnea']['front']['scale'] == 1
+    points = [StandPoint(x=.2, y=.8, h=.1), StandPoint(x=.8, y=.8, h=.1),
+              StandPoint(x=.22, y=.21, h=.1)]
+    def beat(actor=None, departed=(), hidden=False):
+        return dict(actor=actor, speaker=actor, departed=list(departed), hidden=hidden)
+    beats = [beat(), beat('throne'), beat(), beat('agnea'), beat('agnea'),
+             beat('temenos', hidden=True), beat('agnea', departed=['temenos']),
+             beat('throne', departed=['temenos', 'throne'])]
+    timeline = replay_views(beats, names, points)
+    assert timeline == [
+        dict(agnea='front', throne='front', temenos='front'),
+        dict(agnea='right', throne='left', temenos='right'),
+        dict(agnea='right', throne='left', temenos='right'),
+        dict(agnea='right', throne='left', temenos='left'),
+        dict(agnea='right', throne='left', temenos='left'),
+        dict(agnea='back', throne='back', temenos='left'),
+        dict(agnea='right', throne='left', temenos='left'),
+        dict(agnea='right', throne='left', temenos='left'),
+    ]
+    # The first speaker chooses the nearest; Agnea then answers Throné,
+    # although Temenos is closer. Hidden speech participates in the fold.
+    with TestClient(create_app(runs_dir=tmp_path / 'runs', worlds_dir=FIXTURES,
+                              player_assets_dir=player_art)) as client:
+        html = client.get('/world/player/scene/1').text
+        assert '/player-assets/sprites/agnea_front.png' in html
+        assert '--facing' not in html and 'face-left' not in html
+        for items in files.values():
+            for data in items.values():
+                assert client.get('/player-assets/' + data['file']).status_code == 200
+        assert client.get('/player-assets/sprites/absent_right.png').status_code == 404

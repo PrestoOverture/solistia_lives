@@ -20,7 +20,7 @@ from story_engine.runs import RunInput, create_run
 from story_engine.web.jobs import generate_story
 from story_engine.web.player import (
     asset_file, audio_file, load_art, read_world, scene_beats, scene_stage,
-    stage_images, stand_points, valid_id, town_sprites, scene_sprites,
+    stage_images, stand_points, valid_id, town_sprites, scene_sprites, traveler_views, replay_views,
 )
 from story_engine.web.progress import read_progress
 
@@ -130,7 +130,9 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
     @app.get("/player-assets/{filename:path}")
     def player_asset(filename: str):
         art = load_art(player_assets_dir)
-        if filename not in {*stage_images(player_assets_dir), *art.sprites.values(), *sum(town_sprites(player_assets_dir).values(), [])}:
+        views = traveler_views(player_assets_dir)
+        view_files = {data['file'] for items in views.values() for data in items.values()}
+        if filename not in {*view_files, *stage_images(player_assets_dir), *art.sprites.values(), *sum(town_sprites(player_assets_dir).values(), [])}:
             raise HTTPException(status_code=404, detail="Asset not found")
         path = asset_file(player_assets_dir, filename)
         if path is None:
@@ -159,10 +161,16 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
         art = load_art(player_assets_dir)
         stage = scene_stage(player_assets_dir, record.place, record.spot, record.part, art)
         sprite_files = scene_sprites(player_assets_dir, worlds_dir / world_id, record.participants, art)
+        views = traveler_views(player_assets_dir)
+        for name in record.participants:
+            if name in views:
+                sprite_files[name] = views[name]['front']['file']
+        points = stand_points(stage.stand, len(record.participants))
         return templates.TemplateResponse(request=request, name="scene.html", context={
             "world_id": world_id, "scene": record, "beats": beats,
             "backdrop": stage.image, "darken": stage.darken,
-            "stand": stand_points(stage.stand, len(record.participants)), "sprite_files": sprite_files,
+            "stand": points, "sprite_files": sprite_files,
+            "sprite_views": views, "view_timeline": replay_views(beats, record.participants, points),
             "travelers": travelers, "place": locations.get(record.place, record.place),
             "player_settings": load_settings().model_dump(include={'player_reading_wpm', 'player_reading_min_ms'}),
         })

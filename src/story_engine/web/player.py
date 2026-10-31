@@ -2,6 +2,7 @@
 
 import re
 import hashlib
+import struct
 from pathlib import Path
 
 import yaml
@@ -202,4 +203,64 @@ def scene_sprites(directory: Path, world_dir: Path, participants: list[str], art
         chosen = next((filename for filename in choices if filename not in used), choices[0])
         result[name] = chosen
         used.add(chosen)
+    return result
+
+
+def traveler_views(directory: Path) -> dict[str, dict[str, dict]]:
+    """Read field views and their actual PNG heights, relative to each front."""
+    try:
+        entries = yaml.safe_load((directory / 'sprites/index.yaml').read_text())['sprites']
+    except FileNotFoundError:
+        return {}
+    result = {}
+    for item in entries:
+        name, view = item.get('who'), item.get('view')
+        if name not in TRAVELERS or item.get('file') != f'{name}_{view}.png':
+            continue
+        if view not in {'front', 'left', 'right', 'back'}:
+            continue
+        filename = 'sprites/' + item['file']
+        path = asset_file(directory, filename)
+        if path is None:
+            continue
+        with path.open('rb') as stream:
+            header = stream.read(24)
+        if len(header) != 24 or header[:8] != b'\x89PNG\r\n\x1a\n':
+            continue
+        height = struct.unpack('>I', header[20:24])[0]
+        if height:
+            result.setdefault(name, {})[view] = {'file': filename, 'height': height}
+    return {name: {view: dict(data, scale=data['height'] / views['front']['height'])
+                   for view, data in views.items()}
+            for name, views in result.items() if 'front' in views}
+
+
+def replay_views(beats: list[dict], participants: list[str], points: list[StandPoint]) -> list[dict[str, str]]:
+    """Fold the full timeline, including hidden beats and departed speakers."""
+    positions = {name: (points[i].x, points[i].y) if points else (float(i), 0.)
+                 for i, name in enumerate(participants)}
+    views = {name: 'front' for name in participants}
+    speakers = []
+    result = []
+    for beat in beats:
+        visible = [name for name in participants if name not in beat['departed']]
+        speaker = beat['actor'] if beat['speaker'] else None
+        if speaker in visible:
+            sx, sy = positions[speaker]
+            others = [name for name in visible if name != speaker]
+            target = next((name for name in reversed(speakers) if name in others), None)
+            if target is None and others:
+                target = min(others, key=lambda name: (positions[name][0] - sx) ** 2
+                             + (positions[name][1] - sy) ** 2)
+            for name in visible:
+                if name not in TRAVELERS:
+                    continue
+                toward = target if name == speaker else speaker
+                if toward is None:
+                    continue
+                x, y = positions[name]
+                tx, ty = positions[toward]
+                views[name] = 'back' if y - ty > abs(tx - x) else ('left' if tx < x else 'right')
+            speakers.append(speaker)
+        result.append(views.copy())
     return result
