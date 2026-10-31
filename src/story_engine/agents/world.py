@@ -16,7 +16,9 @@ from story_engine.config import Role, load_settings
 from story_engine.agents.subjects import fold
 from story_engine.trace import TraceWriter
 from story_engine.world.io import commit_event, load_state, read_events, validate_state
-from story_engine.world.ops import Op, Open
+from story_engine.world.ops import (
+    Op, Open, Move, Introduce, PlaceOp, Promise, Release, Wants, Goals, SituationOp, ClockOp,
+)
 from story_engine.world.permissions import Authority, validate_ops
 from story_engine.world.models import Clock, Event, Person, Place, Situation, WorldState
 
@@ -36,10 +38,24 @@ class Encounter(BaseModel):
     minor: list[str] = Field(default_factory=list)
 
 
+class DayStartSituation(Situation):
+    heard: str = Field(max_length=200)
+
+
+class DayStartOpen(Open):
+    situation: DayStartSituation
+
+
+DayStartOp = Annotated[
+    Move | Introduce | PlaceOp | Promise | Release | Wants | Goals | DayStartOpen | SituationOp | ClockOp,
+    Field(discriminator='op'),
+]
+
+
 class DayStartReply(BaseModel):
     model_config = ConfigDict(extra="forbid")
     call: Literal["day_start"]
-    ops: list[Op]
+    ops: list[DayStartOp]
 
     @model_validator(mode="after")
     def valid_situations(self) -> Self:
@@ -264,6 +280,14 @@ class WorldAgent(_WorldSession):
                 updated = self._event_state(state, event, Authority('day_start'), attempt, dropped)
                 if updated is not None:
                     commit_event(self.world_dir, event, authority=Authority('day_start'))
+                    for op in reply.ops:
+                        if isinstance(op, Open) and op.situation.heard is not None:
+                            situation = op.situation
+                            commit_event(self.world_dir, Event(
+                                id=0, **state.clock.model_dump(),
+                                place=updated.characters[situation.touches[0]].where,
+                                actor='world', type='world', content=situation.heard,
+                                perceived_by=situation.touches))
                 self._trace_drops('day_start', dropped)
                 return load_state(self.world_dir)
             except ValueError as error:

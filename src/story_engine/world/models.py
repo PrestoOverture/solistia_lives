@@ -69,6 +69,7 @@ class Situation(WorldModel):
     id: str
     kind: SituationKind = "trouble"
     summary: str
+    heard: str | None = Field(default=None, max_length=200)
     touches: list[str] = Field(min_length=1)
     people: list[str]
     status: Literal["open", "resolved", "dropped"]

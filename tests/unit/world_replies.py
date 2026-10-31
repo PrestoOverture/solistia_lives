@@ -12,7 +12,7 @@ def round_reply(request, *, outcome=None, minor_moves=None, new_people=None, **f
 def day_start_reply(*, situations, people=None, places=None):
     ops = [dict(op='place', slug=p['slug'], add_details=p['details']) for p in (places or [])]
     ops += [dict(op='introduce', name=name, **person) for name, person in (people or {}).items()]
-    ops += [dict(op='open', situation=s) for s in situations]
+    ops += [dict(op='open', situation={'heard': 'A supper invitation arrives.', **s}) for s in situations]
     return dict(call='day_start', ops=ops)
 
 

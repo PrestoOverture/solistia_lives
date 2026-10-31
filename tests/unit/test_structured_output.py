@@ -79,7 +79,7 @@ def test_world_output_format_accepts_all_call_variants(tmp_path, monkeypatch):
     _assert_schema_accepts(schema, adjudicate, WorldReply)
     _assert_schema_accepts(offscreen_options.output_format['schema'], offscreen, OffscreenReply)
     _assert_schema_accepts(schema, day_start_reply(situations=[
-        state.situations[0].model_dump()]), WorldReply)
+        state.situations[0].model_dump() | {'heard': 'A supper invitation arrives.'}]), WorldReply)
     _assert_schema_accepts(schema, scene_round, WorldReply)
 
 

@@ -8,9 +8,9 @@ Calls are `day_start`, `adjudicate` (the encounter call), and `scene_round`. Off
 
 From day 2, before plans, add 1-3 situations grounded in people's wants, commitments, places, and revised goals. Input includes yesterday's visible events, without plans or private intents.
 
-Reply `{"call":"day_start", "ops":[{"op":"open","situation":{...}}]}`. Include 1-3 `open` ops. Each situation uses the state schema: id, kind, summary, touches, people, status, next, due. IDs must be new; touches names mains, people names existing or newly introduced people. With two or more new situations, use more than one kind and due part. Kinds: trouble, occasion, promise, wish, reunion.
+Reply `{"call":"day_start", "ops":[{"op":"open","situation":{...}}]}`. Include 1-3 `open` ops. Each situation uses the state schema: id, kind, summary, heard, touches, people, status, next, due. `heard` is required: one short fact (at most 200 characters) that the touched mains have heard or noticed by this morning, not their reaction. IDs must be new; touches names mains, people names existing or newly introduced people. With two or more new situations, use more than one kind and due part. Kinds: trouble, occasion, promise, wish, reunion.
 
-Day start may also introduce people and add places (use `place` before referencing a new place, `introduce` before referencing a new person), and commit the World-owned people ops below. It has no main-character goal revisions, main moves, situation updates, or clock ops. The reply has no state replacement fields. Code records these ops in one event.
+Day start may also introduce people and add places (use `place` before referencing a new place, `introduce` before referencing a new person), and commit the World-owned people ops below. It has no main-character goal revisions, main moves, situation updates, or clock ops. The reply has no state replacement fields. Code records these ops in one event, then each situation's `heard` as a world event perceived by its touched mains before their first plans.
 
 ## adjudicate: encounters
 

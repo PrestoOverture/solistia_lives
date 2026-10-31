@@ -16,7 +16,7 @@ from story_engine.agents.sdk import SessionError
 from story_engine.config import load_configs
 from story_engine.trace import TraceWriter
 from story_engine.world.io import append_event, load_state, read_events
-from story_engine.world.models import Event
+from story_engine.world.models import Event, WorldState
 from world_replies import day_start_reply, goals_reply, commit_fixture_changes
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -67,8 +67,77 @@ def agent(agent_type, world, run):
 
 
 def situation(id='new-promise', kind='promise', part='evening'):
-    return dict(id=id, kind=kind, summary='A supper invitation.', touches=['agnea'],
+    return dict(id=id, kind=kind, summary='A supper invitation.', heard='A supper invitation arrives.', touches=['agnea'],
                 people=[], status='open', next='The supper starts.', due=dict(day=2, part=part))
+
+
+@pytest.mark.parametrize('touches', [['agnea'], ['agnea', 'throne']])
+def test_day_start_heard_precedes_plans_and_is_perceived(workspace, monkeypatch, touches):
+    world, run = workspace
+    state = load_state(world)
+    state.clock.day = 2
+    (world / 'genesis.json').write_text(state.model_dump_json())
+    heard = 'Papa invites everyone to supper tonight.'
+    new = dict(situation(), heard=heard, touches=touches)
+
+    def respond(client, request):
+        call = request['call']
+        if call == 'day_start':
+            if client.options.system_prompt.startswith('# World'):
+                return day_start_reply(situations=[new])
+            return goals_reply(('agnea', 'throne')[clients.index(client)], ['Explore'])
+        if call == 'part_of_day':
+            slug = ('agnea', 'throne')[clients.index(client)]
+            facts = [e for e in request['perceived'] if e['content'] == heard]
+            assert len(facts) == int(request['part'] == 'morning' and slug in touches)
+            return dict(call='plan', kind='go', intent='Explore', aim='Stay here.',
+                        where='festival_grounds', spot=None)
+        if call == 'scene_move':
+            return dict(call='action', move='wait', urge=0, intent='Wait', action='', say='')
+        if call in {'adjudicate', 'scene_round'}:
+            return dict(call=call)
+        if call == 'offscreen':
+            return dict(call=call, situation_notes={
+                s.id: 'Unchanged.' for s in load_state(world).situations if s.status == 'open'})
+        assert call == 'end_of_day'
+        return dict(call=call, summary='Supper invitation remembered.')
+
+    clients = fake_sdk(monkeypatch, respond)
+    original_session = simulation.TickSession
+    monkeypatch.setattr(simulation, 'TickSession', lambda w, r: original_session(w, r, root=ROOT))
+    asyncio.run(simulation.run_day(world, run))
+    events = read_events(world)
+    fact, = [e for e in events if e.content == heard]
+    assert fact.type == 'world' and fact.actor == 'world'
+    assert fact.perceived_by == touches and fact.ops == []
+    assert fact.place == state.characters[touches[0]].where
+    assert (fact.day, fact.part, fact.scene, fact.round) == (2, 'morning', None, None)
+    assert fact.id < next(e.id for e in events if e.type == 'plan')
+    assert load_state(world).situations[-1].heard == heard
+
+
+@pytest.mark.parametrize('value', [None, 'x' * 201, 42])
+def test_day_start_heard_schema_rejects_invalid_values(value):
+    reply = day_start_reply(situations=[dict(situation(), heard=value)])
+    with pytest.raises(ValidationError):
+        world_agent.DayStartReply.model_validate(reply)
+
+
+def test_day_start_schema_requires_heard_but_historical_state_does_not(workspace):
+    reply = dict(call='day_start', ops=[dict(op='open', situation=situation())])
+    del reply['ops'][0]['situation']['heard']
+    with pytest.raises(ValidationError, match='heard'):
+        world_agent.DayStartReply.model_validate(reply)
+    schema = world_agent.DayStartReply.model_json_schema()
+    assert 'heard' in schema['$defs']['DayStartSituation']['required']
+    assert schema['$defs']['DayStartSituation']['properties']['heard'] == {
+        'maxLength': 200, 'title': 'Heard', 'type': 'string'}
+    world, _ = workspace
+    historical = WorldState.model_validate_json((world / 'state.json').read_text())
+    assert all(s.heard is None for s in historical.situations)
+    valid = world_agent.DayStartReply.model_validate(
+        day_start_reply(situations=[dict(situation(), heard='x' * 200)]))
+    assert valid.ops[0].situation.heard == 'x' * 200
 
 
 def failures(run):

@@ -29,7 +29,7 @@ def session_setup(tmp_path, monkeypatch):
     state.people["Gus"] = Person(where="cropdale", wants=["Rest"], commitments=[])
     state.places.append(Place(slug="unused_place", details=[]))
     commit_fixture_changes(world, state)
-    new_situation = state.situations[0].model_dump() | {"id": "delta-new"}
+    new_situation = state.situations[0].model_dump() | {"id": "delta-new", "heard": "A supper invitation arrives."}
     requests, clients = [], []
 
     class FakeClient:
@@ -233,7 +233,7 @@ def test_world_calls_share_last_sent_state_not_last_reply(session_setup):
     first, second, third = map(json.loads, requests)
     assert first["state"] == state.model_dump()
     assert second["state_changes"] == {
-        "situations": [state.situations[0].model_dump() | {"id": "delta-new"}],
+        "situations": [state.situations[0].model_dump() | {"id": "delta-new", "heard": "A supper invitation arrives."}],
     }
     assert third["state_changes"] == {}
     assert "state" not in second and "state" not in third
