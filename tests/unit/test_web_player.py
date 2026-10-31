@@ -1,6 +1,7 @@
 import json
 import re
 import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,105 @@ from story_engine.web import create_app
 
 
 FIXTURES = Path(__file__).parents[1] / 'fixtures' / 'worlds'
+
+
+def test_page_turn_thresholds_under_node():
+    template = (Path(__file__).parents[2] /
+                'src/story_engine/web/templates/scene.html').read_text()
+    script = re.search(r'<script id="page-turn-thresholds">(.*?)</script>', template, re.S)
+    assert script is not None
+    subprocess.run(
+        ['/usr/local/bin/node', '-e', script.group(1) + """
+const assert = require('node:assert/strict');
+assert.deepEqual(module.exports(['aaaa', 'bb', 'cccc']), [0.4, 0.6]);
+assert.deepEqual(module.exports(['single page']), []);
+"""], check=True, capture_output=True, text=True,
+    )
+
+
+def test_manual_page_audio_under_node():
+    template = (Path(__file__).parents[2] /
+                'src/story_engine/web/templates/scene.html').read_text()
+    thresholds = re.search(r'<script id="page-turn-thresholds">(.*?)</script>', template, re.S)[1]
+    manual = re.search(r'<script id="manual-page-audio">(.*?)</script>', template, re.S)[1]
+    # Exercise the actual handlers too: removing their pause/seek/play must fail.
+    timeupdate = re.search(r'currentAudio.ontimeupdate = (\(\) => \{.*?\n      \});', template, re.S)[1]
+    advance = re.search(r'  function advance\(delta\) \{.*?\n  \}', template, re.S)[0]
+    auto_change = re.search(r"auto.addEventListener\('change', (\(\) => \{.*?\n  \})\);", template, re.S)[1]
+    subprocess.run(
+        ['/usr/local/bin/node', '-e', thresholds + manual + advance + """
+const assert = require('node:assert/strict');
+const pages = ['aaaa', 'bb', 'cccc'];
+assert.deepEqual(manualPageAudio(pages, 0, 3.99, 10, false), {pause: false, seekTime: null});
+assert.deepEqual(manualPageAudio(pages, 0, 4, 10, false), {pause: true, seekTime: null});
+assert.deepEqual(manualPageAudio(pages, 1, 6, 10, false), {pause: true, seekTime: 4});
+assert.deepEqual(manualPageAudio(pages, 2, 10, 10, false), {pause: false, seekTime: 6});
+assert.deepEqual(manualPageAudio(['single'], 0, 10, 10, false), {pause: false, seekTime: null});
+assert.deepEqual(manualPageAudio([], 0, 10, 10, false), {pause: false, seekTime: null});
+assert.deepEqual(manualPageAudio(pages, 0, 9, 10, true), {pause: false, seekTime: null});
+for (const duration of [0, NaN, Infinity]) {
+  assert.deepEqual(manualPageAudio(pages, 1, 9, duration, false), {pause: false, seekTime: null});
+}
+let page = 0, index = 0, audioFinished = false, failed = false;
+const auto = {checked: false};
+const beats = [{}, {}];
+const currentAudio = {
+  currentTime: 0, duration: 10, paused: false, plays: 0,
+  pause() { this.paused = true; },
+  play() { this.paused = false; this.plays++; return Promise.resolve(); },
+  onerror() { throw new Error('unexpected audio failure'); },
+};
+let audio = currentAudio;
+function usableAudio() { return audio && !failed && Number.isFinite(audio.duration) && audio.duration > 0; }
+function schedulePage() {}
+function showPage() {}
+let renders = 0;
+function render() { renders++; }
+const timeupdate = """ + timeupdate + ";\nconst autoChange = " + auto_change + ";\n" + """
+audio.currentTime = 3.99;
+timeupdate();
+assert.equal(audio.paused, false);
+audio.currentTime = 4;
+timeupdate();
+assert.equal(audio.paused, true);
+advance(1);
+assert.equal(page, 1);
+assert.equal(audio.currentTime, 4);
+assert.equal(audio.paused, false);
+assert.equal(audio.plays, 1);
+audio.currentTime = 4.5; // Advance early, while audio is still playing.
+advance(1);
+assert.equal(page, 2);
+assert.equal(audio.currentTime, 6);
+assert.equal(audio.plays, 2);
+audio.currentTime = 10;
+timeupdate();
+assert.equal(audio.paused, false); // Last page plays through the end.
+page = 0;
+audio.currentTime = 4;
+timeupdate();
+auto.checked = true;
+autoChange();
+assert.equal(audio.paused, false);
+assert.equal(audio.plays, 3);
+timeupdate();
+assert.equal(audio.paused, false);
+advance(1);
+assert.equal(audio.currentTime, 4); // Auto advance does not seek.
+assert.equal(audio.plays, 3);
+auto.checked = false;
+failed = true;
+advance(1);
+assert.equal(page, 2); // Failed audio keeps the page-only fallback.
+assert.equal(audio.plays, 3);
+advance(1);
+assert.equal(index, 1);
+assert.equal(renders, 1);
+advance(-1);
+assert.equal(index, 0);
+assert.equal(renders, 2); // Back still re-renders the beat.
+"""], check=True, capture_output=True, text=True,
+    )
 
 
 def embedded_beats(html):
@@ -423,3 +523,37 @@ def test_display_name_shows_minor_ids_as_words():
     from story_engine.web.player import display_name
     assert display_name('agnea', {'agnea': 'Agnea Bristarni'}) == 'Agnea Bristarni'
     assert display_name('brother_camden', {}) == 'Brother Camden'
+
+
+@pytest.mark.parametrize('content', ['pala_bristarni leaves.', 'Opaque legacy content.'])
+def test_bare_leave_beat_uses_actor_display_name(tmp_path, content):
+    from story_engine.web.player import scene_beats
+    row = dict(id=1, day=1, part='morning', place='cropdale', scene='1',
+               actor='pala_bristarni', type='action', move='leave', content=content,
+               perceived_by=[])
+    (tmp_path / 'events.jsonl').write_text(json.dumps(row) + '\n')
+    beat, = scene_beats(tmp_path, '1', {})
+    assert beat['text'] == 'Pala Bristarni leaves.'
+    assert beat['departed'] == ['pala_bristarni']
+
+
+@pytest.mark.parametrize('field', ['action', 'say', 'content'])
+@pytest.mark.parametrize(('text', 'expected'), [
+    ('She greets merchant_aldric.', 'She greets Merchant Aldric.'),
+    ("merchant_aldric, merchant_aldric's cart.", "Merchant Aldric, Merchant Aldric's cart."),
+    ('A bell rings.  Nothing changes!', 'A bell rings.  Nothing changes!'),
+    ('unknown_person merchant_aldric_extra xmerchant_aldric Merchant_aldric Mabel',
+     'unknown_person merchant_aldric_extra xmerchant_aldric Merchant_aldric Mabel'),
+])
+def test_beat_text_replaces_only_whole_known_people_ids(tmp_path, field, text, expected):
+    from story_engine.web.player import scene_beats
+    state = json.loads((FIXTURES / 'player/genesis.json').read_text())
+    state['people']['merchant_aldric'] = state['people']['Mabel'].copy()
+    (tmp_path / 'state.json').write_text(json.dumps(state))
+    row = dict(id=1, day=1, part='morning', place='cropdale', scene='1',
+               actor='agnea', type='action', content='Opaque.', perceived_by=[])
+    row[field] = text
+    (tmp_path / 'events.jsonl').write_text(json.dumps(row) + '\n')
+    names = {'Mabel': 'Do not replace', 'unknown_person': 'Not in people'}
+    beat, = scene_beats(tmp_path, '1', names)
+    assert beat['text'] == expected

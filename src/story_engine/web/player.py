@@ -57,6 +57,8 @@ def display_name(slug: str, names: dict[str, str]) -> str:
 def scene_beats(directory: Path, scene_id: str, names: dict[str, str]) -> list[dict]:
     beats = []
     departed = []
+    people_ids = [key for key in read_people(directory) if '_' in key]
+    people_pattern = re.compile(r'\b(?:' + '|'.join(map(re.escape, people_ids)) + r')\b') if people_ids else None
     for event in sorted(read_events(directory), key=lambda event: event.id):
         if event.scene != scene_id:
             continue
@@ -68,8 +70,11 @@ def scene_beats(directory: Path, scene_id: str, names: dict[str, str]) -> list[d
         if event.say:
             fields.append((event.say, event.actor, '.mp3'))
         if not fields:
-            fields.append((event.content, None, None))
+            text = display_name(event.actor, names) + ' leaves.' if event.move == 'leave' else event.content
+            fields.append((text, None, None))
         for text, actor, suffix in fields:
+            if people_pattern:
+                text = people_pattern.sub(lambda match: display_name(match.group(), names), text)
             beats.append(Beat(event_id=event.id, text=text, actor=actor, departed=list(departed),
                               speaker=display_name(actor, names) if actor else None,
                               hidden=event.actor == "world",

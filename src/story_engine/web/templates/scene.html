@@ -91,6 +91,29 @@
 <p class="metadata">Click the stage, Space or → to advance. ← goes back.</p>
 <noscript>Enable JavaScript to play this scene.</noscript>
 <script id="beats" type="application/json">{{ beats | tojson }}</script>
+<script id="page-turn-thresholds">
+function pageTurnThresholds(pages) {
+  const total = pages.reduce((sum, text) => sum + text.length, 0);
+  let cumulative = 0;
+  return pages.slice(0, -1).map(text => {
+    cumulative += text.length;
+    return cumulative / total;
+  });
+}
+if (typeof module !== 'undefined') module.exports = pageTurnThresholds;
+</script>
+<script id="manual-page-audio">
+function manualPageAudio(pages, page, currentTime, duration, auto) {
+  if (auto || !Number.isFinite(duration) || duration <= 0) {
+    return {pause: false, seekTime: null};
+  }
+  const thresholds = pageTurnThresholds(pages);
+  return {
+    pause: page < pages.length - 1 && currentTime / duration >= thresholds[page],
+    seekTime: page > 0 ? thresholds[page - 1] * duration : null,
+  };
+}
+</script>
 <script>
 (() => {
   const viewTimeline = {{ view_timeline | tojson }};
@@ -118,7 +141,8 @@
     clearTimeout(timer);
     timer = null;
     if (audio) {
-      audio.onended = audio.onerror = audio.onplaying = null;
+      audio.onended = audio.onerror = audio.onplaying = audio.ontimeupdate =
+        audio.onloadedmetadata = audio.ondurationchange = null;
       audio.pause();
       audio.removeAttribute('src');
       audio.load();
@@ -135,11 +159,22 @@
   function schedulePage() {
     clearTimeout(timer);
     if (!auto.checked) return;
-    if (page < pages.length - 1 || !audio || audioFailed) {
+    if (!usableAudio()) {
       readingDelay(pages[page] ?? beats[index]?.text ?? '');
-    } else if (audioFinished && !next.disabled) {
-      advance(1);
+    } else {
+      const thresholds = pageTurnThresholds(pages);
+      const oldPage = page;
+      while (page < pages.length - 1 &&
+             audio.currentTime / audio.duration >= thresholds[page]) page++;
+      if (page !== oldPage) {
+        showPage();
+      } else if (audioFinished && !next.disabled) {
+        advance(1);
+      }
     }
+  }
+  function usableAudio() {
+    return audio && !audioFailed && Number.isFinite(audio.duration) && audio.duration > 0;
   }
   function bubbleAnchor(width) {
     const bounds = backdrop.getBoundingClientRect();
@@ -271,8 +306,19 @@
       currentAudio.onended = () => {
         if (audio === currentAudio) {
           audioFinished = true;
-          if (page >= pages.length - 1) schedulePage();
+          schedulePage();
         }
+      };
+      currentAudio.ontimeupdate = () => {
+        if (audio === currentAudio && usableAudio()) {
+          if (manualPageAudio(pages, page, audio.currentTime, audio.duration, auto.checked).pause) {
+            audio.pause();
+          }
+          schedulePage();
+        }
+      };
+      currentAudio.onloadedmetadata = currentAudio.ondurationchange = currentAudio.onplaying = () => {
+        if (audio === currentAudio) schedulePage();
       };
       currentAudio.onerror = fallback;
       currentAudio.play().catch(fallback);
@@ -282,6 +328,11 @@
   function advance(delta) {
     if (delta > 0 && page < pages.length - 1) {
       page++;
+      if (!auto.checked && usableAudio()) {
+        audio.currentTime = manualPageAudio(pages, page, audio.currentTime, audio.duration, false).seekTime;
+        audioFinished = false;
+        audio.play().catch(audio.onerror);
+      }
       showPage();
       return;
     }
@@ -293,7 +344,12 @@
   stage.addEventListener('click', () => advance(1));
   previous.addEventListener('click', () => advance(-1));
   next.addEventListener('click', () => advance(1));
-  auto.addEventListener('change', schedulePage);
+  auto.addEventListener('change', () => {
+    if (auto.checked && usableAudio() && audio.paused && !audioFinished) {
+      audio.play().catch(audio.onerror);
+    }
+    schedulePage();
+  });
   window.addEventListener('pagehide', stopPlayback, {once: true});
   stage.addEventListener('htmx:beforeCleanupElement', stopPlayback);
   document.onkeydown = event => {
