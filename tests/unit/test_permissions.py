@@ -230,3 +230,26 @@ def test_code_drop_checks_clock_op_intermediate_state(state):
     event.ops.reverse()
     with pytest.raises(ValueError, match='may not commit situation'):
         validate_ops(state, event, authority)
+
+
+@pytest.mark.parametrize('who,id', [('agnea', 'c1'), ('Host', 'p1')])
+@pytest.mark.parametrize('day,part,how,accepted', [
+    (1, 'evening', 'broken', False), (1, 'night', 'broken', False),
+    (2, 'morning', 'broken', True), (2, 'morning', 'kept', False),
+    (2, 'morning', 'cancelled', False),
+])
+def test_code_release_only_broken_past_due(state, who, id, day, part, how, accepted):
+    event = Event(id=9, **state.clock.model_dump(), place='town', actor='world',
+                  type='state_change', content='', perceived_by=[], ops=OPS.validate_python([
+                      dict(op='clock', day=day, part=part),
+                      dict(op='release', who=who, id=id, how=how)]))
+    authority = Authority('code', parts_of_day=('morning', 'afternoon', 'evening', 'night'))
+    if accepted:
+        result = validate_ops(state, event, authority)
+        assert not ({**result.characters, **result.people}[who].commitments)
+        event.ops[-1].id = 'missing'
+        with pytest.raises(ValueError, match='may not commit release'):
+            validate_ops(state, event, authority)
+    else:
+        with pytest.raises(ValueError, match='may not commit release'):
+            validate_ops(state, event, authority)

@@ -37,6 +37,15 @@ def validate_ops(state: WorldState, event: Event, authority: Authority) -> World
             allowed = ((call == 'character_scene' and actor == op.who and actor in state.characters
                         and event.scene is not None)
                        or (world and call != 'encounter' and op.who in state.people))
+            if isinstance(op, Release) and call == 'code':
+                parts = authority.parts_of_day
+                if not parts:
+                    raise ValueError('code release checks require the configured parts_of_day')
+                member = state.characters.get(op.who) or state.people.get(op.who)
+                commitment = next((c for c in member.commitments if c.id == op.id), None) if member else None
+                allowed = (op.how == 'broken' and commitment is not None
+                           and (commitment.day, parts.index(commitment.part))
+                           < (state.clock.day, parts.index(state.clock.part)))
             if isinstance(op, Release) and allowed and op.how == 'kept':
                 member = state.characters.get(op.who) or state.people.get(op.who)
                 commitment = next((c for c in member.commitments if c.id == op.id), None)

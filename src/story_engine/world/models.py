@@ -110,6 +110,11 @@ class WorldState(WorldModel):
         unknown = sorted({name for situation in self.situations for name in situation.people if name not in self.people})
         if unknown:
             raise ValueError(f"situation people must name entries in people: {unknown}; existing people keys: {sorted(self.people)}")
+        # Fill legacy genesis IDs consistently for snapshots and event folding.
+        for name, member in {**self.characters, **self.people}.items():
+            for index, commitment in enumerate(member.commitments):
+                if commitment.id is None:
+                    commitment.id = f'genesis:{name}:{index}'
         return self
 
 

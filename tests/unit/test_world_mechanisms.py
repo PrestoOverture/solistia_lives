@@ -13,9 +13,10 @@ from test_day_start import fake_sdk
 ROOT = Path(__file__).resolve().parents[2]
 
 
+@pytest.mark.parametrize('with_commitments', [False, True])
 @pytest.mark.parametrize('seek', [False, True])
 @pytest.mark.parametrize('part,next_day,next_part', [('morning', 1, 'afternoon'), ('night', 2, 'morning')])
-def test_arrival_joins_scene_and_clock_event_expires_only_open_past_due(tmp_path, monkeypatch, part, next_day, next_part, seek):
+def test_arrival_joins_scene_and_clock_event_expires_only_open_past_due(tmp_path, monkeypatch, part, next_day, next_part, seek, with_commitments):
     world, run = tmp_path / 'world', tmp_path / 'run'
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     run.mkdir()
@@ -32,6 +33,15 @@ def test_arrival_joins_scene_and_clock_event_expires_only_open_past_due(tmp_path
                             ('resolved', 'resolved', due), ('dropped', 'dropped', due),
                             ('due_now', 'open', dict(day=next_day, part=next_part)),
                             ('future', 'open', dict(day=next_day + 1, part='morning'))]]
+    for member in state.characters.values():
+        member.commitments = []
+    if with_commitments:
+        from story_engine.world.models import Commitment
+        for who, member in [('agnea', state.characters['agnea']), ('Host', state.people['Host'])]:
+            member.commitments = [Commitment(what='Meet', where='cropdale', **clock, id=id)
+                                  for id, clock in [(None, due), ('past', dict(day=0, part='night')),
+                                                    ('now', dict(day=next_day, part=next_part)),
+                                                    ('future', dict(day=next_day + 1, part='morning'))]]
     for name in ('genesis.json', 'state.json'):
         (world / name).write_text(state.model_dump_json())
     seen_scene = []
@@ -70,13 +80,20 @@ def test_arrival_joins_scene_and_clock_event_expires_only_open_past_due(tmp_path
     assert scene.participants == (['agnea', 'Host'] if seek else ['agnea'])
     assert (scene.place, scene.spot) == ('cropdale', 'village_square')
     arrivals = [e for e in read_events(world) if any(getattr(op, 'who', None) == 'Host' for op in e.ops)]
+    arrivals = [e for e in arrivals if any(op.op == 'move' for op in e.ops)]
     assert len(arrivals) == int(seek)
     if seek:
         assert arrivals[0].ops[0].op == 'move'
     clock_event = read_events(world)[-1]
     assert [op.model_dump() for op in clock_event.ops] == [
         dict(op='clock', day=next_day, part=next_part),
-        *[dict(op='situation', id=id, status='dropped') for id in ('arrival', 'also_expired')]]
+        *[dict(op='situation', id=id, status='dropped') for id in ('arrival', 'also_expired')],
+        *([dict(op='release', who=who, id=id, how='broken')
+           for who in ('agnea', 'Host') for id in (f'genesis:{who}:0', 'past')]
+          if with_commitments else [])]
+    if with_commitments:
+        for member in (result.characters['agnea'], result.people['Host']):
+            assert [c.id for c in member.commitments] == ['now', 'future']
     assert [s.status for s in result.situations] == ['dropped', 'dropped', 'resolved', 'dropped', 'open', 'open']
     for before, after in zip(state.situations, result.situations):
         assert before.model_dump(exclude={'status'}) == after.model_dump(exclude={'status'})
