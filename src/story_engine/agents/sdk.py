@@ -216,6 +216,13 @@ def session_options(
     tools: list[str] | None = None, output_format: dict | None = None,
 ) -> ClaudeAgentOptions:
     env = session_environment(root)
+    # Keep bundled CLI instructions out of custom-prompt sessions.
+    for key in (
+        "CLAUDE_CODE_DISABLE_AUTO_MEMORY", "CLAUDE_CODE_DISABLE_BUNDLED_SKILLS",
+        "CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS", "CLAUDE_CODE_DISABLE_CLAUDE_MDS",
+        "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS", "CLAUDE_CODE_DISABLE_WORKFLOWS",
+    ):
+        env[key] = "1"
     if role.base_url:
         credentials = session_environment(root, {role.auth_token_env} if role.auth_token_env else set())
         env["ANTHROPIC_BASE_URL"] = role.base_url

@@ -218,7 +218,12 @@ class CharacterAgent:
                 if part:
                     plan = Plan.model_validate(payload)
                     if plan.where is not None and plan.where not in {p.slug for p in load_state(self.world_dir).places}:
-                        raise ValueError('where must name a place in state')
+                        error = 'where must name a place in state'
+                        if attempt < self.role.retries:
+                            raise ValueError(error)
+                        self.trace.write('plan_where_cleared', agent=self.slug, turn=self.turn,
+                                         error=error, where=plan.where)
+                        plan = plan.model_copy(update={'where': None, 'spot': None})
                     if plan.seek is not None and plan.seek not in seek_keys:
                         error = 'seek must name another main character or a person in state'
                         if attempt < self.role.retries:

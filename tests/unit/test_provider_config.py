@@ -28,6 +28,18 @@ def test_provider_explicit_disabled_thinking_body(tmp_path, monkeypatch, base_ur
         assert "CLAUDE_CODE_EXTRA_BODY" not in captured["env"]
 
 
+@pytest.mark.parametrize("base_url", [None, "https://provider.example"])
+def test_session_disables_cli_features(tmp_path, base_url):
+    hooks = sdk.KBHooks(tmp_path, tmp_path, "test", 0)
+    role = Role(model="test", effort=None, thinking=None, base_url=base_url)
+    options = sdk.session_options(tmp_path, tmp_path, role, "custom prompt", 1, hooks)
+    for feature in ("AUTO_MEMORY", "BUNDLED_SKILLS", "EXPLORE_PLAN_AGENTS",
+                    "CLAUDE_MDS", "GIT_INSTRUCTIONS", "WORKFLOWS"):
+        assert options.env[f"CLAUDE_CODE_DISABLE_{feature}"] == "1"
+    assert options.system_prompt == "custom prompt"
+    assert "bare" not in options.extra_args
+
+
 @pytest.mark.parametrize("source", ["dotenv", "environ"])
 def test_provider_environment_and_null_options(tmp_path, monkeypatch, source):
     model_variables = (
@@ -61,6 +73,9 @@ def test_provider_environment_and_null_options(tmp_path, monkeypatch, source):
     assert captured["env"] == {
         **sdk.session_environment(tmp_path),
         "CLAUDE_CONFIG_DIR": str((tmp_path / ".sdk").resolve()),
+        **{f"CLAUDE_CODE_DISABLE_{feature}": "1" for feature in (
+            "AUTO_MEMORY", "BUNDLED_SKILLS", "EXPLORE_PLAN_AGENTS",
+            "CLAUDE_MDS", "GIT_INSTRUCTIONS", "WORKFLOWS")},
     }
     assert captured["effort"] == "high"
     assert captured["thinking"] == {"type": "disabled"}

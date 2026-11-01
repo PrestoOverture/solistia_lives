@@ -138,3 +138,29 @@ def test_seek_enum_refreshes_per_call_and_prompt_is_stable(tmp_path, monkeypatch
     asyncio.run(exercise())
     assert json.loads(requests[0])['seek_schema'] == {'enum': ['agnea', None], 'default': None}
     assert json.loads(requests[1])['seek_schema'] == {'enum': ['Host', 'agnea', None], 'default': None}
+
+
+@pytest.mark.parametrize('kind', ['go', 'attempt'])
+@pytest.mark.parametrize('corrected', [False, True])
+def test_invalid_where_retries_then_clears(tmp_path, monkeypatch, kind, corrected):
+    bad = dict(call='plan', kind=kind, intent='Visit', aim='Visit',
+               where='missing', spot='tavern')
+    good = {**bad, 'where': 'cropdale'}
+    agent, _, requests, _, run = setup_agent(
+        tmp_path, monkeypatch, iter(map(json.dumps, [bad, good if corrected else bad])))
+
+    async def exercise():
+        async with agent:
+            return await agent.choose('morning', [])
+
+    result = asyncio.run(exercise())
+    assert result.where == ('cropdale' if corrected else None)
+    assert result.spot == ('tavern' if corrected else None)
+    assert len(requests) == 2 and 'where must name a place in state' in requests[1]
+    rows = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
+    cleared = [row for row in rows if row['type'] == 'plan_where_cleared']
+    assert len(cleared) == (not corrected)
+    if not corrected:
+        assert {key: cleared[0][key] for key in ('agent', 'turn', 'error', 'where')} == {
+            'agent': 'throne', 'turn': 1,
+            'error': 'where must name a place in state', 'where': 'missing'}

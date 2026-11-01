@@ -179,6 +179,9 @@ def test_scene_context_session(
             assert options.env["ANTHROPIC_API_KEY"] == "test-credential"
             assert options.env == {
                 **session_environment(repo), "CLAUDE_CONFIG_DIR": options.env["CLAUDE_CONFIG_DIR"],
+                **{f"CLAUDE_CODE_DISABLE_{feature}": "1" for feature in (
+                    "AUTO_MEMORY", "BUNDLED_SKILLS", "EXPLORE_PLAN_AGENTS",
+                    "CLAUDE_MDS", "GIT_INSTRUCTIONS", "WORKFLOWS")},
             }
             assert Path(options.env["CLAUDE_CONFIG_DIR"]).is_relative_to(repo / "runs")
             assert options.extra_args == {"no-session-persistence": None}

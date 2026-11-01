@@ -67,13 +67,12 @@ def test_attempt_destination(tmp_path, destination):
 
 @pytest.mark.parametrize('fields,expected', [
     ({'where': 'cropdale', 'spot': 'tavern', 'seek': 'agnea'}, 'valid'),
-    ({'where': 'missing'}, 'place'),
+    ({'where': 'missing'}, 'where'),
     ({'where': 'cropdale', 'spot': 'missing'}, 'spot'),
     ({'seek': 'missing'}, 'seek'),
 ])
 def test_attempt_field_checks(tmp_path, monkeypatch, fields, expected):
     import json
-    from story_engine.agents.sdk import SessionError
     from test_character_action import setup_agent
 
     reply = json.dumps(dict(call='plan', kind='attempt', intent='Study', aim='Study', **fields))
@@ -83,13 +82,9 @@ def test_attempt_field_checks(tmp_path, monkeypatch, fields, expected):
         async with agent:
             return await agent.choose('morning', [])
 
-    if expected == 'place':
-        with pytest.raises(SessionError, match='where must name a place in state'):
-            asyncio.run(choose())
+    result = asyncio.run(choose())
+    if expected == 'valid':
+        assert (result.where, result.spot, result.seek) == ('cropdale', 'tavern', 'agnea')
     else:
-        result = asyncio.run(choose())
-        if expected == 'valid':
-            assert (result.where, result.spot, result.seek) == ('cropdale', 'tavern', 'agnea')
-        else:
-            assert getattr(result, expected) is None
+        assert getattr(result, expected) is None
     assert len(requests) == (1 if expected == 'valid' else 2)
