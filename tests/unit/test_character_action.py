@@ -153,7 +153,7 @@ def test_two_calls_share_session_and_only_send_new_perceptions(tmp_path, monkeyp
             await agent.act([event, new])
 
     asyncio.run(exercise())
-    assert len(instances) == 1 and lifecycle == ["enter", "exit"]
+    assert len(instances) == 2 and lifecycle == ["enter", "exit", "enter", "exit"]
     assert "memory" not in json.loads(requests[0])
     assert json.loads(requests[1]) == {"self": load_state(agent.world_dir).characters[agent.slug].model_dump(),
                                      "perceived": [new.model_dump(exclude={"intent", "perceived_by"})],
@@ -218,7 +218,7 @@ def test_context_is_required_and_cannot_be_reopened(tmp_path, monkeypatch):
                 pass
 
     asyncio.run(exercise())
-    assert len(instances) == 1
+    assert len(instances) == 0
 
 
 @pytest.mark.parametrize("text", [

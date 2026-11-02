@@ -1,3 +1,5 @@
+from sdk_sessions import resumable_fake
+
 import asyncio
 import json
 import shutil
@@ -101,8 +103,9 @@ def test_scene_fake_sdk(tmp_path, monkeypatch, case):
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
     slugs = iter(['agnea', 'throne'])
-    monkeypatch.setattr(character, 'ClaudeSDKClient', FakeClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', FakeClient)
+    transport = resumable_fake(FakeClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', transport)
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', transport)
 
     async def exercise():
         async with TickSession(world, run, root=ROOT) as session:
@@ -224,8 +227,8 @@ def test_minor_joins_by_address_and_wins_floor(tmp_path, monkeypatch):
                                 if self.round == 2 else {}))
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     from story_engine.world.io import load_state
 
@@ -298,8 +301,8 @@ def test_minor_visible_wait_not_logged_but_floor_win_is(tmp_path, monkeypatch):
                     'Gus': dict(move='act', urge=1, to=None, action='Waves.', say='Hello there!')})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     from story_engine.world.io import load_state
 
@@ -369,8 +372,8 @@ def test_unresolved_addressee_adds_no_phantom_participant(tmp_path, monkeypatch)
             data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     from story_engine.world.io import load_state
 
@@ -441,8 +444,8 @@ def test_round_rejects_extra_events_and_caps_logged_events(tmp_path, monkeypatch
                 data = round_reply(self.request, outcome=event, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     from story_engine.world.io import load_state
 
@@ -519,8 +522,8 @@ def test_scene_events_carry_round_and_outcome_resolves_previous_round(tmp_path, 
                 data = round_reply(self.request, outcome=outcome, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     from story_engine.world.io import load_state
 
@@ -594,8 +597,8 @@ def test_scene_recorded_in_scenes_jsonl(tmp_path, monkeypatch):
                 data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     async def exercise():
         async with TickSession(world, run, root=ROOT) as session:
@@ -673,8 +676,8 @@ def test_solo_main_with_listed_minor_runs_scene(tmp_path, monkeypatch):
                 data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     async def exercise():
         async with TickSession(world, run, root=ROOT) as session:
@@ -739,8 +742,8 @@ def test_round_reply_with_state_key_is_rejected(tmp_path, monkeypatch):
                 data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     from story_engine.world.io import load_state
 
@@ -804,8 +807,8 @@ def test_scene_leaves_state_json_byte_identical(tmp_path, monkeypatch):
             data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     from story_engine.world.io import load_state
 
@@ -863,8 +866,8 @@ def test_solo_attempt_scene_ends_on_quiet_not_participant_count(tmp_path, monkey
             data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     from story_engine.world.io import load_state
 
@@ -926,8 +929,8 @@ def test_solo_attempt_scene_ends_when_character_leaves(tmp_path, monkeypatch):
             data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     from story_engine.world.io import load_state
 
@@ -999,8 +1002,8 @@ def test_two_mains_same_place_different_spots_no_scene_same_spot_opens_one(tmp_p
                 data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     async def exercise():
         async with TickSession(world, run, root=ROOT) as session:
@@ -1089,8 +1092,8 @@ def test_encounter_scene_opens_at_mains_shared_spot(tmp_path, monkeypatch):
                 data = round_reply(self.request, outcome=None, minor_moves={})
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', CharClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     async def exercise():
         async with TickSession(world, run, root=ROOT) as session:

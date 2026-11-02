@@ -4,6 +4,9 @@ from world_replies import day_start_reply, goals_reply, commit_fixture_changes
 import asyncio
 import json
 import shutil
+
+import pytest
+from claude_agent_sdk import ResultMessage
 from pathlib import Path
 
 from pydantic import TypeAdapter
@@ -54,60 +57,103 @@ class _NullClient:
         yield  # pragma: no cover - never reached; makes this an async generator
 
 
-def test_world_output_format_accepts_all_call_variants(tmp_path, monkeypatch):
+def _record_clients(monkeypatch, module, replies):
+    clients = []
+    outputs = iter(replies)
+
+    class Client(_NullClient):
+        def __init__(self, *, options):
+            super().__init__(options=options)
+            self.closed = False
+            clients.append(self)
+
+        async def __aexit__(self, *args):
+            self.closed = True
+
+        async def receive_response(self):
+            yield ResultMessage('success', 1, 1, False, 1, f'session-{len(clients)}',
+                                structured_output=next(outputs))
+
+    monkeypatch.setattr(module, 'ClaudeSDKClient', Client)
+    return clients
+
+
+def _assert_single_variant(client, valid, invalid, reply_type):
+    schema = client.options.output_format['schema']
+    assert 'reply' not in schema['properties']
+    _assert_schema_accepts(schema, valid, reply_type)
+    assert schema['properties']['call']['const'] == valid['call']
+    if jsonschema is not None:
+        with pytest.raises(jsonschema.ValidationError):
+            jsonschema.validate(invalid, schema)
+    assert 'no-session-persistence' not in client.options.extra_args
+    assert client.closed
+
+
+def test_world_per_call_schema_and_resume(tmp_path, monkeypatch):
     world = tmp_path / 'world'
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     run = tmp_path / 'run'
     run.mkdir()
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', _NullClient)
+    state = load_state(world)
+    from story_engine.agents.world import DayStartReply, AdjudicateReply, RoundResolution
+    opening = day_start_reply(situations=[state.situations[0].model_dump() | {'id': 'new-day', 'heard': 'A supper invitation arrives.'}])
+    adjudicate = dict(call='adjudicate', encounters=[])
+    scene_round = dict(call='scene_round', outcome=None, minor_moves={})
+    offscreen = dict(call='offscreen', events=[], situation_notes={})
+    replies = [opening, adjudicate, scene_round, offscreen, offscreen]
+    clients = _record_clients(monkeypatch, world_agent, replies)
     models, settings = load_configs()
 
     async def exercise():
         async with WorldAgent(ROOT, run, world, models.world,
                               settings.agent_max_turns, TraceWriter(run)) as agent:
-            async with OffscreenAgent(ROOT, run, world, models.world,
-                                      settings.agent_max_turns, TraceWriter(run)) as offscreen:
-                return agent.options, offscreen.options
+            await agent.day_start(state, [])
+            await agent.adjudicate(state, {}, [])
+            await agent.round(state, [], place='cropdale', main_present=['throne'],
+                              minor_present=[], last_winner=None, scene='1', round_number=1)
+        async with OffscreenAgent(ROOT, run, world, models.world,
+                                  settings.agent_max_turns, TraceWriter(run)) as agent:
+            await agent.offscreen(state, set())
+            await agent.offscreen(state, set())
 
-    options, offscreen_options = asyncio.run(exercise())
-    assert options.output_format['type'] == 'json_schema'
-    schema = options.output_format['schema']
-    state = load_state(world)
-    adjudicate = dict(call='adjudicate', encounters=[])
-    offscreen = dict(call='offscreen', events=[], situation_notes={s.id: 'Unchanged.' for s in state.situations})
-    scene_round = dict(call='scene_round', outcome=None, minor_moves={})
-    _assert_schema_accepts(schema, adjudicate, WorldReply)
-    _assert_schema_accepts(offscreen_options.output_format['schema'], offscreen, OffscreenReply)
-    _assert_schema_accepts(schema, day_start_reply(situations=[
-        state.situations[0].model_dump() | {'heard': 'A supper invitation arrives.'}]), WorldReply)
-    _assert_schema_accepts(schema, scene_round, WorldReply)
+    asyncio.run(exercise())
+    assert len(clients) == 5
+    assert [c.options.resume for c in clients] == [None, 'session-1', 'session-2', None, 'session-4']
+    for client, valid, reply_type in zip(clients, replies,
+            [DayStartReply, AdjudicateReply, RoundResolution, OffscreenReply, OffscreenReply]):
+        _assert_single_variant(client, valid, scene_round if valid == adjudicate else adjudicate, reply_type)
 
 
-def test_character_output_format_accepts_both_call_variants(tmp_path, monkeypatch):
+def test_character_plan_schema_and_resume(tmp_path, monkeypatch):
     world = tmp_path / 'world'
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     run = tmp_path / 'run'
     run.mkdir()
-    monkeypatch.setattr(character, 'ClaudeSDKClient', _NullClient)
+    from story_engine.agents.character import DayStart, Plan
+    opening = goals_reply('throne', ['Find a quiet home'])
+    plan = dict(call='plan', kind='attempt', intent='Rest', aim='Find quiet')
+    action = dict(call='action', intent='Find some quiet', move='act', urge=2,
+                  action='Throné checks the doorway.', say='')
+    summary = dict(call='end_of_day', summary='I found quiet.')
+    replies = [opening, plan, action, summary]
+    clients = _record_clients(monkeypatch, character, replies)
     models, settings = load_configs()
     agent = CharacterAgent(ROOT, run, world, 'throne', models.character,
                            settings.agent_max_turns, TraceWriter(run))
 
     async def exercise():
         async with agent:
-            return agent.options
+            await agent.day_start()
+            await agent.choose('morning', [])
+            await agent.act([])
+            await agent.summarize([])
 
-    options = asyncio.run(exercise())
-    assert options.output_format['type'] == 'json_schema'
-    schema = options.output_format['schema']
-    action = dict(call='action', intent='Find some quiet', move='act', urge=2,
-                 action='Throné checks the doorway.', say='')
-    end_of_day = dict(call='end_of_day', summary='# Today\nNothing much.')
-    _assert_schema_accepts(schema, action, CharacterReply)
-    _assert_schema_accepts(schema, end_of_day, CharacterReply)
-    _assert_schema_accepts(schema, goals_reply('throne', ['Find a quiet home']), CharacterReply)
-    assert Action.model_validate(action)
-    assert EndOfDay.model_validate(end_of_day)
+    asyncio.run(exercise())
+    assert len(clients) == 4
+    assert [c.options.resume for c in clients] == [None, 'session-1', 'session-2', 'session-3']
+    for client, valid, reply_type in zip(clients, replies, [DayStart, Plan, Action, EndOfDay]):
+        _assert_single_variant(client, valid, plan if valid == action else action, reply_type)
 
 
 def test_curator_output_format_is_json_schema(tmp_path, monkeypatch):

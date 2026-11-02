@@ -8,7 +8,7 @@ import pytest
 
 from story_engine.agents.character import CharacterReply, Plan
 from story_engine.agents.sdk import json_schema_output
-from story_engine.agents.world import WorldAgent, WorldReply, OffscreenReply, OffscreenAgent
+from story_engine.agents.world import AdjudicateReply, DayStartReply, RoundResolution, WorldAgent, WorldReply, OffscreenReply, OffscreenAgent
 from story_engine.stages import catalog_schema, load_catalogs, validate_spot
 from story_engine.world.io import load_state
 from story_engine.world.models import Place, WorldState
@@ -93,7 +93,7 @@ def test_plan_reference_retry_then_null_and_prompt(tmp_path, monkeypatch, place,
         assert request['spots'][p.slug] == expected
         for item in expected:
             assert item['name'] and item['about']
-    assert instances[0].options.output_format == catalog_schema(json_schema_output(CharacterReply), catalogs)
+    assert instances[0].options.output_format == catalog_schema(json_schema_output(Plan), catalogs)
     assert 'watermill_bridge' not in instances[0].options.system_prompt
     assert len(rows(run, 'plan_spot_cleared')) == (not corrected)
 
@@ -161,7 +161,7 @@ def test_world_spot_ops_retry_then_drop(workspace, monkeypatch, call, corrected)
     assert len(clients[0].calls) == 2 and 'must be a catalog id' in clients[0].calls[1]
     assert len(rows(run, 'event_dropped')) == (not corrected)
     assert clients[0].options.output_format == catalog_schema(
-        require_person_sex(json_schema_output(OffscreenReply if call == 'offscreen' else WorldReply)), load_catalogs(ROOT))
+        require_person_sex(json_schema_output({'offscreen': OffscreenReply, 'adjudicate': AdjudicateReply, 'day_start': DayStartReply, 'scene_round': RoundResolution, 'minor': RoundResolution}[call])), load_catalogs(ROOT))
 
 
 @pytest.mark.parametrize('corrected', [False, True])

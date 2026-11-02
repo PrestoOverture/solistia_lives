@@ -126,13 +126,13 @@ def test_seek_enum_refreshes_per_call_and_prompt_is_stable(tmp_path, monkeypatch
 
     async def exercise():
         async with agent:
-            prompt = clients[0].options.system_prompt
             assert (await agent.choose('morning', [])).seek is None
+            prompt = clients[0].options.system_prompt
             state = load_state(agent.world_dir)
             state.people['Host'] = Person(where='cropdale', spot='tavern', wants=['Visit'], commitments=[])
             (agent.world_dir / 'genesis.json').write_text(state.model_dump_json())
             assert (await agent.choose('morning', [])).seek == 'Host'
-            assert clients[0].options.system_prompt == prompt
+            assert clients[1].options.system_prompt == prompt
             assert 'Host' not in prompt
 
     asyncio.run(exercise())

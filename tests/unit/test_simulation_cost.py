@@ -1,3 +1,5 @@
+from sdk_sessions import resumable_fake
+
 import asyncio
 import json
 import shutil
@@ -42,7 +44,7 @@ def setup(tmp_path, monkeypatch, module, outputs):
             yield ResultMessage('success', 1, 1, False, 1, 'fake',
                                 result=json.dumps(data), total_cost_usd=cost)
 
-    monkeypatch.setattr(module, 'ClaudeSDKClient', FakeClient)
+    monkeypatch.setattr(module, 'ClaudeSDKClient', resumable_fake(FakeClient))
     return world, run, requests, closed
 
 
@@ -112,7 +114,7 @@ def test_scene_cost_cap_stops_immediately(tmp_path, monkeypatch, payer):
         async def receive_response(self):
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(resolution),
                                 total_cost_usd=.26 if payer == 'world' else 0)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', WorldClient)
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
 
     async def exercise():
         async with TickSession(world, run, root=ROOT) as session:
@@ -123,7 +125,7 @@ def test_scene_cost_cap_stops_immediately(tmp_path, monkeypatch, payer):
 
     asyncio.run(exercise())
     assert len(requests) == (3 if payer == 'character' else 1)
-    assert len(closed) == 4
+    assert len(closed) == (3 if payer == 'character' else 1)
     assert rows(run)[-1]['type'] == 'cost_cap_reached'
     assert rows(run)[-1]['spend_usd'] == pytest.approx(.25 if payer == 'character' else .26)
 
@@ -188,3 +190,48 @@ def test_existing_usage_cost_cap(tmp_path, monkeypatch, proxy, explicit_billed):
                     pytest.fail('Existing billed spend must stop session startup')
 
     asyncio.run(exercise())
+
+
+@pytest.mark.parametrize('kind', ['character', 'world'])
+@pytest.mark.parametrize('totals,expected', [
+    ([.10, .25, .40], [.10, .15, .15]),
+    ([.10, .04, .02], [.10, .04, .02]),
+    ([.10, .04, .09], [.10, .04, .05]),
+])
+def test_resumed_client_cost_deltas(tmp_path, monkeypatch, kind, totals, expected):
+    """Cumulative totals and detectable resets across distinct resumed clients."""
+    module = character if kind == 'character' else world_agent
+    reply = (dict(call='action', intent='Wait', move='wait', urge=0, action='', say='')
+             if kind == 'character' else dict(call='adjudicate', encounters=[]))
+    world, run, _, _ = setup(tmp_path, monkeypatch, module, zip([reply] * 3, totals))
+    models, settings = load_configs()
+    recorded_options = []
+    transport = module.ClaudeSDKClient
+
+    def record(*, options):
+        # Record actual transports, independently of the fake conversation state.
+        recorded_options.append(options)
+        return transport(options=options)
+
+    monkeypatch.setattr(module, 'ClaudeSDKClient', record)
+    agent = (character.CharacterAgent(ROOT, run, world, 'agnea', models.character,
+                                      settings.agent_max_turns, TraceWriter(run))
+             if kind == 'character' else world_agent.WorldAgent(
+                 ROOT, run, world, models.world, settings.agent_max_turns, TraceWriter(run)))
+
+    async def exercise():
+        async with agent:
+            for _ in totals:
+                if kind == 'character':
+                    await agent.act([])
+                else:
+                    await agent.adjudicate(load_state(world), {}, [])
+
+    asyncio.run(exercise())
+    assert len(recorded_options) == 3
+    assert recorded_options[0].resume is None
+    assert all(option.resume == 'session-0' for option in recorded_options[1:])
+    costs = [row['call_cost_usd'] for row in rows(run) if row['type'] == 'stage_usage']
+    assert costs == pytest.approx(expected)
+    assert sum(costs) == pytest.approx(sum(expected))
+    assert all(cost >= 0 for cost in costs)

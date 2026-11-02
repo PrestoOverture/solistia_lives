@@ -1,3 +1,4 @@
+from sdk_sessions import resumable_fake
 import inspect
 import json
 import shutil
@@ -127,8 +128,9 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
 
     monkeypatch.setattr(curator, 'ClaudeSDKClient', FakeClient)
     monkeypatch.setattr(narrator, 'ClaudeSDKClient', FakeClient)
-    monkeypatch.setattr(character, 'ClaudeSDKClient', FakeClient)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', FakeClient)
+    transport = resumable_fake(FakeClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', transport)
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', transport)
     fake(monkeypatch, [dict(call='extract', claims=[]), dict(call='verdicts', verdicts=[]), dict(call='contract', findings=[])])
     args = ['world', 'run', 'test'] + (['--stop-after', 'day'] if stop_after else [])
     if failure == 'dry_run':

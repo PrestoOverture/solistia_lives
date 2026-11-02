@@ -113,7 +113,7 @@ def test_mocked_world_links_previous_and_closing_winners(tmp_path, monkeypatch):
 
     class FakeClient:
         def __init__(self, *, options):
-            assert 'resolves' not in options.output_format['schema']['$defs']['RoundResolution']['properties']
+            assert 'resolves' not in options.output_format['schema']['properties']
 
         async def __aenter__(self):
             return self

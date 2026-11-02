@@ -126,8 +126,8 @@ def test_actual_sdk_creation_schemas_require_sex(tmp_path, monkeypatch, agent):
     async def capture():
         if agent == 'world':
             async with world_agent.WorldAgent(ROOT, run, run, models.world,
-                                              settings.agent_max_turns, TraceWriter(run)):
-                pass
+                                              settings.agent_max_turns, TraceWriter(run)) as session:
+                await session.adjudicate(load_state(ROOT / 'tests/fixtures/worlds/agnea_throne'), {}, [])
         else:
             await initializer.starting_state(ROOT, run, ['agnea', 'throne'], 'cropdale',
                                              'A festival', models.initializer,
@@ -137,8 +137,8 @@ def test_actual_sdk_creation_schemas_require_sex(tmp_path, monkeypatch, agent):
     schema = schemas[0]
     person = dict(where='cropdale', wants=['Rest'], commitments=[], sex='m')
     if agent == 'world':
-        output = {'reply': dict(call='adjudicate', ops=[dict(op='introduce', name='Gus', **person)])}
-        field = output['reply']['ops'][0]
+        output = dict(call='adjudicate', ops=[dict(op='introduce', name='Gus', **person)])
+        field = output['ops'][0]
     else:
         output = dict(places=[dict(slug='cropdale', details=[])], situations=[],
                       characters={name: dict(where='cropdale', goals=['Rest'], commitments=[])

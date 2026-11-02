@@ -1,5 +1,7 @@
 """D29 day renewal and off-screen isolation, using only fake SDK clients."""
 
+from sdk_sessions import resumable_fake
+
 import asyncio
 import copy
 import json
@@ -56,8 +58,9 @@ def fake_sdk(monkeypatch, respond):
             yield ResultMessage('success', 1, 1, False, 1, 'fake',
                                 structured_output=reply, total_cost_usd=.01 * len(self.calls))
 
-    monkeypatch.setattr(character, 'ClaudeSDKClient', Client)
-    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', Client)
+    transport = resumable_fake(Client)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', transport)
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', transport)
     return clients
 
 
@@ -182,7 +185,7 @@ def test_run_day_first_calls_goals_and_visible_history(workspace, monkeypatch, d
                 assert all('intent' not in e and e['type'] != 'plan' for e in request['events'])
                 return day_start_reply(situations=[new_situation])
             assert 'The festival is over.' in request['memory']
-            return goals_reply(('agnea', 'throne')[clients.index(client) % 4], ['Make a new plan'])
+            return goals_reply(('agnea', 'throne')[clients.index(client) % 3], ['Make a new plan'])
         assert request['call'] == 'end_of_day'
         return dict(call='end_of_day', summary='New memory')
 
@@ -210,8 +213,7 @@ def test_run_day_first_calls_goals_and_visible_history(workspace, monkeypatch, d
     monkeypatch.setattr(simulation, 'run_tick', tick)
     result = asyncio.run(simulation.run_day(world, run))
     assert len(tick_calls) == 1 and result.clock.day == day + 1
-    assert len(clients) == 4 and all(client.closed for client in clients)
-    assert clients[3].calls == []  # merely opened alongside the other day sessions
+    assert len(clients) == (3 if day >= 2 else 2) and all(client.closed for client in clients)
     if day >= 2:
         assert all(client.calls[0]['call'] == 'day_start' for client in clients[:3])
         assert all(c.goals == ['Make a new plan'] for c in load_state(world).characters.values())
@@ -251,7 +253,7 @@ def test_run_day_afternoon_resume_skips_day_start(workspace, monkeypatch):
     assert parts == ['afternoon', 'evening', 'night']
     assert result.clock.day == 3
     assert all(request['call'] != 'day_start' for client in clients for request in client.calls)
-    assert clients[2].calls == []  # World never receives day_start.
+    assert len(clients) == 2  # World has no calls, so no SDK client is opened.
 
 
 def test_run_day_first_tick_failure_restores_before_day_start(workspace, monkeypatch):
@@ -267,7 +269,7 @@ def test_run_day_first_tick_failure_restores_before_day_start(workspace, monkeyp
             if client.options.system_prompt.startswith('# World'):
                 assert request['state']['situations'] == state.model_dump()['situations']
                 return day_start_reply(situations=[situation()])
-            return goals_reply(('agnea', 'throne')[clients.index(client) % 4], ['Make a new plan'])
+            return goals_reply(('agnea', 'throne')[clients.index(client) % 3], ['Make a new plan'])
         assert request['call'] == 'end_of_day'
         return dict(call='end_of_day', summary='New memory')
 
@@ -301,8 +303,8 @@ def test_run_day_first_tick_failure_restores_before_day_start(workspace, monkeyp
     retry_run = run / 'retry'
     result = asyncio.run(simulation.run_day(world, retry_run))
     assert result.clock.day == 3
-    assert len(clients) == 8 and all(client.closed for client in clients)
-    for client in clients[:3] + clients[4:7]:
+    assert len(clients) == 6 and all(client.closed for client in clients)
+    for client in clients[:3] + clients[3:6]:
         assert sum(request['call'] == 'day_start' for request in client.calls) == 1
 
 
@@ -437,11 +439,11 @@ def test_offscreen_isolated_persistent_client_and_scene_state(workspace, monkeyp
                                           minor_present=[], last_winner=None, scene='1', round_number=1)
                 await session.offscreen.offscreen(state, {s.id for s in state.situations if s.status == 'open'})
     asyncio.run(exercise())
-    assert len(clients) == 4 and all(client.closed for client in clients)
-    assert [r['call'] for r in clients[2].calls] == ['adjudicate', 'scene_round'] * 2
-    assert clients[3].calls == offscreen_requests and len(offscreen_requests) == 2
-    assert clients[2] is not clients[3]
-    assert clients[3].options.system_prompt == (ROOT / 'prompts/world_offscreen.md').read_text()
+    assert len(clients) == 2 and all(client.closed for client in clients)
+    assert [r['call'] for r in clients[0].calls] == ['adjudicate', 'scene_round'] * 2
+    assert clients[1].calls == offscreen_requests and len(offscreen_requests) == 2
+    assert clients[0] is not clients[1]
+    assert clients[1].options.system_prompt == (ROOT / 'prompts/world_offscreen.md').read_text()
 
 
 @pytest.mark.parametrize('new_id', [True, False])

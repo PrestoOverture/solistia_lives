@@ -40,10 +40,12 @@ class SessionCost:
 
     total: float = 0.0
 
-    def delta(self, total: float | None) -> float:
+    def delta(self, total: float | None, *, resumed: bool = False) -> float:
         if total is None:
             return 0.0
-        cost = total - self.total
+        # A lower first total on a resumed transport identifies a reset.
+        # Increasing totals alone cannot distinguish a reset from continuation.
+        cost = total if resumed and total < self.total else total - self.total
         self.total = total
         return cost
 
@@ -242,7 +244,7 @@ def session_options(
         optional["effort"] = role.effort
     if role.thinking is not None:
         optional["thinking"] = {"type": "disabled" if role.thinking == "off" else "adaptive"}
-    # Keep SDK bookkeeping inside this run, without persisting conversations.
+    # Keep SDK bookkeeping inside this run; callers may enable conversation persistence.
     env["CLAUDE_CONFIG_DIR"] = str((run_dir / ".sdk").resolve())
     return ClaudeAgentOptions(
         cwd=root, system_prompt=system_prompt, model=role.model, **optional,

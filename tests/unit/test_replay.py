@@ -118,7 +118,7 @@ def record(setup, call, monkeypatch):
 def test_traces_always_record_full_input(setup, monkeypatch, call):
     world, run, state, _, _ = setup
     clients, choices = record(setup, call, monkeypatch)
-    requests = [json.loads(request) for request in clients[0].requests]
+    requests = [json.loads(request) for client in clients for request in client.requests]
     assert "state_changes" in requests[1] and "state" not in requests[1]
     rows = [row for line in (run / "trace.jsonl").read_text().splitlines()
             if (row := json.loads(line))["type"] == "call_input"]

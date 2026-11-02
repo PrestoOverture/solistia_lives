@@ -31,12 +31,13 @@ def session_setup(tmp_path, monkeypatch):
     commit_fixture_changes(world, state)
     new_situation = state.situations[0].model_dump() | {"id": "delta-new", "heard": "A supper invitation arrives."}
     requests, clients = [], []
+    controls = {}
 
     class FakeClient:
         def __init__(self, *, options):
             self.requests = []
-            self.fail_next = False
-            self.offscreen_places = []
+            self.fail_next = controls.pop("fail_next", False)
+            self.offscreen_places = controls.pop("offscreen_places", [])
             clients.append(self)
 
         async def __aenter__(self):
@@ -71,6 +72,7 @@ def session_setup(tmp_path, monkeypatch):
         cls = world_agent.OffscreenAgent if call == "offscreen" else world_agent.WorldAgent
         return cls(ROOT, run, world, models.world, settings.agent_max_turns, TraceWriter(run))
 
+    session.controls = controls
     return state, session, requests, clients
 
 
@@ -110,7 +112,7 @@ def test_full_state_once_then_empty_delta_and_new_session(session_setup, call):
     assert "state_changes" not in first and "state_changes" not in fresh
     assert "state" not in second
     assert second["state_changes"] == {}
-    assert [len(client.requests) for client in clients] == [2, 1]
+    assert [len(client.requests) for client in clients] == [1, 1, 1]
 
 
 @pytest.mark.parametrize("call", CALLS)
@@ -245,7 +247,7 @@ def test_retry_feedback_unchanged_and_next_call_diffs_last_input(session_setup, 
 
     async def exercise():
         async with session(call) as agent:
-            agent.client.fail_next = True
+            session.controls["fail_next"] = True
             await invoke(agent, call, state)
             await invoke(agent, call, state)
 
@@ -267,7 +269,7 @@ def test_offscreen_reply_keeps_omitted_places_and_merges_by_slug(session_setup, 
     async def exercise():
         async with session("offscreen") as agent:
             if update_place:
-                agent.client.offscreen_places = [changed, added]
+                session.controls["offscreen_places"] = [changed, added]
             return await invoke(agent, "offscreen", state)
 
     _events, updated, _notes = asyncio.run(exercise())

@@ -1,6 +1,7 @@
 """The world's persistent resolving session for one day."""
 
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import Annotated, Literal, Self, Union
 
@@ -140,6 +141,8 @@ class _WorldSession:
         self.role, self.max_turns, self.trace = role, max_turns, trace
         self.catalogs = load_catalogs(root)
         self.client = None
+        self.active = False
+        self.session_id = None
         self.opened = False
         self.seen: set[int] = set()
         self.last_state: dict | None = None
@@ -193,17 +196,32 @@ class _WorldSession:
         prompt = "\n\n".join(path.read_text(encoding="utf-8") for path in sources)
         self.hooks = KBHooks(self.root, self.run_dir, agent=self.agent_name, turn=1)
         self.options = session_options(self.root, self.run_dir, self.role, prompt,
-                                       self.max_turns, self.hooks,
-                                       output_format=catalog_schema(require_person_sex(json_schema_output(self.reply_type)), self.catalogs))
-        self.context = ClaudeSDKClient(options=self.options)
-        self.client = await self.context.__aenter__()
+                                       self.max_turns, self.hooks)
+        self.options.extra_args.pop("no-session-persistence", None)
+        self.active = True
         return self
 
     async def __aexit__(self, *args):
         try:
-            return await self.context.__aexit__(*args)
+            if self.client is not None:
+                return await self.context.__aexit__(*args)
         finally:
             self.client = None
+            self.active = False
+
+    async def _start_call(self, reply_type: type) -> None:
+        if self.client is not None:
+            await self.context.__aexit__(None, None, None)
+            self.client = None
+            if not self.session_id:
+                raise SessionError("SDK returned no session_id to resume")
+        self.options = replace(
+            self.options, resume=self.session_id,
+            output_format=catalog_schema(require_person_sex(json_schema_output(reply_type)), self.catalogs),
+        )
+        self.resumed_cost = self.session_id is not None
+        self.context = ClaudeSDKClient(options=self.options)
+        self.client = await self.context.__aenter__()
 
     async def _send(self, request: str):
         """Send one query and return (result_text, trace_fields) for the final reply."""
@@ -217,12 +235,14 @@ class _WorldSession:
                 self.hooks.observe(message)
                 thinking.observe(message)
                 if isinstance(message, ResultMessage):
+                    self.session_id = message.session_id
                     usage_fields = dict(
                         usage=message.usage or {}, num_turns=message.num_turns,
                         total_cost_usd=message.total_cost_usd,
-                        call_cost_usd=self.cost.delta(message.total_cost_usd),
+                        call_cost_usd=self.cost.delta(message.total_cost_usd, resumed=self.resumed_cost),
                         thinking_blocks=thinking.thinking_blocks, thinking_chars=thinking.thinking_chars,
                     )
+                    self.resumed_cost = False
                     if message.is_error or message.subtype != "success":
                         raise session_error(f"World session {message.subtype}: " +
                                             ("; ".join(message.errors or []) or message.result or "unspecified SDK error"),
@@ -257,7 +277,7 @@ class _WorldSession:
 class WorldAgent(_WorldSession):
     async def day_start(self, state: WorldState, events: list[Event]) -> WorldState:
         """Add the day's situations from revised goals and yesterday's visible facts."""
-        if self.client is None:
+        if not self.active:
             raise SessionError("WorldAgent must be opened as an async context manager")
         self.turn += 1
         self.hooks.turn = self.turn
@@ -267,6 +287,7 @@ class WorldAgent(_WorldSession):
             "events": [event.model_dump(exclude={"intent"}) for event in events
                        if event.day == state.clock.day - 1 and event.type != "plan" and not event.op_only],
         }, ensure_ascii=False)
+        await self._start_call(DayStartReply)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
@@ -306,7 +327,7 @@ class WorldAgent(_WorldSession):
 
     async def adjudicate(self, state: WorldState, choices: dict, events: list[Event]):
         """Identify people at mains' spots, including arrivals linked by open situations."""
-        if self.client is None:
+        if not self.active:
             raise SessionError("WorldAgent must be opened as an async context manager")
         self.turn += 1
         self.hooks.turn = self.turn
@@ -317,6 +338,7 @@ class WorldAgent(_WorldSession):
         request = json.dumps({**self._state_payload(state.model_dump()), "choices": choices,
                               "call": "adjudicate", "reply": "JSON with call: 'adjudicate', encounters and ops",
                               "events": [event.model_dump() for event in new_events]}, ensure_ascii=False)
+        await self._start_call(AdjudicateReply)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
@@ -381,7 +403,7 @@ class WorldAgent(_WorldSession):
                     last_winner: dict | None, scene: str, round_number: int,
                     closing: bool = False):
         """Resolve the previous winning act and bid for minor participants' next moves."""
-        if self.client is None:
+        if not self.active:
             raise SessionError("WorldAgent must be opened as an async context manager")
         self.turn += 1
         self.hooks.turn = self.turn
@@ -393,6 +415,7 @@ class WorldAgent(_WorldSession):
                                          if name in state.people},
                               "last_winner": last_winner, "closing": closing,
                               "events": [event.model_dump() for event in new_events]}, ensure_ascii=False)
+        await self._start_call(RoundResolution)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
@@ -490,7 +513,7 @@ class OffscreenAgent(_WorldSession):
     async def offscreen(self, state: WorldState, open_situations: set[str],
                         *, max_event_id: int | None = None):
         """Advance off-screen life in a session with no main-character context."""
-        if self.client is None:
+        if not self.active:
             raise SessionError("WorldAgent must be opened as an async context manager")
         self.turn += 1
         self.hooks.turn = self.turn
@@ -506,6 +529,7 @@ class OffscreenAgent(_WorldSession):
                          validation_state=state.model_dump(), open_situations=sorted(open_situations))
         request = json.dumps({"call": "offscreen", "reply": "JSON with call: 'offscreen'",
                               **self._state_payload(projection)}, ensure_ascii=False)
+        await self._start_call(OffscreenReply)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:

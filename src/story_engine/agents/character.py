@@ -1,6 +1,7 @@
 """One character's persistent session for a single day."""
 
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import Annotated, Literal, Self, Union
 
@@ -102,6 +103,8 @@ class CharacterAgent:
         self.slug, self.role, self.max_turns, self.trace = slug, role, max_turns, trace
         self.catalogs = load_catalogs(root)
         self.client = None
+        self.active = False
+        self.session_id = None
         self.opened = False
         self.turn = 0
         self.cost = SessionCost()
@@ -126,17 +129,32 @@ class CharacterAgent:
         prompt = "\n\n".join(path.read_text(encoding="utf-8") for path in sources)
         self.hooks = KBHooks(self.root, self.run_dir, agent=self.slug, turn=1)
         self.options = session_options(self.root, self.run_dir, self.role, prompt,
-                                       self.max_turns, self.hooks,
-                                       output_format=catalog_schema(json_schema_output(CharacterReply), self.catalogs))
-        self.context = ClaudeSDKClient(options=self.options)
-        self.client = await self.context.__aenter__()
+                                       self.max_turns, self.hooks)
+        self.options.extra_args.pop("no-session-persistence", None)
+        self.active = True
         return self
 
     async def __aexit__(self, *args):
         try:
-            return await self.context.__aexit__(*args)
+            if self.client is not None:
+                return await self.context.__aexit__(*args)
         finally:
             self.client = None
+            self.active = False
+
+    async def _start_call(self, reply_type: type) -> None:
+        if self.client is not None:
+            await self.context.__aexit__(None, None, None)
+            self.client = None
+            if not self.session_id:
+                raise SessionError("SDK returned no session_id to resume")
+        self.options = replace(
+            self.options, resume=self.session_id,
+            output_format=catalog_schema(json_schema_output(reply_type), self.catalogs),
+        )
+        self.resumed_cost = self.session_id is not None
+        self.context = ClaudeSDKClient(options=self.options)
+        self.client = await self.context.__aenter__()
 
     async def choose(self, part: PartOfDay, perceived: list[Event]) -> Plan:
         return await self._action(perceived, part)
@@ -155,7 +173,7 @@ class CharacterAgent:
     async def _action(self, perceived: list[Event], part: PartOfDay | None = None,
                       note: str | None = None, summary: bool = False,
                       day_start: bool = False) -> Action | Plan | str | list[Goals]:
-        if self.client is None:
+        if not self.active:
             raise SessionError("CharacterAgent must be opened as an async context manager")
         self.turn += 1
         self.hooks.turn = self.turn
@@ -175,10 +193,11 @@ class CharacterAgent:
                                   "spots": spot_context(self.catalogs, [p.slug for p in state.places]),
                                   "seek_schema": {"enum": [*seek_keys, None], "default": None},
                                   "part": part, "call": "part_of_day", "reply": "JSON with call: 'plan'"} if part else {}),
-                              # Each request names its reply type in the shared schema.
+                              # Each request names its expected reply type.
                               **({"call": "scene_move", "reply": "JSON with call: 'action'"}
                                  if not part and not summary and not day_start else {})},
                              ensure_ascii=False)
+        await self._start_call(DayStart if day_start else EndOfDay if summary else Plan if part else Action)
         for attempt in range(self.role.retries + 1):
             thinking = ThinkingUsage()
             async def receive_call():
@@ -189,14 +208,16 @@ class CharacterAgent:
                     self.hooks.observe(message)
                     thinking.observe(message)
                     if isinstance(message, ResultMessage):
+                        self.session_id = message.session_id
                         self.trace.write(
                             "stage_usage", stage=("character_summary" if summary else
                                                   "character_day_start" if day_start else "character_action"), agent=self.slug,
                             turn=self.turn, attempt=attempt + 1, usage=message.usage or {},
                             num_turns=message.num_turns, total_cost_usd=message.total_cost_usd,
-                            call_cost_usd=self.cost.delta(message.total_cost_usd),
+                            call_cost_usd=self.cost.delta(message.total_cost_usd, resumed=self.resumed_cost),
                             thinking_blocks=thinking.thinking_blocks, thinking_chars=thinking.thinking_chars,
                         )
+                        self.resumed_cost = False
                         if message.is_error or message.subtype != "success":
                             raise session_error(f"Character session {message.subtype}: "
                                                 + ("; ".join(message.errors or []) or message.result or "unspecified SDK error"), self.options.env)
