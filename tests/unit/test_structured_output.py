@@ -131,7 +131,7 @@ def test_character_plan_schema_and_resume(tmp_path, monkeypatch):
     run = tmp_path / 'run'
     run.mkdir()
     from story_engine.agents.character import DayStart, Plan
-    opening = goals_reply('throne', ['Find a quiet home'])
+    opening = goals_reply(['Find a quiet home'])
     plan = dict(call='plan', kind='attempt', intent='Rest', aim='Find quiet')
     action = dict(call='action', intent='Find some quiet', move='act', urge=2,
                   action='Throné checks the doorway.', say='')

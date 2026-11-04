@@ -86,7 +86,7 @@ class DayStart(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     call: Literal["day_start"]
-    ops: list[Goals] = Field(min_length=1, max_length=1)
+    goals: list[str] = Field(min_length=1, max_length=3)
 
 
 CharacterReply = Annotated[Union[Action, Plan, EndOfDay, DayStart], Field(discriminator="call")]
@@ -188,7 +188,7 @@ class CharacterAgent:
         request = json.dumps({**(self.opening if self.turn == 1 else {'self': current.model_dump()}), "perceived": events,
                               **({"note": note} if note else {}),
                               **({"call": "end_of_day", "reply": "JSON {call: 'end_of_day', summary: 'Markdown: what happened, what changed, what you want now'}"} if summary else {}),
-                              **({"call": "day_start", "reply": "JSON with call: 'day_start' and one goals op for yourself (1-3 goals)"} if day_start else {}),
+                              **({"call": "day_start", "reply": "JSON with call: 'day_start' and goals: [1-3 strings]"} if day_start else {}),
                               **({"places": [p.model_dump() for p in state.places],
                                   "spots": spot_context(self.catalogs, [p.slug for p in state.places]),
                                   "seek_schema": {"enum": [*seek_keys, None], "default": None},
@@ -228,7 +228,7 @@ class CharacterAgent:
             try:
                 payload = structured_reply(result, structured_output)
                 if day_start:
-                    ops = DayStart.model_validate(payload).ops
+                    ops = [Goals(main=self.slug, goals=DayStart.model_validate(payload).goals)]
                     state = load_state(self.world_dir)
                     validate_ops(state, Event(id=0, **state.clock.model_dump(), place=state.characters[self.slug].where,
                                              actor=self.slug, type='state_change', content='', perceived_by=[], ops=ops),

@@ -16,8 +16,8 @@ def day_start_reply(*, situations, people=None, places=None):
     return dict(call='day_start', ops=ops)
 
 
-def goals_reply(slug, goals):
-    return dict(call='day_start', ops=[dict(op='goals', main=slug, goals=goals)])
+def goals_reply(goals):
+    return dict(call='day_start', goals=goals)
 
 
 def commit_fixture_changes(world, state):

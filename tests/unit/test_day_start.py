@@ -88,7 +88,7 @@ def test_day_start_heard_precedes_plans_and_is_perceived(workspace, monkeypatch,
         if call == 'day_start':
             if client.options.system_prompt.startswith('# World'):
                 return day_start_reply(situations=[new])
-            return goals_reply(('agnea', 'throne')[clients.index(client)], ['Explore'])
+            return goals_reply(['Explore'])
         if call == 'part_of_day':
             slug = ('agnea', 'throne')[clients.index(client)]
             facts = [e for e in request['perceived'] if e['content'] == heard]
@@ -185,7 +185,7 @@ def test_run_day_first_calls_goals_and_visible_history(workspace, monkeypatch, d
                 assert all('intent' not in e and e['type'] != 'plan' for e in request['events'])
                 return day_start_reply(situations=[new_situation])
             assert 'The festival is over.' in request['memory']
-            return goals_reply(('agnea', 'throne')[clients.index(client) % 3], ['Make a new plan'])
+            return goals_reply(['Make a new plan'])
         assert request['call'] == 'end_of_day'
         return dict(call='end_of_day', summary='New memory')
 
@@ -269,7 +269,7 @@ def test_run_day_first_tick_failure_restores_before_day_start(workspace, monkeyp
             if client.options.system_prompt.startswith('# World'):
                 assert request['state']['situations'] == state.model_dump()['situations']
                 return day_start_reply(situations=[situation()])
-            return goals_reply(('agnea', 'throne')[clients.index(client) % 3], ['Make a new plan'])
+            return goals_reply(['Make a new plan'])
         assert request['call'] == 'end_of_day'
         return dict(call='end_of_day', summary='New memory')
 
@@ -390,10 +390,53 @@ def test_day_start_adds_people_and_places(workspace, monkeypatch):
     assert result.places[:-1] == state.places
 
 
+def test_character_day_start_builds_own_goals_op(workspace, monkeypatch):
+    world, run = workspace
+    goals = ['Find somewhere quiet', 'Visit the festival']
+    clients = fake_sdk(monkeypatch, lambda *_: dict(call='day_start', goals=goals))
+    models, settings = load_configs()
+
+    async def exercise():
+        async with character.CharacterAgent(ROOT, run, world, 'throne', models.character,
+                                            settings.agent_max_turns, TraceWriter(run)) as session:
+            return await session.day_start()
+
+    ops = asyncio.run(exercise())
+    assert ops == [character.Goals(main='throne', goals=goals)]
+    assert len(clients[0].calls) == 1
+
+
+def test_character_day_start_output_schema_has_no_main(workspace, monkeypatch):
+    world, run = workspace
+
+    def respond(client, request):
+        def check_schema(value):
+            if isinstance(value, dict):
+                assert 'main' not in value.get('properties', {})
+                for child in value.values():
+                    check_schema(child)
+            elif isinstance(value, list):
+                for child in value:
+                    check_schema(child)
+
+        check_schema(client.options.output_format['schema'])
+        return dict(call='day_start', goals=['Explore'])
+
+    fake_sdk(monkeypatch, respond)
+    models, settings = load_configs()
+
+    async def exercise():
+        async with character.CharacterAgent(ROOT, run, world, 'agnea', models.character,
+                                            settings.agent_max_turns, TraceWriter(run)) as session:
+            await session.day_start()
+
+    asyncio.run(exercise())
+
+
 @pytest.mark.parametrize('goals', [[], ['a', 'b', 'c', 'd']])
 def test_character_day_start_goal_count_retries_once(workspace, monkeypatch, goals):
     world, run = workspace
-    clients = fake_sdk(monkeypatch, lambda *_: goals_reply('agnea', goals))
+    clients = fake_sdk(monkeypatch, lambda *_: goals_reply(goals))
     models, settings = load_configs()
 
     async def exercise():
