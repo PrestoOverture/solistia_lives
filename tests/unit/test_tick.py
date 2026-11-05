@@ -10,7 +10,6 @@ from claude_agent_sdk import ResultMessage
 from world_replies import commit_fixture_changes
 
 from story_engine.agents import character, world as world_agent
-from story_engine.agents.sdk import SessionError
 from story_engine.simulation import TickSession, run_tick
 from story_engine.world.io import load_state, read_events
 
@@ -150,10 +149,9 @@ def test_offscreen_validation_error(tmp_path, monkeypatch, failure, reason):
     async def exercise():
         async with world_agent.OffscreenAgent(ROOT, run, world, models.world,
                                          settings.agent_max_turns, TraceWriter(run)) as agent:
-            await agent.offscreen(state, {s.id for s in state.situations if s.status == 'open'})
+            return await agent.offscreen(state, {s.id for s in state.situations if s.status == 'open'})
 
-    with pytest.raises(SessionError, match=reason):
-        asyncio.run(exercise())
+    assert asyncio.run(exercise()) == ([], state, {})
     failures = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()
                 if json.loads(line)['type'] == 'world_validation_failed']
     assert len(failures) == 2

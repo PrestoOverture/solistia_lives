@@ -71,21 +71,12 @@ def test_mocked_day_continues_after_offscreen_op_drop(workspace, monkeypatch, fa
         if call == 'end_of_day':
             return dict(call=call, summary='Visited the stalls.')
         assert call == 'offscreen'
-        return dict(call=call, events=[bad, valid], situation_notes={} if failure == 'nonop' else
+        return dict(call=call, events=[bad, valid], situation_notes={'missing': ''} if failure == 'nonop' else
                     {s.id: 'Unchanged.' for s in load_state(world).situations})
 
     clients = fake_sdk(monkeypatch, respond)
     original = simulation.TickSession
     monkeypatch.setattr(simulation, 'TickSession', lambda w, r: original(w, r, root=ROOT))
-    if failure != 'op':
-        with pytest.raises(SessionError, match='Extra inputs' if failure == 'schema' else 'cover every situation'):
-            asyncio.run(simulation.run_day(world, run))
-        assert_fold(world, initial)
-        assert read_events(world) == []
-        assert rows(run, 'event_dropped') == []
-        assert len(rows(run, 'world_validation_failed')) == 2
-        return
-
     result = asyncio.run(simulation.run_day(world, run))
     assert result.clock.model_dump() == dict(day=2, part='morning')
     assert_fold(world, result)
@@ -93,6 +84,17 @@ def test_mocked_day_continues_after_offscreen_op_drop(workspace, monkeypatch, fa
     assert [s.model_dump(exclude={'status'}) for s in result.situations] == [
         s.model_dump(exclude={'status'}) for s in initial.situations]
     assert 'discarded' not in {p.slug for p in result.places}
+    if failure != 'op':
+        assert not any(e.content in {valid['content'], forbidden['content']} for e in read_events(world))
+        assert 'Open stalls' not in next(p for p in result.places if p.slug == 'cropdale').details
+        assert rows(run, 'event_dropped') == []
+        drops = rows(run, 'offscreen_dropped')
+        assert [drop['turn'] for drop in drops] == [1, 2, 3, 4]
+        reason = 'Extra inputs' if failure == 'schema' else 'cover every situation'
+        assert reason in drops[0]['error']
+        assert len(rows(run, 'world_validation_failed')) == 8
+        assert all((world / 'memory' / f'{slug}.md').exists() for slug in initial.characters)
+        return
     assert 'Open stalls' in next(p for p in result.places if p.slug == 'cropdale').details
     assert len([e for e in read_events(world) if e.content == valid['content']]) == 4
     assert not any(e.content == forbidden['content'] for e in read_events(world))
@@ -477,3 +479,27 @@ def test_resolution_schema_and_closing_repair(workspace, monkeypatch, failure):
     assert all('closing resolution must finish the winning act' in r
                for c in clients for r in c.calls if isinstance(r, str))
     assert all(len(c.calls) == 3 for c in clients)
+
+
+def test_offscreen_schema_requires_exact_open_situation_notes(workspace, monkeypatch):
+    state = load_state(workspace[0])
+    state.situations[0].id = 's1'
+    state.situations[1].id = 's2'
+    clients = fake_sdk(monkeypatch, lambda *_: dict(
+        call='offscreen', situation_notes={'s1': 'Unchanged.', 's2': 'Unchanged.'}))
+
+    async def exercise():
+        async with open_agent(workspace, world_agent.OffscreenAgent) as agent:
+            await agent.offscreen(state, {'s1', 's2'})
+            first_schema = clients[0].options.output_format['schema']
+            await agent.offscreen(state, {'s2'})
+            return first_schema, clients[-1].options.output_format['schema']
+
+    first, second = asyncio.run(exercise())
+    assert 'situation_notes' in first['required']
+    notes = first['properties']['situation_notes']
+    assert set(notes['required']) == set(notes['properties']) == {'s1', 's2'}
+    assert notes['additionalProperties'] is False
+    assert all(value == {'type': 'string'} for value in notes['properties'].values())
+    assert second['properties']['situation_notes']['required'] == ['s2']
+    assert set(second['properties']['situation_notes']['properties']) == {'s2'}

@@ -217,15 +217,24 @@ class _WorldSession:
             self.client = None
             self.active = False
 
-    async def _start_call(self, reply_type: type) -> None:
+    async def _start_call(self, reply_type: type, *, open_situations: set[str] | None = None) -> None:
         if self.client is not None:
             await self.context.__aexit__(None, None, None)
             self.client = None
             if not self.session_id:
                 raise SessionError("SDK returned no session_id to resume")
+        output_format = catalog_schema(require_person_sex(json_schema_output(reply_type)), self.catalogs)
+        if open_situations is not None:
+            ids = sorted(open_situations)
+            output_format['schema']['properties']['situation_notes'] = {
+                'type': 'object', 'properties': {id: {'type': 'string'} for id in ids},
+                'required': ids, 'additionalProperties': False,
+            }
+            required = output_format['schema'].setdefault('required', [])
+            if 'situation_notes' not in required:
+                required.append('situation_notes')
         self.options = replace(
-            self.options, resume=self.session_id,
-            output_format=catalog_schema(require_person_sex(json_schema_output(reply_type)), self.catalogs),
+            self.options, resume=self.session_id, output_format=output_format,
         )
         self.resumed_cost = self.session_id is not None
         self.context = ClaudeSDKClient(options=self.options)
@@ -532,7 +541,7 @@ class OffscreenAgent(_WorldSession):
                          validation_state=state.model_dump(), open_situations=sorted(open_situations))
         request = json.dumps({"call": "offscreen", "reply": "JSON with call: 'offscreen'",
                               **self._state_payload(projection)}, ensure_ascii=False)
-        await self._start_call(OffscreenReply)
+        await self._start_call(OffscreenReply, open_situations=open_situations)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
@@ -573,7 +582,8 @@ class OffscreenAgent(_WorldSession):
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
                                  turn=self.turn, attempt=attempt + 1)
                 if attempt == self.role.retries:
-                    raise SessionError(f"World validation failed after {'one retry' if self.role.retries == 1 else str(self.role.retries) + ' retries'}: {error}") from None
+                    self.trace.write("offscreen_dropped", turn=self.turn, error=str(error))
+                    return [], state, {}
                 # State validation includes main-character data internally. Never echo
                 # Pydantic's input values into this isolated session's retry feedback.
                 feedback = (json.dumps(error.errors(include_input=False, include_context=False,

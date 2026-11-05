@@ -160,8 +160,13 @@ def test_world_spot_ops_retry_then_drop(workspace, monkeypatch, call, corrected)
     asyncio.run(exercise())
     assert len(clients[0].calls) == 2 and 'must be a catalog id' in clients[0].calls[1]
     assert len(rows(run, 'event_dropped')) == (not corrected)
-    assert clients[0].options.output_format == catalog_schema(
+    expected = catalog_schema(
         require_person_sex(json_schema_output({'offscreen': OffscreenReply, 'adjudicate': AdjudicateReply, 'day_start': DayStartReply, 'scene_round': SceneRoundReply, 'minor': SceneRoundReply}[call])), load_catalogs(ROOT))
+    if call == 'offscreen':
+        expected['schema']['properties']['situation_notes'] = dict(
+            type='object', properties={}, required=[], additionalProperties=False)
+        expected['schema'].setdefault('required', []).append('situation_notes')
+    assert clients[0].options.output_format == expected
 
 
 @pytest.mark.parametrize('corrected', [False, True])
