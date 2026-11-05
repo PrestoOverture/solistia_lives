@@ -77,6 +77,7 @@ def test_valid_action(tmp_path, monkeypatch, fenced):
                        "goals": state.characters["throne"].goals,
                        "commitments": [item.model_dump() for item in state.characters["throne"].commitments],
                        "memory": "Yesterday I arrived.", "perceived": [],
+                       "present": {"agnea": "Agnea Bristarni", "throne": "Throné Anguis"},
                        "call": "scene_move", "reply": "JSON with call: 'action'"}
     expected_prompt = "\n\n".join(path.read_text() for path in [
         ROOT / "prompts/character.md", ROOT / "cards/throne.md", agent.world_dir / "scene_context.md"])
@@ -157,6 +158,7 @@ def test_two_calls_share_session_and_only_send_new_perceptions(tmp_path, monkeyp
     assert "memory" not in json.loads(requests[0])
     assert json.loads(requests[1]) == {"self": load_state(agent.world_dir).characters[agent.slug].model_dump(),
                                      "perceived": [new.model_dump(exclude={"intent", "perceived_by"})],
+                                     "present": {"agnea": "Agnea Bristarni", "throne": "Throné Anguis"},
                                        "call": "scene_move", "reply": "JSON with call: 'action'"}
     assert "private" not in requests[0] and "Hello!" not in requests[1]
     assert [json.loads(line)["turn"] for line in (run / "retrieval.jsonl").read_text().splitlines()] == [1, 2]
@@ -406,3 +408,45 @@ def test_scene_move_request_names_its_reply_type(tmp_path, monkeypatch):
     asyncio.run(exercise())
     assert requests[0]["call"] == "scene_move"
     assert "'action'" in requests[0]["reply"]
+
+
+@pytest.mark.parametrize('call', ['plan', 'action', 'summary', 'day_start'])
+def test_present_uses_current_exact_position(tmp_path, monkeypatch, call):
+    from story_engine.world.models import Person
+    replies = {
+        'plan': dict(call='plan', kind='go', intent='Visit', aim='Visit', where='cropdale'),
+        'action': VALID,
+        'summary': dict(call='end_of_day', summary='A day.'),
+        'day_start': dict(call='day_start', goals=['Rest']),
+    }
+    agent, _, requests, _, _ = setup_agent(
+        tmp_path, monkeypatch, iter([json.dumps(replies[call])] * 2))
+
+    async def exercise():
+        async with agent:
+            for spot in ('tavern', None):
+                state = load_state(agent.world_dir)
+                state.characters['throne'].where = 'cropdale'
+                state.characters['throne'].spot = spot
+                state.characters['agnea'].where = 'cropdale'
+                state.characters['agnea'].spot = spot if spot is not None else 'village_square'
+                state.people = {
+                    'near_person': Person(where='cropdale', spot=spot, wants=['Rest'], commitments=[]),
+                    'Other Spot': Person(where='cropdale', spot='village_square', wants=['Rest'], commitments=[]),
+                    'Other Place': Person(where='festival_grounds', spot=spot, wants=['Rest'], commitments=[]),
+                }
+                (agent.world_dir / 'genesis.json').write_text(state.model_dump_json())
+                if call == 'plan':
+                    await agent.choose('morning', [])
+                elif call == 'action':
+                    await agent.act([])
+                elif call == 'summary':
+                    await agent.summarize([])
+                else:
+                    await agent.day_start()
+
+    asyncio.run(exercise())
+    assert [json.loads(request)['present'] for request in requests] == [
+        {'throne': 'Throné Anguis', 'agnea': 'Agnea Bristarni', 'near_person': 'Near Person'},
+        {'throne': 'Throné Anguis', 'near_person': 'Near Person'},
+    ]

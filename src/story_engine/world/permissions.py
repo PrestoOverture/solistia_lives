@@ -32,7 +32,8 @@ def validate_ops(state: WorldState, event: Event, authority: Authority) -> World
         elif isinstance(op, Introduce):
             allowed = call in {'encounter', 'scene_round', 'day_start'}
         elif isinstance(op, PlaceOp):
-            allowed = call in {'encounter', 'scene_round', 'offscreen', 'day_start'}
+            allowed = (call in {'encounter', 'scene_round', 'offscreen', 'day_start'}
+                       or (call == 'code' and op.slug not in {p.slug for p in state.places}))
         elif isinstance(op, (Promise, Release)):
             allowed = ((call == 'character_scene' and actor == op.who and actor in state.characters
                         and event.scene is not None)

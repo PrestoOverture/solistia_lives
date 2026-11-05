@@ -18,13 +18,59 @@ from test_character_action import setup_agent
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def test_tick_adds_catalog_destination_before_move(tmp_path, monkeypatch):
+    reply = dict(call='plan', kind='go', intent='Visit', aim='Visit', where='flamechurch')
+    agent, _, requests, _, run = setup_agent(
+        tmp_path, monkeypatch, iter([json.dumps(reply), json.dumps(reply)]))
+    world = agent.world_dir
+    state = load_state(world)
+    state.places = [Place(slug='montwise', details=[])]
+    state.situations = []
+    for character in state.characters.values():
+        character.where, character.spot, character.commitments = 'montwise', None, []
+    state.characters['agnea'].spot = 'library_exterior'
+    (world / 'genesis.json').write_text(state.model_dump_json())
+    (world / 'state.json').write_text(state.model_dump_json())
+
+    async def stay(*_):
+        return go('montwise', 'library_exterior')
+
+    async def adjudicate(current, *_):
+        return None, [], current
+
+    async def offscreen(current, *_):
+        return [], current, {}
+
+    async def exercise():
+        async with agent:
+            session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1, root=ROOT,
+                characters={'agnea': SimpleNamespace(choose=stay), 'throne': agent},
+                settings=load_configs()[1], trace=TraceWriter(run),
+                world=SimpleNamespace(adjudicate=adjudicate),
+                offscreen=SimpleNamespace(offscreen=offscreen))
+            return await run_tick(world, run, session=session)
+
+    result = asyncio.run(exercise())
+    assert {p.slug for p in result.places} == {'montwise', 'flamechurch'}
+    assert result.characters['throne'].where == 'flamechurch'
+    assert len(requests) == 1
+    rows = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
+    assert not any(row['type'] == 'plan_where_cleared' for row in rows)
+    travel = next(e for e in read_events(world) if e.actor == 'throne' and e.ops)
+    assert [op.model_dump() for op in travel.ops] == [
+        dict(op='place', slug='flamechurch', add_details=[]),
+        dict(op='move', who='throne', place='flamechurch', spot=None)]
+    assert result == load_state(world)
+    assert result.model_dump() == json.loads((world / 'state.json').read_text())
+
+
 def go(where='cropdale', spot='tavern', seek=None):
     return Plan(call='plan', kind='go', intent='Visit', aim='Visit',
                 where=where, spot=spot, seek=seek)
 
 
 @pytest.mark.parametrize('case', ['moving_main', 'cycle', 'unreached', 'person',
-                                  'chain', 'attempt', 'current_place', 'cycle_chain'])
+                                  'chain', 'attempt', 'current_place', 'cycle_chain', 'person_unreached'])
 @pytest.mark.parametrize('reverse', [False, True])
 def test_seek_tick(tmp_path, case, reverse):
     world, run = tmp_path / 'world', tmp_path / 'run'
@@ -43,10 +89,14 @@ def test_seek_tick(tmp_path, case, reverse):
             info = json.loads((world / 'world.json').read_text())
             info['characters'].append('temenos')
             (world / 'world.json').write_text(json.dumps(info))
-    elif case == 'unreached':
+    elif case in {'unreached', 'person_unreached'}:
         state.places.append(Place(slug='montwise', details=[]))
         plans['throne'] = go('montwise', 'library_exterior')
         expected = ('cropdale', 'tavern')
+        if case == 'person_unreached':
+            state.people['Host'].where = 'montwise'
+            state.people['Host'].spot = 'library_exterior'
+            plans['agnea'] = go(seek='Host')
     elif case in {'person', 'chain'}:
         plans['throne'] = go(seek='Host')
         if case == 'person':
@@ -86,18 +136,28 @@ def test_seek_tick(tmp_path, case, reverse):
     result = asyncio.run(run_tick(world, run, session=session))
     assert (result.characters['agnea'].where, result.characters['agnea'].spot) == expected
     scenes = read_scenes(world)
-    if case != 'unreached':
+    if case not in {'unreached', 'person_unreached'}:
         assert len(scenes) == 1 and set(scenes[0].participants) == set(plans)
         assert all((c.where, c.spot) == expected for c in result.characters.values())
     else:
         assert scenes == []
     move = next(e for e in read_events(world) if e.actor == 'agnea' and e.ops)
     assert move.content == f'agnea goes to find {plans["agnea"].seek}.'
-    assert set(move.perceived_by) == ({'agnea'} if case == 'unreached' else set(plans))
+    assert set(move.perceived_by) == ({'agnea'} if case in {'unreached', 'person_unreached'} else set(plans))
     trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     unreached = [row for row in trace if row['type'] == 'seek_unreached']
-    assert len(unreached) == (case == 'unreached')
+    assert len(unreached) == (case in {'unreached', 'person_unreached'})
+    absent = [e for e in read_events(world) if e.type == 'world']
+    if case in {'unreached', 'person_unreached'}:
+        assert len(absent) == 1
+        event = absent[0]
+        assert event.content == f"{plans['agnea'].seek} isn't here."
+        assert event.perceived_by == ['agnea']
+        assert event.place == expected[0] and event.ops == []
+    else:
+        assert absent == []
     assert result == load_state(world)
+    assert result.model_dump() == json.loads((world / 'state.json').read_text())
 
 
 @pytest.mark.parametrize('target', ['missing', 'throne', 'Agnea', ''])
@@ -156,11 +216,11 @@ def test_invalid_where_retries_then_clears(tmp_path, monkeypatch, kind, correcte
     result = asyncio.run(exercise())
     assert result.where == ('cropdale' if corrected else None)
     assert result.spot == ('tavern' if corrected else None)
-    assert len(requests) == 2 and 'where must name a place in state' in requests[1]
+    assert len(requests) == 2 and 'where must name a place in state or a stage catalog' in requests[1]
     rows = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     cleared = [row for row in rows if row['type'] == 'plan_where_cleared']
     assert len(cleared) == (not corrected)
     if not corrected:
         assert {key: cleared[0][key] for key in ('agent', 'turn', 'error', 'where')} == {
             'agent': 'throne', 'turn': 1,
-            'error': 'where must name a place in state', 'where': 'missing'}
+            'error': 'where must name a place in state or a stage catalog', 'where': 'missing'}

@@ -12,12 +12,13 @@ from story_engine.agents.subjects import fold
 from story_engine.agents.world import OffscreenAgent, WorldAgent
 from story_engine.config import load_configs
 from story_engine.kb import normalize_slug
+from story_engine.stages import load_catalogs
 from story_engine.trace import TraceWriter
 from story_engine.world.io import (
     append_event, append_scene, commit_event, load_state, read_events, read_scenes, write_memory,
 )
 from story_engine.world.models import Clock, Event, SceneRecord, WorldState
-from story_engine.world.ops import ClockOp, Move, Release, SituationOp
+from story_engine.world.ops import ClockOp, Move, PlaceOp, Release, SituationOp
 from story_engine.world.permissions import Authority
 
 
@@ -108,7 +109,7 @@ class TickSession:
         return await self.stack.__aexit__(*args)
 
 
-def _plan_positions(state, plans, trace):
+def _plan_positions(state, plans, trace, world_dir):
     """Resolve simultaneous destinations, anchoring each seek cycle once."""
     fallback = {slug: ((plan.where, plan.spot) if plan.where is not None else
                        (state.characters[slug].where, state.characters[slug].spot))
@@ -135,6 +136,10 @@ def _plan_positions(state, plans, trace):
                 else:
                     trace.write('seek_unreached', agent=slug, seek=plan.seek,
                                 target_place=target[0], place=plan.where, spot=plan.spot)
+                    commit_event(world_dir, Event(
+                        id=0, **state.clock.model_dump(), place=position[0], actor='world',
+                        type='world', content=f"{plan.seek} isn't here.",
+                        perceived_by=[slug], ops=[]), authority=Authority('code'))
         visiting.pop()
         if slug not in resolved:
             resolved[slug] = position
@@ -161,18 +166,26 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
         append_event(world_dir, Event(
             id=0, **state.clock.model_dump(), place=place, actor=slug,
             type='plan', content=plan.aim, intent=plan.intent, perceived_by=[slug]))
-    positions = _plan_positions(state, plans, session.trace)
+    positions = _plan_positions(state, plans, session.trace, world_dir)
+    places = {p.slug for p in state.places}
     for slug, plan in plans.items():
         if plan.where is not None or plan.seek is not None:
             place, spot = positions[slug]
+            ops = []
+            if place not in places:
+                if place not in load_catalogs(session.root):
+                    raise ValueError('destination must name a place in state or a stage catalog')
+                ops.append(PlaceOp(slug=place, add_details=[]))
+            ops.append(Move(who=slug, place=place, spot=spot))
             commit_event(world_dir, Event(
                 id=0, **state.clock.model_dump(), place=place, actor=slug,
                 type='action', content=(f'{slug} goes to find {plan.seek}.' if plan.seek is not None
                                         else f'{slug} goes to {plan.where}.'),
                 perceived_by=[other for other, position in positions.items()
                               if position == (place, spot)],
-                ops=[Move(who=slug, place=place, spot=spot)]),
+                ops=ops),
                 authority=Authority('code'))
+            places.add(place)
     state = load_state(world_dir)
     encounter_event, encounters, _ = await session.world.adjudicate(
         state, {slug: plan.model_dump() for slug, plan in plans.items()}, read_events(world_dir))

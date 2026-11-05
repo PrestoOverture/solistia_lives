@@ -5,6 +5,8 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Annotated, Literal, Self, Union
 
+import frontmatter
+
 from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -102,6 +104,12 @@ class CharacterAgent:
         self.root, self.run_dir, self.world_dir = root, run_dir, world_dir
         self.slug, self.role, self.max_turns, self.trace = slug, role, max_turns, trace
         self.catalogs = load_catalogs(root)
+        self.names = {}
+        for slug in load_state(world_dir).characters:
+            path = root / 'kb/characters' / slug / f'{slug}.md'
+            metadata = frontmatter.load(path).metadata
+            name = metadata.get('name', slug)
+            self.names[slug] = (metadata.get('aliases') or [name])[0] if name == slug else name
         self.client = None
         self.active = False
         self.session_id = None
@@ -185,7 +193,10 @@ class CharacterAgent:
         state = load_state(self.world_dir)
         current = state.characters[self.slug]
         seek_keys = sorted((set(state.characters) - {self.slug}) | set(state.people))
-        request = json.dumps({**(self.opening if self.turn == 1 else {'self': current.model_dump()}), "perceived": events,
+        present = {key: self.names.get(key) or key.replace('_', ' ').title()
+                   for key, member in {**state.characters, **state.people}.items()
+                   if (member.where, member.spot) == (current.where, current.spot)}
+        request = json.dumps({**(self.opening if self.turn == 1 else {'self': current.model_dump()}), "perceived": events, "present": present,
                               **({"note": note} if note else {}),
                               **({"call": "end_of_day", "reply": "JSON {call: 'end_of_day', summary: 'Markdown: what happened, what changed, what you want now'}"} if summary else {}),
                               **({"call": "day_start", "reply": "JSON with call: 'day_start' and goals: [1-3 strings]"} if day_start else {}),
@@ -238,8 +249,9 @@ class CharacterAgent:
                     return EndOfDay.model_validate(payload).summary
                 if part:
                     plan = Plan.model_validate(payload)
-                    if plan.where is not None and plan.where not in {p.slug for p in load_state(self.world_dir).places}:
-                        error = 'where must name a place in state'
+                    places = {p.slug for p in load_state(self.world_dir).places} | self.catalogs.keys()
+                    if plan.where is not None and plan.where not in places:
+                        error = 'where must name a place in state or a stage catalog'
                         if attempt < self.role.retries:
                             raise ValueError(error)
                         self.trace.write('plan_where_cleared', agent=self.slug, turn=self.turn,
@@ -271,5 +283,6 @@ class CharacterAgent:
             except ValueError as error:
                 if attempt == self.role.retries:
                     raise SessionError(f"Character action validation failed after {'one retry' if self.role.retries == 1 else str(self.role.retries) + ' retries'}: {error}") from None
-                request = f"Reply validation failed: {error}\nReturn corrected JSON."
+                request = (f"Reply validation failed: {error}\nReturn corrected JSON.\n"
+                           + json.dumps({"present": present}, ensure_ascii=False))
         raise AssertionError("unreachable")
