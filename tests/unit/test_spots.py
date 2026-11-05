@@ -212,3 +212,32 @@ def test_offscreen_perception_spot_retry_then_null(workspace, monkeypatch, corre
     assert len(clients[0].calls) == 2 and 'must be a catalog id' in clients[0].calls[1]
     assert events[0].perceived_by == ([] if corrected else list(state.characters))
     assert len(rows(workspace[1], 'offscreen_spot_cleared')) == (not corrected)
+
+
+@pytest.mark.parametrize('catalog_name', ['', 'Flamechurch'])
+def test_plan_offers_catalog_places_outside_state(tmp_path, monkeypatch, catalog_name):
+    reply = dict(call='plan', kind='go', intent='Visit', aim='Visit Flamechurch',
+                 where='flamechurch', spot='chapel')
+    agent, _, requests, _, _ = setup_agent(tmp_path, monkeypatch, iter([json.dumps(reply)]))
+    state = load_state(agent.world_dir)
+    agent.catalogs['flamechurch'].name = catalog_name
+    state.places = [Place(slug='montwise', details=['Known library'])]
+    for member in [*state.characters.values(), *state.people.values()]:
+        member.where, member.spot = 'montwise', None
+        member.commitments = []
+    (agent.world_dir / 'genesis.json').write_text(state.model_dump_json())
+
+    async def exercise():
+        async with agent:
+            await agent.choose('morning', [])
+
+    asyncio.run(exercise())
+    request = json.loads(requests[0])
+    places = {item['slug']: item for item in request['places']}
+    catalogs = load_catalogs(ROOT)
+    assert set(places) == {'montwise'} | catalogs.keys()
+    assert len(places) == len(request['places'])
+    assert places['montwise']['details'] == ['Known library']
+    assert places['flamechurch'] == {'slug': 'flamechurch', **({'name': catalog_name} if catalog_name else {})}
+    assert request['spots']['flamechurch'] == [
+        s.model_dump(include={'id', 'name', 'about'}) for s in catalogs['flamechurch'].spots]

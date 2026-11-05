@@ -276,7 +276,10 @@ def resolve_addressee(to, main_present, minor_present):
 
 async def run_scene(world_dir, session, state, place, main_present, minor_present, *, spot=None):
     scene_id = str(len(read_scenes(world_dir)) + 1)
-    main_present, minor_present = list(main_present), list(minor_present)
+    main_present = list(main_present)
+    minor_present = list(dict.fromkeys([*minor_present,
+        *(name for name, person in state.people.items()
+          if person.spot is not None and (person.where, person.spot) == (place, spot))]))
     solo_attempt = len(main_present) == 1 and not minor_present
     all_participants = list(main_present) + list(minor_present)
     last_act, notes = {}, session.scene_notes

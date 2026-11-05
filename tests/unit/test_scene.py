@@ -10,7 +10,7 @@ from claude_agent_sdk import ResultMessage
 
 from story_engine.agents import character, world as world_agent
 from story_engine.simulation import TickSession, run_scene, run_tick
-from story_engine.world.io import read_events, read_scenes
+from story_engine.world.io import load_state, read_events, read_scenes
 from story_engine.world.models import Person
 from world_replies import round_reply, commit_fixture_changes
 
@@ -1105,3 +1105,66 @@ def test_encounter_scene_opens_at_mains_shared_spot(tmp_path, monkeypatch):
     assert len(scenes) == 1
     assert scenes[0].place == 'festival_grounds' and scenes[0].spot == 'festival_clearing'
     assert scenes[0].participants == ['agnea', 'Witness']
+
+
+@pytest.mark.parametrize('person_spot,scene_spot,listed', [
+    ('dance_stage', 'dance_stage', False),
+    ('dance_stage', 'dance_stage', True),
+    (None, 'dance_stage', False),
+    ('festival_clearing', 'dance_stage', False),
+    (None, None, False),
+])
+def test_scene_adds_state_people_at_exact_non_null_spot(
+        tmp_path, monkeypatch, person_spot, scene_spot, listed):
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    requests = []
+
+    class FakeClient:
+        def __init__(self, *, options):
+            self.is_world = options.system_prompt.startswith('# World')
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def query(self, request):
+            self.request = json.loads(request)
+
+        async def receive_response(self):
+            if self.is_world:
+                requests.append(self.request)
+                minors = {name: dict(move='act', urge=2, action='Gus waves.', say='Hello.')
+                          for name in self.request['participants']['minor']}
+                data = round_reply(self.request, minor_moves=minors)
+            else:
+                data = move('wait', 0, action='', say='')
+            yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
+
+    transport = resumable_fake(FakeClient)
+    monkeypatch.setattr(character, 'ClaudeSDKClient', transport)
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', transport)
+
+    async def exercise():
+        async with TickSession(world, run, root=ROOT) as session:
+            session.settings.scene_cap = 2
+            state = load_state(world)
+            state.characters['agnea'].spot = scene_spot
+            state.people['Gus'] = Person(where='festival_grounds', spot=person_spot, wants=['Help'], commitments=[])
+            commit_fixture_changes(world, state)
+            state = load_state(world)
+            return await run_scene(world, session, state, 'festival_grounds', ['agnea'],
+                                   ['Gus', 'Gus'] if listed else [], spot=scene_spot)
+
+    asyncio.run(exercise())
+    included = listed or (person_spot is not None and person_spot == scene_spot)
+    scene = read_scenes(world)[0]
+    assert scene.participants == (['agnea', 'Gus'] if included else ['agnea'])
+    assert requests[0]['participants']['minor'] == (['Gus'] if included else [])
+    trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
+    rounds = [row for row in trace if row['type'] == 'scene_round']
+    assert ('Gus' in rounds[0]['moves']) == included
+    assert any(e.actor == 'Gus' for e in read_events(world)) == included

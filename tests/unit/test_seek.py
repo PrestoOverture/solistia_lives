@@ -137,7 +137,8 @@ def test_seek_tick(tmp_path, case, reverse):
     assert (result.characters['agnea'].where, result.characters['agnea'].spot) == expected
     scenes = read_scenes(world)
     if case not in {'unreached', 'person_unreached'}:
-        assert len(scenes) == 1 and set(scenes[0].participants) == set(plans)
+        participants = set(plans) | ({'Host'} if case in {'moving_main', 'person', 'chain'} else set())
+        assert len(scenes) == 1 and set(scenes[0].participants) == participants
         assert all((c.where, c.spot) == expected for c in result.characters.values())
     else:
         assert scenes == []

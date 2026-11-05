@@ -196,12 +196,17 @@ class CharacterAgent:
         present = {key: self.names.get(key) or key.replace('_', ' ').title()
                    for key, member in {**state.characters, **state.people}.items()
                    if (member.where, member.spot) == (current.where, current.spot)}
+        places = [p.model_dump() for p in state.places]
+        if part:
+            known = {p.slug for p in state.places}
+            places.extend({'slug': slug, **({'name': catalog.name} if catalog.name else {})}
+                          for slug, catalog in self.catalogs.items() if slug not in known)
         request = json.dumps({**(self.opening if self.turn == 1 else {'self': current.model_dump()}), "perceived": events, "present": present,
                               **({"note": note} if note else {}),
                               **({"call": "end_of_day", "reply": "JSON {call: 'end_of_day', summary: 'Markdown: what happened, what changed, what you want now'}"} if summary else {}),
                               **({"call": "day_start", "reply": "JSON with call: 'day_start' and goals: [1-3 strings]"} if day_start else {}),
-                              **({"places": [p.model_dump() for p in state.places],
-                                  "spots": spot_context(self.catalogs, [p.slug for p in state.places]),
+                              **({"places": places,
+                                  "spots": spot_context(self.catalogs, [p['slug'] for p in places]),
                                   "seek_schema": {"enum": [*seek_keys, None], "default": None},
                                   "part": part, "call": "part_of_day", "reply": "JSON with call: 'plan'"} if part else {}),
                               # Each request names its expected reply type.

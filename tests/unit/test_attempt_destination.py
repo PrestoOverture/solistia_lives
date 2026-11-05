@@ -54,7 +54,7 @@ def test_attempt_destination(tmp_path, destination):
     assert result.characters['osvald'].spot == expected
     scenes = read_scenes(world)
     assert len(scenes) == 1 and scenes[0].spot == expected
-    assert scenes[0].participants == (['osvald', 'Librarian'] if destination == 'person' else ['osvald'])
+    assert scenes[0].participants == (['osvald', 'Librarian'] if destination != 'stay' else ['osvald'])
     assert scene_spots and set(scene_spots) == {expected}
     moves = [e for e in read_events(world) if e.actor == 'osvald' and e.ops]
     assert len(moves) == (destination != 'stay')

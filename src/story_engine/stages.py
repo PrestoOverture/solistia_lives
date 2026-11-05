@@ -23,6 +23,7 @@ class StageSpot(BaseModel):
 
 
 class StageCatalog(BaseModel):
+    name: str = ''
     default: str
     spots: list[StageSpot]
 
