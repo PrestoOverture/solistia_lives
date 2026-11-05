@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from typing import Literal
 
-from .models import Event, WorldState
+from .models import Event, SceneRecord, WorldState
 from .ops import ClockOp, Goals, Introduce, Move, Open, PlaceOp, Promise, Release, SituationOp, Wants, reduce_ops
 
 
@@ -12,6 +12,15 @@ class Authority:
                   'day_start', 'character_day_start', 'offscreen']
     actor: str = 'world'
     parts_of_day: tuple[str, ...] = ()
+    scene_people: frozenset[str] = frozenset()
+
+
+def scene_people(state: WorldState, scenes: list[SceneRecord]) -> frozenset[str]:
+    """People participating in a main's scene during this part of the day."""
+    return frozenset(name for scene in scenes
+                     if (scene.day, scene.part) == (state.clock.day, state.clock.part)
+                     and any(name in state.characters for name in scene.participants)
+                     for name in scene.participants if name in state.people)
 
 
 def validate_ops(state: WorldState, event: Event, authority: Authority) -> WorldState:
@@ -73,6 +82,9 @@ def validate_ops(state: WorldState, event: Event, authority: Authority) -> World
                                 or (call == 'offscreen' and situation.due == state.clock)))
         elif isinstance(op, ClockOp):
             allowed = call == 'code'
+        if call == 'offscreen':
+            subject = getattr(op, 'who', getattr(op, 'person', None))
+            allowed = allowed and subject not in authority.scene_people
         if call == 'person_scene':
             subject = getattr(op, 'who', getattr(op, 'person', None))
             allowed = allowed and subject == actor

@@ -537,3 +537,85 @@ def test_offscreen_retry_does_not_echo_internal_state(workspace, monkeypatch):
     assert 'may not commit move' in feedback
     for forbidden in ('input_value', 'characters', 'touches', 'PRIVATE GOAL'):
         assert forbidden not in feedback
+
+
+def test_offscreen_main_names_and_places_only(workspace, monkeypatch):
+    world, run = workspace
+    state = load_state(world)
+    state.characters['agnea'].where = 'cropdale'
+    for main in state.characters.values():
+        main.goals = ['PRIVATE GOAL']
+        main.spot = 'PRIVATE SPOT'
+    clients = fake_sdk(monkeypatch, lambda *_: dict(
+        call='offscreen', situation_notes={s.id: 'Unchanged.' for s in state.situations}))
+
+    async def exercise():
+        async with agent(world_agent.OffscreenAgent, world, run) as session:
+            await session.offscreen(state, {s.id for s in state.situations})
+            state.characters['agnea'].where = 'festival_grounds'
+            await session.offscreen(state, {s.id for s in state.situations})
+
+    asyncio.run(exercise())
+    for index, request in enumerate(clients[0].calls):
+        assert request['mains'] == [
+            dict(name='Agnea Bristarni', where='cropdale' if index == 0 else 'festival_grounds'),
+            dict(name='Throné Anguis', where='festival_grounds')]
+        assert 'characters' not in json.dumps(request)
+        assert 'PRIVATE' not in json.dumps(request)
+
+
+@pytest.mark.parametrize('recover', [False, True])
+def test_tick_protects_scene_people_but_keeps_other_people(workspace, monkeypatch, recover):
+    from story_engine.world.models import Person, SceneRecord
+    from story_engine.world.io import append_scene, read_scenes
+
+    world, run = workspace
+    state = load_state(world)
+    state.people = {name: Person(where='festival_grounds', wants=['Rest'], commitments=[])
+                    for name in ('Guest', 'Other')}
+    commit_fixture_changes(world, state)
+    # A previous part/day and a scene without a main do not protect Other.
+    for id, day, part, participants in [
+            ('1', 0, 'morning', ['agnea', 'Other']),
+            ('2', 1, 'night', ['agnea', 'Other']),
+            ('3', 1, 'morning', ['Other'])]:
+        append_scene(world, SceneRecord(id=id, day=day, part=part, place='festival_grounds',
+                     participants=participants, first_event_id=0, last_event_id=0, rounds=1, end='quiet'))
+    calls = []
+    def respond(client, request):
+        if isinstance(request, str):
+            assert 'may not commit wants' in request
+            calls.append(request)
+            subject = 'Other' if recover else 'Guest'
+        elif request['call'] == 'part_of_day':
+            return dict(call='plan', kind='go', where='festival_grounds', spot=None,
+                        aim='Stay here.', intent='Rest')
+        elif request['call'] == 'adjudicate':
+            return dict(call='adjudicate', encounters=[dict(mains=['agnea'], minor=['Guest'])])
+        elif request['call'] == 'scene_round':
+            return dict(call='scene_round')
+        elif request['call'] == 'scene_move':
+            return dict(call='action', move='wait', urge=0, action='', say='', intent='Rest')
+        else:
+            assert request['call'] == 'offscreen'
+            assert set(request['state']['people']) == {'Other'}
+            calls.append(request)
+            subject = 'Guest'
+        return dict(call='offscreen', events=[
+            dict(place='festival_grounds', ops=[dict(op='wants', person=subject, wants=['Changed'])]),
+            dict(place='festival_grounds', ops=[dict(op='wants', person='Other', wants=['Available'])])],
+            situation_notes={s.id: 'Unchanged.' for s in state.situations})
+    fake_sdk(monkeypatch, respond)
+
+    async def exercise():
+        async with simulation.TickSession(world, run, root=ROOT) as session:
+            return await simulation.run_tick(world, run, session=session)
+
+    result = asyncio.run(exercise())
+    assert 'Guest' in read_scenes(world)[-1].participants
+    assert len(calls) == 2
+    assert result.people['Guest'].wants == ['Rest']
+    assert result.people['Other'].wants == ['Available']
+    drops = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()
+             if json.loads(line)['type'] == 'event_dropped']
+    assert len(drops) == (0 if recover else 1)

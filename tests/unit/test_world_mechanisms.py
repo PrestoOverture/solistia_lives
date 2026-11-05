@@ -55,9 +55,11 @@ def test_arrival_joins_scene_and_clock_event_expires_only_open_past_due(tmp_path
                         intent='Meet', aim='Wait here.', where=None if slug == 'agnea' else character.where,
                         spot=None if slug == 'agnea' else character.spot)
         if call == 'adjudicate':
+            ops = [dict(op='introduce', name='Visitor', sex='f', where='cropdale',
+                        spot='village_square', wants=['Meet Agnea'])]
             if not seek:
-                return dict(call=call)
-            return dict(call=call, ops=[dict(op='move', who='Host', place='cropdale', spot='village_square')],
+                return dict(call=call, ops=ops)
+            return dict(call=call, ops=[dict(op='move', who='Host', place='cropdale', spot='village_square'), *ops],
                         encounters=[dict(mains=['agnea'], minor=['Host'])])
         if call == 'scene_round':
             seen_scene.append(request)
@@ -77,7 +79,7 @@ def test_arrival_joins_scene_and_clock_event_expires_only_open_past_due(tmp_path
     result = asyncio.run(exercise())
     assert seen_scene
     scene, = read_scenes(world)
-    assert scene.participants == (['agnea', 'Host'] if seek else ['agnea'])
+    assert scene.participants == (['agnea', 'Host', 'Visitor'] if seek else ['agnea', 'Visitor'])
     assert (scene.place, scene.spot) == ('cropdale', 'village_square')
     arrivals = [e for e in read_events(world) if any(getattr(op, 'who', None) == 'Host' for op in e.ops)]
     arrivals = [e for e in arrivals if any(op.op == 'move' for op in e.ops)]

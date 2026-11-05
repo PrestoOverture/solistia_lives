@@ -19,7 +19,7 @@ from story_engine.world.io import (
 )
 from story_engine.world.models import Clock, Event, SceneRecord, WorldState
 from story_engine.world.ops import ClockOp, Move, PlaceOp, Release, SituationOp
-from story_engine.world.permissions import Authority
+from story_engine.world.permissions import Authority, scene_people
 
 
 class CostCapReached(RuntimeError):
@@ -131,7 +131,7 @@ def _plan_positions(state, plans, trace, world_dir):
         if plan.seek is not None:
             target = resolve(plan.seek)
             if slug not in resolved:
-                if target[0] in {state.characters[slug].where, plan.where}:
+                if plan.seek in state.characters or target[0] in {state.characters[slug].where, plan.where}:
                     position = target
                 else:
                     trace.write('seek_unreached', agent=slug, seek=plan.seek,
@@ -216,9 +216,11 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
         if len(present) >= 2 or (len(present) == 1 and (minors or staged)):
             updated = await run_scene(world_dir, session, updated, place, present, minors, spot=spot)
     open_situations = {s.id for s in updated.situations if s.status == 'open'}
+    protected = scene_people(updated, read_scenes(world_dir))
     events, updated, notes = await session.offscreen.offscreen(updated, open_situations)
     for event in events:
-        commit_event(world_dir, event, authority=Authority('offscreen', parts_of_day=tuple(session.settings.parts_of_day)))
+        commit_event(world_dir, event, authority=Authority('offscreen', parts_of_day=tuple(session.settings.parts_of_day),
+                                                                    scene_people=protected))
     updated = load_state(world_dir)
     parts = session.settings.parts_of_day
     index = parts.index(state.clock.part) + 1

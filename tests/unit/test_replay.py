@@ -32,6 +32,8 @@ def hashes(path):
 def setup(tmp_path, monkeypatch):
     for name in ("config", "prompts"):
         shutil.copytree(ROOT / name, tmp_path / name)
+    for slug in ("agnea", "throne"):
+        shutil.copytree(ROOT / "kb/characters" / slug, tmp_path / "kb/characters" / slug)
     world = tmp_path / "worlds/test"
     shutil.copytree(ROOT / "tests/fixtures/worlds/agnea_throne", world)
     monkeypatch.chdir(tmp_path)
@@ -217,7 +219,10 @@ def test_replay_offscreen_request_preserves_isolation(setup, monkeypatch):
 
     payload = json.loads(request, object_pairs_hook=collect_keys)
     assert not keys & {"events", "characters", "intent"}
-    assert all(slug not in request.lower() for slug in state.characters)
+    assert payload["mains"] == [
+        {"name": "Agnea Bristarni", "where": state.characters["agnea"].where},
+        {"name": "Throné Anguis", "where": state.characters["throne"].where},
+    ]
     assert payload == json.loads(originals[0].requests[0])
     run = Path(result.output.strip())
     recorded = [json.loads(line) for line in (source / "trace.jsonl").read_text().splitlines()

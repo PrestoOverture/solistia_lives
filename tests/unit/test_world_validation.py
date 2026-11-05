@@ -328,3 +328,37 @@ def test_scene_resolution_requires_exactly_an_outstanding_winner(workspace, monk
     assert len(requests) == 2
     assert ('literal_error' if winner else 'extra_forbidden') in requests[1]
     assert event.resolution == ('none' if winner else None) and event.ops == []
+
+
+@pytest.mark.parametrize('resolution', ['succeeded', 'failed', 'pending', 'none'])
+@pytest.mark.parametrize('outcome', [None, '', 'A result.', 'x' * 280, 'x' * 281])
+def test_winning_round_outcome_schema_and_validation(resolution, outcome):
+    import jsonschema
+
+    reply = dict(call='scene_round', resolution=resolution)
+    if outcome is not None:
+        reply['outcome'] = outcome
+    valid = (outcome is None or len(outcome) <= 280) and (
+        resolution in {'pending', 'none'} or bool(outcome))
+    schema = world_agent.WinningRoundReply.model_json_schema()
+    if valid:
+        world_agent.WinningRoundReply.model_validate(reply)
+        jsonschema.validate(reply, schema)
+    else:
+        with pytest.raises(ValidationError):
+            world_agent.WinningRoundReply.model_validate(reply)
+        with pytest.raises(jsonschema.ValidationError):
+            jsonschema.validate(reply, schema)
+    # Historical resolutions stay readable even without an outcome.
+    world_agent.RoundResolution.model_validate(dict(call='scene_round', resolution=resolution))
+
+
+@pytest.mark.parametrize('closing', [False, True])
+def test_resolved_outcome_retries(workspace, monkeypatch, closing):
+    bad = dict(call='scene_round', resolution='succeeded')
+    good = dict(bad, outcome='The door opens.')
+    exercise, requests = call_agent(workspace, monkeypatch, [bad, good], scene=True,
+                                    winner=dict(id=42, actor='agnea', round=1), closing=closing)
+    event, _, _ = asyncio.run(exercise())
+    assert len(requests) == 2 and 'non-empty outcome' in requests[1]
+    assert event.content == 'The door opens.' and event.resolution == 'succeeded'

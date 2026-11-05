@@ -69,7 +69,7 @@ def go(where='cropdale', spot='tavern', seek=None):
                 where=where, spot=spot, seek=seek)
 
 
-@pytest.mark.parametrize('case', ['moving_main', 'cycle', 'unreached', 'person',
+@pytest.mark.parametrize('case', ['moving_main', 'cycle', 'travelling_main', 'person',
                                   'chain', 'attempt', 'current_place', 'cycle_chain', 'person_unreached'])
 @pytest.mark.parametrize('reverse', [False, True])
 def test_seek_tick(tmp_path, case, reverse):
@@ -89,11 +89,13 @@ def test_seek_tick(tmp_path, case, reverse):
             info = json.loads((world / 'world.json').read_text())
             info['characters'].append('temenos')
             (world / 'world.json').write_text(json.dumps(info))
-    elif case in {'unreached', 'person_unreached'}:
-        state.places.append(Place(slug='montwise', details=[]))
-        plans['throne'] = go('montwise', 'library_exterior')
-        expected = ('cropdale', 'tavern')
+    elif case in {'travelling_main', 'person_unreached'}:
         if case == 'person_unreached':
+            state.places.append(Place(slug='montwise', details=[]))
+        plans['throne'] = go('montwise', 'library_exterior')
+        expected = ('montwise', 'library_exterior')
+        if case == 'person_unreached':
+            expected = ('cropdale', 'tavern')
             state.people['Host'].where = 'montwise'
             state.people['Host'].spot = 'library_exterior'
             plans['agnea'] = go(seek='Host')
@@ -129,14 +131,18 @@ def test_seek_tick(tmp_path, case, reverse):
         return [], current, {}
 
     order = list(reversed(plans)) if reverse else list(plans)
-    session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1,
+    session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1, root=ROOT,
         characters={s: Character(s) for s in order}, scene_notes={}, settings=load_configs()[1],
         trace=TraceWriter(run), world=SimpleNamespace(adjudicate=adjudicate, round=round_),
         offscreen=SimpleNamespace(offscreen=offscreen))
     result = asyncio.run(run_tick(world, run, session=session))
     assert (result.characters['agnea'].where, result.characters['agnea'].spot) == expected
+    if case == 'travelling_main':
+        travel = next(e for e in read_events(world) if any(op.op == 'place' for op in e.ops))
+        assert [op.op for op in travel.ops] == ['place', 'move']
+        assert travel.ops[0].slug == 'montwise'
     scenes = read_scenes(world)
-    if case not in {'unreached', 'person_unreached'}:
+    if case != 'person_unreached':
         participants = set(plans) | ({'Host'} if case in {'moving_main', 'person', 'chain'} else set())
         assert len(scenes) == 1 and set(scenes[0].participants) == participants
         assert all((c.where, c.spot) == expected for c in result.characters.values())
@@ -144,12 +150,12 @@ def test_seek_tick(tmp_path, case, reverse):
         assert scenes == []
     move = next(e for e in read_events(world) if e.actor == 'agnea' and e.ops)
     assert move.content == f'agnea goes to find {plans["agnea"].seek}.'
-    assert set(move.perceived_by) == ({'agnea'} if case in {'unreached', 'person_unreached'} else set(plans))
+    assert set(move.perceived_by) == ({'agnea'} if case == 'person_unreached' else set(plans))
     trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     unreached = [row for row in trace if row['type'] == 'seek_unreached']
-    assert len(unreached) == (case in {'unreached', 'person_unreached'})
+    assert len(unreached) == (case == 'person_unreached')
     absent = [e for e in read_events(world) if e.type == 'world']
-    if case in {'unreached', 'person_unreached'}:
+    if case == 'person_unreached':
         assert len(absent) == 1
         event = absent[0]
         assert event.content == f"{plans['agnea'].seek} isn't here."

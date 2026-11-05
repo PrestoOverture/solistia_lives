@@ -1,6 +1,8 @@
 """The world's persistent resolving session for one day."""
 
 import json
+
+import frontmatter
 from dataclasses import replace
 from pathlib import Path
 from typing import Annotated, Literal, Self, Union
@@ -16,11 +18,11 @@ from story_engine.stages import load_catalogs, catalog_schema, spot_context, val
 from story_engine.config import Role, load_settings
 from story_engine.agents.subjects import fold
 from story_engine.trace import TraceWriter
-from story_engine.world.io import commit_event, load_state, read_events, validate_state
+from story_engine.world.io import commit_event, load_state, read_events, read_scenes, validate_state
 from story_engine.world.ops import (
     Op, Open, Move, Introduce, PlaceOp, Promise, Release, Wants, Goals, SituationOp, ClockOp,
 )
-from story_engine.world.permissions import Authority, validate_ops
+from story_engine.world.permissions import Authority, scene_people, validate_ops
 from story_engine.world.models import Clock, Event, Person, Place, Situation, WorldState
 
 
@@ -129,8 +131,20 @@ class SceneRoundReply(BaseModel):
 
 
 class WinningRoundReply(SceneRoundReply):
+    model_config = ConfigDict(extra="forbid", json_schema_extra={
+        'if': {'properties': {'resolution': {'enum': ['succeeded', 'failed']}},
+               'required': ['resolution']},
+        'then': {'required': ['outcome'], 'properties': {
+            'outcome': {'type': 'string', 'minLength': 1, 'maxLength': 280}}},
+    })
     resolution: Literal['succeeded', 'failed', 'pending', 'none']
     outcome: str | None = Field(default=None, max_length=280)
+
+    @model_validator(mode="after")
+    def resolved_outcome(self) -> Self:
+        if self.resolution in {'succeeded', 'failed'} and not self.outcome:
+            raise ValueError('succeeded and failed resolutions require a non-empty outcome')
+        return self
 
 
 WorldReply = Annotated[Union[DayStartReply, AdjudicateReply, RoundResolution],
@@ -217,13 +231,22 @@ class _WorldSession:
             self.client = None
             self.active = False
 
-    async def _start_call(self, reply_type: type, *, open_situations: set[str] | None = None) -> None:
+    async def _start_call(self, reply_type: type, *, open_situations: set[str] | None = None,
+                          empty_attempt_spots: list[tuple[str, str | None]] | None = None) -> None:
         if self.client is not None:
             await self.context.__aexit__(None, None, None)
             self.client = None
             if not self.session_id:
                 raise SessionError("SDK returned no session_id to resume")
         output_format = catalog_schema(require_person_sex(json_schema_output(reply_type)), self.catalogs)
+        if empty_attempt_spots:
+            schema = output_format['schema']
+            schema.setdefault('required', []).append('ops')
+            schema['properties']['ops']['allOf'] = [
+                {'contains': {'type': 'object', 'properties': {
+                    'op': {'const': 'introduce'}, 'where': {'const': place},
+                    'spot': {'const': spot}}, 'required': ['op', 'where', 'spot']}}
+                for place, spot in empty_attempt_spots]
         if open_situations is not None:
             ids = sorted(open_situations)
             output_format['schema']['properties']['situation_notes'] = {
@@ -348,6 +371,14 @@ class WorldAgent(_WorldSession):
             raise SessionError("WorldAgent must be opened as an async context manager")
         self.turn += 1
         self.hooks.turn = self.turn
+        empty_attempt_spots = [
+            (character.where, character.spot)
+            for slug, character in state.characters.items()
+            if choices.get(slug, {}).get('kind') == 'attempt'
+            and not any((person.where, person.spot) == (character.where, character.spot)
+                        for person in state.people.values())
+            and not any(other != slug and (main.where, main.spot) == (character.where, character.spot)
+                        for other, main in state.characters.items())]
         new_events = self._new_events(state, events)
         self.trace.write("call_input", agent=self.agent_name, call="adjudicate", turn=self.turn,
                          **state.clock.model_dump(), state=state.model_dump(), choices=choices,
@@ -355,7 +386,13 @@ class WorldAgent(_WorldSession):
         request = json.dumps({**self._state_payload(state.model_dump()), "choices": choices,
                               "call": "adjudicate", "reply": "JSON with call: 'adjudicate', encounters and ops",
                               "events": [event.model_dump() for event in new_events]}, ensure_ascii=False)
-        await self._start_call(AdjudicateReply)
+        if empty_attempt_spots:
+            payload = json.loads(request)
+            payload['empty_attempt_spots'] = [dict(place=place, spot=spot)
+                                             for place, spot in empty_attempt_spots]
+            payload['reply'] += '; introduce at least one new person at each empty_attempt_spots entry'
+            request = json.dumps(payload, ensure_ascii=False)
+        await self._start_call(AdjudicateReply, empty_attempt_spots=empty_attempt_spots)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
@@ -369,6 +406,14 @@ class WorldAgent(_WorldSession):
                 updated = self._event_state(state, event, Authority('encounter'), attempt, dropped)
                 if updated is None:
                     event, updated = None, state
+                unfilled = [dict(place=place, spot=spot) for place, spot in empty_attempt_spots
+                            if not any(isinstance(op, Introduce)
+                                       and (op.where, op.spot) == (place, spot)
+                                       and op.name in updated.people
+                                       and (updated.people[op.name].where, updated.people[op.name].spot) == (place, spot)
+                                       for op in reply.ops)]
+                if unfilled and attempt < self.role.retries:
+                    raise ValueError(f'Introduce a new person at each empty attempt spot: {unfilled}')
                 keys = {_key(name): name for name in updated.people}
                 encounters = []
                 name_drops = []
@@ -403,6 +448,16 @@ class WorldAgent(_WorldSession):
                         elif name not in minors:
                             minors.append(name)
                     encounters.append(Encounter(mains=mains, minor=minors))
+                # Null spots are seeded only through encounter listings by the scene runner.
+                for place, spot in empty_attempt_spots:
+                    minors = [name for name, person in updated.people.items()
+                              if name not in state.people and (person.where, person.spot) == (place, spot)]
+                    if spot is None and minors:
+                        encounters.append(Encounter(
+                            mains=[slug for slug, main in state.characters.items()
+                                   if (main.where, main.spot) == (place, spot)], minor=minors))
+                for spot in unfilled:
+                    self.trace.write('empty_spot_unfilled', call='adjudicate', turn=self.turn, **spot)
                 self._trace_drops('adjudicate', dropped)
                 for fields in name_drops:
                     self.trace.write('encounter_name_dropped', call='adjudicate', turn=self.turn, **fields)
@@ -524,7 +579,7 @@ class OffscreenAgent(_WorldSession):
 
     async def offscreen(self, state: WorldState, open_situations: set[str],
                         *, max_event_id: int | None = None):
-        """Advance off-screen life in a session with no main-character context."""
+        """Advance off-screen life with only main names and current places."""
         if not self.active:
             raise SessionError("WorldAgent must be opened as an async context manager")
         self.turn += 1
@@ -532,6 +587,15 @@ class OffscreenAgent(_WorldSession):
         projection = state.model_dump(exclude={
             "characters": True, "situations": {"__all__": {"touches"}},
         })
+        protected = scene_people(state, read_scenes(self.world_dir))
+        projection['people'] = {name: person for name, person in projection['people'].items()
+                                if name not in protected}
+        mains = []
+        for slug, character in state.characters.items():
+            metadata = frontmatter.load(self.root / 'kb/characters' / slug / f'{slug}.md').metadata
+            name = metadata.get('name', slug)
+            display = (metadata.get('aliases') or [name])[0] if name == slug else name
+            mains.append(dict(name=display, where=character.where))
         if max_event_id is None:
             max_event_id = max((event.id for event in read_events(self.world_dir)), default=0)
         self.trace.write("call_input", agent=self.agent_name, call="offscreen", turn=self.turn,
@@ -540,7 +604,7 @@ class OffscreenAgent(_WorldSession):
                          # Internal validation/perception context; never sent to the model.
                          validation_state=state.model_dump(), open_situations=sorted(open_situations))
         request = json.dumps({"call": "offscreen", "reply": "JSON with call: 'offscreen'",
-                              **self._state_payload(projection)}, ensure_ascii=False)
+                              **self._state_payload(projection), "mains": mains}, ensure_ascii=False)
         await self._start_call(OffscreenReply, open_situations=open_situations)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
@@ -557,7 +621,8 @@ class OffscreenAgent(_WorldSession):
                     event = Event(id=max_event_id + len(resolved) + 1, **state.clock.model_dump(), place=raw.place,
                                   actor='world', type='world' if raw.content else 'state_change',
                                   content=raw.content, perceived_by=[], ops=raw.ops)
-                    updated = self._event_state(new_state, event, Authority('offscreen', parts_of_day=self.parts_of_day),
+                    updated = self._event_state(new_state, event, Authority('offscreen', parts_of_day=self.parts_of_day,
+                                                                            scene_people=protected),
                                                 attempt, dropped)
                     if updated is None:
                         continue
