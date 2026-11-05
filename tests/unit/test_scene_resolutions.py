@@ -109,11 +109,13 @@ def test_mocked_world_links_previous_and_closing_winners(tmp_path, monkeypatch):
     world, run = tmp_path / 'world', tmp_path / 'run'
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     run.mkdir()
-    requests = []
+    requests, schemas = [], []
 
     class FakeClient:
         def __init__(self, *, options):
-            assert 'resolves' not in options.output_format['schema']['properties']
+            schema = options.output_format['schema']
+            assert 'resolves' not in schema['properties']
+            schemas.append(schema)
 
         async def __aenter__(self):
             return self
@@ -127,7 +129,7 @@ def test_mocked_world_links_previous_and_closing_winners(tmp_path, monkeypatch):
         async def receive_response(self):
             target = requests[-1]['last_winner']
             # Neither regular nor closing replies supply a target id.
-            reply = dict(call='scene_round', resolution='succeeded' if target else None,
+            reply = dict(call='scene_round', **({'resolution': 'succeeded'} if target else {}),
                          ops=[dict(op='place', slug='festival_grounds', add_details=['An open gate'])] if target else [])
             yield ResultMessage('success', 1, 1, False, 1, 'fake', structured_output=reply)
 
@@ -156,3 +158,10 @@ def test_mocked_world_links_previous_and_closing_winners(tmp_path, monkeypatch):
     assert requests[1]['last_winner']['id'] == acts[0].id and not requests[1]['closing']
     assert requests[-1]['last_winner']['id'] == acts[-1].id and requests[-1]['closing']
     assert 'An open gate' in next(p for p in state.places if p.slug == 'festival_grounds').details
+
+    assert 'resolution' not in schemas[0]['properties']
+    assert 'outcome' not in schemas[0]['properties']
+    for schema in schemas[1:]:
+        assert 'resolution' in schema['required']
+        assert schema['properties']['resolution']['type'] == 'string'
+        assert schema['properties']['resolution']['enum'] == ['succeeded', 'failed', 'pending', 'none']

@@ -96,10 +96,10 @@ def test_world_per_call_schema_and_resume(tmp_path, monkeypatch):
     run = tmp_path / 'run'
     run.mkdir()
     state = load_state(world)
-    from story_engine.agents.world import DayStartReply, AdjudicateReply, RoundResolution
+    from story_engine.agents.world import DayStartReply, AdjudicateReply, SceneRoundReply
     opening = day_start_reply(situations=[state.situations[0].model_dump() | {'id': 'new-day', 'heard': 'A supper invitation arrives.'}])
     adjudicate = dict(call='adjudicate', encounters=[])
-    scene_round = dict(call='scene_round', outcome=None, minor_moves={})
+    scene_round = dict(call='scene_round', minor_moves={})
     offscreen = dict(call='offscreen', events=[], situation_notes={})
     replies = [opening, adjudicate, scene_round, offscreen, offscreen]
     clients = _record_clients(monkeypatch, world_agent, replies)
@@ -121,7 +121,7 @@ def test_world_per_call_schema_and_resume(tmp_path, monkeypatch):
     assert len(clients) == 5
     assert [c.options.resume for c in clients] == [None, 'session-1', 'session-2', None, 'session-4']
     for client, valid, reply_type in zip(clients, replies,
-            [DayStartReply, AdjudicateReply, RoundResolution, OffscreenReply, OffscreenReply]):
+            [DayStartReply, AdjudicateReply, SceneRoundReply, OffscreenReply, OffscreenReply]):
         _assert_single_variant(client, valid, scene_round if valid == adjudicate else adjudicate, reply_type)
 
 

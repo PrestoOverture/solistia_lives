@@ -270,7 +270,7 @@ def test_scene_resolves_only_the_supplied_winning_act(workspace, monkeypatch, re
                                     dict(actor='agnea'), dict(scene='forged'), dict(round=99), dict(of='throne')])
 def test_scene_metadata_and_resolution_schema(fields):
     with pytest.raises(ValidationError):
-        world_agent.RoundResolution.model_validate(dict(call='scene_round', **fields))
+        world_agent.SceneRoundReply.model_validate(dict(call='scene_round', **fields))
 
 
 def test_scene_minor_references_introductions_and_name_matching(workspace, monkeypatch):
@@ -322,7 +322,9 @@ def test_model_supplied_resolves_is_a_schema_error(workspace, monkeypatch, closi
 @pytest.mark.parametrize('winner,resolution', [(None, 'none'), (dict(id=42, actor='agnea', round=1), None)])
 def test_scene_resolution_requires_exactly_an_outstanding_winner(workspace, monkeypatch, winner, resolution):
     reply = dict(call='scene_round', resolution=resolution)
-    exercise, requests = call_agent(workspace, monkeypatch, [reply, reply], scene=True, winner=winner)
+    good = dict(call='scene_round', **({'resolution': 'none'} if winner else {}))
+    exercise, requests = call_agent(workspace, monkeypatch, [reply, good], scene=True, winner=winner)
     event, _, _ = asyncio.run(exercise())
-    assert len(requests) == 2 and 'winning act' in requests[1]
+    assert len(requests) == 2
+    assert ('literal_error' if winner else 'extra_forbidden') in requests[1]
     assert event.resolution == ('none' if winner else None) and event.ops == []

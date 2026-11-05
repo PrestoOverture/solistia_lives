@@ -111,6 +111,7 @@ class MinorMove(BaseModel):
 
 
 class RoundResolution(BaseModel):
+    """Historical reply shape retained for replay."""
     model_config = ConfigDict(extra="forbid")
     call: Literal["scene_round"]
     resolution: Literal['succeeded', 'failed', 'pending', 'none'] | None = None
@@ -118,11 +119,18 @@ class RoundResolution(BaseModel):
     ops: list[Op] = Field(default_factory=list)
     minor_moves: dict[str, MinorMove] = Field(default_factory=dict)
 
-    @model_validator(mode='after')
-    def outcome_needs_resolution(self):
-        if self.outcome is not None and self.resolution is None:
-            raise ValueError('an outcome must resolve a winning act')
-        return self
+
+class SceneRoundReply(BaseModel):
+    """A live round with no winning act to resolve."""
+    model_config = ConfigDict(extra="forbid")
+    call: Literal["scene_round"]
+    ops: list[Op] = Field(default_factory=list)
+    minor_moves: dict[str, MinorMove] = Field(default_factory=dict)
+
+
+class WinningRoundReply(SceneRoundReply):
+    resolution: Literal['succeeded', 'failed', 'pending', 'none']
+    outcome: str | None = Field(default=None, max_length=280)
 
 
 WorldReply = Annotated[Union[DayStartReply, AdjudicateReply, RoundResolution],
@@ -415,31 +423,26 @@ class WorldAgent(_WorldSession):
                                          if name in state.people},
                               "last_winner": last_winner, "closing": closing,
                               "events": [event.model_dump() for event in new_events]}, ensure_ascii=False)
-        await self._start_call(RoundResolution)
+        reply_type = WinningRoundReply if last_winner else SceneRoundReply
+        await self._start_call(reply_type)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
                 self.trace.write("stage_usage", stage="world", agent="world", turn=self.turn,
                                  attempt=attempt + 1, **usage_fields)
             try:
-                reply = RoundResolution.model_validate(structured_reply(result, structured_output))
+                reply = RoundResolution.model_validate(
+                    reply_type.model_validate(structured_reply(result, structured_output)).model_dump())
                 target = last_winner['id'] if last_winner else None
-                resolution_error = None
-                if target is None and reply.resolution is not None:
-                    resolution_error = 'a resolution needs a winning act'
-                elif target is not None and reply.resolution is None:
-                    resolution_error = 'the winning act needs a resolution'
-                elif closing and reply.resolution == 'pending':
+                if closing and reply.resolution == 'pending':
                     resolution_error = 'closing resolution must finish the winning act'
-                if resolution_error is not None:
                     if attempt < self.role.retries:
                         raise ValueError(resolution_error)
-                    self.trace.write('resolution_ignored' if target is None else 'resolution_defaulted',
+                    self.trace.write('resolution_defaulted',
                                      call='closing_resolution' if closing else 'scene_round',
                                      turn=self.turn, error=resolution_error, reply=reply.model_dump())
                     reply = reply.model_copy(update={
-                        'resolution': None if target is None else 'none',
-                        'outcome': None if target is None else reply.outcome, 'ops': []})
+                        'resolution': 'none', 'ops': []})
                 event = Event(id=0, **state.clock.model_dump(), place=place, actor='world',
                               of=(last_winner['actor'] if last_winner and last_winner['actor'] in state.characters else None),
                               type='world' if reply.outcome else 'state_change', content=reply.outcome or '',

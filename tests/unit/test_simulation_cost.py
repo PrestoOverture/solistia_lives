@@ -105,7 +105,7 @@ def test_scene_cost_cap_stops_immediately(tmp_path, monkeypatch, payer):
     world, run, requests, closed = setup(tmp_path, monkeypatch, character,
                                         [(action, .10), (action, .15)])
     state = load_state(world)
-    resolution = dict(call='scene_round', outcome=None, minor_moves={})
+    resolution = dict(call='scene_round', minor_moves={})
     class WorldClient:
         def __init__(self, *, options): pass
         async def __aenter__(self): return self
