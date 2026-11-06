@@ -139,6 +139,7 @@ def test_mocked_world_links_previous_and_closing_winners(tmp_path, monkeypatch):
 
     monkeypatch.setattr(world_agent, 'ClaudeSDKClient', FakeClient)
     models, settings = load_configs()
+    models.world.schema_mode = models.character.schema_mode = "call"
 
     async def exercise():
         async with world_agent.WorldAgent(ROOT, run, world, models.world,

@@ -190,6 +190,7 @@ def test_initializer_spots_retry_then_null(workspace, monkeypatch, corrected):
     monkeypatch.setattr(initializer, 'ClaudeSDKClient', character.ClaudeSDKClient)
     monkeypatch.setattr(initializer, 'record_api_host', lambda *_: None)
     models, settings = load_configs()
+    models.world.schema_mode = models.character.schema_mode = "call"
     state = asyncio.run(initializer.starting_state(ROOT, run, list(initial.characters),
         'festival_grounds', 'A festival', models.initializer, settings.agent_max_turns, TraceWriter(run)))
     assert state.characters['agnea'].spot == state.people['Host'].spot == ('festival_clearing' if corrected else None)

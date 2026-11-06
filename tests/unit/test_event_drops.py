@@ -45,6 +45,7 @@ def assert_fold(world, state):
 def open_agent(workspace, cls=world_agent.WorldAgent):
     world, run = workspace
     models, settings = load_configs()
+    models.world.schema_mode = models.character.schema_mode = "call"
     return cls(ROOT, run, world, models.world, settings.agent_max_turns, TraceWriter(run))
 
 
@@ -72,7 +73,7 @@ def test_mocked_day_continues_after_offscreen_op_drop(workspace, monkeypatch, fa
             return dict(call=call, summary='Visited the stalls.')
         assert call == 'offscreen'
         return dict(call=call, events=[bad, valid], situation_notes={'missing': ''} if failure == 'nonop' else
-                    {s.id: 'Unchanged.' for s in load_state(world).situations})
+                    {s.id: 'Unchanged.' for s in load_state(world).situations if s.status == 'open'})
 
     clients = fake_sdk(monkeypatch, respond)
     original = simulation.TickSession
@@ -154,7 +155,7 @@ def test_mocked_day_encounter_name_retry_and_schema_failure(workspace, monkeypat
         if call == 'end_of_day':
             return dict(call=call, summary='Visited the stalls.')
         assert call == 'offscreen'
-        return dict(call=call, situation_notes={s.id: 'Unchanged.' for s in initial.situations})
+        return dict(call=call, situation_notes={s.id: 'Unchanged.' for s in load_state(world).situations if s.status == 'open'})
 
     clients = fake_sdk(monkeypatch, respond)
     original = simulation.TickSession

@@ -104,6 +104,7 @@ def test_world_per_call_schema_and_resume(tmp_path, monkeypatch):
     replies = [opening, adjudicate, scene_round, offscreen, offscreen]
     clients = _record_clients(monkeypatch, world_agent, replies)
     models, settings = load_configs()
+    models.world.schema_mode = models.character.schema_mode = "call"
 
     async def exercise():
         async with WorldAgent(ROOT, run, world, models.world,
@@ -139,6 +140,7 @@ def test_character_plan_schema_and_resume(tmp_path, monkeypatch):
     replies = [opening, plan, action, summary]
     clients = _record_clients(monkeypatch, character, replies)
     models, settings = load_configs()
+    models.world.schema_mode = models.character.schema_mode = "call"
     agent = CharacterAgent(ROOT, run, world, 'throne', models.character,
                            settings.agent_max_turns, TraceWriter(run))
 

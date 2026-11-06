@@ -162,6 +162,9 @@ class _WorldSession:
         self.root, self.run_dir, self.world_dir = root, run_dir, world_dir
         self.role, self.max_turns, self.trace = role, max_turns, trace
         self.catalogs = load_catalogs(root)
+        self.session_output = (catalog_schema(
+            require_person_sex(json_schema_output(self.reply_type)), self.catalogs)
+            if role.schema_mode == "session" else None)
         self.client = None
         self.active = False
         self.session_id = None
@@ -238,8 +241,10 @@ class _WorldSession:
             self.client = None
             if not self.session_id:
                 raise SessionError("SDK returned no session_id to resume")
-        output_format = catalog_schema(require_person_sex(json_schema_output(reply_type)), self.catalogs)
-        if empty_attempt_spots:
+        output_format = self.session_output
+        if output_format is None:
+            output_format = catalog_schema(require_person_sex(json_schema_output(reply_type)), self.catalogs)
+        if self.session_output is None and empty_attempt_spots:
             schema = output_format['schema']
             schema.setdefault('required', []).append('ops')
             schema['properties']['ops']['allOf'] = [
@@ -247,7 +252,7 @@ class _WorldSession:
                     'op': {'const': 'introduce'}, 'where': {'const': place},
                     'spot': {'const': spot}}, 'required': ['op', 'where', 'spot']}}
                 for place, spot in empty_attempt_spots]
-        if open_situations is not None:
+        if self.session_output is None and open_situations is not None:
             ids = sorted(open_situations)
             output_format['schema']['properties']['situation_notes'] = {
                 'type': 'object', 'properties': {id: {'type': 'string'} for id in ids},
@@ -371,14 +376,12 @@ class WorldAgent(_WorldSession):
             raise SessionError("WorldAgent must be opened as an async context manager")
         self.turn += 1
         self.hooks.turn = self.turn
-        empty_attempt_spots = [
+        empty_attempt_spots = list(dict.fromkeys(
             (character.where, character.spot)
             for slug, character in state.characters.items()
             if choices.get(slug, {}).get('kind') == 'attempt'
             and not any((person.where, person.spot) == (character.where, character.spot)
-                        for person in state.people.values())
-            and not any(other != slug and (main.where, main.spot) == (character.where, character.spot)
-                        for other, main in state.characters.items())]
+                        for person in state.people.values())))
         new_events = self._new_events(state, events)
         self.trace.write("call_input", agent=self.agent_name, call="adjudicate", turn=self.turn,
                          **state.clock.model_dump(), state=state.model_dump(), choices=choices,
@@ -495,8 +498,12 @@ class WorldAgent(_WorldSession):
                 self.trace.write("stage_usage", stage="world", agent="world", turn=self.turn,
                                  attempt=attempt + 1, **usage_fields)
             try:
-                reply = RoundResolution.model_validate(
-                    reply_type.model_validate(structured_reply(result, structured_output)).model_dump())
+                payload = structured_reply(result, structured_output)
+                if not last_winner and isinstance(payload, dict):
+                    # The session-wide schema offers these fields as nullable; null means absent here.
+                    payload = {key: value for key, value in payload.items()
+                               if not (key in {'resolution', 'outcome'} and value is None)}
+                reply = RoundResolution.model_validate(reply_type.model_validate(payload).model_dump())
                 target = last_winner['id'] if last_winner else None
                 if closing and reply.resolution == 'pending':
                     resolution_error = 'closing resolution must finish the winning act'
@@ -638,6 +645,8 @@ class OffscreenAgent(_WorldSession):
                     new_state = updated
                 if open_situations - reply.situation_notes.keys():
                     raise ValueError("situation_notes must cover every situation open at tick start")
+                if self.role.schema_mode == "session" and reply.situation_notes.keys() - open_situations:
+                    raise ValueError("situation_notes must contain only situation ids open at tick start")
                 if any(not note.strip() for note in reply.situation_notes.values()):
                     raise ValueError("situation_notes must be non-empty sentences")
                 self.last_reply = reply

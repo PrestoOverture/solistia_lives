@@ -109,7 +109,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
                     data = dict(call='adjudicate', encounters=[])
                 else:
                     data = dict(call='offscreen', events=[],
-                               situation_notes={s.id: 'Unchanged.' for s in state.situations})
+                               situation_notes={s.id: 'Unchanged.' for s in state.situations if s.status == 'open'})
                 reply = json.dumps(data)
             elif self.request.get('call') == 'end_of_day':
                 if failure == 'summary' and self is clients[1]:

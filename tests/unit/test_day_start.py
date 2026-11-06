@@ -424,6 +424,7 @@ def test_character_day_start_output_schema_has_no_main(workspace, monkeypatch):
 
     fake_sdk(monkeypatch, respond)
     models, settings = load_configs()
+    models.world.schema_mode = models.character.schema_mode = "call"
 
     async def exercise():
         async with character.CharacterAgent(ROOT, run, world, 'agnea', models.character,
@@ -477,7 +478,7 @@ def test_offscreen_isolated_persistent_client_and_scene_state(workspace, monkeyp
     async def exercise():
         async with simulation.TickSession(world, run, root=ROOT) as session:
             for _ in range(2):
-                await session.world.adjudicate(state, {'agnea': {'kind': 'attempt', 'intent': 'PRIVATE INTENT'}}, read_events(world))
+                await session.world.adjudicate(state, {'agnea': {'kind': 'go', 'intent': 'PRIVATE INTENT'}}, read_events(world))
                 await session.world.round(state, read_events(world), place='cropdale', main_present=['agnea'],
                                           minor_present=[], last_winner=None, scene='1', round_number=1)
                 await session.offscreen.offscreen(state, {s.id for s in state.situations if s.status == 'open'})

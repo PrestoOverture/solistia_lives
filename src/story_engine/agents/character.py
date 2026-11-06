@@ -104,6 +104,8 @@ class CharacterAgent:
         self.root, self.run_dir, self.world_dir = root, run_dir, world_dir
         self.slug, self.role, self.max_turns, self.trace = slug, role, max_turns, trace
         self.catalogs = load_catalogs(root)
+        self.session_output = (catalog_schema(json_schema_output(CharacterReply), self.catalogs)
+                               if role.schema_mode == "session" else None)
         self.names = {}
         for slug in load_state(world_dir).characters:
             path = root / 'kb/characters' / slug / f'{slug}.md'
@@ -158,7 +160,8 @@ class CharacterAgent:
                 raise SessionError("SDK returned no session_id to resume")
         self.options = replace(
             self.options, resume=self.session_id,
-            output_format=catalog_schema(json_schema_output(reply_type), self.catalogs),
+            output_format=(self.session_output if self.session_output is not None else
+                           catalog_schema(json_schema_output(reply_type), self.catalogs)),
         )
         self.resumed_cost = self.session_id is not None
         self.context = ClaudeSDKClient(options=self.options)

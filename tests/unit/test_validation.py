@@ -143,7 +143,7 @@ def test_models_file_configures_validator(workspace, monkeypatch, custom):
     run = next(Path('runs').iterdir())
     meta = json.loads((run / 'meta.json').read_text())
     assert meta['models_file'] == str(models_file)
-    assert meta['models']['validator'] == {**role, 'base_url': None, 'auth_token_env': None, 'retries': 1, 'max_turns': None, 'timeout_s': None}
+    assert meta['models']['validator'] == {'schema': 'call', **role, 'base_url': None, 'auth_token_env': None, 'retries': 1, 'max_turns': None, 'timeout_s': None}
 
 
 def test_verdict_schema_order():

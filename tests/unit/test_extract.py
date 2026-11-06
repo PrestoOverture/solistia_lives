@@ -142,6 +142,8 @@ def test_adaptive_config_only_changes_validator_thinking():
     original = yaml.safe_load((ROOT / 'config/models.yaml').read_text())
     adaptive = yaml.safe_load((ROOT / 'eval/e3_validator_adaptive.yaml').read_text())
     original['validator']['thinking'] = 'adaptive'
+    for role in ('world', 'character'):
+        original[role].pop('schema')
     assert original == adaptive
 
 

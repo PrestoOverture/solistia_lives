@@ -123,6 +123,7 @@ def test_actual_sdk_creation_schemas_require_sex(tmp_path, monkeypatch, agent):
     monkeypatch.setattr(module, 'ClaudeSDKClient', CaptureClient)
     monkeypatch.setattr(initializer, 'record_api_host', lambda *args: None)
     models, settings = load_configs(ROOT / 'config/models.yaml')
+    models.world.schema_mode = 'call'
     async def capture():
         if agent == 'world':
             async with world_agent.WorldAgent(ROOT, run, run, models.world,

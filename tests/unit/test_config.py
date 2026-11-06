@@ -98,7 +98,7 @@ def test_valid_dry_run(config_dir: Path) -> None:
         assert meta.input.scenario.encode("utf-8") == scenario.encode("utf-8")
         assert meta.input.characters == ["osvald", "temenos"]
         assert meta.status == "dry_run"
-        assert meta.models.model_dump() == {name: {**role, "base_url": None, "auth_token_env": None, "retries": 1, "max_turns": None, "timeout_s": None}
+        assert meta.models.model_dump() == {name: {"schema": "call", **role, "base_url": None, "auth_token_env": None, "retries": 1, "max_turns": None, "timeout_s": None}
                                         for name, role in expected_models.items()}
         assert meta.models_file == "config/models.yaml"
         assert meta.scene_context_from is None

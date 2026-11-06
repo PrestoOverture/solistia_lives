@@ -90,7 +90,7 @@ def test_attempt_field_checks(tmp_path, monkeypatch, fields, expected):
     assert len(requests) == (1 if expected == 'valid' else 2)
 
 
-@pytest.mark.parametrize('case', ['empty', 'occupied', 'retry', 'unfilled', 'go', 'other_main'])
+@pytest.mark.parametrize('case', ['empty', 'occupied', 'retry', 'unfilled', 'go', 'shared_one', 'shared_both', 'shared_occupied'])
 @pytest.mark.parametrize('spot', ['library_exterior', None])
 def test_empty_attempt_encounter(tmp_path, monkeypatch, case, spot):
     import json
@@ -106,18 +106,19 @@ def test_empty_attempt_encounter(tmp_path, monkeypatch, case, spot):
 
     root = Path(__file__).resolve().parents[2]
     characters = {'osvald': CharacterState(where='montwise', spot='the_well', goals=['Study'], commitments=[])}
-    if case == 'other_main':
+    if case.startswith('shared_'):
         characters['temenos'] = characters['osvald'].model_copy()
     state = WorldState(clock=Clock(day=1, part='morning'),
         places=[Place(slug='montwise', details=[])], characters=characters,
         people={'Librarian': Person(where='montwise', spot=spot, wants=['Study'], commitments=[])}
-               if case == 'occupied' else {}, situations=[])
+               if case in {'occupied', 'shared_occupied'} else {}, situations=[])
     world = create_world(list(characters), 'montwise', 'Study', state, worlds_dir=tmp_path / 'worlds')
     run = tmp_path / 'run'
     run.mkdir()
     (world / 'scene_context.md').write_text('Study.')
     captured = []
-    requires_person = case not in {'occupied', 'go', 'other_main'}
+    plans = []
+    requires_person = case not in {'occupied', 'go', 'shared_occupied'}
     introduce = dict(op='introduce', name='Visitor', sex='f', where='montwise',
                      spot=spot, wants=['Study'], commitments=[])
 
@@ -146,7 +147,7 @@ def test_empty_attempt_encounter(tmp_path, monkeypatch, case, spot):
         async def receive_response(self):
             if self.call == 'adjudicate':
                 ops = [introduce] if requires_person and case != 'unfilled' else []
-                if case == 'retry' and self.encounter_calls == 1:
+                if case in {'retry', 'shared_one', 'shared_both'} and self.encounter_calls == 1:
                     ops = []
                 reply = dict(call='adjudicate', encounters=[], ops=ops)
             elif self.call == 'scene_round':
@@ -154,7 +155,9 @@ def test_empty_attempt_encounter(tmp_path, monkeypatch, case, spot):
             elif self.call == 'offscreen':
                 reply = dict(call='offscreen', events=[], situation_notes={})
             elif self.call == 'part_of_day':
-                reply = dict(call='plan', kind='go' if case == 'go' else 'attempt',
+                plans.append(self.request)
+                kind = 'go' if case == 'go' or (case == 'shared_one' and len(plans) == 2) else 'attempt'
+                reply = dict(call='plan', kind=kind,
                              intent='Study', aim='Ask about books', where='montwise', spot=spot)
             else:
                 reply = dict(call='action', intent='Study', move='wait', urge=0, action='', say='')
@@ -163,6 +166,11 @@ def test_empty_attempt_encounter(tmp_path, monkeypatch, case, spot):
     fake = resumable_fake(FakeClient)
     monkeypatch.setattr(character, 'ClaudeSDKClient', fake)
     monkeypatch.setattr(world_agent, 'ClaudeSDKClient', fake)
+
+    import story_engine.simulation as simulation
+    models, settings = load_configs()
+    models.world.schema_mode = models.character.schema_mode = "call"
+    monkeypatch.setattr(simulation, "load_configs", lambda *_: (models, settings))
 
     async def exercise():
         async with TickSession(world, run, root=root) as session:
@@ -180,9 +188,9 @@ def test_empty_attempt_encounter(tmp_path, monkeypatch, case, spot):
             with pytest.raises(jsonschema.ValidationError):
                 jsonschema.validate(dict(call='adjudicate', ops=[wrong]), schema)
         jsonschema.validate(dict(call='adjudicate', ops=[introduce]), schema)
-        assert len(captured) == (2 if case in {'retry', 'unfilled'} else 1)
+        assert len(captured) == (2 if case in {'retry', 'unfilled', 'shared_one', 'shared_both'} else 1)
         assert read_scenes(world)[0].participants == (['osvald'] if case == 'unfilled'
-                                                      else ['osvald', 'Visitor'])
+                                                      else [*characters, 'Visitor'])
         rows = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
         assert any(row['type'] == 'empty_spot_unfilled' for row in rows) == (case == 'unfilled')
     else:

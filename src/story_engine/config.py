@@ -10,9 +10,12 @@ class StrictModel(BaseModel):
 
 
 class Role(StrictModel):
+    model_config = ConfigDict(extra="forbid", serialize_by_alias=True)
+
     model: str
     effort: Literal["low", "medium", "high", "xhigh", "max"] | None
     thinking: Literal["off", "adaptive"] | None
+    schema_mode: Literal["call", "session"] = Field(default="call", alias="schema")
     retries: int = Field(default=1, ge=0)
     max_turns: int | None = Field(default=None, gt=0)
     timeout_s: int | float | None = Field(default=None, gt=0)

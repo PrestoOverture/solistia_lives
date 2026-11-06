@@ -28,8 +28,8 @@ def hashes(path):
             for p in path.rglob("*") if p.is_file()}
 
 
-@pytest.fixture
-def setup(tmp_path, monkeypatch):
+@pytest.fixture(params=["call", "session"])
+def setup(tmp_path, monkeypatch, request):
     for name in ("config", "prompts"):
         shutil.copytree(ROOT / name, tmp_path / name)
     for slug in ("agnea", "throne"):
@@ -38,6 +38,12 @@ def setup(tmp_path, monkeypatch):
     shutil.copytree(ROOT / "tests/fixtures/worlds/agnea_throne", world)
     monkeypatch.chdir(tmp_path)
     models, settings = load_configs()
+    models.world.schema_mode = request.param
+    import yaml
+    model_path = tmp_path / "config/models.yaml"
+    config = yaml.safe_load(model_path.read_text())
+    config["world"]["schema"] = request.param
+    model_path.write_text(yaml.safe_dump(config))
     run = create_run(["agnea", "throne"], "cropdale", "Festival", "simulation", None,
                      models, world_id="test", day=1)
     state = load_state(world)
