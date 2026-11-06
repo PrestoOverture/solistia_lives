@@ -656,13 +656,13 @@ class OffscreenAgent(_WorldSession):
                     new_state = updated
                 if open_situations - reply.situation_notes.keys():
                     raise ValueError("situation_notes must cover every situation open at tick start")
-                if self.role.schema_mode == "session" and reply.situation_notes.keys() - open_situations:
-                    raise ValueError("situation_notes must contain only situation ids open at tick start")
                 if any(not note.strip() for note in reply.situation_notes.values()):
                     raise ValueError("situation_notes must be non-empty sentences")
+                # Notes on situations that were not open are harmless; keep only the ones asked for.
+                notes = {id: note for id, note in reply.situation_notes.items() if id in open_situations}
                 self.last_reply = reply
                 self._trace_drops('offscreen', dropped)
-                return resolved, new_state, reply.situation_notes
+                return resolved, new_state, notes
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
                                  turn=self.turn, attempt=attempt + 1)

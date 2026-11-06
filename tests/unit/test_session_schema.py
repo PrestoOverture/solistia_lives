@@ -107,12 +107,11 @@ def test_offscreen_fixed_schema(workspace, monkeypatch):
     ('wrong_world', 'call'), ('wrong_character', 'call'), ('wrong_offscreen', 'call'),
     ('introduce', 'Introduce a new person'), ('resolution', 'resolution'),
     ('outcome', 'non-empty outcome'), ('notes_missing', 'situation_notes'),
-    ('notes_extra', 'situation_notes'),
 ])
 def test_session_validation_retries_then_existing_failure(workspace, monkeypatch, case, error):
     state = load_state(workspace[0])
     cls = (character.CharacterAgent if case == 'wrong_character' else
-           world_agent.OffscreenAgent if case in {'wrong_offscreen', 'notes_missing', 'notes_extra'}
+           world_agent.OffscreenAgent if case in {'wrong_offscreen', 'notes_missing'}
            else world_agent.WorldAgent)
     bad = {
         'wrong_world': {'call': 'scene_round'},
@@ -122,7 +121,6 @@ def test_session_validation_retries_then_existing_failure(workspace, monkeypatch
         'resolution': {'call': 'scene_round'},
         'outcome': {'call': 'scene_round', 'resolution': 'succeeded'},
         'notes_missing': {'call': 'offscreen', 'situation_notes': {}},
-        'notes_extra': {'call': 'offscreen', 'situation_notes': {'one': 'Same.', 'extra': 'Same.'}},
     }[case]
     requests = []
     from claude_agent_sdk import ResultMessage
@@ -197,4 +195,29 @@ def test_session_round_without_winner_accepts_null_resolution(workspace, monkeyp
             return await agent.round(state, [], place='cropdale', main_present=['throne'],
                                      minor_present=[], last_winner=None, scene='1', round_number=2)
     asyncio.run(exercise())
+    assert 'world_validation_failed' not in (workspace[1] / 'trace.jsonl').read_text()
+
+
+def test_session_offscreen_ignores_notes_on_situations_not_open(workspace, monkeypatch):
+    state = load_state(workspace[0])
+    from claude_agent_sdk import ResultMessage
+    class Client:
+        def __init__(self, **kwargs):
+            pass
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *args):
+            pass
+        async def query(self, request):
+            pass
+        async def receive_response(self):
+            yield ResultMessage('success', 1, 1, False, 1, 'fake', structured_output={'reply': {
+                'call': 'offscreen', 'events': [], 'situation_notes': {'one': 'Same.', 'closed': 'Done.'}}})
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', Client)
+    agent = make_agent(workspace, world_agent.OffscreenAgent)
+    async def exercise():
+        async with agent:
+            return await agent.offscreen(state, {'one'})
+    events, _, notes = asyncio.run(exercise())
+    assert notes == {'one': 'Same.'}
     assert 'world_validation_failed' not in (workspace[1] / 'trace.jsonl').read_text()
