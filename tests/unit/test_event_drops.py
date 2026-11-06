@@ -504,3 +504,13 @@ def test_offscreen_schema_requires_exact_open_situation_notes(workspace, monkeyp
     assert all(value == {'type': 'string'} for value in notes['properties'].values())
     assert second['properties']['situation_notes']['required'] == ['s2']
     assert set(second['properties']['situation_notes']['properties']) == {'s2'}
+
+
+def test_agent_view_drops_player_fields_and_empty_values():
+    from story_engine.world.models import Event
+    event = Event(id=5, day=2, part='morning', place='cropdale', actor='agnea', type='speech',
+                  content='Agnea waves. "Morning!"', move='act', action='Agnea waves.', say='Morning!',
+                  intent='Be friendly', perceived_by=['throne'])
+    assert event.agent_view({'intent'}) == dict(id=5, day=2, part='morning', place='cropdale', actor='agnea',
+                                                type='speech', content='Agnea waves. "Morning!"', move='act',
+                                                perceived_by=['throne'])

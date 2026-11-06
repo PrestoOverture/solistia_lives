@@ -167,7 +167,7 @@ def test_world_day(tmp_path, monkeypatch, failure, stop_after):
             assert all(c.calls[0]['part'] == 'afternoon' for c in clients[:2])
             for client, slug in zip(clients[:2], ('agnea', 'throne')):
                 assert client.calls[0]['perceived'] == [
-                    e.model_dump(exclude={'intent', 'perceived_by'})
+                    e.agent_view({'intent', 'perceived_by'})
                     for e in morning if slug in e.perceived_by]
                 assert (world / 'memory' / f'{slug}.md').read_text().startswith('# Today')
             assert {e['id'] for e in clients[2].calls[0]['events']} >= {e.id for e in morning if not e.op_only}

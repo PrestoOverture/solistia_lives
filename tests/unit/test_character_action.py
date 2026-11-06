@@ -158,7 +158,7 @@ def test_two_calls_share_session_and_only_send_new_perceptions(tmp_path, monkeyp
     assert len(instances) == 2 and lifecycle == ["enter", "exit", "enter", "exit"]
     assert "memory" not in json.loads(requests[0])
     assert json.loads(requests[1]) == {"self": load_state(agent.world_dir).characters[agent.slug].model_dump(),
-                                     "perceived": [new.model_dump(exclude={"intent", "perceived_by"})],
+                                     "perceived": [new.agent_view({"intent", "perceived_by"})],
                                      "present": {"agnea": "Agnea Bristarni", "throne": "Throné Anguis"},
                                        "call": "scene_move", "reply": "JSON with call: 'action'"}
     assert "private" not in requests[0] and "Hello!" not in requests[1]

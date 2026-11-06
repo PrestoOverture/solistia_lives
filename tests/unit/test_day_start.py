@@ -620,3 +620,21 @@ def test_tick_protects_scene_people_but_keeps_other_people(workspace, monkeypatc
     drops = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()
              if json.loads(line)['type'] == 'event_dropped']
     assert len(drops) == (0 if recover else 1)
+
+
+def test_world_session_restarts_after_day_start(workspace, monkeypatch):
+    world, run = workspace
+    state = load_state(world)
+    replies = iter([day_start_reply(situations=[situation()]),
+                    {'call': 'adjudicate', 'encounters': [], 'ops': []}])
+    clients = fake_sdk(monkeypatch, lambda *_: next(replies))
+
+    async def exercise():
+        async with agent(world_agent.WorldAgent, world, run) as world_session:
+            started = await world_session.day_start(state, [])
+            await world_session.adjudicate(started, {}, read_events(world))
+
+    asyncio.run(exercise())
+    assert len(clients) == 2 and clients[0].closed
+    assert clients[1].options.resume is None
+    assert 'state' in clients[1].calls[0] and 'events' in clients[1].calls[0]

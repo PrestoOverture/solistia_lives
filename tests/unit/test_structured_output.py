@@ -120,7 +120,7 @@ def test_world_per_call_schema_and_resume(tmp_path, monkeypatch):
 
     asyncio.run(exercise())
     assert len(clients) == 5
-    assert [c.options.resume for c in clients] == [None, 'session-1', 'session-2', None, 'session-4']
+    assert [c.options.resume for c in clients] == [None, None, 'session-2', None, 'session-4']  # day start ends its session
     for client, valid, reply_type in zip(clients, replies,
             [DayStartReply, AdjudicateReply, SceneRoundReply, OffscreenReply, OffscreenReply]):
         _assert_single_variant(client, valid, scene_round if valid == adjudicate else adjudicate, reply_type)

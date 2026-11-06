@@ -12,6 +12,7 @@ from story_engine.agents.subjects import fold
 from story_engine.agents.world import OffscreenAgent, WorldAgent
 from story_engine.config import load_configs
 from story_engine.kb import normalize_slug
+from story_engine.runs import record_api_host
 from story_engine.stages import load_catalogs
 from story_engine.trace import TraceWriter
 from story_engine.world.io import (
@@ -90,6 +91,8 @@ class TickSession:
             self.offscreen = await self.stack.enter_async_context(OffscreenAgent(
                 self.root, self.run_dir, self.world_dir, models.world,
                 self.settings.agent_max_turns, self.trace))
+            if (self.run_dir / 'meta.json').exists():  # unit tests open sessions without a run record
+                record_api_host(self.run_dir, self.world.options.env.get('ANTHROPIC_BASE_URL'))
         except BaseException:
             await self.stack.aclose()
             raise

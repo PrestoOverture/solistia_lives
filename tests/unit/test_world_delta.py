@@ -17,6 +17,8 @@ from story_engine.world.models import Person, Place
 
 ROOT = Path(__file__).resolve().parents[2]
 CALLS = ["day_start", "adjudicate", "scene_round", "offscreen"]
+# Day start ends its session, so only the other calls carry deltas to a next call.
+DELTA_CALLS = CALLS[1:]
 
 
 @pytest.fixture
@@ -95,7 +97,7 @@ def projection(state, call):
     return state.model_dump()
 
 
-@pytest.mark.parametrize("call", CALLS)
+@pytest.mark.parametrize("call", DELTA_CALLS)
 def test_full_state_once_then_empty_delta_and_new_session(session_setup, call):
     state, session, requests, clients = session_setup
 
@@ -115,7 +117,7 @@ def test_full_state_once_then_empty_delta_and_new_session(session_setup, call):
     assert [len(client.requests) for client in clients] == [1, 1, 1]
 
 
-@pytest.mark.parametrize("call", CALLS)
+@pytest.mark.parametrize("call", DELTA_CALLS)
 def test_only_changed_person_sent_in_delta(session_setup, call):
     state, session, requests, _clients = session_setup
 
@@ -132,7 +134,7 @@ def test_only_changed_person_sent_in_delta(session_setup, call):
     assert second["state_changes"] == {"people": {"Tam": state.people["Tam"].model_dump()}}
 
 
-@pytest.mark.parametrize("call", CALLS)
+@pytest.mark.parametrize("call", DELTA_CALLS)
 def test_removed_person_listed_in_delta(session_setup, call):
     state, session, requests, _clients = session_setup
 
@@ -222,7 +224,7 @@ def test_offscreen_deltas_exclude_main_character_and_touches_changes(session_set
         assert "Private new goal" not in json.dumps(payload)
 
 
-def test_world_calls_share_last_sent_state_not_last_reply(session_setup):
+def test_world_calls_after_day_start_share_last_sent_state(session_setup):
     state, session, requests, _clients = session_setup
 
     async def exercise():
@@ -230,18 +232,18 @@ def test_world_calls_share_last_sent_state_not_last_reply(session_setup):
             updated = await invoke(agent, "day_start", state)
             await invoke(agent, "adjudicate", updated)
             await invoke(agent, "scene_round", updated)
+            return updated
 
-    asyncio.run(exercise())
+    updated = asyncio.run(exercise())
     first, second, third = map(json.loads, requests)
     assert first["state"] == state.model_dump()
-    assert second["state_changes"] == {
-        "situations": [state.situations[0].model_dump() | {"id": "delta-new", "heard": "A supper invitation arrives."}],
-    }
+    # Day start's session ends with it; the next call opens a fresh one from the full state.
+    assert second["state"] == updated.model_dump()
     assert third["state_changes"] == {}
-    assert "state" not in second and "state" not in third
+    assert "state" not in third
 
 
-@pytest.mark.parametrize("call", CALLS)
+@pytest.mark.parametrize("call", DELTA_CALLS)
 def test_retry_feedback_unchanged_and_next_call_diffs_last_input(session_setup, call):
     state, session, requests, _clients = session_setup
 

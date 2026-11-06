@@ -142,6 +142,13 @@ class Event(WorldModel):
     def op_only(self) -> bool:
         return self.type == "state_change" and not self.content
 
+    def agent_view(self, exclude: set[str] = frozenset()) -> dict:
+        """An event as agents read it: action and say repeat content, and empty fields are left out."""
+        view = self.model_dump(exclude={'action', 'say', *exclude}, exclude_none=True)
+        if not view.get('ops', True):
+            del view['ops']
+        return view
+
 
 class SceneRecord(WorldModel):
     id: str

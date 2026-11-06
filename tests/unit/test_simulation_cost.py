@@ -95,8 +95,8 @@ def test_cumulative_cost_and_world_event_delta(tmp_path, monkeypatch, kind):
     assert [row['total_cost_usd'] for row in usage] == [.10, .25]
     assert [row['call_cost_usd'] for row in usage] == pytest.approx([.10, .15])
     if kind == 'world':
-        assert json.loads(requests[0])['events'] == [event.model_dump()]
-        assert json.loads(requests[1])['events'] == [new.model_dump()]
+        assert json.loads(requests[0])['events'] == [event.agent_view()]
+        assert json.loads(requests[1])['events'] == [new.agent_view()]
 
 
 @pytest.mark.parametrize('payer', ['character', 'world'])

@@ -234,6 +234,15 @@ class _WorldSession:
             self.client = None
             self.active = False
 
+    async def _restart_session(self) -> None:
+        """Close this conversation so the next call starts a fresh one from the full state."""
+        if self.client is not None:
+            await self.context.__aexit__(None, None, None)
+        self.client = None
+        self.session_id = None
+        self.last_state = None
+        self.cost = SessionCost()
+
     async def _start_call(self, reply_type: type, *, open_situations: set[str] | None = None,
                           empty_attempt_spots: list[tuple[str, str | None]] | None = None) -> None:
         if self.client is not None:
@@ -329,7 +338,7 @@ class WorldAgent(_WorldSession):
         request = json.dumps({
             "call": "day_start", "reply": "JSON with call: 'day_start' with ops, including 1-3 open ops",
             **self._state_payload(state.model_dump()),
-            "events": [event.model_dump(exclude={"intent"}) for event in events
+            "events": [event.agent_view({"intent"}) for event in events
                        if event.day == state.clock.day - 1 and event.type != "plan" and not event.op_only],
         }, ensure_ascii=False)
         await self._start_call(DayStartReply)
@@ -355,6 +364,8 @@ class WorldAgent(_WorldSession):
                                 actor='world', type='world', content=situation.heard,
                                 perceived_by=situation.touches))
                 self._trace_drops('day_start', dropped)
+                # Yesterday's events stay out of the session that resolves today's calls.
+                await self._restart_session()
                 return load_state(self.world_dir)
             except ValueError as error:
                 self.trace.write("world_validation_failed", error=str(error), raw_reply=result,
@@ -388,7 +399,7 @@ class WorldAgent(_WorldSession):
                          max_event_id=max((event.id for event in events), default=0))
         request = json.dumps({**self._state_payload(state.model_dump()), "choices": choices,
                               "call": "adjudicate", "reply": "JSON with call: 'adjudicate', encounters and ops",
-                              "events": [event.model_dump() for event in new_events]}, ensure_ascii=False)
+                              "events": [event.agent_view() for event in new_events]}, ensure_ascii=False)
         if empty_attempt_spots:
             payload = json.loads(request)
             payload['empty_attempt_spots'] = [dict(place=place, spot=spot)
@@ -489,7 +500,7 @@ class WorldAgent(_WorldSession):
                               "people": {name: state.people[name].model_dump() for name in minor_present
                                          if name in state.people},
                               "last_winner": last_winner, "closing": closing,
-                              "events": [event.model_dump() for event in new_events]}, ensure_ascii=False)
+                              "events": [event.agent_view() for event in new_events]}, ensure_ascii=False)
         reply_type = WinningRoundReply if last_winner else SceneRoundReply
         await self._start_call(reply_type)
         for attempt in range(self.role.retries + 1):

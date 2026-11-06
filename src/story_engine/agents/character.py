@@ -195,7 +195,7 @@ class CharacterAgent:
             # Earlier days reach the character only through its memory summary.
             if (event.day == self.day and not event.op_only and self.slug in event.perceived_by
                     and event.id not in self.seen):
-                events.append(event.model_dump(exclude={"intent", "perceived_by"}))
+                events.append(event.agent_view({"intent", "perceived_by"}))
                 self.seen.add(event.id)
         state = load_state(self.world_dir)
         current = state.characters[self.slug]
