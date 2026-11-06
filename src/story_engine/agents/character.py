@@ -119,14 +119,16 @@ class CharacterAgent:
         self.turn = 0
         self.cost = SessionCost()
         self.seen: set[int] = set()
+        self.spots_sent = False
 
     async def __aenter__(self) -> Self:
         if self.opened:
             raise SessionError("CharacterAgent context can only be opened once")
         self.opened = True
         state = load_state(self.world_dir)
+        self.day = state.clock.day
         self.prior_events = [event for event in read_events(self.world_dir)
-                             if event.day == state.clock.day]
+                             if event.day == self.day]
         character = state.characters[self.slug]
         self.opening = {"clock": state.clock.model_dump(), "place": character.where,
                         "goals": character.goals,
@@ -190,7 +192,9 @@ class CharacterAgent:
         self.hooks.turn = self.turn
         events = []
         for event in (self.prior_events if self.turn == 1 else []) + perceived:
-            if not event.op_only and self.slug in event.perceived_by and event.id not in self.seen:
+            # Earlier days reach the character only through its memory summary.
+            if (event.day == self.day and not event.op_only and self.slug in event.perceived_by
+                    and event.id not in self.seen):
                 events.append(event.model_dump(exclude={"intent", "perceived_by"}))
                 self.seen.add(event.id)
         state = load_state(self.world_dir)
@@ -209,7 +213,9 @@ class CharacterAgent:
                               **({"call": "end_of_day", "reply": "JSON {call: 'end_of_day', summary: 'Markdown: what happened, what changed, what you want now'}"} if summary else {}),
                               **({"call": "day_start", "reply": "JSON with call: 'day_start' and goals: [1-3 strings]"} if day_start else {}),
                               **({"places": places,
-                                  "spots": spot_context(self.catalogs, [p['slug'] for p in places]),
+                                  # Catalogs are fixed, so the session keeps the first plan's copy.
+                                  **({} if self.spots_sent else
+                                     {"spots": spot_context(self.catalogs, [p['slug'] for p in places])}),
                                   "seek_schema": {"enum": [*seek_keys, None], "default": None},
                                   "part": part, "call": "part_of_day", "reply": "JSON with call: 'plan'"} if part else {}),
                               # Each request names its expected reply type.
@@ -217,6 +223,7 @@ class CharacterAgent:
                                  if not part and not summary and not day_start else {})},
                              ensure_ascii=False)
         await self._start_call(DayStart if day_start else EndOfDay if summary else Plan if part else Action)
+        self.spots_sent = self.spots_sent or bool(part)
         for attempt in range(self.role.retries + 1):
             thinking = ThinkingUsage()
             async def receive_call():

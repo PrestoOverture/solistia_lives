@@ -451,3 +451,37 @@ def test_present_uses_current_exact_position(tmp_path, monkeypatch, call):
         {'throne': 'Throné Anguis', 'agnea': 'Agnea Bristarni', 'near_person': 'Near Person'},
         {'throne': 'Throné Anguis', 'near_person': 'Near Person'},
     ]
+
+
+def test_character_input_keeps_only_the_current_day(tmp_path, monkeypatch):
+    from story_engine.world.io import commit_event
+    from story_engine.world.ops import ClockOp
+    from story_engine.world.permissions import Authority
+    agent, _, requests, _, _ = setup_agent(tmp_path, monkeypatch, iter([json.dumps(VALID)]))
+    yesterday = Event(id=1, day=1, part="evening", place="cropdale", actor="agnea",
+                      type="speech", content="See you tomorrow.", perceived_by=["throne"])
+    commit_event(agent.world_dir, Event(
+        id=0, day=1, part='night', place='cropdale', actor='world', type='state_change',
+        content='', perceived_by=[], ops=[ClockOp(day=2, part='morning')]), authority=Authority('code'))
+    today = yesterday.model_copy(update={"id": 2, "day": 2, "part": "morning", "content": "Good morning."})
+
+    async def exercise():
+        async with agent:
+            await agent.act([yesterday, today])
+
+    asyncio.run(exercise())
+    assert [row['id'] for row in json.loads(requests[0])['perceived']] == [today.id]
+
+
+def test_only_the_first_plan_request_lists_spots(tmp_path, monkeypatch):
+    plan = json.dumps(dict(call="plan", kind="go", intent="Stay near", where="cropdale", aim="Wait by the inn"))
+    agent, _, requests, _, _ = setup_agent(tmp_path, monkeypatch, iter([plan] * 2))
+
+    async def exercise():
+        async with agent:
+            await agent.choose("morning", [])
+            await agent.choose("afternoon", [])
+
+    asyncio.run(exercise())
+    first, second = (json.loads(request) for request in requests)
+    assert "spots" in first and "spots" not in second and second["places"] == first["places"]
