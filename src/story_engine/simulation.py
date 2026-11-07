@@ -312,6 +312,14 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
             lost_minors=lost_minors)
         if outcome is not None and (outcome.ops or outcome.resolves is not None or outcome.content):
             log(outcome, Authority('scene_round'))
+            # People the resolution brings to this spot join the scene.
+            for op in outcome.ops:
+                name = op.name if op.op == 'introduce' else op.who if op.op == 'move' else None
+                if (name in state.people and name not in minor_present
+                        and (state.people[name].where, state.people[name].spot) == (place, spot)):
+                    minor_present.append(name)
+                    if name not in all_participants:
+                        all_participants.append(name)
         finished = target is not None and outcome is not None and outcome.resolution != 'pending'
         if finished:
             unresolved.remove(target)

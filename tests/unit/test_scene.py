@@ -254,6 +254,70 @@ def test_minor_joins_by_address_and_wins_floor(tmp_path, monkeypatch):
 
 
 
+def test_person_introduced_by_a_resolution_joins_the_scene(tmp_path, monkeypatch):
+    """A person the World introduces at the scene's spot without a move is a participant next round."""
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    world_requests = []
+
+    class CharClient:
+        def __init__(self, *, options):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def query(self, request):
+            self.request = json.loads(request)
+
+        async def receive_response(self):
+            yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(move(say='Anyone here?')))
+
+    class WorldClient:
+        def __init__(self, *, options):
+            self.round = 0
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def query(self, request):
+            self.request = json.loads(request)
+            world_requests.append(self.request)
+
+        async def receive_response(self):
+            self.round += 1
+            data = round_reply(self.request, outcome=None, minor_moves={}, new_people=(
+                {'Usher': dict(sex='m', where='festival_grounds', spot='festival_clearing',
+                               wants=['Seat guests'], commitments=[])} if self.round == 2 else {}))
+            yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
+
+    monkeypatch.setattr(character, 'ClaudeSDKClient', resumable_fake(CharClient))
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', resumable_fake(WorldClient))
+
+    async def exercise():
+        state = load_state(world)
+        for slug in ('agnea', 'throne'):
+            state.characters[slug].spot = 'festival_clearing'
+        async with TickSession(world, run, root=ROOT) as session:
+            session.settings.scene_cap = 3
+            commit_fixture_changes(world, state)
+            return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [],
+                                   spot='festival_clearing')
+
+    asyncio.run(exercise())
+    rounds = [r for r in world_requests if r.get('call') == 'scene_round' and not r.get('closing')]
+    assert rounds[1]['participants']['minor'] == []
+    assert rounds[2]['participants']['minor'] == ['Usher']
+    assert 'Usher' in read_scenes(world)[-1].participants
+
+
 def test_minor_visible_wait_not_logged_but_floor_win_is(tmp_path, monkeypatch):
     """A minor's visible wait is never logged (D25: no audience); a round the minor wins is."""
     world, run = tmp_path / 'world', tmp_path / 'run'
