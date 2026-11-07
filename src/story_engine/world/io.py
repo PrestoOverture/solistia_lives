@@ -164,6 +164,16 @@ def append_scene(world_dir: Path, scene: SceneRecord) -> SceneRecord:
     return scene
 
 
+def world_end(world_dir: Path) -> dict | None:
+    """The day a world ended on and why (`settled` or `day_cap`), or None while it runs."""
+    path = world_dir / "world_end.json"
+    return _read_json(path) if path.exists() else None
+
+
+def end_world(world_dir: Path, day: int, reason: str) -> None:
+    _atomic_write(world_dir / "world_end.json", json.dumps({"day": day, "reason": reason}))
+
+
 def _memory_path(world_dir: Path, character: str) -> Path:
     info = WorldInfo.model_validate(_read_json(world_dir / "world.json"))
     if (character not in info.characters or not character

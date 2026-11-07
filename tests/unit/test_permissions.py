@@ -122,17 +122,23 @@ def test_offscreen_only_drops_due_situation(state, clock, fields, accepted):
             validate_ops(state, event, authority)
 
 
-@pytest.mark.parametrize('how,scene,accepted', [
-    ('kept', None, False), ('kept', 'later-scene', True),
-    ('broken', None, True), ('cancelled', None, True),
+@pytest.mark.parametrize('how,scene,accepted,mains_away', [
+    ('kept', None, False, False), ('kept', 'later-scene', True, False),
+    ('broken', None, True, False), ('cancelled', None, True, False),
+    ('kept', None, True, True),
 ])
-def test_scene_promise_kept_only_in_scene(state, how, scene, accepted):
+def test_scene_promise_kept_only_in_scene(state, how, scene, accepted, mains_away):
+    """Off-screen keeps a scene promise only as an errand no main is at the place to see."""
     promised = Event(id=12, **state.clock.model_dump(), place='town', actor='world', type='world',
                      content='An invitation', perceived_by=['agnea'], scene='first-scene', round=1,
                      ops=OPS.validate_python([dict(op='promise', who='Host', what='Meet', where='town', day=1, part='night')]))
     updated = validate_ops(state, promised, Authority('scene_round'))
     promise = updated.people['Host'].commitments[-1]
     assert promise.id == '12:0' and promise.scene == 'first-scene'
+    if mains_away:
+        updated.places.append(Place(slug='harbor', details=[]))
+        for main in updated.characters.values():
+            main.where = 'harbor'
     event = Event(id=13, **state.clock.model_dump(), place='town', actor='world', type='world', content='Any text',
                   perceived_by=[], scene=scene, round=2 if scene else None,
                   ops=OPS.validate_python([dict(op='release', who='Host', id=promise.id, how=how)]))

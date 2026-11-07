@@ -142,14 +142,17 @@ def test_seek_tick(tmp_path, case, reverse):
         assert [op.op for op in travel.ops] == ['place', 'move']
         assert travel.ops[0].slug == 'montwise'
     scenes = read_scenes(world)
-    if case != 'person_unreached':
+    if case == 'travelling_main':
+        # festival_grounds to montwise crosses a region: the part is spent on the road.
+        assert scenes == [] and 'The journey to montwise takes the morning.' in travel.content
+    elif case != 'person_unreached':
         participants = set(plans) | ({'Host'} if case in {'moving_main', 'person', 'chain'} else set())
         assert len(scenes) == 1 and set(scenes[0].participants) == participants
         assert all((c.where, c.spot) == expected for c in result.characters.values())
     else:
         assert scenes == []
     move = next(e for e in read_events(world) if e.actor == 'agnea' and e.ops)
-    assert move.content == f'agnea goes to find {plans["agnea"].seek}.'
+    assert move.content.startswith(f'agnea goes to find {plans["agnea"].seek}.')
     assert set(move.perceived_by) == ({'agnea'} if case == 'person_unreached' else set(plans))
     trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     unreached = [row for row in trace if row['type'] == 'seek_unreached']

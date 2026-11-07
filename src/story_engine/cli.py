@@ -328,7 +328,7 @@ def world_run(
 ) -> None:
     """Simulate through the current day's night, then curate and narrate one story."""
     from story_engine.simulation import CostCapReached, run_day
-    from story_engine.world.io import load_state, read_events, require_genesis
+    from story_engine.world.io import load_state, read_events, require_genesis, world_end
     from story_engine.world.models import WorldInfo
 
     try:
@@ -336,6 +336,8 @@ def world_run(
             raise ValueError("world_id must be a world ID")
         world_dir = Path("worlds") / world_id
         require_genesis(world_dir)
+        if (ended := world_end(world_dir)) is not None:
+            raise ValueError(f"World ended on day {ended['day']} ({ended['reason']}); create a new world")
         state = load_state(world_dir)
         info = WorldInfo.model_validate_json((world_dir / "world.json").read_bytes())
         read_events(world_dir)

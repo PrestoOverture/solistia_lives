@@ -72,8 +72,8 @@ class DayStartReply(BaseModel):
     @model_validator(mode="after")
     def valid_situations(self) -> Self:
         situations = [op.situation for op in self.ops if isinstance(op, Open)]
-        if not 1 <= len(situations) <= 3:
-            raise ValueError('day_start needs 1-3 open ops')
+        if len(situations) > 3:
+            raise ValueError('day_start takes 0-3 open ops')
         if len(situations) >= 2:
             if len({s.kind for s in situations}) <= 1:
                 raise ValueError("new situations must have more than one kind")
@@ -343,14 +343,15 @@ class _WorldSession:
 
 
 class WorldAgent(_WorldSession):
-    async def day_start(self, state: WorldState, events: list[Event]) -> WorldState:
+    async def day_start(self, state: WorldState, events: list[Event], *, last_day: bool = False) -> WorldState:
         """Add the day's situations from revised goals and yesterday's visible facts."""
         if not self.active:
             raise SessionError("WorldAgent must be opened as an async context manager")
         self.turn += 1
         self.hooks.turn = self.turn
         request = json.dumps({
-            "call": "day_start", "reply": "JSON with call: 'day_start' with ops, including 1-3 open ops",
+            "call": "day_start", "reply": "JSON with call: 'day_start' with ops, including 0-3 open ops",
+            **({"last_day": True} if last_day else {}),
             **self._state_payload(state.model_dump()),
             "events": [event.agent_view({"intent"}) for event in events
                        if event.day == state.clock.day - 1 and event.type != "plan" and not event.op_only],

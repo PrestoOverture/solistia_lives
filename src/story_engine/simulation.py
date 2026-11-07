@@ -7,11 +7,11 @@ from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Self
 
-from story_engine.agents.character import CharacterAgent
+from story_engine.agents.character import CharacterAgent, crosses_region
 from story_engine.agents.subjects import fold
 from story_engine.agents.world import OffscreenAgent, WorldAgent
 from story_engine.config import load_configs
-from story_engine.kb import normalize_slug
+from story_engine.kb import location_regions, normalize_slug
 from story_engine.runs import record_api_host
 from story_engine.stages import load_catalogs
 from story_engine.trace import TraceWriter
@@ -170,6 +170,10 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
             id=0, **state.clock.model_dump(), place=place, actor=slug,
             type='plan', content=plan.aim, intent=plan.intent, perceived_by=[slug]))
     positions = _plan_positions(state, plans, session.trace, world_dir)
+    regions = location_regions(session.root)
+    # Crossing into another region takes the whole part of the day: no scene on the road.
+    travelling = {slug for slug, (place, _) in positions.items()
+                  if crosses_region(regions, state.characters[slug].where, place)}
     places = {p.slug for p in state.places}
     for slug, plan in plans.items():
         if plan.where is not None or plan.seek is not None:
@@ -183,7 +187,8 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
             commit_event(world_dir, Event(
                 id=0, **state.clock.model_dump(), place=place, actor=slug,
                 type='action', content=(f'{slug} goes to find {plan.seek}.' if plan.seek is not None
-                                        else f'{slug} goes to {plan.where}.'),
+                                        else f'{slug} goes to {plan.where}.')
+                + (f' The journey to {place} takes the {state.clock.part}.' if slug in travelling else ''),
                 perceived_by=[other for other, position in positions.items()
                               if position == (place, spot)],
                 ops=ops),
@@ -197,6 +202,8 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
     updated = load_state(world_dir)
     groups = {}
     for slug, character in updated.characters.items():
+        if slug in travelling:
+            continue
         groups.setdefault((character.where, character.spot), []).append(slug)
     minors_by_spot = {}
     for encounter in encounters:
@@ -379,7 +386,8 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
         minor_present = [name for name in minor_present
                          if (name not in moves or moves[name].move != 'leave')
                          and (state.people[name].where, state.people[name].spot) == (place, spot)]
-        quiet = 0 if winner else quiet + 1
+        # Urge 1 is "only if no one else does": two rounds won at that urge, or with no act, wind a scene down.
+        quiet = 0 if winner and (solo_attempt or moves[winner].urge > 1) else quiet + 1
         total = len(main_present) + len(minor_present)
         if not main_present:
             reason = 'no_main'
@@ -418,8 +426,11 @@ def _copy_world(source: Path, destination: Path) -> None:
 
 async def run_day(world_dir: Path, run_dir: Path) -> WorldState:
     """Commit completed parts; roll back the failing part after preserving evidence."""
-    from story_engine.world.io import require_genesis
+    from story_engine.world.io import end_world, require_genesis, world_end
     require_genesis(world_dir)
+    ended = world_end(world_dir)
+    if ended is not None:
+        raise ValueError(f"World ended on day {ended['day']} ({ended['reason']}); create a new world")
     checkpoint = run_dir / "world_before"
     _copy_world(world_dir, checkpoint)
     try:
@@ -435,7 +446,13 @@ async def run_day(world_dir: Path, run_dir: Path) -> WorldState:
                         type='state_change', content='', perceived_by=[], ops=ops),
                         authority=Authority('character_day_start', slug))
                     state = load_state(world_dir)
-                state = await session.world.day_start(state, read_events(world_dir))
+                state = await session.world.day_start(state, read_events(world_dir),
+                                                      last_day=state.clock.day >= session.settings.world_days)
+            day, ending = state.clock.day, None
+            if day_started:
+                # A day start that opens nothing with nothing open: the story has come to rest.
+                ending = ('day_cap' if day >= session.settings.world_days
+                          else 'settled' if not any(s.status == 'open' for s in state.situations) else None)
             while state.clock.day == session.day:
                 # Day start and its first tick share the pre-day-start checkpoint.
                 if not day_started:
@@ -446,6 +463,9 @@ async def run_day(world_dir: Path, run_dir: Path) -> WorldState:
                         for slug, agent in session.characters.items()}
             for slug, memory in memories.items():
                 write_memory(world_dir, slug, memory)
+            if ending is not None:
+                end_world(world_dir, day, ending)
+                session.trace.write('world_ended', day=day, reason=ending)
     except BaseException:
         _copy_world(world_dir, run_dir / "world_failed")
         _copy_world(checkpoint, world_dir)

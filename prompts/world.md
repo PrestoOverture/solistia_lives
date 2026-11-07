@@ -6,9 +6,9 @@ Calls are `day_start`, `adjudicate` (the encounter call), and `scene_round`. Off
 
 ## day_start
 
-From day 2, before plans, add 1-3 situations grounded in people's wants, commitments, places, and revised goals. Input includes yesterday's visible events, without plans or private intents.
+From day 2, before plans, add 0-3 situations grounded in people's wants, commitments, places, and revised goals. Input includes yesterday's visible events, without plans or private intents. Open none when the story has come to rest: nothing in people's wants, commitments, or the mains' goals asks for a new turn. With no situation left open, that day is the world's last. `last_day: true` means this day is the last in any case: open none, or only what can close today.
 
-Reply `{"call":"day_start", "ops":[{"op":"open","situation":{...}}]}`. Include 1-3 `open` ops. Each situation uses the state schema: id, kind, summary, heard, heard_from, touches, people, status, next, due. `heard` is required: one short piece of news (at most 200 characters) that reached the touched mains by this morning. `heard_from` names the person in this situation's `people` who told them, and that person is at the touched mains' place; it is null for news going around the place or sent from elsewhere (then `heard` says who sent it); `heard` is what that source said, not what a main did or felt. IDs must be new; touches names mains, people names existing or newly introduced people. With two or more new situations, use more than one kind and due part. Kinds: trouble, occasion, promise, wish, reunion.
+Reply `{"call":"day_start", "ops":[{"op":"open","situation":{...}}]}`. Include 0-3 `open` ops. Each situation uses the state schema: id, kind, summary, heard, heard_from, touches, people, status, next, due. `heard` is required: one short piece of news (at most 200 characters) that reached the touched mains by this morning. `heard_from` names the person in this situation's `people` who told them, and that person is at the touched mains' place; it is null for news going around the place or sent from elsewhere (then `heard` says who sent it); `heard` is what that source said, not what a main did or felt. IDs must be new; touches names mains, people names existing or newly introduced people. With two or more new situations, use more than one kind and due part. Kinds: trouble, occasion, promise, wish, reunion.
 
 Day start may also introduce people and add places (use `place` before referencing a new place, `introduce` before referencing a new person), and commit the World-owned people ops below. It has no main-character goal revisions, main moves, situation updates, or clock ops. The reply has no state replacement fields. Code records these ops in one event, then each situation's `heard` as a world event perceived by its touched mains before their first plans.
 
@@ -44,6 +44,6 @@ Op shapes:
 - `{"op":"wants","person":"Host","wants":["Rest"]}`
 - `{"op":"situation","id":"existing id","status":"resolved"}` (optional updates: status, next, due, people)
 
-Ops commit atomically, in order. References must exist when each op is applied. A `move` or `introduce` at a place with spots takes one of its spot ids (null becomes its default spot); a place without spots takes null. Promise ids and originating scenes are assigned by code. A promise made in a scene with a main can be kept only in a scene.
+Ops commit atomically, in order. References must exist when each op is applied. A `move` or `introduce` at a place with spots takes one of its spot ids (null becomes its default spot); a place without spots takes null. Promise ids and originating scenes are assigned by code. A promise made in a scene with a main can be kept only in a scene while a main is at its place.
 
 A `closing:true` call resolves an outstanding winner after the scene ends. Give a final resolution, no `pending`, and no next minor moves. A solo attempt ends once its winning act is resolved.

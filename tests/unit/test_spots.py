@@ -247,7 +247,8 @@ def test_plan_offers_catalog_places_outside_state(tmp_path, monkeypatch, catalog
     assert set(places) == {'montwise'} | catalogs.keys()
     assert len(places) == len(request['places'])
     assert places['montwise']['details'] == ['Known library']
-    assert places['flamechurch'] == {'slug': 'flamechurch', **({'name': catalog_name} if catalog_name else {})}
+    assert places['flamechurch'] == {'slug': 'flamechurch', **({'name': catalog_name} if catalog_name else {}),
+                                     'region': 'crestlands'}
     assert request['spots']['flamechurch'] == [
         s.model_dump(include={'id', 'name', 'about'}) for s in catalogs['flamechurch'].spots]
 
@@ -295,3 +296,26 @@ def test_world_ops_at_catalogued_place_get_default_spot(workspace, monkeypatch):
     event, _, updated = asyncio.run(exercise())
     assert [op.spot for op in event.ops] == ['festival_clearing', 'village_square']
     assert (updated.people['Usher'].spot, updated.people['Porter'].spot) == ('festival_clearing', 'village_square')
+
+
+@pytest.mark.parametrize('corrected', [True, False])
+def test_attempt_into_another_region_is_retried_then_becomes_a_go(tmp_path, monkeypatch, corrected):
+    attempt = dict(call='plan', kind='attempt', intent='Ask', aim='Ask the clerics',
+                   where='flamechurch', spot='chapel')
+    replies = [attempt, dict(attempt, kind='go') if corrected else attempt]
+    agent, _, requests, _, _ = setup_agent(tmp_path, monkeypatch, iter(json.dumps(r) for r in replies))
+    state = load_state(agent.world_dir)
+    state.places = [Place(slug='conning_creek', details=[])]
+    for member in [*state.characters.values(), *state.people.values()]:
+        member.where, member.spot = 'conning_creek', None
+        member.commitments = []
+    (agent.world_dir / 'genesis.json').write_text(state.model_dump_json())
+
+    async def exercise():
+        async with agent:
+            return await agent.choose('night', [])
+
+    plan = asyncio.run(exercise())
+    assert plan.kind == 'go' and plan.where == 'flamechurch'
+    assert 'an attempt stays in your region (harborlands)' in requests[1]
+    assert {p['slug']: p['region'] for p in json.loads(requests[0])['places']}['conning_creek'] == 'harborlands'

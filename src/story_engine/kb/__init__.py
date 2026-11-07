@@ -16,6 +16,13 @@ def normalize_slug(value: str) -> str:
     return folded.strip().replace(" ", "_")
 
 
+def location_regions(root: Path = Path(".")) -> dict[str, str]:
+    """Each KB location's region, the first directory under kb/locations/."""
+    base = root / "kb/locations"
+    return {path.stem: path.relative_to(base).parts[0]
+            for path in base.rglob("*.md") if path.is_file() and len(path.relative_to(base).parts) > 1}
+
+
 def location_slugs() -> set[str]:
     return {path.stem for path in Path("kb/locations").rglob("*.md") if path.is_file()}
 

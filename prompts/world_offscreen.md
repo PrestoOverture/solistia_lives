@@ -20,7 +20,7 @@ Off-screen ops:
 - `{"op":"place","slug":"place_slug","add_details":["A shop"],"remove_details":[]}` — add a place or details; `remove_details` deletes existing details, word for word, that are no longer true.
 - `{"op":"wants","person":"Person name","wants":["Rest"]}`
 - `{"op":"promise","who":"Person name","what":"Open at dawn","where":"place_slug","day":2,"part":"morning"}`
-- `{"op":"release","who":"Person name","id":"commitment id from state","how":"cancelled"}` — kept, broken, or cancelled. A promise whose state records an originating scene can be kept only in a scene; it can be broken or cancelled off-screen.
+- `{"op":"release","who":"Person name","id":"commitment id from state","how":"cancelled"}` — kept, broken, or cancelled. A promise whose state records an originating scene can be kept off-screen only as an errand away from main characters (code rejects it while one is at its place); it can always be broken or cancelled off-screen.
 - `{"op":"situation","id":"existing situation id","status":"dropped"}` — only once its due day and part have arrived. This applies its existing `next`; this op has no other update field off-screen.
 
 This call cannot introduce people, change main characters, create situations, revise a situation's next/due/people, resolve a situation, or move the clock. Include a non-empty `situation_notes` entry for every situation open in the input, even if dropped by this reply.

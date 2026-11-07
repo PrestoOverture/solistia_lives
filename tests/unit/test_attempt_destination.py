@@ -1,5 +1,6 @@
 """Attempts travel before their encounter and scene, without model calls."""
 import asyncio
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -46,7 +47,7 @@ def test_attempt_destination(tmp_path, destination):
     async def offscreen(current, *_):
         return [], current, {}
 
-    session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1,
+    session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1, root=Path(__file__).resolve().parents[2],
         characters={'osvald': Character()}, scene_notes={}, settings=load_configs()[1],
         trace=TraceWriter(run), world=SimpleNamespace(adjudicate=adjudicate, round=round_),
         offscreen=SimpleNamespace(offscreen=offscreen))

@@ -67,6 +67,7 @@ class Settings(StrictModel):
     player_reading_wpm: int = Field(default=200, gt=0)
     player_reading_min_ms: int = Field(default=1500, gt=0)
     voice_concurrency: int = Field(default=4, gt=0)
+    world_days: int = Field(default=5, gt=0)
 
 
 class ConfigError(Exception):

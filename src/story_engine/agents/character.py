@@ -16,6 +16,7 @@ from story_engine.agents.sdk import (
 )
 from story_engine.stages import load_catalogs, catalog_schema, fill_spot, spot_context, validate_spot
 from story_engine.config import Role
+from story_engine.kb import location_regions
 from story_engine.trace import TraceWriter
 from story_engine.world.io import load_state, read_events
 from story_engine.world.models import Event, PartOfDay
@@ -47,6 +48,10 @@ class Action(BaseModel):
         elif self.urge != 0:
             raise ValueError("wait and leave urge must be 0")
         return self
+
+
+def crosses_region(regions: dict[str, str], here: str | None, there: str | None) -> bool:
+    return there is not None and None not in (regions.get(here), regions.get(there)) and regions[here] != regions[there]
 
 
 class Plan(BaseModel):
@@ -104,6 +109,7 @@ class CharacterAgent:
         self.root, self.run_dir, self.world_dir = root, run_dir, world_dir
         self.slug, self.role, self.max_turns, self.trace = slug, role, max_turns, trace
         self.catalogs = load_catalogs(root)
+        self.regions = location_regions(root)
         self.session_output = (catalog_schema(json_schema_output(CharacterReply), self.catalogs)
                                if role.schema_mode == "session" else None)
         self.names = {}
@@ -208,6 +214,8 @@ class CharacterAgent:
             known = {p.slug for p in state.places}
             places.extend({'slug': slug, **({'name': catalog.name} if catalog.name else {})}
                           for slug, catalog in self.catalogs.items() if slug not in known)
+            for place in places:
+                place['region'] = self.regions.get(place['slug'])
         request = json.dumps({**(self.opening if self.turn == 1 else {'self': current.model_dump()}), "perceived": events, "present": present,
                               **({"note": note} if note else {}),
                               **({"call": "end_of_day", "reply": "JSON {call: 'end_of_day', summary: 'Markdown: what happened, what changed, what you want now'}"} if summary else {}),
@@ -279,6 +287,14 @@ class CharacterAgent:
                         self.trace.write('plan_seek_cleared', agent=self.slug, turn=self.turn,
                                          error=error, seek=plan.seek)
                         plan = plan.model_copy(update={'seek': None})
+                    here = load_state(self.world_dir).characters[self.slug].where
+                    if plan.kind == 'attempt' and crosses_region(self.regions, here, plan.where):
+                        error = (f"an attempt stays in your region ({self.regions[here]}); reaching {plan.where} "
+                                 f"in {self.regions[plan.where]} is a go that takes this whole part of the day")
+                        if attempt < self.role.retries:
+                            raise ValueError(error)
+                        self.trace.write('plan_attempt_to_go', agent=self.slug, turn=self.turn, error=error)
+                        plan = plan.model_copy(update={'kind': 'go'})
                     try:
                         validate_spot(self.catalogs, plan.where, plan.spot)
                     except ValueError as error:

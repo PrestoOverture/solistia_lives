@@ -20,6 +20,8 @@ NAMES = CharacterNames(ROOT / 'kb')
     ('Elena', None, r"KB character's name \(elena_vanstein\)"),
     ('Claude Marston', None, 'claude_blacksnakes'),
     ('mira_the_innkeeper', None, 'mira'),
+    ('Deacon Ort', None, r'\(ort\)'),
+    ('Cleric Cuani', None, 'cuani_bristarni'),
     ('Elena', 'elena_vanstein', None),
     ('Garud Bristarni', 'garud_bristarni', None),
     ('Elena', 'mira', 'must be the KB character'),

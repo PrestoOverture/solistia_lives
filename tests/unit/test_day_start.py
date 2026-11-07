@@ -316,8 +316,7 @@ def test_run_day_first_tick_failure_restores_before_day_start(workspace, monkeyp
     ('duplicate_new', 'ids must be unique'),
     ('kind', 'more than one kind'),
     ('due', 'same due part'),
-    ('empty', '1-3 open ops'),
-    ('too_many', '1-3 open ops'),
+    ('too_many', '0-3 open ops'),
 ])
 @pytest.mark.parametrize('correct_retry', [False, True])
 def test_world_day_start_retries_once(workspace, monkeypatch, bad, reason, correct_retry):
@@ -680,3 +679,47 @@ def test_day_start_heard_source_elsewhere_is_retried_then_cleared(workspace, mon
     assert fact.actor == 'world'
     rows = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     assert any(row['type'] == 'heard_source_cleared' for row in rows)
+
+
+@pytest.mark.parametrize('case', ['settled', 'day_cap', 'continues'])
+def test_world_ends_when_settled_or_at_the_day_cap(workspace, monkeypatch, case):
+    from story_engine.world.io import world_end
+    world, run = workspace
+    state = load_state(world)
+    state.clock.day = 5 if case == 'day_cap' else 2
+    commit_fixture_changes(world, state)
+    if case == 'settled':
+        settled = load_state(world)
+        for item in settled.situations:
+            item.status = 'resolved'
+        (world / 'genesis.json').write_text(settled.model_dump_json())
+        (world / 'events.jsonl').write_text('')
+    world_requests = []
+
+    def respond(client, request):
+        if request['call'] == 'day_start':
+            if client.options.system_prompt.startswith('# World'):
+                world_requests.append(request)
+                return dict(call='day_start', ops=[])
+            return goals_reply(['Rest'])
+        return dict(call='end_of_day', summary='Memory')
+
+    fake_sdk(monkeypatch, respond)
+    original_session = simulation.TickSession
+    monkeypatch.setattr(simulation, 'TickSession', lambda w, r: original_session(w, r, root=ROOT))
+
+    async def tick(world_dir, run_dir, *, session):
+        current = load_state(world_dir)
+        current.clock.day += 1
+        commit_fixture_changes(world_dir, current)
+        return current
+
+    monkeypatch.setattr(simulation, 'run_tick', tick)
+    asyncio.run(simulation.run_day(world, run))
+    assert world_requests[0].get('last_day', False) == (case == 'day_cap')
+    if case == 'continues':
+        assert world_end(world) is None
+    else:
+        assert world_end(world) == {'day': state.clock.day, 'reason': case}
+        with pytest.raises(ValueError, match=f'World ended on day {state.clock.day} \\({case}\\)'):
+            asyncio.run(simulation.run_day(world, run / 'again'))

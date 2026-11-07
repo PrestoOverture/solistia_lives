@@ -88,7 +88,7 @@ def test_go_is_code_movement_and_every_attempt_is_a_scene(tmp_path):
                      resolves=target['id'] if target else None, resolution='none' if target else None), {}, state
     async def offscreen(state, open_situations):
         return [], state, {}
-    session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1,
+    session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1, root=ROOT,
                               characters={s: Character(s) for s in ['agnea', 'throne']}, scene_notes={},
                               settings=load_configs()[1], trace=TraceWriter(run),
                               world=SimpleNamespace(adjudicate=encounters, round=round_),

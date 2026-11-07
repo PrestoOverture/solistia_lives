@@ -43,7 +43,7 @@ def offscreen_echo(request):
                situation_notes={s['id']: 'Unchanged.' for s in request['situations']})
 
 
-@pytest.mark.parametrize('case', ['addressee', 'display_name', 'interrupt', 'equal_three', 'tie', 'leave', 'dispersed', 'quiet', 'cap'])
+@pytest.mark.parametrize('case', ['addressee', 'display_name', 'interrupt', 'equal_three', 'tie', 'leave', 'dispersed', 'quiet', 'murmur', 'cap'])
 def test_scene_fake_sdk(tmp_path, monkeypatch, case):
     world, run = tmp_path / 'world', tmp_path / 'run'
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
@@ -88,6 +88,8 @@ def test_scene_fake_sdk(tmp_path, monkeypatch, case):
                 r, slug = self.round, self.slug
                 if case == 'quiet' or (case not in ('cap', 'leave', 'dispersed') and r > 2):
                     data = move('wait', 0, action='Looks on.', say='Ignored wait speech')
+                elif case == 'murmur':
+                    data = move(urge=1, say='Mm.')
                 elif case in ('leave', 'dispersed'):
                     data = move('leave', 0) if slug == 'throne' or case == 'dispersed' else move()
                 elif case == 'display_name':
@@ -144,7 +146,7 @@ def test_scene_fake_sdk(tmp_path, monkeypatch, case):
         assert any(event.actor == 'throne' and 'leaves.' in event.content for event in read_events(world))
     elif case == 'dispersed':
         assert end['reason'] == 'no_main' and end['rounds'] == 1
-    elif case == 'quiet':
+    elif case in ('quiet', 'murmur'):
         assert end['reason'] == 'quiet' and end['rounds'] == 2
         assert all(event.content != 'Ignored wait speech' for event in read_events(world))
     else:

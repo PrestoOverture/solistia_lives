@@ -59,8 +59,11 @@ def validate_ops(state: WorldState, event: Event, authority: Authority) -> World
             if isinstance(op, Release) and allowed and op.how == 'kept':
                 member = state.characters.get(op.who) or state.people.get(op.who)
                 commitment = next((c for c in member.commitments if c.id == op.id), None)
-                if commitment is not None and commitment.scene is not None and event.scene is None:
-                    raise ValueError('a promise made in a scene with a main can be kept only in a scene')
+                # Off-screen can't fake a meeting with a main, but can keep an errand no main is there to see.
+                if (commitment is not None and commitment.scene is not None and event.scene is None
+                        and any(main.where == commitment.where for main in state.characters.values())):
+                    raise ValueError('a promise made in a scene with a main can be kept only in a scene '
+                                     'while a main is at its place')
         elif isinstance(op, Wants):
             allowed = world and call != 'encounter' and op.person in state.people
         elif isinstance(op, Goals):

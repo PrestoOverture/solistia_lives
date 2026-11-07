@@ -134,9 +134,9 @@ class CharacterNames:
                         self.single.setdefault(key, set()).add(path.stem)
 
     def matches(self, name: str) -> set[str]:
-        """KB characters this name is, or shares a given name with."""
+        """KB characters this name is, or shares a one-word name with ("Deacon Ort" shares Ort's)."""
         key = normalize_slug(name.replace("_", " "))
-        return self.full.get(key, set()) | self.single.get(key.split("_")[0], set())
+        return self.full.get(key, set()).union(*(self.single.get(word, set()) for word in key.split("_")))
 
     def check(self, name: str, kb: str | None, mains=()) -> None:
         """A canon character names its KB slug; anyone else takes a name no KB character has."""
