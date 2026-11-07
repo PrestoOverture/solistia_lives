@@ -353,7 +353,10 @@ def test_world_day_start_retries_once(workspace, monkeypatch, bad, reason, corre
         assert result == load_state(world)
         assert result.situations[:len(state.situations)] == state.situations
         assert [s.id for s in result.situations[-2:]] == ['new-promise', 'occasion']
-    elif bad in {'person', 'touches', 'duplicate_existing', 'duplicate_new'}:
+    elif bad == 'person':
+        result = asyncio.run(exercise())
+        assert [(s.id, s.people) for s in result.situations[-2:]] == [('new-promise', []), ('occasion', [])]
+    elif bad in {'touches', 'duplicate_existing', 'duplicate_new'}:
         assert asyncio.run(exercise()) == state
         assert load_state(world) == state
         dropped = [row for row in map(json.loads, (run / 'trace.jsonl').read_text().splitlines())
@@ -679,6 +682,25 @@ def test_day_start_heard_source_elsewhere_is_retried_then_cleared(workspace, mon
     assert fact.actor == 'world'
     rows = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     assert any(row['type'] == 'heard_source_cleared' for row in rows)
+
+
+def test_day_start_stray_people_names_are_matched_or_dropped_after_retry(workspace, monkeypatch):
+    world, run = workspace
+    state = load_state(world)
+    new = dict(situation(), people=['courier', 'agnea'], heard_from='courier', heard='The healer asks to meet you.')
+    reply = day_start_reply(situations=[new], people={'Courier': dict(
+        sex='m', where='festival_grounds', spot='dance_stage', wants=['Deliver'], commitments=[])})
+    fake_sdk(monkeypatch, lambda *_: reply)
+
+    async def exercise():
+        async with agent(world_agent.WorldAgent, world, run) as session:
+            return await session.day_start(state, [])
+
+    updated = asyncio.run(exercise())
+    opened, = [s for s in updated.situations if s.id == new['id']]
+    assert opened.people == ['Courier'] and opened.heard_from == 'Courier'
+    rows = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
+    assert any(row['type'] == 'situation_people_dropped' and row['people'] == ['agnea'] for row in rows)
 
 
 @pytest.mark.parametrize('case', ['settled', 'day_cap', 'continues'])

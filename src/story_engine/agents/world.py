@@ -364,6 +364,21 @@ class WorldAgent(_WorldSession):
                                  attempt=attempt + 1, **usage_fields)
             try:
                 reply = DayStartReply.model_validate(structured_reply(result, structured_output))
+                if attempt == self.role.retries:
+                    # A stray person name drops that name, not the whole day's situations.
+                    keys = {key.casefold(): key for key in
+                            [*state.people, *(op.name for op in reply.ops if isinstance(op, Introduce))]}
+                    for op in reply.ops:
+                        if isinstance(op, Open):
+                            situation = op.situation
+                            unknown = [name for name in situation.people if name.casefold() not in keys]
+                            if unknown:
+                                self.trace.write('situation_people_dropped', turn=self.turn,
+                                                 situation=situation.id, people=unknown)
+                            situation.people = list(dict.fromkeys(
+                                keys[name.casefold()] for name in situation.people if name.casefold() in keys))
+                            source = situation.heard_from and keys.get(situation.heard_from.casefold())
+                            situation.heard_from = source if source in situation.people else None
                 event = Event(id=0, **state.clock.model_dump(), place=state.places[0].slug, actor='world',
                               type='state_change', content='', perceived_by=[], ops=reply.ops)
                 dropped = []
