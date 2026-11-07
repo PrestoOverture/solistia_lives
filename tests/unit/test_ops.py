@@ -209,3 +209,17 @@ def test_commit_cannot_skip_authority(world):
     with pytest.raises(AttributeError):
         _commit_event(world, event(world, [dict(op='clock', day=2, part='morning')]), authority=None)
     assert {p.name: p.read_bytes() for p in world.iterdir() if p.is_file()} == before
+
+
+def test_place_op_removes_details_no_longer_true(world):
+    state = load_state(world)
+    place = state.places[0]
+    stale = place.details[0]
+    ops = OPS.validate_python([dict(op='place', slug=place.slug, add_details=['The sickness has passed'],
+                                    remove_details=[stale])])
+    after = reduce_ops(state, ops, event_id=1)
+    details = next(p for p in after.places if p.slug == place.slug).details
+    assert stale not in details and details[-1] == 'The sickness has passed'
+    with pytest.raises(ValueError, match='remove_details must copy existing details'):
+        reduce_ops(state, OPS.validate_python([dict(op='place', slug=place.slug, add_details=[],
+                                                    remove_details=['Never written'])]), event_id=1)

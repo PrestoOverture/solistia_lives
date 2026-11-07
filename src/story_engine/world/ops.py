@@ -29,6 +29,7 @@ class PlaceOp(WorldModel):
     op: Literal['place'] = 'place'
     slug: str
     add_details: list[str]
+    remove_details: list[str] = []
 
 
 class Promise(WorldModel):
@@ -109,9 +110,13 @@ def reduce_ops(state: WorldState, ops: list[Op], *, event_id: int, scene: str | 
             members[op.who].update(where=op.place, spot=op.spot)
         elif isinstance(op, PlaceOp):
             existing = next((p for p in data['places'] if p['slug'] == op.slug), None)
+            if op.remove_details and (existing is None or any(d not in existing['details'] for d in op.remove_details)):
+                raise ValueError(f"remove_details must copy existing details of {op.slug}: "
+                                 f"{existing['details'] if existing else []}")
             if existing is None:
                 data['places'].append(Place(slug=op.slug, details=op.add_details).model_dump())
             else:
+                existing['details'] = [d for d in existing['details'] if d not in op.remove_details]
                 existing['details'] += [detail for detail in op.add_details if detail not in existing['details']]
         elif isinstance(op, Introduce):
             if op.name in members:

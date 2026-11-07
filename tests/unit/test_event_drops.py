@@ -54,10 +54,10 @@ def test_mocked_day_continues_after_offscreen_op_drop(workspace, monkeypatch, fa
     world, run = workspace
     initial = load_state(world)
     forbidden = dict(place='cropdale', content='A discarded event.', ops=[
-        dict(op='place', slug='discarded', add_details=['Must roll back']),
+        dict(op='place', slug='discarded', add_details=['Must roll back'], remove_details=[]),
         dict(op='situation', id=initial.situations[0].id, status='resolved')])
     valid = dict(place='cropdale', content='The stalls open.', ops=[
-        dict(op='place', slug='cropdale', add_details=['Open stalls'])])
+        dict(op='place', slug='cropdale', add_details=['Open stalls'], remove_details=[])])
     bad = dict(forbidden, actor='agnea') if failure == 'schema' else forbidden
 
     def respond(client, request):
@@ -226,7 +226,7 @@ def test_scene_bad_release_leaves_winner_for_closing(workspace, monkeypatch, dro
         targets.append((request['closing'], target))
         if target is None:
             return dict(call='scene_round')
-        ops = [dict(op='place', slug='festival_grounds', add_details=['Resolution committed'])]
+        ops = [dict(op='place', slug='festival_grounds', add_details=['Resolution committed'], remove_details=[])]
         if not request['closing'] or drop_closing:
             ops.append(dict(op='release', who='Host', id='missing', how='kept'))
         return dict(call='scene_round', resolution='succeeded', outcome='The attempt succeeds.', ops=ops)
@@ -271,7 +271,7 @@ def test_scene_bad_release_leaves_winner_for_closing(workspace, monkeypatch, dro
 def test_world_single_group_is_dropped_atomically(workspace, monkeypatch, call):
     world, run = workspace
     initial = load_state(world)
-    ops = [dict(op='place', slug='discarded', add_details=['Must roll back'])]
+    ops = [dict(op='place', slug='discarded', add_details=['Must roll back'], remove_details=[])]
     if call == 'day_start':
         ops.append(dict(op='open', situation=situation()))
     ops.append(dict(op='move', who='agnea', place='cropdale', spot='village_square'))
@@ -345,7 +345,7 @@ def test_closing_ignores_minor_moves_and_commits_resolution(workspace, monkeypat
         if not request['closing']:
             return dict(call='scene_round')
         return dict(call='scene_round', resolution='succeeded', outcome='The attempt succeeds.', ops=[
-            dict(op='place', slug='festival_grounds', add_details=['Resolution committed'])],
+            dict(op='place', slug='festival_grounds', add_details=['Resolution committed'], remove_details=[])],
             minor_moves={
                 'Unknown': dict(move='act', urge=3, action='Unknown acts.', ops=[
                     dict(op='wants', person='Host', wants=['Must not commit'])])})
@@ -397,7 +397,7 @@ def test_minor_reference_drop_preserves_resolution_and_valid_move(workspace, mon
     reason = ('minor_moves person must be at the same spot' if failure == 'spot' else
               'minor_moves name must be a people entry at this place')
     reply = dict(call='scene_round', resolution='succeeded', outcome='The attempt succeeds.', ops=[
-        dict(op='place', slug='festival_grounds', add_details=['Resolution committed'])], minor_moves={
+        dict(op='place', slug='festival_grounds', add_details=['Resolution committed'], remove_details=[])], minor_moves={
         bad_name: dict(move='act', urge=3, action='Invalid move.', ops=[
             dict(op='wants', person='Host', wants=['Must not commit'])]),
         'Baker': dict(move='act', urge=2, action='Baker helps.', ops=[
@@ -438,7 +438,7 @@ def test_resolution_schema_and_closing_repair(workspace, monkeypatch, failure):
     recorded = json.loads((ROOT / 'tests/fixtures/world_resolution_no_winner.json').read_text())
     # Historical replies remain readable even when live schemas disallow them.
     world_agent.RoundResolution.model_validate(recorded)
-    bad_ops = [dict(op='place', slug='festival_grounds', add_details=['Must not commit'])]
+    bad_ops = [dict(op='place', slug='festival_grounds', add_details=['Must not commit'], remove_details=[])]
 
     def respond(client, request):
         if isinstance(request, str):

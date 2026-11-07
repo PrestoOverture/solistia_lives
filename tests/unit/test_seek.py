@@ -58,7 +58,7 @@ def test_tick_adds_catalog_destination_before_move(tmp_path, monkeypatch):
     assert not any(row['type'] == 'plan_where_cleared' for row in rows)
     travel = next(e for e in read_events(world) if e.actor == 'throne' and e.ops)
     assert [op.model_dump() for op in travel.ops] == [
-        dict(op='place', slug='flamechurch', add_details=[]),
+        dict(op='place', slug='flamechurch', add_details=[], remove_details=[]),
         dict(op='move', who='throne', place='flamechurch', spot='chapel_hill')]
     assert result == load_state(world)
     assert result.model_dump() == json.loads((world / 'state.json').read_text())

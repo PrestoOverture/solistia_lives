@@ -368,6 +368,18 @@ class WorldAgent(_WorldSession):
                 dropped = []
                 updated = self._event_state(state, event, Authority('day_start'), attempt, dropped)
                 if updated is not None:
+                    away = set()
+                    for op in reply.ops:
+                        source = op.situation.heard_from if isinstance(op, Open) else None
+                        places = {updated.characters[main].where for main in op.situation.touches} if source else set()
+                        if source and places != {updated.people[source].where}:
+                            error = (f"heard_from {source} is at {updated.people[source].where}, not with "
+                                     f"{op.situation.touches} at {sorted(places)}; news sent from elsewhere has "
+                                     "heard_from null and says in heard who sent it")
+                            if attempt < self.role.retries:
+                                raise ValueError(error)
+                            self.trace.write('heard_source_cleared', turn=self.turn, situation=op.situation.id, error=error)
+                            away.add(op.situation.id)
                     commit_event(self.world_dir, event, authority=Authority('day_start'))
                     for op in reply.ops:
                         if isinstance(op, Open) and op.situation.heard is not None:
@@ -375,7 +387,7 @@ class WorldAgent(_WorldSession):
                             commit_event(self.world_dir, Event(
                                 id=0, **state.clock.model_dump(),
                                 place=updated.characters[situation.touches[0]].where,
-                                actor=situation.heard_from or 'world', type='world', content=situation.heard,
+                                actor=(None if situation.id in away else situation.heard_from) or 'world', type='world', content=situation.heard,
                                 perceived_by=situation.touches))
                 self._trace_drops('day_start', dropped)
                 # Yesterday's events stay out of the session that resolves today's calls.

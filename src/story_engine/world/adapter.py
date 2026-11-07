@@ -10,8 +10,10 @@ def state_ops(before: WorldState, after: WorldState) -> list:
     for place in after.places:
         added = [detail for detail in place.details
                  if place.slug not in places or detail not in places[place.slug].details]
-        if added or place.slug not in places:
-            ops.append(PlaceOp(slug=place.slug, add_details=added))
+        removed = [detail for detail in places[place.slug].details
+                   if detail not in place.details] if place.slug in places else []
+        if added or removed or place.slug not in places:
+            ops.append(PlaceOp(slug=place.slug, add_details=added, remove_details=removed))
     for name, person in after.people.items():
         if name not in before.people:
             ops.append(Introduce(name=name, **person.model_dump()))

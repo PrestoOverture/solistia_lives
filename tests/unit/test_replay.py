@@ -83,7 +83,7 @@ def adjudicate_reply():
 
 def offscreen_reply(state):
     return dict(call="offscreen", events=[dict(place="cropdale", content="The bell rings.",
-        ops=[dict(op="place", slug="cropdale", add_details=["A bell tower"])])],
+        ops=[dict(op="place", slug="cropdale", add_details=["A bell tower"], remove_details=[])])],
         situation_notes={s.id: "Unchanged." for s in state.situations})
 
 
@@ -193,7 +193,7 @@ def test_replay_full_request_filters_repeats_and_preserves_world(setup, monkeypa
             assert "characters" not in request["state"]
             assert all("touches" not in item for item in request["state"]["situations"])
             assert [event["content"] for event in row["events"]] == ["The bell rings."]
-            assert row["events"][0]["ops"] == [dict(op="place", slug="cropdale", add_details=["A bell tower"])]
+            assert row["events"][0]["ops"] == [dict(op="place", slug="cropdale", add_details=["A bell tower"], remove_details=[])]
     if repeat == 2:
         assert [row["repeat"] for row in report["results"]] == [1, 2]
 

@@ -647,7 +647,7 @@ def test_day_start_heard_comes_from_a_situation_person(workspace, monkeypatch):
     state = load_state(world)
     new = dict(situation(), people=['Courier'], heard_from='Courier', heard='The healer asks to meet you.')
     reply = day_start_reply(situations=[new], people={'Courier': dict(
-        sex='m', where='cropdale', spot='village_square', wants=['Deliver'], commitments=[])})
+        sex='m', where='festival_grounds', spot='dance_stage', wants=['Deliver'], commitments=[])})
     fake_sdk(monkeypatch, lambda *_: reply)
 
     async def exercise():
@@ -659,3 +659,24 @@ def test_day_start_heard_comes_from_a_situation_person(workspace, monkeypatch):
     assert fact.actor == 'Courier' and fact.perceived_by == ['agnea']
     with pytest.raises(ValidationError, match="heard_from must name one of this situation's people"):
         world_agent.DayStartReply.model_validate(day_start_reply(situations=[dict(new, people=[])]))
+
+
+def test_day_start_heard_source_elsewhere_is_retried_then_cleared(workspace, monkeypatch):
+    world, run = workspace
+    state = load_state(world)
+    new = dict(situation(), people=['Courier'], heard_from='Courier', heard='The healer asks to meet you.')
+    reply = day_start_reply(situations=[new], people={'Courier': dict(
+        sex='m', where='cropdale', spot='village_square', wants=['Deliver'], commitments=[])})
+    requests = []
+    fake_sdk(monkeypatch, lambda client, request: requests.append(request) or reply)
+
+    async def exercise():
+        async with agent(world_agent.WorldAgent, world, run) as session:
+            return await session.day_start(state, [])
+
+    asyncio.run(exercise())
+    assert 'heard_from Courier is at cropdale' in requests[-1]
+    fact, = [e for e in read_events(world) if e.content == new['heard']]
+    assert fact.actor == 'world'
+    rows = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
+    assert any(row['type'] == 'heard_source_cleared' for row in rows)
