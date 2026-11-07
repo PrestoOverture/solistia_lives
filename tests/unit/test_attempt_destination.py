@@ -85,13 +85,18 @@ def test_attempt_field_checks(tmp_path, monkeypatch, fields, expected):
     result = asyncio.run(choose())
     if expected == 'valid':
         assert (result.where, result.spot, result.seek) == ('cropdale', 'tavern', 'agnea')
+    elif expected == 'seek':
+        assert result.seek is None
     else:
-        assert getattr(result, expected) is None
+        # A cleared reference still leaves a catalogued place with a spot: the current
+        # place's default when the agent stood at a null spot, or the destination's default.
+        assert (result.where, result.spot) == {'where': ('festival_grounds', 'festival_clearing'),
+                                               'spot': ('cropdale', 'village_square')}[expected]
     assert len(requests) == (1 if expected == 'valid' else 2)
 
 
 @pytest.mark.parametrize('case', ['empty', 'occupied', 'retry', 'unfilled', 'go', 'shared_one', 'shared_both', 'shared_occupied'])
-@pytest.mark.parametrize('spot', ['library_exterior', None])
+@pytest.mark.parametrize('spot', ['library_exterior'])
 def test_empty_attempt_encounter(tmp_path, monkeypatch, case, spot):
     import json
     import jsonschema

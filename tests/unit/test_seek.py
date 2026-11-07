@@ -59,7 +59,7 @@ def test_tick_adds_catalog_destination_before_move(tmp_path, monkeypatch):
     travel = next(e for e in read_events(world) if e.actor == 'throne' and e.ops)
     assert [op.model_dump() for op in travel.ops] == [
         dict(op='place', slug='flamechurch', add_details=[]),
-        dict(op='move', who='throne', place='flamechurch', spot=None)]
+        dict(op='move', who='throne', place='flamechurch', spot='chapel_hill')]
     assert result == load_state(world)
     assert result.model_dump() == json.loads((world / 'state.json').read_text())
 
@@ -221,8 +221,9 @@ def test_invalid_where_retries_then_clears(tmp_path, monkeypatch, kind, correcte
             return await agent.choose('morning', [])
 
     result = asyncio.run(exercise())
-    assert result.where == ('cropdale' if corrected else None)
-    assert result.spot == ('tavern' if corrected else None)
+    # A cleared where keeps the agent at its catalogued place, now at the default spot.
+    assert (result.where, result.spot) == (('cropdale', 'tavern') if corrected
+                                           else ('festival_grounds', 'festival_clearing'))
     assert len(requests) == 2 and 'where must name a place in state or a stage catalog' in requests[1]
     rows = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     cleared = [row for row in rows if row['type'] == 'plan_where_cleared']

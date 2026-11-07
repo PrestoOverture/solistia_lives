@@ -83,7 +83,9 @@ def test_plan_reference_retry_then_null_and_prompt(tmp_path, monkeypatch, place,
             return await agent.choose('morning', [])
 
     result = asyncio.run(exercise())
-    assert result.spot == (good['spot'] if corrected else None)
+    # A cleared spot at a catalogued place falls back to the catalog default.
+    assert result.spot == (good['spot'] if corrected
+                           else 'festival_clearing' if place == 'festival_grounds' else None)
     assert len(requests) == 2 and 'must be a catalog id for place' in requests[1]
     request = json.loads(requests[0])
     catalogs = load_catalogs(ROOT)
@@ -193,7 +195,8 @@ def test_initializer_spots_retry_then_null(workspace, monkeypatch, corrected):
     models.world.schema_mode = models.character.schema_mode = "call"
     state = asyncio.run(initializer.starting_state(ROOT, run, list(initial.characters),
         'festival_grounds', 'A festival', models.initializer, settings.agent_max_turns, TraceWriter(run)))
-    assert state.characters['agnea'].spot == state.people['Host'].spot == ('festival_clearing' if corrected else None)
+    # An invalid spot is cleared, then filled with the catalog default.
+    assert state.characters['agnea'].spot == state.people['Host'].spot == 'festival_clearing'
     assert len(clients[0].calls) == 2 and 'must be a catalog id' in clients[0].calls[1]
     schema = clients[0].options.output_format['schema']
     assert schema['$defs']['CharacterState']['properties']['spot']['enum']
@@ -247,3 +250,48 @@ def test_plan_offers_catalog_places_outside_state(tmp_path, monkeypatch, catalog
     assert places['flamechurch'] == {'slug': 'flamechurch', **({'name': catalog_name} if catalog_name else {})}
     assert request['spots']['flamechurch'] == [
         s.model_dump(include={'id', 'name', 'about'}) for s in catalogs['flamechurch'].spots]
+
+
+@pytest.mark.parametrize('fields,expected', [
+    # A null spot at a catalogued destination becomes its default.
+    (dict(where='cropdale', spot=None), ('cropdale', 'village_square')),
+    # Staying (null where) at a null spot of a catalogued place moves to its default.
+    (dict(where=None, spot=None), ('festival_grounds', 'festival_clearing')),
+    # The same place keeps the current spot.
+    (dict(where='festival_grounds', spot=None, current='dance_stage'), ('festival_grounds', 'dance_stage')),
+    (dict(where='festival_grounds', spot='dance_stage'), ('festival_grounds', 'dance_stage')),
+])
+def test_plan_at_catalogued_place_always_has_a_spot(tmp_path, monkeypatch, fields, expected):
+    current = fields.pop('current', None)
+    reply = dict(call='plan', kind='attempt', intent='Visit', aim='Visit', **fields)
+    agent, _, requests, _, run = setup_agent(tmp_path, monkeypatch, iter([json.dumps(reply)]))
+    state = load_state(agent.world_dir)
+    state.characters['throne'].spot = current
+    (agent.world_dir / 'genesis.json').write_text(state.model_dump_json())
+
+    async def exercise():
+        async with agent:
+            return await agent.choose('morning', [])
+
+    result = asyncio.run(exercise())
+    assert (result.where, result.spot) == expected and len(requests) == 1
+    assert len(rows(run, 'plan_spot_filled')) == (fields['spot'] is None)
+
+
+def test_world_ops_at_catalogued_place_get_default_spot(workspace, monkeypatch):
+    world, run = workspace
+    state = load_state(world)
+    for main in state.characters.values():
+        main.spot = 'festival_clearing'
+    reply = dict(call='adjudicate', ops=[
+        dict(op='introduce', name='Usher', where='festival_grounds', wants=['Help'], commitments=[]),
+        dict(op='introduce', name='Porter', where='cropdale', spot=None, wants=['Carry bags'], commitments=[])])
+    fake_sdk(monkeypatch, lambda *_: reply)
+
+    async def exercise():
+        async with open_agent(workspace) as agent:
+            return await agent.adjudicate(state, {}, [])
+
+    event, _, updated = asyncio.run(exercise())
+    assert [op.spot for op in event.ops] == ['festival_clearing', 'village_square']
+    assert (updated.people['Usher'].spot, updated.people['Porter'].spot) == ('festival_clearing', 'village_square')

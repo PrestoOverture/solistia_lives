@@ -63,6 +63,7 @@ class Person(WorldModel):
     spot: str | None = None
     wants: list[str] = Field(min_length=1)
     commitments: list[Commitment]
+    kb: str | None = None  # the KB character file slug when this person is a canon character
 
 
 class Situation(WorldModel):
@@ -70,6 +71,7 @@ class Situation(WorldModel):
     kind: SituationKind = "trouble"
     summary: str
     heard: str | None = Field(default=None, max_length=200)
+    heard_from: str | None = None  # the person in `people` who told the touched mains; null for public news
     touches: list[str] = Field(min_length=1)
     people: list[str]
     status: Literal["open", "resolved", "dropped"]

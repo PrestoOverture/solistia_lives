@@ -22,6 +22,7 @@ class Introduce(WorldModel):
     spot: str | None = None
     wants: list[str] = Field(min_length=1)
     commitments: list[Commitment] = Field(default_factory=list)
+    kb: str | None = None  # the KB character file slug when this person is a canon character
 
 
 class PlaceOp(WorldModel):

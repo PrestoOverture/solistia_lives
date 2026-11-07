@@ -10,7 +10,8 @@ from story_engine.agents.sdk import (
     run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, session_error, session_options,
     structured_reply, require_person_sex,
 )
-from story_engine.stages import load_catalogs, catalog_schema, spot_context, validate_spot
+from story_engine.kb.entities import CharacterNames
+from story_engine.stages import load_catalogs, catalog_schema, fill_spot, spot_context, validate_spot
 from story_engine.config import Role
 from story_engine.runs import record_api_host
 from story_engine.trace import TraceWriter
@@ -76,6 +77,7 @@ async def starting_state(
                run_dir / "scene_context.md"]
     prompt = "\n\n".join(path.read_text(encoding="utf-8") for path in sources)
     catalogs = load_catalogs(root)
+    kb_names = CharacterNames(root / "kb")
     places = {path.stem for path in (root / "kb/locations").rglob("*.md") if path.is_file()}
     schema = WorldState.model_json_schema()
     for model, field in [("Place", "slug"), ("CharacterState", "where"),
@@ -148,6 +150,8 @@ async def starting_state(
                         raise ValueError("a starting state with two or more situations must have more than one kind")
                     if len({item.due.part for item in state.situations}) <= 1:
                         raise ValueError("a starting state with two or more situations must not have all the same due part")
+                for name, person in state.people.items():
+                    kb_names.check(name, person.kb, state.characters)
                 for member in [*state.characters.values(), *state.people.values()]:
                     try:
                         validate_spot(catalogs, member.where, member.spot)
@@ -157,6 +161,7 @@ async def starting_state(
                         trace.write('initial_spot_cleared', place=member.where,
                                     spot=member.spot, error=str(error))
                         member.spot = None
+                    member.spot = fill_spot(catalogs, member.where, member.spot)
                 return state
             except ValueError as error:
                 trace.write(

@@ -6,6 +6,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+from world_replies import commit_fixture_changes
 from claude_agent_sdk import ResultMessage
 from pydantic import ValidationError
 
@@ -219,12 +220,16 @@ def test_encounter_drops_only_invalid_mains_after_retry(workspace, monkeypatch, 
 
 def test_encounter_introduces_and_normalizes_people_without_writing(workspace, monkeypatch):
     state = load_state(workspace[0])
+    # An introduction without a spot lands at the catalog default, where agnea stands.
+    state.characters['agnea'].spot = 'festival_clearing'
+    commit_fixture_changes(workspace[0], state)
     reply = dict(call='adjudicate', ops=[dict(op='introduce', name='Merchant Tam', where='festival_grounds',
                                             wants=['Sell fruit'], commitments=[])],
                  encounters=[dict(mains=['agnea'], minor=['  MÉRCHANT_tam  '])])
-    exercise, requests = call_agent(workspace, monkeypatch, [reply])
+    exercise, requests = call_agent(workspace, monkeypatch, [reply], state=state)
     event, encounters, updated = asyncio.run(exercise())
     assert len(requests) == 1 and encounters[0].minor == ['Merchant Tam']
+    assert updated.people['Merchant Tam'].spot == 'festival_clearing'
     assert 'Merchant Tam' in updated.people and load_state(workspace[0]) == state
     commit_event(workspace[0], event, authority=Authority('encounter'))
     assert load_state(workspace[0]) == updated
@@ -275,7 +280,9 @@ def test_scene_metadata_and_resolution_schema(fields):
 
 def test_scene_minor_references_introductions_and_name_matching(workspace, monkeypatch):
     state = load_state(workspace[0])
-    state.people['garud'] = Person(where='festival_grounds', wants=['Watch'], commitments=[])
+    for slug in ('agnea', 'throne'):
+        state.characters[slug].spot = 'festival_clearing'
+    state.people['garud'] = Person(where='festival_grounds', spot='festival_clearing', wants=['Watch'], commitments=[])
     move = dict(move='wait', urge=0, action='', say='')
     good = dict(call='scene_round', minor_moves={'Garud': move, 'Host': move},
                 ops=[dict(op='introduce', name='Host', where='festival_grounds', wants=['Help'], commitments=[])])

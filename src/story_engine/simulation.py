@@ -301,12 +301,15 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
         last_event_id = saved.id
         return saved
 
+    lost_minors = []
+
     async def resolve(round_number, before, closing=False, target=None):
         nonlocal state
         target = target or (unresolved[0] if unresolved else None)
         outcome, minors, _ = await session.world.round(
             state, before, place=place, main_present=main_present, minor_present=minor_present,
-            last_winner=target, scene=scene_id, round_number=round_number, closing=closing)
+            last_winner=target, scene=scene_id, round_number=round_number, closing=closing,
+            lost_minors=lost_minors)
         if outcome is not None and (outcome.ops or outcome.resolves is not None or outcome.content):
             log(outcome, Authority('scene_round'))
         finished = target is not None and outcome is not None and outcome.resolution != 'pending'
@@ -338,6 +341,7 @@ async def run_scene(world_dir, session, state, place, main_present, minor_presen
         session.trace.write('scene_round', round=round_number, place=place, scene=scene_id,
                             moves={key: move.model_dump() for key, move in moves.items()},
                             winner=winner, floor=floor)
+        lost_minors = [key for key, move in minor_moves.items() if move.move == 'act' and key != winner]
         for key, move in moves.items():
             is_main = key in main_present
             if move.move == 'act' and key != winner:

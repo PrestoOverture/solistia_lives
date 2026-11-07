@@ -58,6 +58,16 @@ def validate_spot(catalogs: dict[str, StageCatalog], place: str, spot: str | Non
         raise ValueError(f'spot {spot!r} must be a catalog id for place {place!r}, or null')
 
 
+def fill_spot(catalogs: dict[str, StageCatalog], place: str | None, spot: str | None) -> str | None:
+    """A place with a stage catalog always has a spot: a null one becomes the catalog default."""
+    return catalogs[place].default if spot is None and place in catalogs else spot
+
+
+def fill_spot_ops(catalogs: dict[str, StageCatalog], ops) -> list:
+    return [op.model_copy(update={'spot': fill_spot(catalogs, op.place if op.op == 'move' else op.where, op.spot)})
+            if op.op in {'move', 'introduce'} else op for op in ops]
+
+
 def validate_spot_ops(catalogs: dict[str, StageCatalog], ops) -> None:
     # Deliberately outside the reducer: historical free-text ops remain replayable.
     for op in ops:

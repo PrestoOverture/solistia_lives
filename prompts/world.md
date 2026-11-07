@@ -8,7 +8,7 @@ Calls are `day_start`, `adjudicate` (the encounter call), and `scene_round`. Off
 
 From day 2, before plans, add 1-3 situations grounded in people's wants, commitments, places, and revised goals. Input includes yesterday's visible events, without plans or private intents.
 
-Reply `{"call":"day_start", "ops":[{"op":"open","situation":{...}}]}`. Include 1-3 `open` ops. Each situation uses the state schema: id, kind, summary, heard, touches, people, status, next, due. `heard` is required: one short fact (at most 200 characters) that the touched mains have heard or noticed by this morning, not their reaction. IDs must be new; touches names mains, people names existing or newly introduced people. With two or more new situations, use more than one kind and due part. Kinds: trouble, occasion, promise, wish, reunion.
+Reply `{"call":"day_start", "ops":[{"op":"open","situation":{...}}]}`. Include 1-3 `open` ops. Each situation uses the state schema: id, kind, summary, heard, heard_from, touches, people, status, next, due. `heard` is required: one short piece of news (at most 200 characters) that reached the touched mains by this morning. `heard_from` names the person in this situation's `people` who told or sent it to them, or is null for news going around the place; `heard` is what that source said, not what a main did or felt. IDs must be new; touches names mains, people names existing or newly introduced people. With two or more new situations, use more than one kind and due part. Kinds: trouble, occasion, promise, wish, reunion.
 
 Day start may also introduce people and add places (use `place` before referencing a new place, `introduce` before referencing a new person), and commit the World-owned people ops below. It has no main-character goal revisions, main moves, situation updates, or clock ops. The reply has no state replacement fields. Code records these ops in one event, then each situation's `heard` as a world event perceived by its touched mains before their first plans.
 
@@ -33,17 +33,17 @@ If `last_winner` is present, give its `resolution`: `succeeded`, `failed`, `pend
 
 The scene resolution may `introduce` a new person, add `place` details, `move` a person, change a person's `wants`, make or release their promises, or update an existing `situation`. A situation update requires a resolution. No scene call moves a main, changes their goals, opens a situation, or advances the clock.
 
-Each minor move bids for the floor: `act` with urge 1-3 and non-empty action or say; `wait` or `leave` with urge 0. Action is one short sentence (180 characters); say is one breath (400 characters). Moves see only what happened before the round, as main characters do. Only the winning act happens; visible main waits and leaves also happen. Minor moves may carry ops about that person: move, wants, promise, release. Those ops commit only if the move happens. A new minor joins by a move; introduce them with this call's `ops` first, at the scene's spot.
+Each minor move bids for the floor: `act` with urge 1-3 and non-empty action or say; `wait` or `leave` with urge 0. Action is one short sentence (180 characters); say is one breath (400 characters). Moves see only what happened before the round, as main characters do. Only the winning act happens; visible main waits and leaves also happen. `minor_moves_not_happened` lists people whose act last round lost the floor: those moves didn't happen. Minor moves may carry ops about that person: move, wants, promise, release. Those ops commit only if the move happens. A new minor joins by a move; introduce them with this call's `ops` first, at the scene's spot.
 
 Op shapes:
-- `{"op":"move","who":"Host","place":"cropdale","spot":null}`
-- `{"op":"introduce","name":"Host","where":"cropdale","spot":null,"wants":["Welcome guests"],"commitments":[]}`
+- `{"op":"move","who":"Host","place":"cropdale","spot":"village_square"}`
+- `{"op":"introduce","name":"Host","where":"cropdale","spot":"village_square","wants":["Welcome guests"],"commitments":[],"kb":null}` — `kb` is the KB character file slug (such as `gus`) when the person is that canon character; anyone else takes a name no KB character has.
 - `{"op":"place","slug":"cropdale","add_details":["An upper room"]}`
 - `{"op":"promise","who":"Host","what":"Meet at supper","where":"cropdale","day":1,"part":"night"}`
 - `{"op":"release","who":"Host","id":"commitment id from state","how":"kept"}` (`kept`, `broken`, `cancelled`)
 - `{"op":"wants","person":"Host","wants":["Rest"]}`
 - `{"op":"situation","id":"existing id","status":"resolved"}` (optional updates: status, next, due, people)
 
-Ops commit atomically, in order. References must exist when each op is applied. Promise ids and originating scenes are assigned by code. A promise made in a scene with a main can be kept only in a scene.
+Ops commit atomically, in order. References must exist when each op is applied. A `move` or `introduce` at a place with spots takes one of its spot ids (null becomes its default spot); a place without spots takes null. Promise ids and originating scenes are assigned by code. A promise made in a scene with a main can be kept only in a scene.
 
 A `closing:true` call resolves an outstanding winner after the scene ends. Give a final resolution, no `pending`, and no next minor moves. A solo attempt ends once its winning act is resolved.

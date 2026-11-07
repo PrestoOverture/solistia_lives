@@ -116,3 +116,37 @@ def prefilter(text: str, dictionary: dict[str, set[str]]) -> list[EntitySentence
         if entities:
             result.append(EntitySentence(text=text[start:end].strip(), entities=entities))
     return result
+
+
+class CharacterNames:
+    """Names and aliases of KB characters, to tell a canon character from a namesake."""
+
+    def __init__(self, kb_root: Path = Path("kb")) -> None:
+        self.full: dict[str, set[str]] = {}
+        self.single: dict[str, set[str]] = {}
+        for path in sorted((kb_root / "characters").rglob("*.md")):
+            metadata = frontmatter.load(path).metadata
+            for name in [metadata.get("name", ""), *metadata.get("aliases", [])]:
+                key = normalize_slug(name.replace("_", " "))
+                if key:
+                    self.full.setdefault(key, set()).add(path.stem)
+                    if "_" not in key:
+                        self.single.setdefault(key, set()).add(path.stem)
+
+    def matches(self, name: str) -> set[str]:
+        """KB characters this name is, or shares a given name with."""
+        key = normalize_slug(name.replace("_", " "))
+        return self.full.get(key, set()) | self.single.get(key.split("_")[0], set())
+
+    def check(self, name: str, kb: str | None, mains=()) -> None:
+        """A canon character names its KB slug; anyone else takes a name no KB character has."""
+        matches = self.matches(name)
+        if kb is not None:
+            if kb in mains:
+                raise ValueError(f"kb {kb!r} is a main character, not a person")
+            if kb not in matches:
+                raise ValueError(f"kb {kb!r} must be the KB character named {name!r}; "
+                                 f"{name!r} matches {sorted(matches) or 'no KB character'}")
+        elif matches:
+            raise ValueError(f"{name!r} is a KB character's name ({', '.join(sorted(matches))}); set kb to that "
+                             "character's slug if this person is them, or give this person a name no KB character has")

@@ -223,7 +223,7 @@ def test_minor_joins_by_address_and_wins_floor(tmp_path, monkeypatch):
             else:
                 data = round_reply(self.request, outcome=None, minor_moves={
                     'Gus': dict(move='act', urge=1, to=None, action='Waves back.', say='There you are!')},
-                    new_people=({'Gus': dict(where='festival_grounds', wants=['Greet old friends'], commitments=[])}
+                    new_people=({'Gus': dict(where='festival_grounds', wants=['Greet old friends'], commitments=[], kb='gus')}
                                 if self.round == 2 else {}))
             yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(data))
 
@@ -234,10 +234,14 @@ def test_minor_joins_by_address_and_wins_floor(tmp_path, monkeypatch):
 
     async def exercise():
         state = load_state(world)
+        # Gus is introduced without a spot, so he joins at the catalog default, where the mains stand.
+        for slug in ('agnea', 'throne'):
+            state.characters[slug].spot = 'festival_clearing'
         async with TickSession(world, run, root=ROOT) as session:
             session.settings.scene_cap = 4
             commit_fixture_changes(world, state)
-            return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [])
+            return await run_scene(world, session, state, 'festival_grounds', ['agnea', 'throne'], [],
+                                   spot='festival_clearing')
 
     asyncio.run(exercise())
     trace = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
@@ -669,7 +673,7 @@ def test_solo_main_with_listed_minor_runs_scene(tmp_path, monkeypatch):
                                where='cropdale', spot=None))
                 data = dict(call='adjudicate',
                            encounters=[{'mains': ['agnea'], 'minor': ['Gus']}],
-                           ops=[dict(op='introduce', name='Gus', where='festival_grounds', wants=['Help'], commitments=[])])
+                           ops=[dict(op='introduce', name='Gus', kb='gus', where='festival_grounds', wants=['Help'], commitments=[])])
             elif self.request['call'] == 'offscreen':
                 data = offscreen_echo(self.request)
             else:
@@ -1168,3 +1172,34 @@ def test_scene_adds_state_people_at_exact_non_null_spot(
     rounds = [row for row in trace if row['type'] == 'scene_round']
     assert ('Gus' in rounds[0]['moves']) == included
     assert any(e.actor == 'Gus' for e in read_events(world)) == included
+
+
+def test_world_hears_which_minor_moves_lost_the_floor(tmp_path):
+    from types import SimpleNamespace
+    from story_engine.agents.character import Action
+    from story_engine.agents.world import MinorMove
+    from story_engine.trace import TraceWriter
+
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    state = load_state(world)
+    state.people['Gus'] = Person(where='festival_grounds', wants=['Talk'], commitments=[])
+    commit_fixture_changes(world, state)
+    calls = []
+
+    class World:
+        async def round(self, state, events, **fields):
+            calls.append(fields['lost_minors'][:])
+            bid = MinorMove(move='act', urge=1, action='', say='Me too!')
+            return None, ({} if fields['closing'] else {'Gus': bid}), state
+
+    class Main:
+        async def act(self, events, note=None):
+            return Action(call='action', intent='Talk', move='act', urge=3, action='', say='Listen.')
+
+    session = SimpleNamespace(world=World(), characters={'agnea': Main()}, scene_notes={},
+                              settings=SimpleNamespace(scene_cap=2), trace=TraceWriter(run))
+    asyncio.run(run_scene(world, session, load_state(world), 'festival_grounds', ['agnea'], ['Gus']))
+    assert calls[:2] == [[], ['Gus']]
+    assert not any(e.actor == 'Gus' for e in read_events(world))

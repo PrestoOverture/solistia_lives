@@ -362,7 +362,7 @@ def test_plan_aim_over_max_length_rejected_then_retried(tmp_path, monkeypatch):
     """`aim` fails its schema length cap at 141 chars and is rejected, then retried."""
     too_long = "a" * 141
     bad = dict(call="plan", kind="go", intent="Find somewhere quiet", where="cropdale", spot=None, aim=too_long)
-    good = dict(call="plan", kind="go", intent="Find somewhere quiet", where="cropdale", spot=None, aim="Walk to the tavern.")
+    good = dict(call="plan", kind="go", intent="Find somewhere quiet", where="cropdale", spot="village_square", aim="Walk to the tavern.")
     agent, instances, requests, lifecycle, run = setup_agent(
         tmp_path, monkeypatch, iter([json.dumps(bad), json.dumps(good)]))
 

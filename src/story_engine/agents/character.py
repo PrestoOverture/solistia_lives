@@ -14,7 +14,7 @@ from story_engine.agents.sdk import (
     run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
     session_options, structured_reply,
 )
-from story_engine.stages import load_catalogs, catalog_schema, spot_context, validate_spot
+from story_engine.stages import load_catalogs, catalog_schema, fill_spot, spot_context, validate_spot
 from story_engine.config import Role
 from story_engine.trace import TraceWriter
 from story_engine.world.io import load_state, read_events
@@ -287,6 +287,16 @@ class CharacterAgent:
                         self.trace.write('plan_spot_cleared', agent=self.slug, turn=self.turn,
                                          error=str(error), place=plan.where, spot=plan.spot)
                         plan = plan.model_copy(update={'spot': None})
+                    # A place with a stage catalog always has a spot (D35): mains at a null spot
+                    # never meet the people the World places at its spots.
+                    current = load_state(self.world_dir).characters[self.slug]
+                    if plan.where is None and plan.seek is None and current.where in self.catalogs and current.spot is None:
+                        plan = plan.model_copy(update={'where': current.where})
+                    if plan.where in self.catalogs and plan.spot is None:
+                        spot = current.spot if plan.where == current.where else None
+                        plan = plan.model_copy(update={'spot': fill_spot(self.catalogs, plan.where, spot)})
+                        self.trace.write('plan_spot_filled', agent=self.slug, turn=self.turn,
+                                         place=plan.where, spot=plan.spot)
                     return plan
                 action = Action.model_validate(payload)
                 state = load_state(self.world_dir)

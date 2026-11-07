@@ -274,7 +274,7 @@ def test_world_single_group_is_dropped_atomically(workspace, monkeypatch, call):
     ops = [dict(op='place', slug='discarded', add_details=['Must roll back'])]
     if call == 'day_start':
         ops.append(dict(op='open', situation=situation()))
-    ops.append(dict(op='move', who='agnea', place='cropdale', spot=None))
+    ops.append(dict(op='move', who='agnea', place='cropdale', spot='village_square'))
     clients = fake_sdk(monkeypatch, lambda *_: dict(call=call, ops=ops))
 
     async def exercise():

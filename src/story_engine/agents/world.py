@@ -14,7 +14,10 @@ from story_engine.agents.sdk import (
     run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
     session_options, structured_reply, require_person_sex,
 )
-from story_engine.stages import load_catalogs, catalog_schema, spot_context, validate_spot, validate_spot_ops
+from story_engine.kb.entities import CharacterNames
+from story_engine.stages import (
+    load_catalogs, catalog_schema, fill_spot_ops, spot_context, validate_spot, validate_spot_ops,
+)
 from story_engine.config import Role, load_settings
 from story_engine.agents.subjects import fold
 from story_engine.trace import TraceWriter
@@ -43,6 +46,12 @@ class Encounter(BaseModel):
 
 class DayStartSituation(Situation):
     heard: str = Field(max_length=200)
+
+    @model_validator(mode="after")
+    def heard_from_people(self) -> Self:
+        if self.heard_from is not None and self.heard_from not in self.people:
+            raise ValueError(f"heard_from must name one of this situation's people: {self.people}")
+        return self
 
 
 class DayStartOpen(Open):
@@ -162,6 +171,7 @@ class _WorldSession:
         self.root, self.run_dir, self.world_dir = root, run_dir, world_dir
         self.role, self.max_turns, self.trace = role, max_turns, trace
         self.catalogs = load_catalogs(root)
+        self.kb_names = CharacterNames(root / "kb")
         self.session_output = (catalog_schema(
             require_person_sex(json_schema_output(self.reply_type)), self.catalogs)
             if role.schema_mode == "session" else None)
@@ -312,8 +322,12 @@ class _WorldSession:
     def _event_state(self, state: WorldState, event: Event, authority: Authority,
                      attempt: int, dropped: list[tuple[Event, str]]) -> WorldState | None:
         """Retry op rejections, then discard the whole atomic event group."""
+        event.ops = fill_spot_ops(self.catalogs, event.ops)
         try:
             validate_spot_ops(self.catalogs, event.ops)
+            for op in event.ops:
+                if isinstance(op, Introduce):
+                    self.kb_names.check(op.name, op.kb, state.characters)
             return validate_ops(state, event, authority)
         except ValueError as error:
             if attempt < self.role.retries:
@@ -361,7 +375,7 @@ class WorldAgent(_WorldSession):
                             commit_event(self.world_dir, Event(
                                 id=0, **state.clock.model_dump(),
                                 place=updated.characters[situation.touches[0]].where,
-                                actor='world', type='world', content=situation.heard,
+                                actor=situation.heard_from or 'world', type='world', content=situation.heard,
                                 perceived_by=situation.touches))
                 self._trace_drops('day_start', dropped)
                 # Yesterday's events stay out of the session that resolves today's calls.
@@ -425,7 +439,7 @@ class WorldAgent(_WorldSession):
                                        and (op.where, op.spot) == (place, spot)
                                        and op.name in updated.people
                                        and (updated.people[op.name].where, updated.people[op.name].spot) == (place, spot)
-                                       for op in reply.ops)]
+                                       for op in (event.ops if event is not None else []))]
                 if unfilled and attempt < self.role.retries:
                     raise ValueError(f'Introduce a new person at each empty attempt spot: {unfilled}')
                 keys = {_key(name): name for name in updated.people}
@@ -487,7 +501,7 @@ class WorldAgent(_WorldSession):
     async def round(self, state: WorldState, events: list[Event],
                     *, place: str, main_present: list[str], minor_present: list[str],
                     last_winner: dict | None, scene: str, round_number: int,
-                    closing: bool = False):
+                    closing: bool = False, lost_minors: list[str] = ()):
         """Resolve the previous winning act and bid for minor participants' next moves."""
         if not self.active:
             raise SessionError("WorldAgent must be opened as an async context manager")
@@ -500,6 +514,8 @@ class WorldAgent(_WorldSession):
                               "people": {name: state.people[name].model_dump() for name in minor_present
                                          if name in state.people},
                               "last_winner": last_winner, "closing": closing,
+                              # Minors who bid to act last round but lost the floor: their moves didn't happen.
+                              **({"minor_moves_not_happened": list(lost_minors)} if lost_minors else {}),
                               "events": [event.agent_view() for event in new_events]}, ensure_ascii=False)
         reply_type = WinningRoundReply if last_winner else SceneRoundReply
         await self._start_call(reply_type)
@@ -551,6 +567,7 @@ class WorldAgent(_WorldSession):
                             raise ValueError(reason)
                         move_drops.append(dict(name=name, reason=reason))
                         continue
+                    move = move.model_copy(update={'ops': fill_spot_ops(self.catalogs, move.ops)})
                     content = ' '.join(value for value in (move.action, move.say if move.move != 'wait' else '') if value)
                     if move.move == 'leave':
                         content = (content + f' {name} leaves.').strip()
@@ -590,7 +607,7 @@ class OffscreenAgent(_WorldSession):
         spot = raw.spot
         event = Event(id=0, **state.clock.model_dump(), place=raw.place, actor='world',
                       type='world' if raw.content else 'state_change', content=raw.content,
-                      perceived_by=[], ops=raw.ops)
+                      perceived_by=[], ops=fill_spot_ops(self.catalogs, raw.ops))
         perceived_by = [slug for slug, character in state.characters.items()
                         if character.where == event.place and (spot is None or character.spot == spot)]
         return event.model_copy(update={"perceived_by": perceived_by})

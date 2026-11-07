@@ -70,7 +70,8 @@ def agent(agent_type, world, run):
 
 
 def situation(id='new-promise', kind='promise', part='evening'):
-    return dict(id=id, kind=kind, summary='A supper invitation.', heard='A supper invitation arrives.', touches=['agnea'],
+    return dict(id=id, kind=kind, summary='A supper invitation.', heard='A supper invitation arrives.', heard_from=None,
+                touches=['agnea'],
                 people=[], status='open', next='The supper starts.', due=dict(day=2, part=part))
 
 
@@ -572,8 +573,9 @@ def test_tick_protects_scene_people_but_keeps_other_people(workspace, monkeypatc
 
     world, run = workspace
     state = load_state(world)
-    state.people = {name: Person(where='festival_grounds', wants=['Rest'], commitments=[])
-                    for name in ('Guest', 'Other')}
+    # Other stands elsewhere in the place, so the scene's spot does not seed it.
+    state.people = {name: Person(where='festival_grounds', spot=spot, wants=['Rest'], commitments=[])
+                    for name, spot in (('Guest', 'festival_clearing'), ('Other', 'dance_stage'))}
     commit_fixture_changes(world, state)
     # A previous part/day and a scene without a main do not protect Other.
     for id, day, part, participants in [
@@ -638,3 +640,22 @@ def test_world_session_restarts_after_day_start(workspace, monkeypatch):
     assert len(clients) == 2 and clients[0].closed
     assert clients[1].options.resume is None
     assert 'state' in clients[1].calls[0] and 'events' in clients[1].calls[0]
+
+
+def test_day_start_heard_comes_from_a_situation_person(workspace, monkeypatch):
+    world, run = workspace
+    state = load_state(world)
+    new = dict(situation(), people=['Courier'], heard_from='Courier', heard='The healer asks to meet you.')
+    reply = day_start_reply(situations=[new], people={'Courier': dict(
+        sex='m', where='cropdale', spot='village_square', wants=['Deliver'], commitments=[])})
+    fake_sdk(monkeypatch, lambda *_: reply)
+
+    async def exercise():
+        async with agent(world_agent.WorldAgent, world, run) as session:
+            return await session.day_start(state, [])
+
+    asyncio.run(exercise())
+    fact, = [e for e in read_events(world) if e.content == new['heard']]
+    assert fact.actor == 'Courier' and fact.perceived_by == ['agnea']
+    with pytest.raises(ValidationError, match="heard_from must name one of this situation's people"):
+        world_agent.DayStartReply.model_validate(day_start_reply(situations=[dict(new, people=[])]))
