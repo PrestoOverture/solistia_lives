@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}World theaters{% endblock %}
+{% block content %}
+<h1>World theaters</h1>
+<ul class="library">
+{% for world in worlds %}
+  <li><h2><a href="world/{{ world.id }}/theater.html">{{ world.characters | join(', ') }}</a></h2>
+    <p>{{ world.place }} · {{ world.days | length }} days ({{ world.days | join(', ') }})</p>
+  </li>
+{% endfor %}
+</ul>
+<p class="metadata">{{ notice }}</p>
+{% endblock %}

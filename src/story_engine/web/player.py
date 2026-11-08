@@ -307,55 +307,73 @@ def scene_context(worlds_dir: Path, world_id: str, record: SceneRecord,
                 place=locations.get(record.place, record.place))
 
 
+def theater_data(worlds_dir: Path, world_id: str, player_assets_dir: Path,
+                 travelers: dict, locations: dict, *,
+                 asset_prefix: str = '../../player-assets/', audio_dir: Path | None = None) -> list[dict]:
+    """Shared theater timeline, with optional exported audio availability."""
+    world = read_world(worlds_dir, world_id)
+    if world is None:
+        raise ValueError("World not found")
+    scenes = []
+    try:
+        for record in world[1]:
+            data = scene_context(worlds_dir, world_id, record, player_assets_dir, travelers, locations)
+            # Relative to the world directory for both theater and theater.json.
+            for beat in data['beats']:
+                if beat['audio_url']:
+                    filename = beat['audio_url'].rsplit('/', 1)[1]
+                    beat['audio_url'] = 'audio/' + filename
+                    if audio_dir is not None and not (audio_dir / filename).is_file():
+                        beat['audio_url'] = None
+            scenes.append(dict(
+                id=record.id, day=record.day, part=record.part, place=data['place'],
+                participants=[dict(id=name, name=display_name(name, travelers)) for name in record.participants],
+                beats=data['beats'], backdrop=asset_prefix + data['backdrop'] if data['backdrop'] else None,
+                darken=data['darken'], stand=[point.model_dump() for point in data['stand']],
+                sprite_files={name: asset_prefix + file if file else None
+                              for name, file in data['sprite_files'].items()},
+                sprite_views={name: {view: dict(item, file=asset_prefix + item['file'])
+                                     for view, item in views.items()}
+                              for name, views in data['sprite_views'].items() if audio_dir is None or name in record.participants},
+                view_timeline=data['view_timeline'],
+            ))
+    except (OSError, ValueError):
+        raise ValueError("World not found") from None
+    return scenes
+
+
+def theater_context(world_id: str, scenes: list[dict]) -> dict:
+    from story_engine.config import load_settings
+
+    chapters = {}
+    for scene in scenes:
+        chapters.setdefault(scene['day'], scene['id'])
+    first = scenes[0]
+    return dict(
+        world_id=world_id, theater_scenes=scenes, chapters=chapters,
+        scene=dict(first, participants=[person['id'] for person in first['participants']]),
+        beats=first['beats'], backdrop=None, darken=False, stand=[], sprite_files={},
+        sprite_views=first['sprite_views'], view_timeline=first['view_timeline'], place=first['place'],
+        player_settings=load_settings().model_dump(include={'player_reading_wpm', 'player_reading_min_ms'}),
+    )
+
+
 def register_theater_routes(app, templates, worlds_dir: Path, player_assets_dir: Path,
                             travelers: dict, locations: dict):
     from fastapi import HTTPException, Request
     from fastapi.responses import HTMLResponse
-    from story_engine.config import load_settings
 
-    def theater_data(world_id):
-        world = read_world(worlds_dir, world_id)
-        if world is None:
-            raise HTTPException(status_code=404, detail="World not found")
-        scenes = []
+    def data(world_id):
         try:
-            for record in world[1]:
-                data = scene_context(worlds_dir, world_id, record, player_assets_dir, travelers, locations)
-                # Relative to the world directory for both theater and theater.json.
-                for beat in data['beats']:
-                    if beat['audio_url']:
-                        beat['audio_url'] = 'audio/' + beat['audio_url'].rsplit('/', 1)[1]
-                scenes.append(dict(
-                    id=record.id, day=record.day, part=record.part, place=data['place'],
-                    participants=[dict(id=name, name=display_name(name, travelers)) for name in record.participants],
-                    beats=data['beats'], backdrop='../../player-assets/' + data['backdrop'] if data['backdrop'] else None,
-                    darken=data['darken'], stand=[point.model_dump() for point in data['stand']],
-                    sprite_files={name: '../../player-assets/' + file if file else None
-                                  for name, file in data['sprite_files'].items()},
-                    sprite_views={name: {view: dict(item, file='../../player-assets/' + item['file'])
-                                         for view, item in views.items()}
-                                  for name, views in data['sprite_views'].items()},
-                    view_timeline=data['view_timeline'],
-                ))
+            return theater_data(worlds_dir, world_id, player_assets_dir, travelers, locations)
         except (OSError, ValueError):
             raise HTTPException(status_code=404, detail="World not found") from None
-        return scenes
 
     @app.get('/world/{world_id}/theater.json')
     def theater_json(world_id: str):
-        return dict(scenes=theater_data(world_id))
+        return dict(scenes=data(world_id))
 
     @app.get('/world/{world_id}/theater', response_class=HTMLResponse)
     def theater(request: Request, world_id: str):
-        scenes = theater_data(world_id)
-        chapters = {}
-        for scene in scenes:
-            chapters.setdefault(scene['day'], scene['id'])
-        first = scenes[0]
-        return templates.TemplateResponse(request=request, name='theater.html', context=dict(
-            world_id=world_id, theater_scenes=scenes, chapters=chapters,
-            scene=dict(first, participants=[person['id'] for person in first['participants']]),
-            beats=first['beats'], backdrop=None, darken=False, stand=[], sprite_files={},
-            sprite_views=first['sprite_views'], view_timeline=first['view_timeline'], place=first['place'],
-            player_settings=load_settings().model_dump(include={'player_reading_wpm', 'player_reading_min_ms'}),
-        ))
+        return templates.TemplateResponse(request=request, name='theater.html',
+                                          context=theater_context(world_id, data(world_id)))

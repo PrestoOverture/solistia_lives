@@ -25,13 +25,14 @@ eval_app = typer.Typer(help="Evaluate generated stories.")
 
 
 @app.command()
-def web(port: int = typer.Option(8000, min=1, max=65535, help="Local server port")) -> None:
+def web(port: int = typer.Option(8000, min=1, max=65535, help="Local server port"),
+        assets: Path = typer.Option(Path("assets/player"), "--assets", help="Player asset root")) -> None:
     """Read and generate baseline stories at http://127.0.0.1:8000."""
     import uvicorn
 
     from story_engine.web import create_app
 
-    uvicorn.run(create_app(), host="127.0.0.1", port=port)
+    uvicorn.run(create_app(player_assets_dir=assets), host="127.0.0.1", port=port)
 
 
 @app.command()
@@ -208,6 +209,24 @@ app.add_typer(eval_app, name="eval")
 
 world_app = typer.Typer(help="Create persistent worlds.")
 app.add_typer(world_app, name="world")
+
+
+@world_app.command("export")
+def world_export(
+    world_ids: list[str] = typer.Argument(...),
+    assets: Path = typer.Option(Path("assets/player"), "--assets"),
+    audio: str = typer.Option("audio-public", "--audio"),
+    out: Path = typer.Option(..., "--out"),
+) -> None:
+    """Export world theaters as a self-contained static site."""
+    from story_engine.web.export import export_site
+
+    try:
+        export_site(world_ids, assets=assets, audio=audio, out=out)
+    except (OSError, ValueError, ConfigError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from None
+    typer.echo(out)
 
 
 @world_app.command("new")

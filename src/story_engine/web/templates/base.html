@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if static_site %}<link rel="icon" href="{{ index_url | replace('index.html', 'favicon.svg') }}" type="image/svg+xml">{% endif %}
   <title>{% block title %}Story library{% endblock %} · Solistia Lives</title>
-  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js" integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous" defer></script>
+  {% if not static_site %}<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js" integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous" defer></script>{% endif %}
   <style>
     :root { color-scheme: light dark; --paper: #faf7f0; --ink: #29251f; --muted: #6d6255; --rule: #d9d0c1; --link: #73502a; }
     @media (prefers-color-scheme: dark) {
@@ -31,7 +32,7 @@
   </style>
 </head>
 <body hx-boost="true" hx-target="main" hx-select="main" hx-swap="outerHTML show:window:top">
-  <nav aria-label="Main"><a href="{{ url_for('library') }}">Stories</a> · <a href="{{ url_for('worlds') }}" hx-boost="false">Worlds</a></nav>
+  {% if static_site %}<nav aria-label="Main"><a href="{{ index_url }}">Worlds</a></nav>{% else %}<nav aria-label="Main"><a href="{{ url_for('library') }}">Stories</a> · <a href="{{ url_for('worlds') }}" hx-boost="false">Worlds</a></nav>{% endif %}
   <main>{% block content %}{% endblock %}</main>
 </body>
 </html>

@@ -57,7 +57,7 @@
   #beat-text { margin: .5rem 0; }
   .player-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1rem; }
 </style>
-<a href="{{ url_for('worlds') }}" hx-boost="false">← Worlds</a>
+<a href="{{ index_url if static_site else url_for('worlds') }}" hx-boost="false">← Worlds</a>
 <h1>{% if theater_scenes %}World theater{% else %}Scene {{ scene.id }}{% endif %}</h1>
 <p id="scene-metadata" class="metadata">Day {{ scene.day }} · {{ scene.part }} · {{ scene.rounds }} rounds</p>
 {% if theater_scenes %}
@@ -126,7 +126,7 @@ function manualPageAudio(pages, page, currentTime, duration, auto) {
 (() => {
   {% if theater_scenes %}let{% else %}const{% endif %} viewTimeline = {{ view_timeline | tojson }};
   {% if theater_scenes %}let{% else %}const{% endif %} spriteViews = {{ sprite_views | tojson }};
-  let assetBase = {{ url_for('player_asset', filename='') | string | tojson }};
+  let assetBase = {{ ('' if static_site else url_for('player_asset', filename='') | string) | tojson }};
   let allBeats = JSON.parse(document.getElementById('beats').textContent);
   const stage = document.getElementById('stage');
   const backdrop = stage.querySelector('.backdrop');
