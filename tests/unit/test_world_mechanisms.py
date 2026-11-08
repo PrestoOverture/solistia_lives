@@ -47,6 +47,8 @@ def test_arrival_joins_scene_and_clock_event_expires_only_open_past_due(tmp_path
     seen_scene = []
 
     def respond(client, request):
+        if isinstance(request, str):
+            request = next(r for r in reversed(client.calls) if isinstance(r, dict))
         call = request['call']
         if call == 'part_of_day':
             slug = ('agnea', 'throne')[clients.index(client)]
@@ -68,6 +70,7 @@ def test_arrival_joins_scene_and_clock_event_expires_only_open_past_due(tmp_path
         if call == 'scene_move':
             return dict(call='action', move='wait', urge=0, intent='Wait', action='', say='')
         assert call == 'offscreen'
+        # Never settles: the clock event's past-due drop is the fallback under test.
         return dict(call=call, situation_notes={s.id: 'Unchanged.' for s in state.situations if s.status == 'open'})
 
     clients = fake_sdk(monkeypatch, respond)

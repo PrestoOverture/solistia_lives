@@ -84,7 +84,8 @@ def adjudicate_reply():
 def offscreen_reply(state):
     return dict(call="offscreen", events=[dict(place="cropdale", content="The bell rings.",
         ops=[dict(op="place", slug="cropdale", add_details=["A bell tower"], remove_details=[])])],
-        situation_notes={s.id: "Unchanged." for s in state.situations})
+        situation_notes={s.id: "Unchanged." for s in state.situations},
+        settle={s.id: "dropped" for s in state.situations})  # only the ones due now apply
 
 
 def add_event(world, *, day=1, part="morning"):

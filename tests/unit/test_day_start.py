@@ -101,7 +101,7 @@ def test_day_start_heard_precedes_plans_and_is_perceived(workspace, monkeypatch,
         if call in {'adjudicate', 'scene_round'}:
             return dict(call=call)
         if call == 'offscreen':
-            return dict(call=call, situation_notes={
+            return dict(call=call, settle={id: 'dropped' for id in request.get('due_now', [])}, situation_notes={
                 s.id: 'Unchanged.' for s in load_state(world).situations if s.status == 'open'})
         assert call == 'end_of_day'
         return dict(call=call, summary='Supper invitation remembered.')

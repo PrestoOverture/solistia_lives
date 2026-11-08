@@ -10,7 +10,8 @@ Reply:
 ```
 {"call":"offscreen",
  "events":[{"place":"cropdale","spot":null,"content":"The shop closes.","ops":[]}],
- "situation_notes":{"existing_id":"One short note on this situation."}}
+ "situation_notes":{"existing_id":"One short note on this situation."},
+ "settle":{"due_id":"resolved"}}
 ```
 
 An event carries a short fact (at most 280 characters) and its typed ops. Only ops change state. Code fills actor (`world`), time, and perception. `spot` narrows perception to that spot; null means the whole place. An op-only event may have empty content. Each event's ops commit atomically, in order; every reference must already exist when used. There are no people, places, or situation replacement fields.
@@ -21,6 +22,8 @@ Off-screen ops:
 - `{"op":"wants","person":"Person name","wants":["Rest"]}`
 - `{"op":"promise","who":"Person name","what":"Open at dawn","where":"place_slug","day":2,"part":"morning"}`
 - `{"op":"release","who":"Person name","id":"commitment id from state","how":"cancelled"}` — kept, broken, or cancelled. A promise whose state records an originating scene can be kept off-screen only as an errand away from main characters (code rejects it while one is at its place); it can always be broken or cancelled off-screen.
-- `{"op":"situation","id":"existing situation id","status":"dropped"}` — only once its due day and part have arrived: `resolved` when the events have settled it, else `dropped`, which applies its existing `next`. This op has no other update field off-screen; code drops a situation still open past due.
+- `{"op":"situation","id":"existing situation id","status":"dropped"}` — only once its due day and part have arrived. This op has no other update field off-screen.
+
+`due_now` lists the open situations whose time has come. `settle` gives each of them `resolved` if what has happened, in this reply or before, settled it, or `dropped` if it didn't, which applies its existing `next`.
 
 This call cannot introduce people, change main characters, create situations, revise a situation's next/due/people, settle a situation before it is due, or move the clock. Include a non-empty `situation_notes` entry for every situation open in the input, even if dropped by this reply.

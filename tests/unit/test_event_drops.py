@@ -157,7 +157,8 @@ def test_mocked_day_encounter_name_retry_and_schema_failure(workspace, monkeypat
         if call == 'end_of_day':
             return dict(call=call, summary='Visited the stalls.')
         assert call == 'offscreen'
-        return dict(call=call, situation_notes={s.id: 'Unchanged.' for s in load_state(world).situations if s.status == 'open'})
+        return dict(call=call, settle={id: 'dropped' for id in request.get('due_now', [])},
+                    situation_notes={s.id: 'Unchanged.' for s in load_state(world).situations if s.status == 'open'})
 
     clients = fake_sdk(monkeypatch, respond)
     original = simulation.TickSession

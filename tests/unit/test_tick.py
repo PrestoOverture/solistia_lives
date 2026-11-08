@@ -31,7 +31,8 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     offscreen_reply = dict(
         call='offscreen',
         events=[dict(place='cropdale', content='The stalls open.')],
-        situation_notes={s.id: 'Preparations continue.' for s in state.situations})
+        situation_notes={s.id: 'Preparations continue.' for s in state.situations},
+        settle={s.id: 'dropped' for s in state.situations})  # only the ones due now apply
     invalid_offscreen = copy.deepcopy(offscreen_reply)
     invalid_offscreen['events'][0]['actor'] = 'agnea'
     world_replies = iter([adjudicate_reply] +
@@ -166,3 +167,51 @@ def test_offscreen_validation_error(tmp_path, monkeypatch, failure, reason):
     assert len(requests) == 2 and reason in requests[1]
     assert load_state(world) == state
     assert read_events(world) == []
+
+
+@pytest.mark.parametrize('status', ['resolved', 'dropped'])
+def test_offscreen_settles_every_situation_due_now(tmp_path, monkeypatch, status):
+    world = tmp_path / 'world'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run = tmp_path / 'run'
+    run.mkdir()
+    state = load_state(world)
+    due = state.situations[0]
+    due.due = state.clock.model_copy()
+    notes = {s.id: 'Unchanged.' for s in state.situations}
+    replies = iter([dict(call='offscreen', situation_notes=notes),
+                    dict(call='offscreen', situation_notes=notes, settle={due.id: status, 'not_due': 'resolved'})])
+    requests = []
+
+    class FakeClient:
+        def __init__(self, *, options):
+            self.options = options
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def query(self, request):
+            requests.append(request)
+
+        async def receive_response(self):
+            yield ResultMessage('success', 1, 1, False, 1, 'fake', result=json.dumps(next(replies)))
+
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', FakeClient)
+    from story_engine.config import load_configs
+    from story_engine.trace import TraceWriter
+    models, settings = load_configs()
+
+    async def exercise():
+        async with world_agent.OffscreenAgent(ROOT, run, world, models.world,
+                                              settings.agent_max_turns, TraceWriter(run)) as agent:
+            return await agent.offscreen(state, {s.id for s in state.situations if s.status == 'open'})
+
+    events, updated, _ = asyncio.run(exercise())
+    assert json.loads(requests[0])['due_now'] == [due.id]
+    assert 'settle must give resolved or dropped' in requests[1]
+    assert [op.model_dump(exclude_none=True) for op in events[-1].ops] == [
+        dict(op='situation', id=due.id, status=status)]
+    assert next(s for s in updated.situations if s.id == due.id).status == status

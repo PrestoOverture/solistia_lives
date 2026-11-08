@@ -96,6 +96,8 @@ class OffscreenReply(BaseModel):
     call: Literal["offscreen"]
     events: list[OffscreenEvent] = Field(default_factory=list)
     situation_notes: dict[str, str] = Field(default_factory=dict)
+    # Every situation due now ends this tick: resolved if the world has settled it, else dropped.
+    settle: dict[str, Literal["resolved", "dropped"]] = Field(default_factory=dict)
 
 
 class MinorMove(BaseModel):
@@ -254,6 +256,7 @@ class _WorldSession:
         self.cost = SessionCost()
 
     async def _start_call(self, reply_type: type, *, open_situations: set[str] | None = None,
+                          due_situations: list[str] | None = None,
                           empty_attempt_spots: list[tuple[str, str | None]] | None = None) -> None:
         if self.client is not None:
             await self.context.__aexit__(None, None, None)
@@ -280,6 +283,12 @@ class _WorldSession:
             required = output_format['schema'].setdefault('required', [])
             if 'situation_notes' not in required:
                 required.append('situation_notes')
+            if due_situations:
+                output_format['schema']['properties']['settle'] = {
+                    'type': 'object', 'properties': {id: {'enum': ['resolved', 'dropped']} for id in due_situations},
+                    'required': due_situations, 'additionalProperties': False,
+                }
+                required.append('settle')
         self.options = replace(
             self.options, resume=self.session_id, output_format=output_format,
         )
@@ -666,9 +675,14 @@ class OffscreenAgent(_WorldSession):
                          max_event_id=max_event_id,
                          # Internal validation/perception context; never sent to the model.
                          validation_state=state.model_dump(), open_situations=sorted(open_situations))
+        parts = self.parts_of_day
+        now = (state.clock.day, parts.index(state.clock.part))
+        due = sorted(s.id for s in state.situations if s.id in open_situations
+                     and (s.due.day, parts.index(s.due.part)) <= now)
         request = json.dumps({"call": "offscreen", "reply": "JSON with call: 'offscreen'",
-                              **self._state_payload(projection), "mains": mains}, ensure_ascii=False)
-        await self._start_call(OffscreenReply, open_situations=open_situations)
+                              **self._state_payload(projection), "mains": mains,
+                              **({"due_now": due} if due else {})}, ensure_ascii=False)
+        await self._start_call(OffscreenReply, open_situations=open_situations, due_situations=due)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
@@ -708,6 +722,22 @@ class OffscreenAgent(_WorldSession):
                 if missing:
                     # Missing notes cost only those notes, not the tick's events.
                     self.trace.write('situation_notes_missing', turn=self.turn, situations=missing)
+                unsettled = [id for id in due if id not in reply.settle]
+                if unsettled and attempt < self.role.retries:
+                    raise ValueError(f"settle must give resolved or dropped for every situation due now: {unsettled}")
+                settled = [SituationOp(id=id, status=reply.settle[id]) for id in due if id in reply.settle
+                           and any(s.id == id and s.status == 'open' for s in new_state.situations)]
+                if settled:
+                    event = Event(id=max_event_id + len(resolved) + 1, **state.clock.model_dump(),
+                                  place=state.places[0].slug, actor='world', type='state_change',
+                                  content='', perceived_by=[], ops=settled)
+                    updated = self._event_state(new_state, event, Authority(
+                        'offscreen', parts_of_day=self.parts_of_day, scene_people=protected), attempt, dropped)
+                    if updated is not None:
+                        resolved.append(self._build_offscreen_event(
+                            OffscreenEvent(place=state.places[0].slug, ops=settled), updated,
+                            {place.slug for place in updated.places}))
+                        new_state = updated
                 # Notes on situations that were not open are harmless; keep only the ones asked for.
                 notes = {id: note for id, note in reply.situation_notes.items()
                          if id in open_situations and note.strip()}
