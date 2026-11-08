@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8"><title>Sprite sheet</title>
+<style>body{margin:0;background:#6d8a5a;display:flex;flex-wrap:wrap;gap:8px;padding:8px}canvas{image-rendering:pixelated;width:144px;height:240px;background:#8fae74}</style>
+<script type="module">
+import {W,H,drawFrame,CAST,GESTURES} from './sprites.js';
+for (const name of Object.keys(CAST)) for (const g of [...GESTURES,'walk0','walk1','walk3']) {
+  const c=document.createElement('canvas');c.width=W;c.height=H;document.body.append(c);
+  const walk=g.startsWith('walk')?+g.slice(4):null;
+  drawFrame(c.getContext('2d'),CAST[name],walk===null?g:'idle',walk);
+}
+document.body.dataset.ready='1';
+</script>
