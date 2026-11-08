@@ -198,10 +198,16 @@ def town_sprites(directory: Path) -> dict[str, list[str]]:
 def scene_sprites(directory: Path, world_dir: Path, participants: list[str], art: PlayerArt) -> dict[str, str | None]:
     pools = town_sprites(directory)
     people = read_people(world_dir)
+    own = traveler_views(directory)
     result = {name: art.sprites.get(name) for name in participants if name in TRAVELERS}
     used = set()
+    # A KB character with a sprite of their own wears it; everyone else draws from the town pools.
+    for name in participants:
+        kb = people[name].kb if name not in TRAVELERS and name in people else None
+        if kb in own and kb not in TRAVELERS:
+            result[name] = own[kb]['front']['file']
     # Known-sex people reserve their smaller pools before unknown-sex people.
-    minors = [name for name in participants if name not in TRAVELERS]
+    minors = [name for name in participants if name not in result]
     for name in sorted(minors, key=lambda name: (name not in people or people[name].sex is None, name)):
         sex = people[name].sex if name in people else None
         pool = pools[sex] if sex in pools else pools['m'] + pools['f']
@@ -217,7 +223,7 @@ def scene_sprites(directory: Path, world_dir: Path, participants: list[str], art
 
 
 def traveler_views(directory: Path) -> dict[str, dict[str, dict]]:
-    """Read traveler and townsperson field views, with front-relative PNG heights."""
+    """Read traveler, KB character and townsperson field views, with front-relative PNG heights."""
     try:
         entries = yaml.safe_load((directory / 'sprites/index.yaml').read_text())['sprites']
     except FileNotFoundError:
@@ -227,7 +233,7 @@ def traveler_views(directory: Path) -> dict[str, dict[str, dict]]:
         name, view = item.get('who'), item.get('view')
         if name == 'townsperson':
             name = 'npc_' + item.get('id', '')
-        elif name not in TRAVELERS:
+        elif not name:
             continue
         if item.get('file') != f'{name}_{view}.png':
             continue

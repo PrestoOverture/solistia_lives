@@ -472,6 +472,26 @@ def test_three_travelers_replay_field_views(tmp_path, player_art):
         assert client.get('/player-assets/sprites/absent_right.png').status_code == 404
 
 
+def test_kb_characters_wear_their_own_sprite(tmp_path, player_art):
+    import yaml
+    from story_engine.web.player import load_art, scene_sprites
+    png = (player_art / 'sprites/agnea.png').read_bytes()
+    (player_art / 'sprites/pala_bristarni_front.png').write_bytes(png)
+    (player_art / 'sprites/f0_front.png').write_bytes(png)
+    (player_art / 'sprites/index.yaml').write_text(yaml.safe_dump({'sprites': [
+        dict(file='pala_bristarni_front.png', who='pala_bristarni', view='front', source='fixture'),
+        dict(file='f0_front.png', who='townsperson', sex='f', view='front', source='fixture'),
+    ]}))
+    world = tmp_path / 'world'
+    world.mkdir()
+    state = json.loads((FIXTURES / 'player/genesis.json').read_text())
+    person = {**state['people']['Mabel'], 'sex': 'f'}
+    state['people'] = {'pala': {**person, 'kb': 'pala_bristarni'}, 'Mabel': person}
+    (world / 'state.json').write_text(json.dumps(state))
+    assert scene_sprites(player_art, world, ['pala', 'Mabel'], load_art(player_art)) == {
+        'pala': 'sprites/pala_bristarni_front.png', 'Mabel': 'sprites/f0_front.png'}
+
+
 def test_townspeople_with_views_turn_toward_speaker(tmp_path, player_art):
     """Exercise selection, served view files, sizing, and the rendered facing fold."""
     import struct
