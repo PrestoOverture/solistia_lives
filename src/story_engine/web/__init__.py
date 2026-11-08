@@ -19,8 +19,8 @@ from story_engine.kb import TRAVELERS, validate_input
 from story_engine.runs import RunInput, create_run
 from story_engine.web.jobs import generate_story
 from story_engine.web.player import (
-    asset_file, audio_file, display_name, load_art, read_world, scene_beats, scene_stage,
-    stage_images, stand_points, valid_id, town_sprites, scene_sprites, traveler_views, replay_views,
+    asset_file, audio_file, display_name, load_art, read_world, scene_context,
+    register_theater_routes, stage_images, valid_id, town_sprites, traveler_views,
 )
 from story_engine.web.progress import read_progress
 
@@ -110,6 +110,8 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
     templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
     templates.env.globals["person"] = lambda slug: display_name(slug, travelers)
 
+    register_theater_routes(app, templates, worlds_dir, player_assets_dir, travelers, locations)
+
     @app.get("/", response_class=HTMLResponse)
     def library(request: Request):
         stories = [display_story(story) for path in runs_dir.glob("*") if path.is_dir()
@@ -156,28 +158,11 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
         if record is None:
             raise HTTPException(status_code=404, detail="Scene not found")
         try:
-            beats = scene_beats(worlds_dir / world_id, scene_id, travelers)
+            context = scene_context(worlds_dir, world_id, record, player_assets_dir, travelers, locations)
         except (OSError, ValueError):
             raise HTTPException(status_code=404, detail="Scene not found") from None
-        art = load_art(player_assets_dir)
-        stage = scene_stage(player_assets_dir, record.place, record.spot, record.part, art)
-        sprite_files = scene_sprites(player_assets_dir, worlds_dir / world_id, record.participants, art)
-        views = traveler_views(player_assets_dir)
-        for name in record.participants:
-            if name in views:
-                sprite_files[name] = views[name]['front']['file']
-            else:
-                selected = next((items for items in list(views.values())
-                                 if items['front']['file'] == sprite_files.get(name)), None)
-                if selected:
-                    views[name] = selected
-        points = stand_points(stage.stand, len(record.participants))
-        return templates.TemplateResponse(request=request, name="scene.html", context={
-            "world_id": world_id, "scene": record, "beats": beats,
-            "backdrop": stage.image, "darken": stage.darken,
-            "stand": points, "sprite_files": sprite_files,
-            "sprite_views": views, "view_timeline": replay_views(beats, record.participants, points),
-            "travelers": travelers, "place": locations.get(record.place, record.place),
+        return templates.TemplateResponse(request=request, name="single_scene.html", context={
+            **context, "world_id": world_id,
             "player_settings": load_settings().model_dump(include={'player_reading_wpm', 'player_reading_min_ms'}),
         })
 

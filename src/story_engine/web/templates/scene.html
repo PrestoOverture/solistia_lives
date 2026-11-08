@@ -1,7 +1,7 @@
-{% extends "base.html" %}
-{% block title %}Scene {{ scene.id }} · {{ place }}{% endblock %}
-{% block content %}
+{# Shared player partial: used by single_scene.html and theater.html. #}
 <style>
+  #title-card { text-align: center; padding: 5rem 1rem; font-size: 1.5rem; }
+  #title-card[hidden] { display: none; }
   #stage { border: 2px solid var(--rule); border-radius: .5rem; overflow: visible; cursor: pointer; }
   .backdrop { background: #b5d4d9; color: #18242b; text-align: center; padding: 1rem; }
   .backdrop.afternoon { background: #e4cd91; }
@@ -58,8 +58,16 @@
   .player-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1rem; }
 </style>
 <a href="{{ url_for('worlds') }}" hx-boost="false">← Worlds</a>
-<h1>Scene {{ scene.id }}</h1>
-<p class="metadata">Day {{ scene.day }} · {{ scene.part }} · {{ scene.rounds }} rounds</p>
+<h1>{% if theater_scenes %}World theater{% else %}Scene {{ scene.id }}{% endif %}</h1>
+<p id="scene-metadata" class="metadata">Day {{ scene.day }} · {{ scene.part }} · {{ scene.rounds }} rounds</p>
+{% if theater_scenes %}
+<nav aria-label="Chapters">
+{% for day, scene_id in chapters.items() %}
+  <a data-chapter="{{ scene_id }}" href="#{{ scene_id }}">Day {{ day }}</a>
+{% endfor %}
+</nav>
+{% endif %}
+<div id="title-card" role="status" hidden></div>
 <div id="stage" tabindex="0" aria-label="Scene player; click to advance">
   <div class="backdrop {{ scene.part }}{% if backdrop %} has-art{% endif %}">{% if backdrop %}
     <img class="backdrop-art{% if darken %} darkened{% endif %}" src="{{ url_for('player_asset', filename=backdrop) }}" alt="">
@@ -116,10 +124,10 @@ function manualPageAudio(pages, page, currentTime, duration, auto) {
 </script>
 <script>
 (() => {
-  const viewTimeline = {{ view_timeline | tojson }};
-  const spriteViews = {{ sprite_views | tojson }};
-  const assetBase = {{ url_for('player_asset', filename='') | string | tojson }};
-  const allBeats = JSON.parse(document.getElementById('beats').textContent);
+  {% if theater_scenes %}let{% else %}const{% endif %} viewTimeline = {{ view_timeline | tojson }};
+  {% if theater_scenes %}let{% else %}const{% endif %} spriteViews = {{ sprite_views | tojson }};
+  let assetBase = {{ url_for('player_asset', filename='') | string | tojson }};
+  let allBeats = JSON.parse(document.getElementById('beats').textContent);
   const stage = document.getElementById('stage');
   const backdrop = stage.querySelector('.backdrop');
   const bubble = document.getElementById('speech-bubble');
@@ -129,6 +137,11 @@ function manualPageAudio(pages, page, currentTime, duration, auto) {
   const next = document.getElementById('next');
   const auto = document.getElementById('auto');
   const settings = {{ player_settings | tojson }};
+  const scenes = {{ theater_scenes | default([]) | tojson }};
+  let sceneIndex = 0;
+  let cardOpen = false;
+  let cardTimer = null;
+  const card = document.getElementById('title-card');
   let beats = allBeats.filter(beat => !beat.hidden);
   let index = 0;
   let pages = [];
@@ -158,7 +171,7 @@ function manualPageAudio(pages, page, currentTime, duration, auto) {
   }
   function schedulePage() {
     clearTimeout(timer);
-    if (!auto.checked) return;
+    if (cardOpen || !auto.checked) return;
     if (!usableAudio()) {
       readingDelay(pages[page] ?? beats[index]?.text ?? '');
     } else {
@@ -209,13 +222,14 @@ function manualPageAudio(pages, page, currentTime, duration, auto) {
     document.getElementById('beat-counter').textContent =
       `${beats.length ? index + 1 : 0} / ${beats.length}` +
       (pages.length ? ` · ${page + 1}/${pages.length}` : '');
-    previous.disabled = index === 0;
-    next.disabled = index >= beats.length - 1 && page >= pages.length - 1;
+    previous.disabled = index === 0 && sceneIndex === 0;
+    next.disabled = index >= beats.length - 1 && page >= pages.length - 1 && sceneIndex >= scenes.length - 1;
     positionBubble();
     schedulePage();
   }
   const sentences = new Intl.Segmenter('en', {granularity: 'sentence'});
   function paginate() {
+    if (cardOpen) return;
     const oldWord = pages.slice(0, page).join(' ').split(/\s+/).filter(Boolean).length;
     pages = [];
     if (!bubble.hidden) {
@@ -326,6 +340,11 @@ function manualPageAudio(pages, page, currentTime, duration, auto) {
     schedulePage();
   }
   function advance(delta) {
+    if (typeof cardOpen !== 'undefined' && cardOpen) {
+      if (delta < 0 && sceneIndex > 0) openScene(sceneIndex - 1, true);
+      else if (delta > 0) closeCard();
+      return;
+    }
     if (delta > 0 && page < pages.length - 1) {
       page++;
       if (!auto.checked && usableAudio()) {
@@ -334,6 +353,12 @@ function manualPageAudio(pages, page, currentTime, duration, auto) {
         audio.play().catch(audio.onerror);
       }
       showPage();
+      return;
+    }
+    if (typeof scenes !== 'undefined' && scenes.length &&
+        ((delta > 0 && index >= beats.length - 1) || (delta < 0 && index === 0))) {
+      const targetScene = sceneIndex + delta;
+      if (targetScene >= 0 && targetScene < scenes.length) openScene(targetScene, delta < 0);
       return;
     }
     const target = Math.max(0, Math.min(beats.length - 1, index + delta));
@@ -350,7 +375,7 @@ function manualPageAudio(pages, page, currentTime, duration, auto) {
     }
     schedulePage();
   });
-  window.addEventListener('pagehide', stopPlayback, {once: true});
+  window.addEventListener('pagehide', () => { clearTimeout(cardTimer); stopPlayback(); }, {once: true});
   stage.addEventListener('htmx:beforeCleanupElement', stopPlayback);
   document.onkeydown = event => {
     if (!stage.isConnected || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName)) return;
@@ -360,13 +385,101 @@ function manualPageAudio(pages, page, currentTime, duration, auto) {
     }
   };
   toggle.addEventListener('change', () => {
+    if (cardOpen) {
+      beats = allBeats.filter(beat => toggle.checked || !beat.hidden);
+      index = Math.max(0, Math.min(index, beats.length - 1));
+      return;
+    }
     const current = beats[index];
     beats = allBeats.filter(beat => toggle.checked || !beat.hidden);
     const retained = beats.indexOf(current);
     index = retained >= 0 ? retained : Math.max(0, Math.min(index, beats.length - 1));
     render();
   });
-  render();
+  function closeCard() {
+    clearTimeout(cardTimer);
+    cardOpen = false;
+    card.hidden = true;
+    stage.hidden = false;
+    render();
+  }
+  function openScene(target, last = false) {
+    stopPlayback();
+    clearTimeout(cardTimer);
+    sceneIndex = target;
+    const scene = scenes[target];
+    allBeats = scene.beats;
+    beats = allBeats.filter(beat => toggle.checked || !beat.hidden);
+    viewTimeline = scene.view_timeline;
+    spriteViews = scene.sprite_views;
+    assetBase = '';
+    index = last ? Math.max(0, beats.length - 1) : 0;
+    pages = [];
+    page = 0;
+    backdrop.className = `backdrop ${scene.part}` + (scene.backdrop ? ' has-art' : '');
+    backdrop.querySelector('.backdrop-art')?.remove();
+    if (scene.backdrop) {
+      const image = document.createElement('img');
+      image.className = 'backdrop-art' + (scene.darken ? ' darkened' : '');
+      image.src = scene.backdrop;
+      image.alt = '';
+      backdrop.prepend(image);
+    }
+    backdrop.querySelector('.place-label').textContent = scene.place;
+    const cast = backdrop.querySelector('.cast');
+    cast.replaceChildren();
+    scene.participants.forEach((person, i) => {
+      const figure = document.createElement('div');
+      figure.className = 'figure';
+      figure.dataset.actor = person.id;
+      const point = scene.stand[i];
+      figure.dataset.x = point ? point.x : i;
+      if (point) figure.style.cssText = `--x:${point.x * 100}%;--y:${point.y * 100}%;--h:${point.h * 100}%;z-index:${Math.trunc(point.y * 1000)}`;
+      if (scene.sprite_files[person.id]) {
+        const image = document.createElement('img');
+        image.className = 'sprite';
+        image.src = scene.sprite_files[person.id];
+        image.alt = person.name;
+        figure.append(image);
+      } else {
+        for (const part of ['head', 'body']) {
+          const shape = document.createElement('div');
+          shape.className = part;
+          shape.setAttribute('aria-hidden', 'true');
+          figure.append(shape);
+        }
+      }
+      const label = document.createElement('span');
+      label.textContent = person.name;
+      figure.append(label);
+      cast.append(figure);
+    });
+    const title = `Day ${scene.day} · ${scene.part} · ${scene.place}`;
+    document.getElementById('scene-metadata').textContent = title;
+    history.replaceState(null, '', '#' + scene.id);
+    card.textContent = title;
+    cardOpen = true;
+    bubble.hidden = true;
+    stage.hidden = true;
+    card.hidden = false;
+    previous.disabled = target === 0;
+    next.disabled = false;
+    document.getElementById('beat-counter').textContent = `Scene ${target + 1} / ${scenes.length}`;
+    cardTimer = setTimeout(closeCard, Math.max(settings.player_reading_min_ms,
+      title.trim().split(/\s+/).length * 60000 / settings.player_reading_wpm));
+  }
+  if (scenes.length) {
+    const resume = () => {
+      const target = scenes.findIndex(scene => '#' + scene.id === location.hash);
+      openScene(target < 0 ? 0 : target);
+    };
+    window.addEventListener('hashchange', resume);
+    document.querySelectorAll('[data-chapter]').forEach(link => link.addEventListener('click', event => {
+      event.preventDefault();
+      openScene(scenes.findIndex(scene => scene.id === link.dataset.chapter));
+    }));
+    card.addEventListener('click', closeCard);
+    resume();
+  } else render();
 })();
 </script>
-{% endblock %}

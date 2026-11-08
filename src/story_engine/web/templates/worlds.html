@@ -6,6 +6,7 @@
 <section>
   <h2>{% for name in world.info.characters %}{{ person(name) }}{% if not loop.last %}, {% endif %}{% endfor %}</h2>
   <p>{{ locations.get(world.info.location, world.info.location) }} · {{ world.id }}</p>
+  <p><a hx-boost="false" href="{{ url_for('theater', world_id=world.id) }}">Play world theater</a></p>
   <ul>
   {% for scene in world.scenes %}
     <li><a hx-boost="false" href="{{ url_for('scene', world_id=world.id, scene_id=scene.id) }}">Scene {{ scene.id }}</a>

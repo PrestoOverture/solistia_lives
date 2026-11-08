@@ -282,3 +282,80 @@ def replay_views(beats: list[dict], participants: list[str], points: list[StandP
             speakers.append(speaker)
         result.append(views.copy())
     return result
+
+
+def scene_context(worlds_dir: Path, world_id: str, record: SceneRecord,
+                  player_assets_dir: Path, travelers: dict, locations: dict) -> dict:
+    """Shared presentation data for single scenes and the continuous theater."""
+    beats = scene_beats(worlds_dir / world_id, record.id, travelers)
+    art = load_art(player_assets_dir)
+    stage = scene_stage(player_assets_dir, record.place, record.spot, record.part, art)
+    sprite_files = scene_sprites(player_assets_dir, worlds_dir / world_id, record.participants, art)
+    views = traveler_views(player_assets_dir)
+    for name in record.participants:
+        if name in views:
+            sprite_files[name] = views[name]['front']['file']
+        else:
+            selected = next((items for items in list(views.values())
+                             if items['front']['file'] == sprite_files.get(name)), None)
+            if selected:
+                views[name] = selected
+    points = stand_points(stage.stand, len(record.participants))
+    return dict(scene=record, beats=beats, backdrop=stage.image, darken=stage.darken,
+                stand=points, sprite_files=sprite_files, sprite_views=views,
+                view_timeline=replay_views(beats, record.participants, points),
+                place=locations.get(record.place, record.place))
+
+
+def register_theater_routes(app, templates, worlds_dir: Path, player_assets_dir: Path,
+                            travelers: dict, locations: dict):
+    from fastapi import HTTPException, Request
+    from fastapi.responses import HTMLResponse
+    from story_engine.config import load_settings
+
+    def theater_data(world_id):
+        world = read_world(worlds_dir, world_id)
+        if world is None:
+            raise HTTPException(status_code=404, detail="World not found")
+        scenes = []
+        try:
+            for record in world[1]:
+                data = scene_context(worlds_dir, world_id, record, player_assets_dir, travelers, locations)
+                # Relative to the world directory for both theater and theater.json.
+                for beat in data['beats']:
+                    if beat['audio_url']:
+                        beat['audio_url'] = 'audio/' + beat['audio_url'].rsplit('/', 1)[1]
+                scenes.append(dict(
+                    id=record.id, day=record.day, part=record.part, place=data['place'],
+                    participants=[dict(id=name, name=display_name(name, travelers)) for name in record.participants],
+                    beats=data['beats'], backdrop='../../player-assets/' + data['backdrop'] if data['backdrop'] else None,
+                    darken=data['darken'], stand=[point.model_dump() for point in data['stand']],
+                    sprite_files={name: '../../player-assets/' + file if file else None
+                                  for name, file in data['sprite_files'].items()},
+                    sprite_views={name: {view: dict(item, file='../../player-assets/' + item['file'])
+                                         for view, item in views.items()}
+                                  for name, views in data['sprite_views'].items()},
+                    view_timeline=data['view_timeline'],
+                ))
+        except (OSError, ValueError):
+            raise HTTPException(status_code=404, detail="World not found") from None
+        return scenes
+
+    @app.get('/world/{world_id}/theater.json')
+    def theater_json(world_id: str):
+        return dict(scenes=theater_data(world_id))
+
+    @app.get('/world/{world_id}/theater', response_class=HTMLResponse)
+    def theater(request: Request, world_id: str):
+        scenes = theater_data(world_id)
+        chapters = {}
+        for scene in scenes:
+            chapters.setdefault(scene['day'], scene['id'])
+        first = scenes[0]
+        return templates.TemplateResponse(request=request, name='theater.html', context=dict(
+            world_id=world_id, theater_scenes=scenes, chapters=chapters,
+            scene=dict(first, participants=[person['id'] for person in first['participants']]),
+            beats=first['beats'], backdrop=None, darken=False, stand=[], sprite_files={},
+            sprite_views=first['sprite_views'], view_timeline=first['view_timeline'], place=first['place'],
+            player_settings=load_settings().model_dump(include={'player_reading_wpm', 'player_reading_min_ms'}),
+        ))

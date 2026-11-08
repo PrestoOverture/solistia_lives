@@ -577,3 +577,57 @@ def test_beat_text_replaces_only_whole_known_people_ids(tmp_path, field, text, e
     names = {'Mabel': 'Do not replace', 'unknown_person': 'Not in people'}
     beat, = scene_beats(tmp_path, '1', names)
     assert beat['text'] == expected
+
+
+def test_theater_order_beats_chapters_and_relative_assets(tmp_path, player_art):
+    from urllib.parse import urljoin, urlsplit
+
+    worlds = tmp_path / 'worlds'
+    shutil.copytree(FIXTURES / 'player', worlds / 'player')
+    path = worlds / 'player' / 'scenes.jsonl'
+    rows = [json.loads(line) for line in path.read_text().splitlines()]
+    # Deliberately neither id nor day sorted; repeated days have one chapter.
+    rows = [dict(rows[1], id='2', day=2), dict(rows[0], id='1', day=1),
+            dict(rows[0], id='3', day=1, part='afternoon')]
+    path.write_text(''.join(json.dumps(row) + '\n' for row in rows))
+    before = {p: p.read_bytes() for p in worlds.rglob('*') if p.is_file()}
+    with TestClient(create_app(runs_dir=tmp_path / 'runs', worlds_dir=worlds,
+                              player_assets_dir=player_art)) as client:
+        response = client.get('/world/player/theater.json')
+        assert response.status_code == 200
+        scenes = response.json()['scenes']
+        assert [(s['id'], s['day'], s['part']) for s in scenes] == [
+            ('2', 2, 'night'), ('1', 1, 'morning'), ('3', 1, 'afternoon')]
+        for scene in scenes:
+            single = embedded_beats(client.get('/world/player/scene/' + scene['id']).text)
+            normalized = [dict(beat, audio_url=urlsplit(urljoin(response.url.__str__(), beat['audio_url'])).path
+                               if beat['audio_url'] else None) for beat in scene['beats']]
+            assert normalized == single
+            assert scene['place'] == 'Cropdale'
+            assert all(person['name'] for person in scene['participants'])
+            if scene['id'] == '1':
+                assert scene['participants'][0] == dict(id='agnea', name='Agnea Bristarni')
+            assert len(scene['stand']) == len(scene['participants'])
+            assert len(scene['view_timeline']) == len(scene['beats'])
+            assets = [scene['backdrop'], *scene['sprite_files'].values(),
+                      *(view['file'] for views in scene['sprite_views'].values() for view in views.values())]
+            for asset in filter(None, assets):
+                assert not asset.startswith(('/', 'http:','https:'))
+                assert client.get(urljoin(str(response.url), asset)).status_code == 200
+            for beat in scene['beats']:
+                assert not beat['audio_url'] or beat['audio_url'].startswith('audio/')
+        html = client.get('/world/player/theater').text
+        assert re.findall(r'data-chapter="([^"]+)"', html) == ['2', '1']
+        assert 'Day 2</a>' in html and 'Day 1</a>' in html
+        assert '/world/player/theater' in client.get('/worlds').text
+        assert client.post('/world/player/theater').status_code == 405
+        assert client.post('/world/player/theater.json').status_code == 405
+    assert before == {p: p.read_bytes() for p in worlds.rglob('*') if p.is_file()}
+
+
+@pytest.mark.parametrize('world_id', ['unknown', 'C%3A', '%2E%2E', 'player%5C..%5Cplayer', 'player%2F..%2Fplayer', 'agnea_throne'])
+@pytest.mark.parametrize('route', ['theater', 'theater.json'])
+def test_theater_unknown_or_invalid_world_returns_404(tmp_path, world_id, route):
+    with TestClient(create_app(runs_dir=tmp_path, worlds_dir=FIXTURES,
+                              player_assets_dir=tmp_path / 'no-art')) as client:
+        assert client.get(f'/world/{world_id}/{route}').status_code == 404
