@@ -34,6 +34,7 @@ and The Spriters Resource blocked page downloads; Neoseeker's image CDN worked.
 | `sprites/partitio.webp` | https://static.wikia.nocookie.net/octopath-traveler/images/5/5f/Partitio_Sprite.png | OT Fandom wiki, Partitio field sprite |
 | `sprites/temenos.webp` | https://static.wikia.nocookie.net/octopath-traveler/images/5/59/Temenos_Sprite.png | OT Fandom wiki, Temenos field sprite |
 | `sprites/throne.webp` | https://static.wikia.nocookie.net/octopath-traveler/images/0/0c/Thron%C3%A9_Sprite.png | OT Fandom wiki, Throné field sprite |
+| `sprites/pala_bristarni_front.png` | https://static.wikia.nocookie.net/octopath-traveler/images/3/36/Pala_Sprite.png | OT Fandom wiki, Pala field sprite (same file as `minor.webp`), halved nearest-neighbour from its exact 2× pixels to field-sprite scale |
 | `sprites/minor.webp` | https://static.wikia.nocookie.net/octopath-traveler/images/3/36/Pala_Sprite.png | OT Fandom wiki, Pala field sprite |
 
 All eight travelers have a single standing pixel field sprite. `minor` uses
