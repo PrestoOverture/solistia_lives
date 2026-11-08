@@ -21,3 +21,4 @@ AGENTS.md
 !/assets/player/gallery/*/index.yaml
 !/assets/player/stages/*.yaml
 /output/
+/models/kokoro/

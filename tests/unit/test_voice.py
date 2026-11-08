@@ -36,6 +36,7 @@ def fixture_world():
         (world / 'events.jsonl').write_text(''.join(e.model_dump_json() + '\n' for e in events))
         (root / 'config').mkdir()
         shutil.copyfile(ROOT / 'config/voices.yaml', root / 'config/voices.yaml')
+        shutil.copyfile(ROOT / 'config/voices_kokoro.yaml', root / 'config/voices_kokoro.yaml')
         shutil.copyfile(ROOT / 'config/settings.yaml', root / 'config/settings.yaml')
         yield root, world
 
@@ -295,3 +296,102 @@ def test_render_reads_female_sex_from_state(fixture_world, monkeypatch):
     asyncio.run(voice.render_voice(world, voices))
     assert ('Welcome!', voices.for_speaker('Mabel', 'f'), voices.pitch_for('Mabel')) in calls
     assert voices.for_speaker('Mabel', 'f') in voices.minor['f']
+
+
+def test_kokoro_voice_config_and_deterministic_sex_pools():
+    voices = voice.load_voices(engine='kokoro')
+    assert set(voices.travelers) == TRAVELERS
+    assert len(set(voices.travelers.values())) == 8
+    assert voices.narrator not in voices.travelers.values()
+    for name in TRAVELERS:
+        assert voices.for_speaker(name) == voices.travelers[name]
+    for sex in ('m', 'f', None):
+        pool = voices.minor[sex] if sex else voices.minor['m'] + voices.minor['f']
+        if sex is not None:
+            prefixes = ('am_', 'bm_') if sex == 'm' else ('af_', 'bf_')
+            assert all(item.startswith(prefixes) for item in pool)
+        for name in ('Mabel', 'world', 'Thérèse', 'New person'):
+            expected = pool[int(hashlib.sha256(name.encode()).hexdigest(), 16) % len(pool)]
+            assert voices.for_speaker(name, sex) == expected
+            assert voice.load_voices(engine='kokoro').for_speaker(name, sex) == expected
+            assert voices.pitch_for(name) == '+0Hz'
+    data = voices.model_dump()
+    data['narrator'] = 'jf_alpha'
+    with pytest.raises(ValidationError, match='English'):
+        voice.KokoroVoices.model_validate(data)
+
+
+def test_kokoro_cli_public_path_all_lines_sex_and_skip_without_mapping(fixture_world, monkeypatch):
+    import json
+    from story_engine.world.kokoro import KokoroSynthesizer
+
+    root, world = fixture_world
+    voices = voice.load_voices(engine='kokoro')
+    state = json.loads((world / 'genesis.json').read_text())
+    state['people']['Mabel']['sex'] = 'f'
+    (world / 'state.json').write_text(json.dumps(state))
+    audio = world / 'audio'
+    audio.mkdir()
+    (audio / '2.mp3').write_bytes(b'existing edge audio')
+    before = {p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in audio.iterdir()}
+    calls = []
+
+    async def save(self, text, speaker, target):
+        assert target.parent == world / 'audio-public'
+        assert target.name.startswith('.')
+        target.write_bytes(b'local audio')
+        calls.append((text, speaker))
+
+    def no_edge(*args, **kwargs):
+        pytest.fail('Kokoro must not call edge-tts')
+
+    monkeypatch.setattr(KokoroSynthesizer, 'save', save)
+    monkeypatch.setattr(voice.edge_tts, 'Communicate', no_edge)
+    monkeypatch.chdir(root)
+    result = CliRunner().invoke(app, ['world', 'voice', 'player', '--engine', 'kokoro'])
+    assert result.exit_code == 0, result.output
+    assert 'action: Rendered 3, skipped 0' in result.output
+    assert 'say: Rendered 4, skipped 0' in result.output
+    assert calls == [
+        ('Agnea waves.', voices.narrator),
+        ('Hello, Mabel!', voices.travelers['agnea']),
+        ('Welcome!', voices.for_speaker('Mabel', 'f')),
+        ('Throné nods.', voices.narrator),
+        ('A bell rings.', voices.narrator),
+        ('The festival begins.', voices.for_speaker('world')),
+        ('Good night.', voices.travelers['throne']),
+    ]
+    public = world / 'audio-public'
+    assert {p.name for p in public.glob('*.mp3')} == {
+        '2.mp3', '4.mp3', '7.mp3', '8.mp3', '2.action.mp3', '5.action.mp3', '7.action.mp3',
+    }
+    # Even audio without a mapping must be preserved, per the Kokoro skip contract.
+    (public / 'voices.json').unlink()
+    public_before = {p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in public.iterdir()}
+    result = CliRunner().invoke(app, ['world', 'voice', 'player', '--engine', 'kokoro'])
+    assert result.exit_code == 0, result.output
+    assert 'action: Rendered 0, skipped 3' in result.output
+    assert 'say: Rendered 0, skipped 4' in result.output
+    assert len(calls) == 7
+    assert public_before == {p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in public.iterdir()}
+    assert before == {p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in audio.iterdir()}
+
+
+def test_kokoro_scene_filter_and_failed_synthesis_cleanup(fixture_world, monkeypatch):
+    from story_engine.world.kokoro import KokoroSynthesizer
+
+    _, world = fixture_world
+    calls = []
+
+    async def save(self, text, speaker, target):
+        calls.append(text)
+        target.write_bytes(b'partial')
+        raise RuntimeError('local synthesis failed')
+
+    monkeypatch.setattr(KokoroSynthesizer, 'save', save)
+    voices = voice.load_voices(engine='kokoro')
+    with pytest.raises(RuntimeError, match='local synthesis failed'):
+        asyncio.run(voice.render_voice(world, voices, '2', engine='kokoro'))
+    assert calls == ['Good night.']
+    assert list((world / 'audio-public').iterdir()) == []
+    assert not (world / 'audio').exists()

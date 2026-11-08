@@ -1,0 +1,24 @@
+# Kokoro-82M v1.0 weights and English voice embeddings: Apache-2.0.
+# Original model: https://huggingface.co/hexgrad/Kokoro-82M
+# ONNX conversion/downloads: https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0
+# Files kokoro-v1.0.onnx and voices-v1.0.bin are cached once in models/kokoro/ (gitignored).
+# Requires ffmpeg on PATH for MP3 encoding. No paid services or GPU are used.
+# Casting below targets the age/temperament comments in voices.yaml; ages are
+# character ages, not claims about the voice actors or training speakers.
+narrator: bf_emma              # Clear, measured British female narrator
+travelers:
+  agnea: af_bella              # Female, 18: bright, lively young performer
+  throne: af_nicole            # Female, 23: soft, restrained and controlled
+  hikari: am_michael           # Male, 21: clear, sincere young ruler
+  ochette: af_sky               # Female, 20: light, youthful and playful
+  castti: af_heart              # Female, 29: warm, reassuring healer
+  osvald: am_onyx               # Male, 38: low, mature, authoritative scholar
+  temenos: bm_george            # Male, 30: polished British inquisitor
+  partitio: am_puck             # Male, 24: energetic, animated merchant
+minor:
+  m:
+    - am_fenrir
+    - bm_lewis
+  f:
+    - af_sarah
+    - bf_isabella

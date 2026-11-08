@@ -5,6 +5,7 @@ import hashlib
 import os
 import tempfile
 from pathlib import Path
+from typing import ClassVar, Literal
 
 import edge_tts
 import yaml
@@ -26,6 +27,7 @@ class AudioVoices(RootModel[dict[str, VoiceSelection]]):
 
 
 class Voices(BaseModel):
+    english_prefixes: ClassVar[tuple[str, ...]] = ('en-',)
     narrator: str
     travelers: dict[str, str]
     minor: dict[str, list[str]]
@@ -44,7 +46,7 @@ class Voices(BaseModel):
             raise ValueError('travelers must have distinct voices')
         if self.narrator in self.travelers.values():
             raise ValueError('narrator must have a distinct voice from travelers')
-        if any(not voice.startswith('en-') for voice in [self.narrator, *self.travelers.values(), *self.minor["m"], *self.minor["f"]]):
+        if any(not voice.startswith(self.english_prefixes) for voice in [self.narrator, *self.travelers.values(), *self.minor["m"], *self.minor["f"]]):
             raise ValueError('voices must be English')
         return self
 
@@ -62,14 +64,32 @@ class Voices(BaseModel):
         return f"{(number % 5 - 2) * 5:+d}Hz"
 
 
-def load_voices(path: Path = Path('config/voices.yaml')) -> Voices:
-    return Voices.model_validate(yaml.safe_load(path.read_text(encoding='utf-8')))
+class KokoroVoices(Voices):
+    english_prefixes: ClassVar[tuple[str, ...]] = ('af_', 'am_', 'bf_', 'bm_')
+
+    def pitch_for(self, name: str) -> str:
+        # Kokoro selects a voice embedding; it has no pitch-offset parameter.
+        return '+0Hz'
+
+
+def load_voices(path: Path | None = None, *, engine: Literal['edge-tts', 'kokoro'] = 'edge-tts') -> Voices:
+    model = KokoroVoices if engine == 'kokoro' else Voices
+    if path is None:
+        path = Path('config/voices_kokoro.yaml' if engine == 'kokoro' else 'config/voices.yaml')
+    return model.model_validate(yaml.safe_load(path.read_text(encoding='utf-8')))
 
 
 async def render_voice(
     world_dir: Path, voices: Voices, scene: str | None = None, *,
     concurrency: int | None = None,
+    engine: Literal['edge-tts', 'kokoro'] = 'edge-tts',
 ) -> dict[str, tuple[int, int]]:
+    if engine not in ('edge-tts', 'kokoro'):
+        raise ValueError(f'Unknown voice engine: {engine}')
+    synthesizer = None
+    if engine == 'kokoro':
+        from .kokoro import KokoroSynthesizer
+        synthesizer = KokoroSynthesizer()
     if concurrency is None:
         concurrency = load_settings().voice_concurrency
     if concurrency < 1:
@@ -77,7 +97,7 @@ async def render_voice(
     if scene is not None and scene not in {item.id for item in read_scenes(world_dir)}:
         raise ValueError(f'Unknown scene: {scene}')
     events = read_events(world_dir)
-    audio = world_dir / 'audio'
+    audio = world_dir / ('audio-public' if engine == 'kokoro' else 'audio')
     if audio.is_symlink():
         raise ValueError('audio directory must not be a symlink')
     people = read_people(world_dir)
@@ -91,7 +111,10 @@ async def render_voice(
             descriptor, temporary = tempfile.mkstemp(dir=audio, prefix=f'.{target.stem}.', suffix='.mp3')
             os.close(descriptor)
             try:
-                await edge_tts.Communicate(text, speaker, pitch=pitch).save(temporary)
+                if synthesizer is None:
+                    await edge_tts.Communicate(text, speaker, pitch=pitch).save(temporary)
+                else:
+                    await synthesizer.save(text, speaker, Path(temporary))
                 os.replace(temporary, target)
                 mapping.root[key] = VoiceSelection(voice=speaker, pitch=pitch)
                 _atomic_write(mapping_path, mapping.model_dump_json(indent=2) + '\n')
@@ -113,7 +136,7 @@ async def render_voice(
             target = audio / f'{event.id}{suffix}'
             pitch = voices.pitch_for(event.actor) if kind == 'say' else '+0Hz'
             key = str(event.id) if kind == 'say' else f'{event.id}.action'
-            if target.is_file() and mapping.root.get(key) == VoiceSelection(voice=speaker, pitch=pitch):
+            if target.is_file() and (engine == 'kokoro' or mapping.root.get(key) == VoiceSelection(voice=speaker, pitch=pitch)):
                 counts[kind][1] += 1
                 continue
             jobs.append(render_line(target, text, speaker, pitch, kind, key))
