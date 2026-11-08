@@ -78,7 +78,9 @@ def validate_ops(state: WorldState, event: Event, authority: Authority) -> World
                 parts = authority.parts_of_day
                 if not parts:
                     raise ValueError(f'{call} situation checks require the configured parts_of_day')
-                allowed = (situation is not None and situation.status == 'open' and op.status == 'dropped'
+                # Once due, off-screen settles a situation either way; code only drops it past due.
+                settles = {'dropped', 'resolved'} if call == 'offscreen' else {'dropped'}
+                allowed = (situation is not None and situation.status == 'open' and op.status in settles
                            and op.model_fields_set - {'op', 'id'} == {'status'}
                            and ((situation.due.day, parts.index(situation.due.part))
                                 < (state.clock.day, parts.index(state.clock.part))

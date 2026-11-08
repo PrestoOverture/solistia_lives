@@ -151,9 +151,16 @@ def test_offscreen_validation_error(tmp_path, monkeypatch, failure, reason):
                                          settings.agent_max_turns, TraceWriter(run)) as agent:
             return await agent.offscreen(state, {s.id for s in state.situations if s.status == 'open'})
 
-    assert asyncio.run(exercise()) == ([], state, {})
+    result = asyncio.run(exercise())
     failures = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()
                 if json.loads(line)['type'] == 'world_validation_failed']
+    if failure == 'notes':
+        # Missing notes after the retry keep the tick's events.
+        events, _, notes = result
+        assert [e.content for e in events] == ['The wind rises.'] and notes == {}
+        assert len(failures) == 1 and reason in requests[1]
+        return
+    assert result == ([], state, {})
     assert len(failures) == 2
     assert all(reason in row['error'] and json.loads(row['raw_reply']) == reply for row in failures)
     assert len(requests) == 2 and reason in requests[1]

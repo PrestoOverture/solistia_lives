@@ -55,7 +55,7 @@ def test_mocked_day_continues_after_offscreen_op_drop(workspace, monkeypatch, fa
     initial = load_state(world)
     forbidden = dict(place='cropdale', content='A discarded event.', ops=[
         dict(op='place', slug='discarded', add_details=['Must roll back'], remove_details=[]),
-        dict(op='situation', id=initial.situations[0].id, status='resolved')])
+        dict(op='situation', id=initial.situations[0].id, status='open')])
     valid = dict(place='cropdale', content='The stalls open.', ops=[
         dict(op='place', slug='cropdale', add_details=['Open stalls'], remove_details=[])])
     bad = dict(forbidden, actor='agnea') if failure == 'schema' else forbidden
@@ -85,14 +85,16 @@ def test_mocked_day_continues_after_offscreen_op_drop(workspace, monkeypatch, fa
     assert [s.model_dump(exclude={'status'}) for s in result.situations] == [
         s.model_dump(exclude={'status'}) for s in initial.situations]
     assert 'discarded' not in {p.slug for p in result.places}
-    if failure != 'op':
+    if failure == 'nonop':
+        # Missing notes after the retry cost only the notes.
+        assert [row['turn'] for row in rows(run, 'situation_notes_missing')] == [1, 2, 3]  # none open at night
+    if failure == 'schema':
         assert not any(e.content in {valid['content'], forbidden['content']} for e in read_events(world))
         assert 'Open stalls' not in next(p for p in result.places if p.slug == 'cropdale').details
         assert rows(run, 'event_dropped') == []
         drops = rows(run, 'offscreen_dropped')
         assert [drop['turn'] for drop in drops] == [1, 2, 3, 4]
-        reason = 'Extra inputs' if failure == 'schema' else 'cover every situation'
-        assert reason in drops[0]['error']
+        assert 'Extra inputs' in drops[0]['error']
         assert len(rows(run, 'world_validation_failed')) == 8
         assert all((world / 'memory' / f'{slug}.md').exists() for slug in initial.characters)
         return

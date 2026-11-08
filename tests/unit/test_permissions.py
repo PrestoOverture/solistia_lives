@@ -55,8 +55,8 @@ CASES = [
                                            status='open', next='Visitor departs', due=dict(day=2, part='night'))),
      [('day_start', 'world')], [('scene_round', 'world'), ('offscreen', 'world'), ('encounter', 'world')]),
     ('situation', dict(op='situation', id='s1', status='resolved'),
-     [('scene_round', 'world')], [('encounter', 'world'), ('offscreen', 'world'), ('day_start', 'world'),
-                                ('character_scene', 'agnea')]),
+     [('scene_round', 'world'), ('offscreen', 'world')], [('encounter', 'world'), ('day_start', 'world'),
+                                                         ('character_scene', 'agnea')]),
     ('clock', dict(op='clock', day=2, part='morning'),
      [('code', 'world')], [('scene_round', 'world'), ('offscreen', 'world'), ('day_start', 'world'), ('character_scene', 'agnea')]),
 ]
@@ -99,14 +99,15 @@ def test_situation_requires_scene_resolution(state, resolution):
     ((1, 'afternoon'), dict(status='dropped'), True),
     ((1, 'evening'), dict(status='dropped'), True),
     ((2, 'morning'), dict(status='dropped'), True),
-    ((1, 'evening'), dict(status='resolved'), False),
+    ((1, 'evening'), dict(status='resolved'), True),
+    ((1, 'morning'), dict(status='resolved'), False),
     ((1, 'evening'), dict(status='open'), False),
     ((1, 'evening'), dict(status='dropped', next='A different ending'), False),
     ((1, 'evening'), dict(status='dropped', due=dict(day=3, part='night')), False),
     ((1, 'evening'), dict(status='dropped', people=[]), False),
     ((1, 'evening'), dict(next='A different ending'), False),
 ])
-def test_offscreen_only_drops_due_situation(state, clock, fields, accepted):
+def test_offscreen_only_settles_due_situation(state, clock, fields, accepted):
     from story_engine.config import load_settings
     state.clock = Clock(day=clock[0], part=clock[1])
     event = Event(id=8, **state.clock.model_dump(), place='town', actor='world', type='world',
@@ -115,7 +116,7 @@ def test_offscreen_only_drops_due_situation(state, clock, fields, accepted):
     authority = Authority('offscreen', parts_of_day=tuple(load_settings().parts_of_day))
     if accepted:
         result = validate_ops(state, event, authority)
-        assert result.situations[0].status == 'dropped'
+        assert result.situations[0].status == fields['status']
         assert result.situations[0].model_dump(exclude={'status'}) == state.situations[0].model_dump(exclude={'status'})
     else:
         with pytest.raises(ValueError, match='may not commit'):

@@ -699,12 +699,18 @@ class OffscreenAgent(_WorldSession):
                         self.trace.write('offscreen_spot_cleared', turn=self.turn, error=str(error))
                     resolved.append(self._build_offscreen_event(raw, updated, places))
                     new_state = updated
-                if open_situations - reply.situation_notes.keys():
-                    raise ValueError("situation_notes must cover every situation open at tick start")
-                if any(not note.strip() for note in reply.situation_notes.values()):
+                missing = sorted(id for id in open_situations
+                                 if not reply.situation_notes.get(id, '').strip())
+                if missing and attempt < self.role.retries:
+                    if open_situations - reply.situation_notes.keys():
+                        raise ValueError("situation_notes must cover every situation open at tick start")
                     raise ValueError("situation_notes must be non-empty sentences")
+                if missing:
+                    # Missing notes cost only those notes, not the tick's events.
+                    self.trace.write('situation_notes_missing', turn=self.turn, situations=missing)
                 # Notes on situations that were not open are harmless; keep only the ones asked for.
-                notes = {id: note for id, note in reply.situation_notes.items() if id in open_situations}
+                notes = {id: note for id, note in reply.situation_notes.items()
+                         if id in open_situations and note.strip()}
                 self.last_reply = reply
                 self._trace_drops('offscreen', dropped)
                 return resolved, new_state, notes

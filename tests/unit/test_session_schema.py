@@ -154,6 +154,9 @@ def test_session_validation_retries_then_existing_failure(workspace, monkeypatch
         event, encounters, updated = asyncio.run(exercise())
         assert not event.ops and not encounters and updated == state
         assert 'empty_spot_unfilled' in (workspace[1] / 'trace.jsonl').read_text()
+    elif case == 'notes_missing':
+        assert asyncio.run(exercise()) == ([], state, {})
+        assert 'situation_notes_missing' in (workspace[1] / 'trace.jsonl').read_text()
     elif cls is world_agent.OffscreenAgent:
         assert asyncio.run(exercise()) == ([], state, {})
         assert 'offscreen_dropped' in (workspace[1] / 'trace.jsonl').read_text()
