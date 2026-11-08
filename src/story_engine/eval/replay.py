@@ -44,6 +44,7 @@ class ReplayResult(BaseModel):
     ops: list[Op] = Field(default_factory=list)
     encounters: list[Encounter] = Field(default_factory=list)
     events: list[OffscreenEvent] = Field(default_factory=list)
+    settle: dict[str, str] = Field(default_factory=dict)
     people: dict[str, Person] = Field(default_factory=dict)
     error: str | None = None
 
@@ -119,6 +120,7 @@ async def replay(run_id: str, call: Call, turn: int | None = None, repeat: int =
                                                   max_event_id=item.max_event_id)
                             reply = agent.last_reply
                             result.events = reply.events
+                            result.settle = reply.settle
                 except Exception as error:
                     result.error = str(error) if isinstance(error, SessionError) else f"{type(error).__name__}: {error}"
                     trace.write("stage_failed", call=call, turn=item.turn, repeat=repetition,
