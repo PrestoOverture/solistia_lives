@@ -1,0 +1,401 @@
+sprites:
+- file: agnea_front.png
+  who: agnea
+  view: front
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: agnea_left.png
+  who: agnea
+  view: left
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: agnea_right.png
+  who: agnea
+  view: right
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: agnea_back.png
+  who: agnea
+  view: back
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: throne_front.png
+  who: throne
+  view: front
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: throne_left.png
+  who: throne
+  view: left
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: throne_right.png
+  who: throne
+  view: right
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: throne_back.png
+  who: throne
+  view: back
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: garud_bristarni_front.png
+  who: garud_bristarni
+  view: front
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: garud_bristarni_left.png
+  who: garud_bristarni
+  view: left
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: garud_bristarni_right.png
+  who: garud_bristarni
+  view: right
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: garud_bristarni_back.png
+  who: garud_bristarni
+  view: back
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: pala_bristarni_front.png
+  who: pala_bristarni
+  view: front
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: pala_bristarni_left.png
+  who: pala_bristarni
+  view: left
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: pala_bristarni_right.png
+  who: pala_bristarni
+  view: right
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: pala_bristarni_back.png
+  who: pala_bristarni
+  view: back
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: gus_front.png
+  who: gus
+  view: front
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: gus_left.png
+  who: gus
+  view: left
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: gus_right.png
+  who: gus
+  view: right
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: gus_back.png
+  who: gus
+  view: back
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: marta_front.png
+  who: marta
+  view: front
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: marta_left.png
+  who: marta
+  view: left
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: marta_right.png
+  who: marta
+  view: right
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: marta_back.png
+  who: marta
+  view: back
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Kieran_front.png
+  who: Kieran
+  view: front
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Kieran_left.png
+  who: Kieran
+  view: left
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Kieran_right.png
+  who: Kieran
+  view: right
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Kieran_back.png
+  who: Kieran
+  view: back
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Liora_front.png
+  who: Liora
+  view: front
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Liora_left.png
+  who: Liora
+  view: left
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Liora_right.png
+  who: Liora
+  view: right
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Liora_back.png
+  who: Liora
+  view: back
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Mirelle_front.png
+  who: Mirelle
+  view: front
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Mirelle_left.png
+  who: Mirelle
+  view: left
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Mirelle_right.png
+  who: Mirelle
+  view: right
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Mirelle_back.png
+  who: Mirelle
+  view: back
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: ochette_front.png
+  who: ochette
+  view: front
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: ochette_left.png
+  who: ochette
+  view: left
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: ochette_right.png
+  who: ochette
+  view: right
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: ochette_back.png
+  who: ochette
+  view: back
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: hikari_front.png
+  who: hikari
+  view: front
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: hikari_left.png
+  who: hikari
+  view: left
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: hikari_right.png
+  who: hikari
+  view: right
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: hikari_back.png
+  who: hikari
+  view: back
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: jorgen_front.png
+  who: jorgen
+  view: front
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: jorgen_left.png
+  who: jorgen
+  view: left
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: jorgen_right.png
+  who: jorgen
+  view: right
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: jorgen_back.png
+  who: jorgen
+  view: back
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: sara_front.png
+  who: sara
+  view: front
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: sara_left.png
+  who: sara
+  view: left
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: sara_right.png
+  who: sara
+  view: right
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: sara_back.png
+  who: sara
+  view: back
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Rask_front.png
+  who: Rask
+  view: front
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Rask_left.png
+  who: Rask
+  view: left
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Rask_right.png
+  who: Rask
+  view: right
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Rask_back.png
+  who: Rask
+  view: back
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Cobb_front.png
+  who: Cobb
+  view: front
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Cobb_left.png
+  who: Cobb
+  view: left
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Cobb_right.png
+  who: Cobb
+  view: right
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Cobb_back.png
+  who: Cobb
+  view: back
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Fennec_front.png
+  who: Fennec
+  view: front
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Fennec_left.png
+  who: Fennec
+  view: left
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Fennec_right.png
+  who: Fennec
+  view: right
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Fennec_back.png
+  who: Fennec
+  view: back
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Yule_front.png
+  who: Yule
+  view: front
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Yule_left.png
+  who: Yule
+  view: left
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Yule_right.png
+  who: Yule
+  view: right
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Yule_back.png
+  who: Yule
+  view: back
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Gretch_front.png
+  who: Gretch
+  view: front
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Gretch_left.png
+  who: Gretch
+  view: left
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Gretch_right.png
+  who: Gretch
+  view: right
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Gretch_back.png
+  who: Gretch
+  view: back
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Marten_front.png
+  who: Marten
+  view: front
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Marten_left.png
+  who: Marten
+  view: left
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Marten_right.png
+  who: Marten
+  view: right
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Marten_back.png
+  who: Marten
+  view: back
+  sex: m
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Rielle_front.png
+  who: Rielle
+  view: front
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Rielle_left.png
+  who: Rielle
+  view: left
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Rielle_right.png
+  who: Rielle
+  view: right
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)
+- file: Rielle_back.png
+  who: Rielle
+  view: back
+  sex: f
+  source: original (GPT image generation via Codex, house style; art/pixel/cutout.py)

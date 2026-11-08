@@ -1,0 +1,44 @@
+name: ''
+default: main_street
+spots:
+- id: main_street
+  name: Main Street
+  about: Broad dirt road running beneath the wooden water tower past the saloon and
+    boardwalk storefronts.
+  day: main_street.jpg
+  night: main_street_night.jpg
+  stand: &id001
+  - x: 0.44
+    y: 0.7
+    h: 0.216
+  - x: 0.58
+    y: 0.7
+    h: 0.216
+  - x: 0.33
+    y: 0.64
+    h: 0.181
+  - x: 0.68
+    y: 0.64
+    h: 0.181
+  - x: 0.51
+    y: 0.61
+    h: 0.163
+  - x: 0.25
+    y: 0.75
+    h: 0.245
+  - x: 0.76
+    y: 0.75
+    h: 0.245
+  - x: 0.39
+    y: 0.81
+    h: 0.28
+  - x: 0.63
+    y: 0.81
+    h: 0.28
+- id: tavern
+  name: Tavern Porch
+  about: Lantern-lit wooden boardwalk porch outside the Oresrush tavern and neighboring
+    armory.
+  day: tavern.jpg
+  night: null
+  stand: *id001

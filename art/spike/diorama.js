@@ -276,12 +276,42 @@ function paint(actor, t) {
   actor.texture.needsUpdate = true;
 }
 
-const agnea = character(CAST.agnea, -0.6, 1.6);
+// ?png=1: Agnea as a cleaned 80px PixelLab sheet (art/pixel/clean.py) instead of the parametric sprite
+function pngCharacter(name, frames, x, z, height, aspect = 1) {
+  const loader = new THREE.TextureLoader();
+  const textures = Array.from({ length: frames }, (_, i) => {
+    const texture = loader.load(`png/${name}_${i}.png`, () => FROZEN !== null && frame()); // frozen shots render once, so redraw on load
+    texture.magFilter = texture.minFilter = THREE.NearestFilter;
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  });
+  const h = height / Math.cos(0.42);
+  const geometry = new THREE.PlaneGeometry(h * aspect, h).translate(0, h / 2, 0); // feet near the frame's bottom
+  const mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ map: textures[0], alphaTest: 0.5 }));
+  mesh.position.set(x, 0.02, z);
+  mesh.castShadow = true;
+  scene.add(mesh);
+  const blob = add(new THREE.CircleGeometry(0.28, 12).rotateX(-Math.PI / 2),
+    new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.28, depthWrite: false }), x, 0.04, z, { cast: false, receive: false });
+  return { mesh, blob, textures, gesture: 'idle', walk: null, png: true };
+}
+
+// ?png=1: the 80px dance sheet; ?png=text: the single text-prompted 48x80 sprite with its skirt redrawn
+const PNG = params.get('png');
+const agnea = PNG === 'text' ? pngCharacter('agnea_text', 1, -0.6, 1.6, 40 * UNIT * 80 / 67, 48 / 80)
+  : PNG ? pngCharacter('agnea', 9, -0.6, 1.6, 40 * UNIT * 80 / 76) : character(CAST.agnea, -0.6, 1.6);
 const pala = character(CAST.pala, 0.8, 1.9, 0.86);
 
 // Demo timeline: Agnea walks in from the right, then gestures; Pala waves back.
 function direct(t) {
   const loop = t % 16;
+  if (PNG) {
+    // the sheet is a dance: hold the idle frame, then step through the poses
+    const i = loop < 4 ? 0 : 1 + Math.floor((loop - 4) / 1.5) % 8;
+    agnea.mesh.material.map = agnea.textures[params.has('frame') ? +params.get('frame') : i % agnea.textures.length];
+    pala.gesture = loop > 4 && loop < 7 ? 'wave' : 'idle';
+    return;
+  }
   if (loop < 3) {
     agnea.walk = 0; agnea.gesture = 'idle';
     agnea.mesh.position.x = 5 - (loop / 3) * 5.6;
