@@ -73,9 +73,18 @@ At the end of the day, each traveler writes a memory of the day and carries it i
 
 Every change in the world, such as someone moving, making a promise, or a matter moving forward, is written to the event log as a typed operation. The world's current state is computed from the log step by step, so description alone changes nothing. The log is this world's canon, and that is what lets the world keep going.
 
-## Next (in development)
+A world goes on one day after another. It ends when every matter is settled or it reaches its set number of days. After each day, a judge reads through the day's log and checks it for lore breaks and contradictions. Both test worlds ran their full five days:
+
+- **The Cropdale festival:** a stolen pie recipe, the tailor Garud's failing eyes and his unfinished clothes, and in the end Throné learning to dance from Agnea.
+- **The wilds south of Oresrush:** bandits, herbs for a sick child, Jorgen's feast, and a lizard hunt.
+
+Nobody wrote either plot in advance; both came out of the worlds themselves.
+
+## Theater mode
 
 <p align="center"><img src="assets/scene_player.jpg" alt="The scene player: four beats at the Festival Grounds at night, Agnea and Throné talking in speech bubbles, with a long line paged across two bubbles" width="100%"></p>
+
+<p align="center"><img src="assets/theater_flow.svg" alt="The theater: from the event log to the screen through scenes, staging, facing, and voices, played day by day" width="100%"></p>
 
 The meetings and conversations in the log will one day become scenes you can watch and hear.
 
@@ -83,13 +92,19 @@ Shiny afternoon in a small town. A few familiar figures. A line of dialogue. A v
 
 Who, where, and what was said is up to the world.
 
+### [Online theater](https://solistia-theater.vercel.app)
+- **[The Cropdale festival](https://solistia-theater.vercel.app/world/20261107-180443-2fc52f/theater.html):** Agnea and Throné, 23 scenes
+- **[The Oresrush wilds](https://solistia-theater.vercel.app/world/20261107-200913-754a8c/theater.html):** Hikari and Ochette, 21 scenes
+
 ## Status
 
 A personal project, still in progress.
 
 - **Done:** the knowledge base; the writer, lore validation, and the fix loop; the evaluation kit and 10-story test suite; the local web UI (writing and reading). The MVP gate passed with 8 of 10 stories ([gate_v1.md](eval/results/gate_v1.md)).
-- **World engine:** world creation, traveler and World agents, round-by-round scenes, and world state computed from the event log are all built, and the single-day world metrics pass ([world_we_v1.md](eval/results/world_we_v1.md)). Multi-day behavior hasn't been measured yet.
-- **Next:** the scene player; see [Next](#next-in-development).
+- **World engine:** world creation, traveler and World agents, round-by-round scenes, and world state computed from the event log are all built. The single-day world metrics pass ([world_we_v1.md](eval/results/world_we_v1.md)). Both test worlds ran their full five days and ended normally.
+- **Scene player and theater:** done, with voices.
+- **Online theater:** both worlds are live; see [Online theater](#online-theater).
+- **Next:** bring the characters to life, and the world with them.
 
 ## Quick start
 
@@ -111,6 +126,14 @@ uv run story-engine world new --characters agnea,throne --location cropdale \
   --situation "Agnea has brought Throné to a festival here."
 uv run story-engine world run <world_id> --stop-after day
 
+# Voice the lines, then watch from the start in the theater
+uv run story-engine world voice <world_id>
+#   http://127.0.0.1:8000/world/<world_id>/theater
+
+# Export a static site with the original art and Kokoro voices
+uv run story-engine world voice <world_id> --engine kokoro
+uv run story-engine world export <world_id> --assets assets/original --out output/site
+
 # Tests (unit tests make no model calls)
 uv run pytest tests/unit
 ```
@@ -126,6 +149,7 @@ Model calls cost money; one story is about $0.70. Each run's spending cap is `ma
 | `prompts/`, `cards/` | Agent prompts and the eight travelers' character cards |
 | `kb/` | The knowledge base: Markdown files built from the wiki |
 | `preprocess/` | Prompts and check reports for the three knowledge-base build steps |
+| `assets/original/` | Original characters and backdrops for the public site |
 | `config/` | Which model each role uses, plus settings such as rounds per scene and the cost cap |
 | `eval/` | Fixed judge prompts, the test suite, and evaluation results |
 | `docs/` | Requirements, architecture, tech stack, roadmap, and development log |

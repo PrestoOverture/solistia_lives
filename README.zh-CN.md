@@ -73,9 +73,18 @@ Vide 被打败了，八位旅人的旅程也都告一段落，但他们的日子
 
 世界里的每个变化，比如有人换了地方、许下约定、事情有了进展，都以固定格式的操作写进事件日志。世界当前的状态是从日志一步步算出来的，光靠描写改变不了什么。日志就是这个世界的正史，世界也因此能一直过下去。
 
-## 下一幕（开发中）
+一个世界会一天接一天地过下去。等所有事情都有了着落，或者到了设定的天数，这个世界就结束了。每天结束后，评审会通读当天的日志，检查有没有违背设定、前后矛盾的地方。两个测试世界都完整跑完了五天：
+
+- **Cropdale 的庆典：** 被偷的派食谱、裁缝 Garud 的眼疾和没做完的衣服，最后是 Throné 跟着 Agnea 学跳舞。
+- **Oresrush 南边的荒野：** 盗匪、给生病孩子找的草药、Jorgen 的宴席，还有一场猎蜥蜴。
+
+两个故事都是世界自己走出来的，没有人事先写好剧情。
+
+## 剧场模式
 
 <p align="center"><img src="assets/scene_player.jpg" alt="场景播放器：夜晚的庆典广场上的四个片段，Agnea 和 Throné 用对话气泡交谈，一句长台词分两页显示" width="100%"></p>
+
+<p align="center"><img src="assets/theater_flow.zh-CN.svg" alt="剧场：从事件日志到荧幕，经过拆场、布景、朝向、配音四步，再按天连播" width="100%"></p>
 
 日志里记下的那些相遇和对话，以后会变成能看、能听的场景。
 
@@ -83,13 +92,19 @@ Vide 被打败了，八位旅人的旅程也都告一段落，但他们的日子
 
 是谁，在哪儿，说了什么，就看这个世界自己了。
 
+### [在线剧场](https://solistia-theater.vercel.app)
+- **[Cropdale 的庆典](https://solistia-theater.vercel.app/world/20261107-180443-2fc52f/theater.html)**：Agnea 和 Throné，23 场戏
+- **[Oresrush 的荒野](https://solistia-theater.vercel.app/world/20261107-200913-754a8c/theater.html)**：Hikari 和 Ochette，21 场戏
+
 ## 进度
 
 个人项目，还在开发中。
 
 - **已完成**：知识库；写手、设定校验和修改流程；评测工具和 10 篇测试集；本地网页（生成和阅读）。MVP 验收已经通过，10 篇里 8 篇合格（[gate_v1.md](eval/results/gate_v1.md)）。
-- **世界引擎**：建世界、旅人和 World agent、逐轮演戏、由事件日志推算世界状态，这些都做好了，单日的世界指标也已达标（[world_we_v1.md](eval/results/world_we_v1.md)）。连续多天的表现还没测。
-- **下一步**：场景播放器，见[下一幕](#下一幕开发中)。
+- **世界引擎**：建世界、旅人和 World agent、逐轮演戏、由事件日志推算世界状态，这些都做好了。单日的世界指标已经达标（[world_we_v1.md](eval/results/world_we_v1.md)）。两个测试世界都完整跑了五天，并且正常结束。
+- **场景播放器和剧场**：已完成，带语音。
+- **在线剧场**：两个世界已经上线，见[在线剧场](#在线剧场)。
+- **下一步**：让人物动起来，世界活起来。
 
 ## 快速开始
 
@@ -111,6 +126,14 @@ uv run story-engine world new --characters agnea,throne --location cropdale \
   --situation "Agnea has brought Throné to a festival here."
 uv run story-engine world run <world_id> --stop-after day
 
+# 给台词配语音，然后在剧场里从头看
+uv run story-engine world voice <world_id>
+#   http://127.0.0.1:8000/world/<world_id>/theater
+
+# 用原创美术和 Kokoro 语音导出静态网站
+uv run story-engine world voice <world_id> --engine kokoro
+uv run story-engine world export <world_id> --assets assets/original --out output/site
+
 # 测试（单元测试不调用模型）
 uv run pytest tests/unit
 ```
@@ -126,6 +149,7 @@ uv run pytest tests/unit
 | `prompts/`、`cards/` | agent 的 prompt 和八位旅人的角色卡 |
 | `kb/` | 知识库，由 wiki 整理成的 Markdown 文件 |
 | `preprocess/` | 搭建知识库三个步骤的 prompt 和检查报告 |
+| `assets/original/` | 公开网站用的原创人物和场景 |
 | `config/` | 每个角色用什么模型，以及每场戏的轮数上限、花费上限等参数 |
 | `eval/` | 固定的评审 prompt、测试集和评测结果 |
 | `docs/` | 需求、架构、技术栈、路线图和开发日志 |

@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800" role="img" aria-label="剧场：从事件日志到荧幕，经过拆场、布景、朝向、配音四步，再按天连播">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1330"/>
+      <stop offset="1" stop-color="#241f48"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c9a24a"/>
+      <stop offset="0.5" stop-color="#f3dc95"/>
+      <stop offset="1" stop-color="#c9a24a"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3470"/>
+      <stop offset="1" stop-color="#4a3f7a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe9b0" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#ffe9b0" stop-opacity="0"/>
+    </radialGradient>
+    <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10Z" fill="#e2c376"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif; }
+      .title { font-size: 28px; font-weight: 600; fill: url(#gold); }
+      .sub { font-size: 15px; fill: #b9b0d6; }
+      .h { font-size: 20px; font-weight: 600; fill: #f3e6c4; }
+      .h2 { font-size: 17px; font-weight: 600; fill: #f3e6c4; }
+      .t { font-size: 15px; fill: #ddd4ee; }
+      .dim { font-size: 13.5px; fill: #a59cc4; }
+      .lbl { font-size: 14px; font-weight: 600; fill: #e2c376; }
+      .card { fill: #1a1d44; stroke: #c9a24a; stroke-opacity: 0.55; stroke-width: 1.4; }
+      .side { fill: #161a3d; stroke: #7d75c9; stroke-opacity: 0.7; stroke-width: 1.3; }
+      .ico { fill: none; stroke: #f3dc95; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+      .num { font-size: 15px; font-weight: 700; fill: #0d1330; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <g fill="#f3dc95" opacity="0.5">
+    <circle cx="70" cy="40" r="1.6"/><circle cx="1130" cy="40" r="1.8"/><circle cx="1050" cy="84" r="1.1"/>
+    <circle cx="160" cy="76" r="1.1"/><circle cx="1160" cy="770" r="1.4"/><circle cx="30" cy="520" r="1.2"/>
+  </g>
+
+  <text x="600" y="50" text-anchor="middle" class="title">剧场：把一个世界搬上荧幕</text>
+  <text x="600" y="78" text-anchor="middle" class="sub">台上的每一句话、每一个动作都来自事件日志，没有另写剧本</text>
+
+  <!-- source: the event log -->
+  <rect x="380" y="100" width="440" height="64" rx="14" class="side"/>
+  <g class="ico" transform="translate(418 132)">
+    <path d="M-12 -16 H10 Q14 -16 14 -12 V16 H-8 Q-12 16 -12 12Z"/><path d="M-6 -8 H8 M-6 -2 H8 M-6 4 H4"/>
+  </g>
+  <text x="446" y="128" class="h2">世界档案：事件日志</text>
+  <text x="446" y="152" class="dim">五天里的每场戏：谁在场、说了什么、做了什么</text>
+  <path d="M600 166 V176 H160 V192" fill="none" stroke="#e2c376" stroke-width="2" marker-end="url(#ag)"/>
+
+  <!-- ① split into scenes -->
+  <rect x="30" y="196" width="260" height="270" rx="14" class="card"/>
+  <circle cx="58" cy="226" r="14" fill="#e2c376"/><text x="58" y="231" text-anchor="middle" class="num">1</text>
+  <text x="82" y="233" class="h">拆场</text>
+  <g class="ico" transform="translate(242 228)">
+    <rect x="-16" y="-12" width="32" height="24" rx="3"/><path d="M-16 -4 H16 M-6 -12 V-4 M6 -12 V-4"/>
+  </g>
+  <text x="50" y="272" class="t">从日志里读出每一场戏：</text>
+  <text x="50" y="304" class="t">· 第几天、什么时段</text>
+  <text x="50" y="330" class="t">· 在哪个地方的哪个角落</text>
+  <text x="50" y="356" class="t">· 谁在场，谁中途离开</text>
+  <text x="50" y="382" class="t">· 逐句的台词和动作</text>
+  <text x="50" y="420" class="dim">每句台词、每个动作，</text>
+  <text x="50" y="442" class="dim">在台上就是一拍</text>
+
+  <!-- ② set the stage -->
+  <rect x="330" y="196" width="260" height="270" rx="14" class="card"/>
+  <circle cx="358" cy="226" r="14" fill="#e2c376"/><text x="358" y="231" text-anchor="middle" class="num">2</text>
+  <text x="382" y="233" class="h">布景</text>
+  <g class="ico" transform="translate(542 228)">
+    <rect x="-17" y="-13" width="34" height="26" rx="3"/><path d="M-17 9 L-6 -2 L2 6 L8 0 L17 9"/><circle cx="8" cy="-6" r="2.5"/>
+  </g>
+  <text x="350" y="272" class="t">按地点挂上背景：</text>
+  <text x="350" y="304" class="t">· 早上、下午用白天图</text>
+  <text x="350" y="330" class="t">· 傍晚、夜晚换夜景</text>
+  <text x="350" y="356" class="t">· 每个背景有一组站位，</text>
+  <text x="350" y="380" class="t">　按人数挑出来分给大家</text>
+  <text x="350" y="420" class="dim">站得越远，人画得越小；</text>
+  <text x="350" y="442" class="dim">高矮按人物各自的身高</text>
+
+  <!-- ③ facing -->
+  <rect x="630" y="196" width="260" height="270" rx="14" class="card"/>
+  <circle cx="658" cy="226" r="14" fill="#e2c376"/><text x="658" y="231" text-anchor="middle" class="num">3</text>
+  <text x="682" y="233" class="h">朝向</text>
+  <g class="ico" transform="translate(842 228)">
+    <circle cx="-11" cy="-5" r="5"/><path d="M-19 12 Q-11 0 -3 12"/>
+    <circle cx="11" cy="-5" r="5"/><path d="M3 12 Q11 0 19 12"/>
+    <path d="M-4 -14 H4 M1 -17 L4 -14 L1 -11"/>
+  </g>
+  <text x="650" y="272" class="t">每个人有四个朝向：</text>
+  <text x="650" y="298" class="t">正面、背面、朝左、朝右</text>
+  <text x="650" y="330" class="t">· 说话的人转身面向</text>
+  <text x="650" y="354" class="t">　自己在回应的人</text>
+  <text x="650" y="380" class="t">· 其他人看向说话的人</text>
+  <text x="650" y="420" class="dim">对方站在身后，</text>
+  <text x="650" y="442" class="dim">就转过身去，露出背影</text>
+
+  <!-- ④ voice -->
+  <rect x="930" y="196" width="240" height="270" rx="14" class="card"/>
+  <circle cx="958" cy="226" r="14" fill="#e2c376"/><text x="958" y="231" text-anchor="middle" class="num">4</text>
+  <text x="982" y="233" class="h">配音</text>
+  <g class="ico" transform="translate(1126 228)">
+    <path d="M-16 -5 H-9 L-1 -12 V12 L-9 5 H-16Z"/><path d="M5 -6 Q9 0 5 6 M10 -11 Q17 0 10 11"/>
+  </g>
+  <text x="950" y="272" class="t">每句台词提前渲染</text>
+  <text x="950" y="298" class="t">成一段语音：</text>
+  <text x="950" y="330" class="t">· 旅人各有固定声线</text>
+  <text x="950" y="356" class="t">· 配角按名字和性别</text>
+  <text x="950" y="380" class="t">　从声线池里分配</text>
+  <text x="950" y="420" class="dim">动作描写由旁白来念；</text>
+  <text x="950" y="442" class="dim">Kokoro 在本地 CPU 上跑</text>
+
+  <!-- step arrows -->
+  <path d="M292 330 H326" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M592 330 H626" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M892 330 H926" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M1050 468 V490" fill="none" stroke="#e2c376" stroke-width="2" marker-end="url(#ag)"/>
+
+  <!-- the screen -->
+  <rect x="30" y="494" width="1140" height="118" rx="14" class="card"/>
+  <rect x="50" y="510" width="200" height="86" rx="6" fill="url(#sky)" stroke="#c9a24a" stroke-opacity="0.6"/>
+  <circle cx="210" cy="530" r="18" fill="url(#glow)"/><circle cx="210" cy="530" r="6" fill="#ffe9b0"/>
+  <path d="M50 578 L100 552 L140 570 L180 548 L250 576 V596 H50Z" fill="#1a1d44"/>
+  <g fill="#f3dc95">
+    <circle cx="118" cy="566" r="5"/><rect x="113" y="571" width="10" height="16" rx="3"/>
+    <circle cx="168" cy="566" r="5"/><rect x="163" y="571" width="10" height="16" rx="3"/>
+  </g>
+  <path d="M84 520 H146 Q152 520 152 526 V540 Q152 546 146 546 H126 L120 554 L118 546 H84 Q78 546 78 540 V526 Q78 520 84 520Z" fill="#f3e6c4"/>
+  <path d="M88 530 H140 M88 537 H124" stroke="#1a1d44" stroke-width="2" stroke-linecap="round"/>
+  <text x="280" y="532" class="h">荧幕：一场接一场地播</text>
+  <text x="280" y="564" class="t">台词放进对话气泡，语音一边念，气泡一边翻页；一场戏演完，自动接下一场。</text>
+  <text x="280" y="590" class="t">按天分章，每场开头先打出第几天、什么时段、在哪里；从第一天早上看到最后一天夜里。</text>
+
+  <!-- where things come from -->
+  <text x="30" y="650" class="h2" fill="#f3dc95">公开版用什么</text>
+
+  <rect x="30" y="664" width="370" height="114" rx="14" class="side"/>
+  <g class="ico" transform="translate(62 696)">
+    <circle cx="0" cy="-6" r="7"/><path d="M-13 14 Q0 -2 13 14"/>
+  </g>
+  <text x="88" y="702" class="h2">人物：原创美术</text>
+  <text x="50" y="736" class="t">GPT 生成四个朝向，再抠图、缩放</text>
+  <text x="50" y="762" class="dim">所有人同一种画风，身高按人物设定</text>
+
+  <rect x="415" y="664" width="370" height="114" rx="14" class="side"/>
+  <g class="ico" transform="translate(447 696)">
+    <path d="M-14 10 L-4 -6 L2 2 L7 -4 L14 10Z"/><path d="M-16 10 H16"/>
+  </g>
+  <text x="473" y="702" class="h2">场景：原创背景</text>
+  <text x="435" y="736" class="t">GPT 画白天的场景，夜景照着改</text>
+  <text x="435" y="762" class="dim">夜景和白天构图一致，人站的位置不变</text>
+
+  <rect x="800" y="664" width="370" height="114" rx="14" class="side"/>
+  <g class="ico" transform="translate(832 696)">
+    <circle cx="0" cy="0" r="13"/><path d="M-13 0 H13 M0 -13 Q8 0 0 13 M0 -13 Q-8 0 0 13"/>
+  </g>
+  <text x="858" y="702" class="h2">上线：静态网站</text>
+  <text x="820" y="736" class="t">world export 导出，部署到 Vercel</text>
+  <text x="820" y="762" class="dim">只带用到的原创图和语音，不含游戏素材</text>
+</svg>
