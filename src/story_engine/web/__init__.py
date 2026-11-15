@@ -17,6 +17,7 @@ from story_engine.agents.validation import Validation
 from story_engine.config import ConfigError, load_configs, load_settings
 from story_engine.kb import TRAVELERS, validate_input
 from story_engine.runs import RunInput, create_run
+from story_engine.web.chronicle import register_chronicle_routes
 from story_engine.web.jobs import generate_story
 from story_engine.web.player import (
     asset_file, audio_file, display_name, load_art, read_world, scene_context,
@@ -111,6 +112,7 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
     templates.env.globals["person"] = lambda slug: display_name(slug, travelers)
 
     register_theater_routes(app, templates, worlds_dir, player_assets_dir, travelers, locations)
+    register_chronicle_routes(app, templates, worlds_dir, travelers, locations)
 
     @app.get("/", response_class=HTMLResponse)
     def library(request: Request):

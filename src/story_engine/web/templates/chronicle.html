@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}World chronicle · {{ chronicle.world_id }}{% endblock %}
+{% macro scene_entry(scene) %}
+<details>
+  <summary>Scene {{ scene.id }} · Day {{ scene.day }} {{ scene.part }} · {{ scene.place_name }}{% if scene.spot %} / {{ scene.spot }}{% endif %}</summary>
+  <p>{{ scene.participants | join(', ') }} · End: {{ scene.end }}</p>
+  <p><a hx-boost="false" href="{{ scene.theater_link }}">Play this scene in theater</a></p>
+  {% for round in scene.rounds %}
+  <h4>Round {{ round.round }}</h4>
+  <table><thead><tr><th scope="col">Did / said</th><th scope="col">Private intent</th></tr></thead>
+    <tbody><tr><td>{% if round.move %}<strong>{{ person(round.move.actor) }}</strong>
+      {% if round.move.action %}<p>{{ round.move.action }}</p>{% endif %}
+      {% if round.move.say %}<p>“{{ round.move.say }}”</p>{% endif %}
+      <p>{{ round.move.content }}</p>{% else %}No floor move recorded.{% endif %}</td>
+      <td>{{ round.move.intent if round.move and round.move.intent else '—' }}</td></tr></tbody>
+  </table>
+  {% for world in round.world %}
+  <p><strong>World · Event {{ world.id }}{% if world.resolution %} · {{ world.resolution }}{% endif %}</strong> {{ world.content }}</p>
+  {% for op in world.ops %}<p>{{ op_text(op) }}</p>{% endfor %}
+  {% endfor %}
+  {% endfor %}
+</details>
+{% endmacro %}
+{% block content %}
+<style>
+  details { margin: 1rem 0; padding: .5rem; border: 1px solid var(--rule); }
+  table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+  #thread-overview { width: min(1100px, calc(100vw - 2.5rem)); position: relative; left: 50%; transform: translateX(-50%); font-size: 1rem; line-height: 1.5; }
+  th, td { text-align: left; vertical-align: top; padding: .5rem; border: 1px solid var(--rule); overflow-wrap: anywhere; }
+</style>
+<h1>World chronicle</h1>
+<p>{{ chronicle.world_id }}</p>
+<table id="thread-overview">
+  <caption>Thread overview</caption>
+  <colgroup>
+    <col style="width: 8%">
+    <col style="width: 50%">
+    <col style="width: 12%">
+    <col style="width: 10%">
+    <col style="width: 14%">
+    <col style="width: 6%">
+  </colgroup>
+  <thead><tr><th scope="col">Kind</th><th scope="col">Summary</th><th scope="col">Touched mains</th><th scope="col">Opened</th><th scope="col">Outcome</th><th scope="col">Linked scenes</th></tr></thead>
+  <tbody>{% for thread in chronicle.threads %}
+    <tr><td>{{ thread.kind }}</td><td><a href="#thread-{{ thread.id }}">{{ thread.summary }}</a></td>
+      <td>{% for key in thread.touches %}{{ person(key) }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+      <td>{% if thread.opened.at_start %}Start{% else %}Day {{ thread.opened.day }} {{ thread.opened.part }}{% endif %}</td>
+      <td>{% if thread.closed %}{{ thread.closed.status }} · Day {{ thread.closed.day }} {{ thread.closed.part }}{% if thread.closed.by_clock %} · by the clock{% endif %}{% else %}open{% endif %}</td>
+      <td>{{ thread.scenes | length }}</td></tr>
+  {% endfor %}</tbody>
+</table>
+<p>{{ chronicle.unthreaded | length }} of {{ scene_count }} scenes are in no thread</p>
+{% for thread in chronicle.threads %}
+<section id="thread-{{ thread.id }}">
+  <h2>{{ thread.summary }} <small>· {{ thread.kind }} · {{ thread.id }}</small></h2>
+  <p>Opened day {{ thread.opened.day }} {{ thread.opened.part }}{% if thread.opened.at_start %} · At start{% else %} · Event {{ thread.opened.event_id }}{% endif %}</p>
+  <p>Touches: {% for key in thread.touches %}{{ person(key) }}{% if not loop.last %}, {% endif %}{% endfor %}<br>
+    People: {% for key in thread.people %}{{ person(key) }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+  {% if thread.heard %}<p>Heard: {{ thread.heard }}{% if thread.heard_from %} · From {{ person(thread.heard_from) }}{% endif %}</p>{% endif %}
+  <p>Next: {{ thread.next }} · Due day {{ thread.due.day }} {{ thread.due.part }}</p>
+  <h3>Updates</h3>
+  {% for update in thread.updates %}
+  <p>Day {{ update.day }} {{ update.part }}{% if update.scene %} · Scene {{ update.scene }}{% endif %} · {{ field_text("", update.changed_fields) }} · Event {{ update.event_id }}</p>
+  {% else %}<p>No updates.</p>{% endfor %}
+  <h3>Scenes</h3>
+  {% for scene in thread.scenes %}{{ scene_entry(scene) }}{% else %}<p>No linked scenes.</p>{% endfor %}
+  <h3>Off-scene events</h3>
+  {% for event in thread.off_scene %}<p>Event {{ event.id }} · Day {{ event.day }} {{ event.part }} · {{ person(event.actor) }}: {{ event.content }}</p>{% else %}<p>None.</p>{% endfor %}
+  {% if thread.closed %}
+  <h3>Closed · {{ thread.closed.status }}</h3>
+  <p>Event {{ thread.closed.event_id }} · Day {{ thread.closed.day }} {{ thread.closed.part }}{% if thread.closed.scene %} · Scene {{ thread.closed.scene }}{% endif %}{% if thread.closed.round is not none %} · Round {{ thread.closed.round }}{% endif %}{% if thread.closed.by_clock %} · By clock{% endif %}</p>
+  <p>{{ thread.closed.content }}</p>
+  {% else %}<p>Still open.</p>{% endif %}
+</section>
+{% endfor %}
+<section id="unthreaded"><h2>Unthreaded scenes</h2>
+{% for day, scenes in chronicle.unthreaded | groupby("day") %}
+<h3>Day {{ day }}</h3>
+{% for scene in scenes %}{{ scene_entry(scene) }}{% endfor %}
+{% else %}<p>None.</p>{% endfor %}
+</section>
+{% endblock %}
