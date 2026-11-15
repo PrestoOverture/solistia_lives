@@ -121,6 +121,10 @@ def chronicle_data(worlds_dir: Path, world_id: str, names: dict, locations: dict
                     thread.closed = Closing(event_id=event.id, day=event.day, part=event.part,
                                             scene=event.scene, round=event.round, content=event.content,
                                             status=op.status, by_clock=event.op_only)
+    explicit = any(e.about is not None for e in events)
+    for event in events:
+        if event.about in linked and event.scene is not None:
+            linked[event.about].add(event.scene)
     parts = load_settings().parts_of_day
 
     def when(item):
@@ -133,10 +137,11 @@ def chronicle_data(worlds_dir: Path, world_id: str, names: dict, locations: dict
     used = set()
     for thread in threads.values():
         thread.scenes = [entries[s.id] for s in scenes if s.id in linked[thread.id]
-                         or (inside(thread, s) and people[thread.id].intersection(s.participants))]
+                         or (not explicit and inside(thread, s) and people[thread.id].intersection(s.participants))]
         used.update(s.id for s in thread.scenes)
-        thread.off_scene = [e for e in events if e.scene is None and e.type != 'plan' and e.content
-                            and e.actor in people[thread.id] and inside(thread, e)]
+        thread.off_scene = [e for e in events if e.scene is None and e.type != 'plan'
+                            and (e.about == thread.id if explicit else
+                                 e.content and e.actor in people[thread.id] and inside(thread, e))]
     off_scene_ids = {e.id for thread in threads.values() for e in thread.off_scene}
     elsewhere = [e for e in events if e.scene is None and e.type != 'plan'
                  and e.content and e.id not in off_scene_ids]

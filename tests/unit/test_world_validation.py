@@ -262,7 +262,7 @@ def test_adjudicate_retry_budget(workspace, monkeypatch, retries, recover):
 @pytest.mark.parametrize('resolution', ['succeeded', 'failed', 'pending', 'none'])
 def test_scene_resolves_only_the_supplied_winning_act(workspace, monkeypatch, resolution):
     winner = dict(id=42, actor='throne', round=1)
-    good = dict(call='scene_round', resolution=resolution, outcome='An unchecked fact.')
+    good = dict(call='scene_round', resolution=resolution, odds='certain', outcome='An unchecked fact.')
     exercise, requests = call_agent(workspace, monkeypatch, [good],
                                     scene=True, winner=winner)
     event, _, _ = asyncio.run(exercise())
@@ -342,7 +342,7 @@ def test_scene_resolution_requires_exactly_an_outstanding_winner(workspace, monk
 def test_winning_round_outcome_schema_and_validation(resolution, outcome):
     import jsonschema
 
-    reply = dict(call='scene_round', resolution=resolution)
+    reply = dict(call='scene_round', resolution=resolution, odds='certain')
     if outcome is not None:
         reply['outcome'] = outcome
     valid = (outcome is None or len(outcome) <= 280) and (
@@ -363,7 +363,7 @@ def test_winning_round_outcome_schema_and_validation(resolution, outcome):
 @pytest.mark.parametrize('closing', [False, True])
 def test_resolved_outcome_retries(workspace, monkeypatch, closing):
     bad = dict(call='scene_round', resolution='succeeded')
-    good = dict(bad, outcome='The door opens.')
+    good = dict(bad, outcome='The door opens.', odds='certain')
     exercise, requests = call_agent(workspace, monkeypatch, [bad, good], scene=True,
                                     winner=dict(id=42, actor='agnea', round=1), closing=closing)
     event, _, _ = asyncio.run(exercise())

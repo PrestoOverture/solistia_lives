@@ -28,7 +28,7 @@ def world(tmp_path):
             event(2, scene='1', round=1, ops=[dict(op='situation', id='later', next='Changed')]),
             {**event(3, scene='1', round=1), 'actor': 'agnea', 'type': 'speech', 'move': 'act',
              'action': 'A visible move.', 'say': 'A spoken line.', 'intent': 'A private reason.'},
-            event(4, scene='1', round=2, resolves=3, resolution='succeeded'),
+            event(4, scene='1', round=2, resolves=3, resolution='succeeded', odds='even'),
             {**event(5), 'actor': 'Mabel'},
             {**event(6), 'actor': 'Mabel', 'type': 'plan'},
             {**event(7), 'type': 'state_change', 'content': '', 'part': 'afternoon',
@@ -210,3 +210,27 @@ def test_chronicle_display_defects(world, tmp_path):
     assert sequence in overview and sequence in section
     assert 'min-width: 1100px' in html and 'overflow-x: auto' in html
     assert '#thread-overview td { overflow-wrap: normal; word-break: normal;' in html
+
+
+def test_explicit_about_links_without_people_and_disables_people_guess(world, tmp_path):
+    events = [json.loads(line) for line in (world / 'events.jsonl').read_text().splitlines()]
+    events[3]['about'] = 'start'  # resolution in scene 1; Mabel is absent
+    events.append(dict(id=10, day=1, part='evening', place='cropdale', actor='world',
+                       type='world', content='Thread news.', perceived_by=[], about='start'))
+    (world / 'events.jsonl').write_text(''.join(json.dumps(e) + '\n' for e in events))
+    with TestClient(create_app(runs_dir=tmp_path / 'runs', worlds_dir=world.parent)) as client:
+        data = client.get('/world/fixture/chronicle.json').json()
+    start = data['threads'][0]
+    assert [s['id'] for s in start['scenes']] == ['1']
+    assert '3' in [s['id'] for s in data['unthreaded']]  # Mabel present, no op/about
+    assert [e['id'] for e in start['off_scene']] == [10]
+    assert 10 not in [e['id'] for e in data['elsewhere']]
+    assert start['scenes'][0]['rounds'][1]['world'][0]['about'] == 'start'
+
+
+def test_chronicle_odds(world, tmp_path):
+    with TestClient(create_app(runs_dir=tmp_path / 'runs', worlds_dir=world.parent)) as client:
+        data = client.get('/world/fixture/chronicle.json').json()
+        outcome = data['threads'][1]['scenes'][0]['rounds'][1]['world'][0]
+        assert outcome['odds'] == 'even'
+        assert 'succeeded · even' in client.get('/world/fixture/chronicle').text

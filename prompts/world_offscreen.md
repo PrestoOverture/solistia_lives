@@ -9,7 +9,7 @@ The first call supplies the full projection under `state`. Later calls supply `s
 Reply:
 ```
 {"call":"offscreen",
- "events":[{"place":"cropdale","spot":null,"content":"The shop closes.","ops":[]}],
+ "events":[{"place":"cropdale","spot":null,"content":"The shop closes.","about":null,"ops":[]}],
  "situation_notes":{"existing_id":"One short note on this situation."},
  "settle":{"due_id":"resolved"}}
 ```
@@ -27,3 +27,5 @@ Off-screen ops:
 `due_now` lists the open situations whose time has come. `settle` gives each of them `resolved` if what has happened, in this reply or before, settled it, or `dropped` if it didn't, which applies its existing `next`.
 
 This call cannot introduce people, change main characters, create situations, revise a situation's next/due/people, settle a situation before it is due, or move the clock. Include a non-empty `situation_notes` entry for every situation open in the input, even if dropped by this reply.
+
+Each event’s `about` is the id of the situation in state that this event is part of, or null when it is part of none.

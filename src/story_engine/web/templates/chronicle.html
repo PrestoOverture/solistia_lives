@@ -18,7 +18,7 @@
       <td>{{ move.intent or '—' }}</td></tr>{% endfor %}</tbody>
   </table>{% endif %}
   {% for world in round.world %}
-  {% if world.content or world.ops %}<p><strong>World · Event {{ world.id }}{% if world.resolution %} · {{ world.resolution }}{% endif %}</strong> {{ world.content }}</p>
+  {% if world.content or world.ops %}<p><strong>World · Event {{ world.id }}{% if world.resolution %} · {{ world.resolution }}{% if world.odds %} · {{ world.odds }}{% endif %}{% endif %}</strong> {{ world.content }}</p>
   {% for op in world.ops %}<p>{{ op_text(op) }}</p>{% endfor %}{% endif %}
   {% endfor %}
   {% endif %}

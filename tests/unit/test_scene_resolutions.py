@@ -129,7 +129,7 @@ def test_mocked_world_links_previous_and_closing_winners(tmp_path, monkeypatch):
         async def receive_response(self):
             target = requests[-1]['last_winner']
             # Neither regular nor closing replies supply a target id.
-            reply = dict(call='scene_round', **({'resolution': 'succeeded', 'outcome': 'The gate opens.'} if target else {}),
+            reply = dict(call='scene_round', **({'resolution': 'succeeded', 'odds': 'certain', 'outcome': 'The gate opens.'} if target else {}),
                          ops=[dict(op='place', slug='festival_grounds', add_details=['An open gate'])] if target else [])
             yield ResultMessage('success', 1, 1, False, 1, 'fake', structured_output=reply)
 
@@ -160,6 +160,7 @@ def test_mocked_world_links_previous_and_closing_winners(tmp_path, monkeypatch):
     assert requests[-1]['last_winner']['id'] == acts[-1].id and requests[-1]['closing']
     assert 'An open gate' in next(p for p in state.places if p.slug == 'festival_grounds').details
 
+    assert 'about' not in schemas[0]['properties']
     assert 'resolution' not in schemas[0]['properties']
     assert 'outcome' not in schemas[0]['properties']
     for schema in schemas[1:]:

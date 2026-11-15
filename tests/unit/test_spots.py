@@ -165,6 +165,9 @@ def test_world_spot_ops_retry_then_drop(workspace, monkeypatch, call, corrected)
     expected = catalog_schema(
         require_person_sex(json_schema_output({'offscreen': OffscreenReply, 'adjudicate': AdjudicateReply, 'day_start': DayStartReply, 'scene_round': SceneRoundReply, 'minor': SceneRoundReply}[call])), load_catalogs(ROOT))
     if call == 'offscreen':
+        expected['schema']['$defs']['OffscreenEvent']['required'].append('about')
+        expected['schema']['$defs']['OffscreenEvent']['properties']['about'] = {
+            'enum': [*[s.id for s in state.situations], None]}
         expected['schema']['properties']['situation_notes'] = dict(
             type='object', properties={}, required=[], additionalProperties=False)
         expected['schema'].setdefault('required', []).append('situation_notes')

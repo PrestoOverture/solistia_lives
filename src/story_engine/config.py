@@ -45,7 +45,14 @@ class Words(StrictModel):
         return self
 
 
+class OddsChances(StrictModel):
+    likely: float = Field(ge=0, le=1)
+    even: float = Field(ge=0, le=1)
+    unlikely: float = Field(ge=0, le=1)
+
+
 class Settings(StrictModel):
+    odds: OddsChances
     words: Words
     act_words: Words
     parts_of_day: list[Literal["morning", "afternoon", "evening", "night"]]

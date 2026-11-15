@@ -1,6 +1,8 @@
 """The world's persistent resolving session for one day."""
 
 import json
+import random
+from collections.abc import Callable
 
 import frontmatter
 from dataclasses import replace
@@ -26,7 +28,7 @@ from story_engine.world.ops import (
     Op, Open, Move, Introduce, PlaceOp, Promise, Release, Wants, Goals, SituationOp, ClockOp,
 )
 from story_engine.world.permissions import Authority, scene_people, validate_ops
-from story_engine.world.models import Clock, Event, Person, Place, Situation, WorldState
+from story_engine.world.models import Clock, Event, Odds, Person, Place, Situation, WorldState
 
 
 class OffscreenEvent(BaseModel):
@@ -35,6 +37,7 @@ class OffscreenEvent(BaseModel):
     place: str
     content: str = Field(default='', max_length=280)
     spot: str | None = None
+    about: str | None = None
     ops: list[Op] = Field(default_factory=list)
 
 
@@ -123,10 +126,19 @@ class MinorMove(BaseModel):
         return self
 
 
+class FailureBranch(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    outcome: str = Field(min_length=1, max_length=280)
+    ops: list[Op]
+
+
 class RoundResolution(BaseModel):
     """Historical reply shape retained for replay."""
     model_config = ConfigDict(extra="forbid")
     call: Literal["scene_round"]
+    about: str | None = None
+    odds: Odds | None = None
+    failure: FailureBranch | None = None
     resolution: Literal['succeeded', 'failed', 'pending', 'none'] | None = None
     outcome: str | None = Field(default=None, max_length=280)
     ops: list[Op] = Field(default_factory=list)
@@ -145,9 +157,20 @@ class WinningRoundReply(SceneRoundReply):
     model_config = ConfigDict(extra="forbid", json_schema_extra={
         'if': {'properties': {'resolution': {'enum': ['succeeded', 'failed']}},
                'required': ['resolution']},
+        'allOf': [
+            {'if': {'properties': {'resolution': {'const': 'succeeded'}}, 'required': ['resolution']},
+             'then': {'required': ['odds'], 'properties': {'odds': {'enum': ['certain', 'likely', 'even', 'unlikely']}}}},
+            {'if': {'properties': {'resolution': {'const': 'succeeded'},
+                                   'odds': {'enum': ['likely', 'even', 'unlikely']}},
+                    'required': ['resolution', 'odds']},
+             'then': {'required': ['failure'], 'properties': {'failure': {'type': 'object'}}}},
+        ],
         'then': {'required': ['outcome'], 'properties': {
             'outcome': {'type': 'string', 'minLength': 1, 'maxLength': 280}}},
     })
+    about: str | None = None
+    odds: Odds | None = None
+    failure: FailureBranch | None = None
     resolution: Literal['succeeded', 'failed', 'pending', 'none']
     outcome: str | None = Field(default=None, max_length=280)
 
@@ -155,6 +178,8 @@ class WinningRoundReply(SceneRoundReply):
     def resolved_outcome(self) -> Self:
         if self.resolution in {'succeeded', 'failed'} and not self.outcome:
             raise ValueError('succeeded and failed resolutions require a non-empty outcome')
+        if self.resolution == 'succeeded' and self.odds is None:
+            raise ValueError('succeeded resolutions require odds')
         return self
 
 
@@ -169,7 +194,8 @@ class _WorldSession:
     include_scene_context = True
 
     def __init__(self, root: Path, run_dir: Path, world_dir: Path,
-                 role: Role, max_turns: int, trace: TraceWriter) -> None:
+                 role: Role, max_turns: int, trace: TraceWriter, *,
+                 random_source: Callable[[], float] = random.random) -> None:
         self.root, self.run_dir, self.world_dir = root, run_dir, world_dir
         self.role, self.max_turns, self.trace = role, max_turns, trace
         self.catalogs = load_catalogs(root)
@@ -185,7 +211,10 @@ class _WorldSession:
         self.last_state: dict | None = None
         self.turn = 0
         self.cost = SessionCost()
-        self.parts_of_day = tuple(load_settings(root / "config/settings.yaml").parts_of_day)
+        settings = load_settings(root / "config/settings.yaml")
+        self.parts_of_day = tuple(settings.parts_of_day)
+        self.odds_chances = settings.odds
+        self.random_source = random_source
 
     def _state_payload(self, state: dict) -> dict:
         """Send a snapshot once, then entry-level changes from the last input."""
@@ -257,7 +286,8 @@ class _WorldSession:
 
     async def _start_call(self, reply_type: type, *, open_situations: set[str] | None = None,
                           due_situations: list[str] | None = None,
-                          empty_attempt_spots: list[tuple[str, str | None]] | None = None) -> None:
+                          empty_attempt_spots: list[tuple[str, str | None]] | None = None,
+                          about_ids: list[str] | None = None) -> None:
         if self.client is not None:
             await self.context.__aexit__(None, None, None)
             self.client = None
@@ -266,6 +296,11 @@ class _WorldSession:
         output_format = self.session_output
         if output_format is None:
             output_format = catalog_schema(require_person_sex(json_schema_output(reply_type)), self.catalogs)
+        if self.session_output is None and about_ids is not None:
+            schema = output_format['schema']
+            target = schema['$defs']['OffscreenEvent'] if reply_type is OffscreenReply else schema
+            target['properties']['about'] = {'enum': [*about_ids, None]}
+            target.setdefault('required', []).append('about')
         if self.session_output is None and empty_attempt_spots:
             schema = output_format['schema']
             schema.setdefault('required', []).append('ops')
@@ -327,6 +362,12 @@ class _WorldSession:
             receive_call(), role=self.role, trace=self.trace,
             stage=self.agent_name, agent=self.agent_name,
         )
+
+    def _about(self, about: str | None, state: WorldState, call: str) -> str | None:
+        if about is not None and about not in {s.id for s in state.situations}:
+            self.trace.write('about_cleared', call=call, turn=self.turn, about=about)
+            return None
+        return about
 
     def _event_state(self, state: WorldState, event: Event, authority: Authority,
                      attempt: int, dropped: list[tuple[Event, str]]) -> WorldState | None:
@@ -413,7 +454,7 @@ class WorldAgent(_WorldSession):
                                 id=0, **state.clock.model_dump(),
                                 place=updated.characters[situation.touches[0]].where,
                                 actor=(None if situation.id in away else situation.heard_from) or 'world', type='world', content=situation.heard,
-                                perceived_by=situation.touches))
+                                perceived_by=situation.touches, about=situation.id))
                 self._trace_drops('day_start', dropped)
                 # Yesterday's events stay out of the session that resolves today's calls.
                 await self._restart_session()
@@ -555,7 +596,7 @@ class WorldAgent(_WorldSession):
                               **({"minor_moves_not_happened": list(lost_minors)} if lost_minors else {}),
                               "events": [event.agent_view() for event in new_events]}, ensure_ascii=False)
         reply_type = WinningRoundReply if last_winner else SceneRoundReply
-        await self._start_call(reply_type)
+        await self._start_call(reply_type, about_ids=[s.id for s in state.situations] if last_winner else None)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
@@ -566,8 +607,27 @@ class WorldAgent(_WorldSession):
                 if not last_winner and isinstance(payload, dict):
                     # The session-wide schema offers these fields as nullable; null means absent here.
                     payload = {key: value for key, value in payload.items()
-                               if not (key in {'resolution', 'outcome'} and value is None)}
+                               if not (key in {'resolution', 'outcome', 'about', 'odds', 'failure'} and value is None)}
                 reply = RoundResolution.model_validate(reply_type.model_validate(payload).model_dump())
+                if reply.resolution == 'succeeded' and reply.odds != 'certain':
+                    if reply.failure is None:
+                        if attempt < self.role.retries:
+                            raise ValueError('succeeded resolutions with non-certain odds require failure')
+                        self.trace.write('odds_failure_missing', turn=self.turn, odds=reply.odds)
+                    else:
+                        chance = getattr(self.odds_chances, reply.odds)
+                        roll = self.random_source()
+                        draw_result = 'succeeded' if roll < chance else 'failed'
+                        self.trace.write('odds_roll', turn=self.turn, odds=reply.odds,
+                                         chance=chance, roll=roll, result=draw_result)
+                        if draw_result == 'failed':
+                            if reply.minor_moves:
+                                self.trace.write('odds_minor_moves_ignored', turn=self.turn,
+                                                 names=list(reply.minor_moves))
+                            # These bids assumed success; let people bid again after seeing failure.
+                            reply = reply.model_copy(update={
+                                'resolution': 'failed', 'outcome': reply.failure.outcome,
+                                'ops': reply.failure.ops, 'minor_moves': {}})
                 target = last_winner['id'] if last_winner else None
                 if closing and reply.resolution == 'pending':
                     resolution_error = 'closing resolution must finish the winning act'
@@ -583,7 +643,8 @@ class WorldAgent(_WorldSession):
                               type='world' if reply.outcome else 'state_change', content=reply.outcome or '',
                               perceived_by=list(main_present), scene=scene,
                               round=(round_number if closing else max(1, round_number - 1)),
-                              resolves=target, resolution=reply.resolution, ops=reply.ops)
+                              resolves=target, resolution=reply.resolution, ops=reply.ops, odds=reply.odds,
+                              about=self._about(reply.about, state, 'scene_round') if last_winner else None)
                 dropped = []
                 updated = self._event_state(state, event, Authority('scene_round'), attempt, dropped)
                 if updated is None:
@@ -644,7 +705,7 @@ class OffscreenAgent(_WorldSession):
         spot = raw.spot
         event = Event(id=0, **state.clock.model_dump(), place=raw.place, actor='world',
                       type='world' if raw.content else 'state_change', content=raw.content,
-                      perceived_by=[], ops=fill_spot_ops(self.catalogs, raw.ops))
+                      perceived_by=[], ops=fill_spot_ops(self.catalogs, raw.ops), about=raw.about)
         perceived_by = [slug for slug, character in state.characters.items()
                         if character.where == event.place and (spot is None or character.spot == spot)]
         return event.model_copy(update={"perceived_by": perceived_by})
@@ -682,7 +743,8 @@ class OffscreenAgent(_WorldSession):
         request = json.dumps({"call": "offscreen", "reply": "JSON with call: 'offscreen'",
                               **self._state_payload(projection), "mains": mains,
                               **({"due_now": due} if due else {})}, ensure_ascii=False)
-        await self._start_call(OffscreenReply, open_situations=open_situations, due_situations=due)
+        await self._start_call(OffscreenReply, open_situations=open_situations, due_situations=due,
+                               about_ids=[s.id for s in state.situations])
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
@@ -694,6 +756,7 @@ class OffscreenAgent(_WorldSession):
                 resolved = []
                 dropped = []
                 for raw in reply.events:
+                    raw.about = self._about(raw.about, state, "offscreen")
                     # Ops may add a place used by this event; validate all references in order.
                     event = Event(id=max_event_id + len(resolved) + 1, **state.clock.model_dump(), place=raw.place,
                                   actor='world', type='world' if raw.content else 'state_change',

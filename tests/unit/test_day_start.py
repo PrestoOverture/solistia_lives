@@ -112,6 +112,7 @@ def test_day_start_heard_precedes_plans_and_is_perceived(workspace, monkeypatch,
     asyncio.run(simulation.run_day(world, run))
     events = read_events(world)
     fact, = [e for e in events if e.content == heard]
+    assert fact.about == new['id']
     assert fact.type == 'world' and fact.actor == 'world'
     assert fact.perceived_by == touches and fact.ops == []
     assert fact.place == state.characters[touches[0]].where

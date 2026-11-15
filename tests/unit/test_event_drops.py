@@ -232,7 +232,7 @@ def test_scene_bad_release_leaves_winner_for_closing(workspace, monkeypatch, dro
         ops = [dict(op='place', slug='festival_grounds', add_details=['Resolution committed'], remove_details=[])]
         if not request['closing'] or drop_closing:
             ops.append(dict(op='release', who='Host', id='missing', how='kept'))
-        return dict(call='scene_round', resolution='succeeded', outcome='The attempt succeeds.', ops=ops)
+        return dict(call='scene_round', resolution='succeeded', odds='certain', outcome='The attempt succeeds.', ops=ops)
 
     clients = fake_sdk(monkeypatch, respond)
 
@@ -347,7 +347,7 @@ def test_closing_ignores_minor_moves_and_commits_resolution(workspace, monkeypat
             request = next(r for r in reversed(client.calls) if isinstance(r, dict))
         if not request['closing']:
             return dict(call='scene_round')
-        return dict(call='scene_round', resolution='succeeded', outcome='The attempt succeeds.', ops=[
+        return dict(call='scene_round', resolution='succeeded', odds='certain', outcome='The attempt succeeds.', ops=[
             dict(op='place', slug='festival_grounds', add_details=['Resolution committed'], remove_details=[])],
             minor_moves={
                 'Unknown': dict(move='act', urge=3, action='Unknown acts.', ops=[
@@ -399,7 +399,7 @@ def test_minor_reference_drop_preserves_resolution_and_valid_move(workspace, mon
     bad_name = 'Unknown' if failure == 'name' else 'Host'
     reason = ('minor_moves person must be at the same spot' if failure == 'spot' else
               'minor_moves name must be a people entry at this place')
-    reply = dict(call='scene_round', resolution='succeeded', outcome='The attempt succeeds.', ops=[
+    reply = dict(call='scene_round', resolution='succeeded', odds='certain', outcome='The attempt succeeds.', ops=[
         dict(op='place', slug='festival_grounds', add_details=['Resolution committed'], remove_details=[])], minor_moves={
         bad_name: dict(move='act', urge=3, action='Invalid move.', ops=[
             dict(op='wants', person='Host', wants=['Must not commit'])]),

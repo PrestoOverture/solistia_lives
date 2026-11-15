@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from .ops import Op
 
 PartOfDay = Literal["morning", "afternoon", "evening", "night"]
+Odds = Literal["certain", "likely", "even", "unlikely"]
 SituationKind = Literal["trouble", "occasion", "promise", "wish", "reunion"]
 
 
@@ -137,6 +138,8 @@ class Event(WorldModel):
     scene: str | None = None
     round: int | None = None
     ops: list['Op'] = Field(default_factory=list)
+    about: str | None = None
+    odds: Odds | None = None
     resolves: int | None = None
     resolution: Literal['succeeded', 'failed', 'pending', 'none'] | None = None
 
@@ -146,7 +149,7 @@ class Event(WorldModel):
 
     def agent_view(self, exclude: set[str] = frozenset()) -> dict:
         """An event as agents read it: action and say repeat content, and empty fields are left out."""
-        view = self.model_dump(exclude={'action', 'say', *exclude}, exclude_none=True)
+        view = self.model_dump(exclude={'action', 'say', 'about', 'odds', *exclude}, exclude_none=True)
         if not view.get('ops', True):
             del view['ops']
         return view
