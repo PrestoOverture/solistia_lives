@@ -35,7 +35,7 @@ class Closing(Clock):
 
 class RoundEntry(BaseModel):
     round: int
-    move: Event | None
+    moves: list[Event]
     world: list[Event]
 
 
@@ -56,6 +56,7 @@ class Thread(Situation):
     opened: Opening
     updates: list[Update] = Field(default_factory=list)
     closed: Closing | None = None
+    status_history: list[Closing] = Field(default_factory=list)
     scenes: list[SceneEntry] = Field(default_factory=list)
     off_scene: list[Event] = Field(default_factory=list)
 
@@ -64,6 +65,7 @@ class Chronicle(BaseModel):
     world_id: str
     threads: list[Thread]
     unthreaded: list[SceneEntry]
+    elsewhere: list[Event]
 
 
 def scene_entry(world_id: str, scene: SceneRecord, events: list[Event], names: dict, locations: dict) -> SceneEntry:
@@ -71,13 +73,9 @@ def scene_entry(world_id: str, scene: SceneRecord, events: list[Event], names: d
     rounds = []
     numbers = sorted(set(range(1, scene.rounds + 1)) | {e.round for e in rows if e.round is not None})
     for number in numbers:
-        move = next((e for e in rows if e.round == number and e.type in {'action', 'speech'}
-                     and e.move not in {'wait', 'leave'}), None)
-        # A resolution can occur in a later round; resolves names its winning act.
-        outcomes = [e for e in rows if e.actor == 'world' and
-                    ((move is not None and e.resolves == move.id)
-                     or (e.resolves is None and e.round == number))]
-        rounds.append(RoundEntry(round=number, move=move, world=outcomes))
+        moves = [e for e in rows if e.round == number and e.type in {'action', 'speech'}]
+        outcomes = [e for e in rows if e.actor == 'world' and e.round == number]
+        rounds.append(RoundEntry(round=number, moves=moves, world=outcomes))
     return SceneEntry(**scene.model_dump(exclude={'rounds', 'participants', 'first_event_id', 'last_event_id'}),
                       place_name=locations.get(scene.place, scene.place),
                       participants=[display_name(p, names) for p in scene.participants], rounds=rounds,
@@ -109,6 +107,11 @@ def chronicle_data(worlds_dir: Path, world_id: str, names: dict, locations: dict
                 changes = op.model_dump(exclude={'op', 'id'}, exclude_unset=True)
                 thread.updates.append(Update(event_id=event.id, day=event.day, part=event.part,
                                              scene=event.scene, changed_fields=changes))
+                if op.status is not None and op.status != thread.status:
+                    thread.status_history.append(Closing(
+                        event_id=event.id, day=event.day, part=event.part,
+                        scene=event.scene, round=event.round, content=event.content,
+                        status=op.status, by_clock=event.op_only))
                 for field in changes:
                     setattr(thread, field, getattr(op, field))
                 people[op.id].update(thread.people)
@@ -134,9 +137,12 @@ def chronicle_data(worlds_dir: Path, world_id: str, names: dict, locations: dict
         used.update(s.id for s in thread.scenes)
         thread.off_scene = [e for e in events if e.scene is None and e.type != 'plan' and e.content
                             and e.actor in people[thread.id] and inside(thread, e)]
+    off_scene_ids = {e.id for thread in threads.values() for e in thread.off_scene}
+    elsewhere = [e for e in events if e.scene is None and e.type != 'plan'
+                 and e.content and e.id not in off_scene_ids]
     return Chronicle(world_id=world_id, threads=sorted(threads.values(), key=lambda t: (
         *when(t.opened), t.opened.event_id or 0)),
-        unthreaded=[entries[s.id] for s in scenes if s.id not in used])
+        unthreaded=[entries[s.id] for s in scenes if s.id not in used], elsewhere=elsewhere)
 
 
 def register_chronicle_routes(app, templates, worlds_dir: Path, travelers: dict, locations: dict):
@@ -174,4 +180,5 @@ def register_chronicle_routes(app, templates, worlds_dir: Path, travelers: dict,
         scene_ids = {scene.id for thread in item.threads for scene in thread.scenes}
         scene_ids.update(scene.id for scene in item.unthreaded)
         return templates.TemplateResponse(request=request, name='chronicle.html', context=dict(
-            chronicle=item, scene_count=len(scene_ids), field_text=field_text, op_text=op_text))
+            chronicle=item, scene_count=len(scene_ids), field_text=field_text, op_text=op_text,
+            parts_of_day=load_settings().parts_of_day))

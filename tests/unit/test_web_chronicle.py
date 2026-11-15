@@ -67,10 +67,10 @@ def test_chronicle_threads_scenes_intent_and_read_only(world, tmp_path):
         assert [e['id'] for e in start['off_scene']] == [5]
         assert later['closed']['status'] == 'resolved'
         scene = later['scenes'][0]
-        move = scene['rounds'][0]['move']
+        move = scene['rounds'][0]['moves'][0]
         assert (move['action'], move['say'], move['intent']) == (
             'A visible move.', 'A spoken line.', 'A private reason.')
-        assert any(e['resolves'] == move['id'] for e in scene['rounds'][0]['world'])
+        assert any(e['resolves'] == move['id'] for e in scene['rounds'][1]['world'])
         assert scene['participants'] == ['Agnea Bristarni']
         assert scene['theater_link'] == '/world/fixture/theater#1'
         html = client.get('/world/fixture/chronicle')
@@ -143,7 +143,8 @@ def test_chronicle_overview_and_readable_details(world, tmp_path):
     unthreaded = html.split('<section id="unthreaded">')[1].split('</section>')[0]
     assert re.search(r'<h3>Day 1</h3>.*Scene 3.*Scene 4', unthreaded, re.S)
     heading = re.search(r'<section id="thread-start">\s*<h2>(.*?)</h2>', html, re.S)[1]
-    assert unescape(heading).startswith('Opaque summary ')
+    assert unescape(heading) == 'start · trouble'
+    assert '<p>Opaque summary</p>' in html
 
 
 def test_chronicle_formats_fields_and_groups_multiple_days(world, tmp_path):
@@ -161,3 +162,51 @@ def test_chronicle_formats_fields_and_groups_multiple_days(world, tmp_path):
     assert next(s for s in data['unthreaded'] if s['id'] == '3')['place_name'] == 'unknown_place'
     unthreaded = html.split('<section id="unthreaded">')[1].split('</section>')[0]
     assert re.search(r'<h3>Day 1</h3>.*Scene 4.*<h3>Day 2</h3>.*Scene 3', unthreaded, re.S)
+
+
+def test_chronicle_display_defects(world, tmp_path):
+    events = [json.loads(line) for line in (world / 'events.jsonl').read_text().splitlines()]
+    events[2]['content'] = 'A visible move. “A spoken line.”'
+    events.extend([
+        dict(events[2], id=10, actor='throne', type='action', move='leave',
+             action='Leaves the square.', say=None, content='Leaves the square.',
+             intent='Find a quiet place.'),
+        dict(events[2], id=11, type='action', move='wait', action=None, say=None,
+             content='Waits nearby.', intent='Listen.'),
+        dict(events[3], id=12, round=3, content='', resolves=None, resolution=None),
+        dict(events[4], id=13, actor='world', content='News from elsewhere.'),
+        dict(events[6], id=14, part='evening', content='Finally settled.',
+             ops=[dict(op='situation', id='start', status='resolved')]),
+    ])
+    (world / 'events.jsonl').write_text(''.join(json.dumps(e) + '\n' for e in events))
+    with TestClient(create_app(runs_dir=tmp_path / 'runs', worlds_dir=world.parent)) as client:
+        data = client.get('/world/fixture/chronicle.json').json()
+        html = client.get('/world/fixture/chronicle').text
+    scene = next(s for t in data['threads'] for s in t['scenes'] if s['id'] == '1')
+    assert [e['id'] for e in scene['rounds'][0]['moves']] == [3, 10, 11]
+    assert scene['rounds'][0]['moves'][0]['content'] == events[2]['content']
+    assert 4 not in [e['id'] for e in scene['rounds'][0]['world']]
+    assert 4 in [e['id'] for e in scene['rounds'][1]['world']]
+    assert 12 in [e['id'] for e in scene['rounds'][2]['world']]
+    scene_html = re.search(r'<details>\s*<summary>Scene 1 .*?</details>', html, re.S)[0]
+    first, second = scene_html.split('<h4>Round 2</h4>')
+    assert first.count('A spoken line.') == 1
+    assert first.index('A visible move.') < first.index('Leaves the square.') < first.index('Waits nearby.')
+    assert '<td>Find a quiet place.</td>' in first
+    assert 'World · Event 4' not in first and 'World · Event 4' in second
+    assert 'World · Event 12' not in html and '<h4>Round 3</h4>' not in scene_html
+    assert 'No floor move recorded' not in html
+    elsewhere = html.split('<section id="elsewhere">')[1].split('</section>')[0]
+    assert 'News from elsewhere.' in elsewhere
+    assert '<details><summary>morning</summary>' in elsewhere
+    assert 13 in [e['id'] for e in data['elsewhere']]
+    assert 5 not in [e['id'] for e in data['elsewhere']]
+    thread = data['threads'][0]
+    assert [(e['status'], e['event_id'], e['by_clock']) for e in thread['status_history']] == [
+        ('dropped', 7, True), ('resolved', 14, False)]
+    sequence = 'dropped · Day 1 afternoon · by the clock → resolved · Day 1 evening'
+    overview = html.split('<table id="thread-overview">')[1].split('</table>')[0]
+    section = html.split('<section id="thread-start">')[1].split('</section>')[0]
+    assert sequence in overview and sequence in section
+    assert 'min-width: 1100px' in html and 'overflow-x: auto' in html
+    assert '#thread-overview td { overflow-wrap: normal; word-break: normal;' in html
