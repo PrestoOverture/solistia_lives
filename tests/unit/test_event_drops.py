@@ -53,10 +53,10 @@ def open_agent(workspace, cls=world_agent.WorldAgent):
 def test_mocked_day_continues_after_offscreen_op_drop(workspace, monkeypatch, failure):
     world, run = workspace
     initial = load_state(world)
-    forbidden = dict(place='cropdale', content='A discarded event.', ops=[
+    forbidden = dict(place='cropdale', content='A discarded event.', about=None, ops=[
         dict(op='place', slug='discarded', add_details=['Must roll back'], remove_details=[]),
         dict(op='situation', id=initial.situations[0].id, status='open')])
-    valid = dict(place='cropdale', content='The stalls open.', ops=[
+    valid = dict(place='cropdale', content='The stalls open.', about=None, ops=[
         dict(op='place', slug='cropdale', add_details=['Open stalls'], remove_details=[])])
     bad = dict(forbidden, actor='agnea') if failure == 'schema' else forbidden
 
@@ -232,7 +232,7 @@ def test_scene_bad_release_leaves_winner_for_closing(workspace, monkeypatch, dro
         ops = [dict(op='place', slug='festival_grounds', add_details=['Resolution committed'], remove_details=[])]
         if not request['closing'] or drop_closing:
             ops.append(dict(op='release', who='Host', id='missing', how='kept'))
-        return dict(call='scene_round', resolution='succeeded', odds='certain', outcome='The attempt succeeds.', ops=ops)
+        return dict(about=None, call='scene_round', resolution='succeeded', odds='certain', outcome='The attempt succeeds.', ops=ops)
 
     clients = fake_sdk(monkeypatch, respond)
 
@@ -308,7 +308,7 @@ def test_bad_minor_move_drops_only_its_event(workspace, monkeypatch):
                                    scene='1', round=1))
     bad_ops = [dict(op='wants', person='Host', wants=['Changed']),
                dict(op='release', who='Host', id='missing', how='cancelled')]
-    reply = dict(call='scene_round', resolution='none', minor_moves={
+    reply = dict(about=None, call='scene_round', resolution='none', minor_moves={
         'Host': dict(move='act', urge=3, action='Host tries.', ops=bad_ops),
         'Baker': dict(move='act', urge=2, action='Baker tries.',
                       ops=[dict(op='wants', person='Baker', wants=['Help'])])})
@@ -347,7 +347,7 @@ def test_closing_ignores_minor_moves_and_commits_resolution(workspace, monkeypat
             request = next(r for r in reversed(client.calls) if isinstance(r, dict))
         if not request['closing']:
             return dict(call='scene_round')
-        return dict(call='scene_round', resolution='succeeded', odds='certain', outcome='The attempt succeeds.', ops=[
+        return dict(about=None, call='scene_round', resolution='succeeded', odds='certain', outcome='The attempt succeeds.', ops=[
             dict(op='place', slug='festival_grounds', add_details=['Resolution committed'], remove_details=[])],
             minor_moves={
                 'Unknown': dict(move='act', urge=3, action='Unknown acts.', ops=[
@@ -399,7 +399,7 @@ def test_minor_reference_drop_preserves_resolution_and_valid_move(workspace, mon
     bad_name = 'Unknown' if failure == 'name' else 'Host'
     reason = ('minor_moves person must be at the same spot' if failure == 'spot' else
               'minor_moves name must be a people entry at this place')
-    reply = dict(call='scene_round', resolution='succeeded', odds='certain', outcome='The attempt succeeds.', ops=[
+    reply = dict(about=None, call='scene_round', resolution='succeeded', odds='certain', outcome='The attempt succeeds.', ops=[
         dict(op='place', slug='festival_grounds', add_details=['Resolution committed'], remove_details=[])], minor_moves={
         bad_name: dict(move='act', urge=3, action='Invalid move.', ops=[
             dict(op='wants', person='Host', wants=['Must not commit'])]),
@@ -450,7 +450,7 @@ def test_resolution_schema_and_closing_repair(workspace, monkeypatch, failure):
             return recorded
         if request['last_winner'] is None:
             return dict(call='scene_round')
-        return dict(call='scene_round', resolution='pending' if failure == 'closing_pending' else None,
+        return dict(about=None, call='scene_round', resolution='pending' if failure == 'closing_pending' else None,
                     outcome='An unfinished result.', ops=bad_ops)
 
     clients = fake_sdk(monkeypatch, respond)

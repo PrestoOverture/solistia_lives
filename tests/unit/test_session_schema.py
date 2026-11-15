@@ -46,8 +46,8 @@ def test_world_fixed_schema(workspace, monkeypatch):
         state.situations[0].model_dump() | {'id': 'new-day', 'heard': 'An invitation arrives.'}])
     replies = [opening, {'call': 'adjudicate'}, {'call': 'adjudicate'},
                {'call': 'adjudicate'}, {'call': 'scene_round'},
-               {'call': 'scene_round', 'resolution': 'none'},
-               {'call': 'scene_round', 'resolution': 'none'}]
+               {'call': 'scene_round', 'resolution': 'none', 'about': None},
+               {'call': 'scene_round', 'resolution': 'none', 'about': None}]
     clients = _record_clients(monkeypatch, world_agent, replies)
     agent = make_agent(workspace, world_agent.WorldAgent)
     expected = catalog_schema(require_person_sex(json_schema_output(world_agent.WorldReply)), agent.catalogs)
@@ -118,8 +118,8 @@ def test_session_validation_retries_then_existing_failure(workspace, monkeypatch
         'wrong_character': {'call': 'end_of_day', 'summary': 'Rested.'},
         'wrong_offscreen': {'call': 'adjudicate'},
         'introduce': {'call': 'adjudicate'},
-        'resolution': {'call': 'scene_round'},
-        'outcome': {'call': 'scene_round', 'resolution': 'succeeded'},
+        'resolution': {'call': 'scene_round', 'about': None},
+        'outcome': {'call': 'scene_round', 'resolution': 'succeeded', 'about': None},
         'notes_missing': {'call': 'offscreen', 'situation_notes': {}},
     }[case]
     requests = []

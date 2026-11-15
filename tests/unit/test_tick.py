@@ -30,7 +30,7 @@ def test_tick(tmp_path, monkeypatch, part, day, next_part, bad_actor):
     adjudicate_reply = dict(call='adjudicate', encounters=[])
     offscreen_reply = dict(
         call='offscreen',
-        events=[dict(place='cropdale', content='The stalls open.')],
+        events=[dict(place='cropdale', content='The stalls open.', about=None)],
         situation_notes={s.id: 'Preparations continue.' for s in state.situations},
         settle={s.id: 'dropped' for s in state.situations})  # only the ones due now apply
     invalid_offscreen = copy.deepcopy(offscreen_reply)
@@ -113,7 +113,7 @@ def test_offscreen_validation_error(tmp_path, monkeypatch, failure, reason):
     run = tmp_path / 'run'
     run.mkdir()
     state = load_state(world)
-    event = dict(place='festival_grounds', content='The wind rises.')
+    event = dict(place='festival_grounds', content='The wind rises.', about=None)
     reply = dict(call='offscreen', events=[event],
                 situation_notes={s.id: 'Unchanged.' for s in state.situations})
     if failure == 'actor':

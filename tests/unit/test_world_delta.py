@@ -59,7 +59,7 @@ def session_setup(tmp_path, monkeypatch):
                 "day_start": day_start_reply(situations=[dict(new_situation, id="delta-new" if len(requests) == 1 else f"delta-new-{len(requests)}")]),
                 "adjudicate": dict(call="adjudicate"),
                 "scene_round": dict(call="scene_round"),
-                "offscreen": dict(call="offscreen", events=[dict(place="cropdale", ops=[dict(op="place", slug=p["slug"], add_details=p["details"])
+                "offscreen": dict(call="offscreen", events=[dict(place="cropdale", about=None, ops=[dict(op="place", slug=p["slug"], add_details=p["details"])
                                                                              for p in self.offscreen_places])]),
             }[self.call]
             if self.fail_next:

@@ -72,7 +72,7 @@ def test_world_content_accepted_with_no_text_judgment(tmp_path, monkeypatch, cas
         last_winner = {'id': 42, 'actor': 'agnea', 'round': 1}
         reply = round_reply({'last_winner': last_winner}, outcome=event)
     else:
-        event = dict(place='festival_grounds', content=content)
+        event = dict(place='festival_grounds', content=content, about=None)
         reply = _offscreen_reply(state, events=[event])
     replies = iter([json.dumps(reply)])
     requests = []
@@ -262,7 +262,7 @@ def test_adjudicate_retry_budget(workspace, monkeypatch, retries, recover):
 @pytest.mark.parametrize('resolution', ['succeeded', 'failed', 'pending', 'none'])
 def test_scene_resolves_only_the_supplied_winning_act(workspace, monkeypatch, resolution):
     winner = dict(id=42, actor='throne', round=1)
-    good = dict(call='scene_round', resolution=resolution, odds='certain', outcome='An unchecked fact.')
+    good = dict(about=None, call='scene_round', resolution=resolution, odds='certain', outcome='An unchecked fact.')
     exercise, requests = call_agent(workspace, monkeypatch, [good],
                                     scene=True, winner=winner)
     event, _, _ = asyncio.run(exercise())
@@ -299,7 +299,7 @@ def test_scene_minor_references_introductions_and_name_matching(workspace, monke
 
 @pytest.mark.parametrize('resolution', ['pending', 'none'])
 def test_closing_resolution_requires_final_result_and_ignores_bids(workspace, monkeypatch, resolution):
-    reply = dict(call='scene_round', resolution=resolution,
+    reply = dict(about=None, call='scene_round', resolution=resolution,
                  minor_moves={'Host': dict(move='wait', urge=0)} if resolution == 'none' else {})
     exercise, requests = call_agent(workspace, monkeypatch, [reply, reply], scene=True,
                              winner=dict(id=42, actor='agnea', round=1), closing=True)
@@ -313,7 +313,7 @@ def test_closing_resolution_requires_final_result_and_ignores_bids(workspace, mo
 @pytest.mark.parametrize('closing', [False, True])
 @pytest.mark.parametrize('supplied_id', [None, 42, 999])
 def test_model_supplied_resolves_is_a_schema_error(workspace, monkeypatch, closing, supplied_id):
-    good = dict(call='scene_round', resolution='none', ops=[])
+    good = dict(about=None, call='scene_round', resolution='none', ops=[])
     bad = dict(good, resolves=supplied_id)
     with pytest.raises(ValidationError) as caught:
         world_agent.RoundResolution.model_validate(bad)
@@ -328,8 +328,8 @@ def test_model_supplied_resolves_is_a_schema_error(workspace, monkeypatch, closi
 
 @pytest.mark.parametrize('winner,resolution', [(None, 'none'), (dict(id=42, actor='agnea', round=1), None)])
 def test_scene_resolution_requires_exactly_an_outstanding_winner(workspace, monkeypatch, winner, resolution):
-    reply = dict(call='scene_round', resolution=resolution)
-    good = dict(call='scene_round', **({'resolution': 'none'} if winner else {}))
+    reply = dict(about=None, call='scene_round', resolution=resolution)
+    good = dict(call='scene_round', **({'resolution': 'none', 'about': None} if winner else {}))
     exercise, requests = call_agent(workspace, monkeypatch, [reply, good], scene=True, winner=winner)
     event, _, _ = asyncio.run(exercise())
     assert len(requests) == 2
@@ -362,7 +362,7 @@ def test_winning_round_outcome_schema_and_validation(resolution, outcome):
 
 @pytest.mark.parametrize('closing', [False, True])
 def test_resolved_outcome_retries(workspace, monkeypatch, closing):
-    bad = dict(call='scene_round', resolution='succeeded')
+    bad = dict(about=None, call='scene_round', resolution='succeeded')
     good = dict(bad, outcome='The door opens.', odds='certain')
     exercise, requests = call_agent(workspace, monkeypatch, [bad, good], scene=True,
                                     winner=dict(id=42, actor='agnea', round=1), closing=closing)

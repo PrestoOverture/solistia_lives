@@ -604,6 +604,10 @@ class WorldAgent(_WorldSession):
                                  attempt=attempt + 1, **usage_fields)
             try:
                 payload = structured_reply(result, structured_output)
+                if self.session_output is not None and last_winner and 'about' not in payload:
+                    if attempt < self.role.retries:
+                        raise ValueError('scene_round resolution requires an about key (situation id or null)')
+                    self.trace.write('about_missing', call='scene_round', turn=self.turn)
                 if not last_winner and isinstance(payload, dict):
                     # The session-wide schema offers these fields as nullable; null means absent here.
                     payload = {key: value for key, value in payload.items()
@@ -751,7 +755,14 @@ class OffscreenAgent(_WorldSession):
                 self.trace.write("stage_usage", stage="world_offscreen", agent=self.agent_name, turn=self.turn,
                                  attempt=attempt + 1, **usage_fields)
             try:
-                reply = OffscreenReply.model_validate(structured_reply(result, structured_output))
+                payload = structured_reply(result, structured_output)
+                if self.session_output is not None and isinstance(payload.get('events'), list):
+                    for event in payload['events']:
+                        if isinstance(event, dict) and 'about' not in event:
+                            if attempt < self.role.retries:
+                                raise ValueError('offscreen events require an about key (situation id or null)')
+                            self.trace.write('about_missing', call='offscreen', turn=self.turn)
+                reply = OffscreenReply.model_validate(payload)
                 new_state = state
                 resolved = []
                 dropped = []

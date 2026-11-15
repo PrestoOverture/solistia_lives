@@ -1,4 +1,4 @@
-"""Situation links are metadata, validated without another model call."""
+"""Situation links are metadata, validated without inspecting prose."""
 import asyncio
 import json
 import re
@@ -43,7 +43,9 @@ def test_about_saved_or_cleared_without_retry(tmp_path, monkeypatch, mode, kind,
             definition = schema['$defs']['RoundResolution' if kind == 'scene_round' else 'OffscreenEvent']
             assert 'about' not in definition.get('required', [])
             assert definition['properties']['about']['anyOf'] == [{'type': 'string'}, {'type': 'null'}]
-        metadata = {} if valid is None else {'about': about}
+        metadata = {'about': None if valid is None else about}
+        if mode == 'call' and valid is None:
+            metadata = {}  # Per-call mode keeps its existing missing-key behavior.
         if kind == 'scene_round':
             assert all('about' not in e for e in request['events'])
             return dict(call=kind, resolution='succeeded', odds='certain', outcome='The gate opens.', **metadata)
@@ -72,6 +74,69 @@ def test_about_saved_or_cleared_without_retry(tmp_path, monkeypatch, mode, kind,
     assert sum(len(c.calls) for c in clients) == 1
     traces = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
     assert sum(t.get('type') == 'about_cleared' for t in traces) == int(valid is False)
+
+
+@pytest.mark.parametrize('kind', ['scene_round', 'offscreen'])
+@pytest.mark.parametrize('case', ['corrected', 'missing', 'null'])
+def test_session_about_presence(tmp_path, monkeypatch, kind, case):
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    state = load_state(world)
+    situation_id = state.situations[0].id
+    if kind == 'scene_round':
+        commit_event(world, Event(id=0, **state.clock.model_dump(), place='festival_grounds',
+                     actor='agnea', type='action', content='Tries the gate.', move='act',
+                     perceived_by=['agnea'], scene='1', round=1))
+
+    def respond(client, request):
+        metadata = {}
+        if case == 'null':
+            metadata['about'] = None
+        elif case == 'corrected' and len(client.calls) > 1:
+            metadata['about'] = situation_id
+        if len(client.calls) > 1:
+            assert isinstance(request, str)
+            assert 'about' in request
+        if kind == 'scene_round':
+            return dict(call=kind, resolution='succeeded', odds='certain',
+                        outcome='The gate opens.', **metadata)
+        # A valid first event must not hide a missing key on a later event.
+        return dict(call=kind, events=[
+            dict(place='festival_grounds', content='The market opens.', about=None),
+            dict(place='festival_grounds', content='News arrives.', **metadata)],
+            situation_notes={s.id: 'Unchanged.' for s in state.situations})
+
+    clients = fake_sdk(monkeypatch, respond)
+    models, settings = load_configs()
+    models.world.schema_mode = 'session'
+    models.world.retries = 1
+
+    async def exercise():
+        cls = WorldAgent if kind == 'scene_round' else OffscreenAgent
+        async with cls(ROOT, run, world, models.world, settings.agent_max_turns, TraceWriter(run)) as agent:
+            if kind == 'scene_round':
+                event, _, _ = await agent.round(state, read_events(world), place='festival_grounds',
+                    main_present=['agnea'], minor_present=[], last_winner=dict(id=1, actor='agnea'),
+                    scene='1', round_number=2)
+                commit_event(world, event)
+            else:
+                events, _, _ = await agent.offscreen(state, {s.id for s in state.situations})
+                assert len(events) == 2
+                for event in events:
+                    commit_event(world, event)
+    asyncio.run(exercise())
+
+    assert read_events(world)[-1].about == (situation_id if case == 'corrected' else None)
+    assert sum(len(c.calls) for c in clients) == (1 if case == 'null' else 2)
+    traces = [json.loads(line) for line in (run / 'trace.jsonl').read_text().splitlines()]
+    missing = [t for t in traces if t['type'] == 'about_missing']
+    assert len(missing) == int(case == 'missing')
+    if missing:
+        assert missing[0]['call'] == kind
+        assert missing[0]['turn'] == 1
+    failures = [t for t in traces if t['type'] == 'world_validation_failed']
+    assert len(failures) == int(case != 'null')
 
 
 def test_legacy_event_loads(tmp_path):

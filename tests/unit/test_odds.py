@@ -39,7 +39,7 @@ def test_draw_discards_only_failure_branch_minor_moves(tmp_path, monkeypatch,
     state.people['Mabel'] = Person(where='festival_grounds', wants=['Watch the attempt'], commitments=[])
     (world / 'genesis.json').write_text(state.model_dump_json())
     requests, returned, draws = [], [], []
-    reply = dict(call='scene_round', resolution=resolution, odds=odds,
+    reply = dict(about=None, call='scene_round', resolution=resolution, odds=odds,
                  outcome='Success outcome.',
                  failure=dict(outcome='Failure outcome.', ops=[
                      dict(op='place', slug='festival_grounds', add_details=['Failure detail'])]),
@@ -59,6 +59,7 @@ def test_draw_discards_only_failure_branch_minor_moves(tmp_path, monkeypatch,
             payload = reply if len(requests) == 2 else dict(call='scene_round')
             if len(requests) != 2 and requests[-1]['last_winner']:
                 payload['resolution'] = 'none'
+                payload['about'] = None
             yield ResultMessage('success', 1, 1, False, 1, 'fake', structured_output=payload)
 
     class Character:
@@ -133,7 +134,7 @@ def test_draw_commits_selected_branch(tmp_path, monkeypatch, mode, closing, odds
     settings_data['odds']['unlikely'] = .8
     (root / 'config/settings.yaml').write_text(yaml.safe_dump(settings_data))
     requests, draws = [], []
-    reply = dict(call='scene_round', resolution=resolution, outcome='Success outcome.',
+    reply = dict(about=None, call='scene_round', resolution=resolution, outcome='Success outcome.',
                  ops=[dict(op='place', slug='festival_grounds', add_details=['Success detail'])])
     if odds is not None:
         reply['odds'] = odds
@@ -218,7 +219,7 @@ def test_odds_validation_and_failure_authority(tmp_path, monkeypatch, resolution
     run.mkdir()
     requests = []
     bad_ops = [dict(op='goals', main='agnea', goals=['Forbidden'])]
-    reply = dict(call='scene_round', resolution=resolution, outcome='Success.', odds='even',
+    reply = dict(about=None, call='scene_round', resolution=resolution, outcome='Success.', odds='even',
                  failure=dict(outcome='Failure.', ops=bad_ops))
     class Client:
         def __init__(self, **kwargs):

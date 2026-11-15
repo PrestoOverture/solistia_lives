@@ -528,7 +528,7 @@ def test_offscreen_retry_does_not_echo_internal_state(workspace, monkeypatch):
     world, run = workspace
     state = load_state(world)
     state.characters['agnea'].goals = ['PRIVATE GOAL']
-    invalid = dict(call='offscreen', events=[dict(place='cropdale', ops=[dict(
+    invalid = dict(call='offscreen', events=[dict(place='cropdale', about=None, ops=[dict(
         op='move', who='Unknown', place='cropdale', spot=None)])],
         situation_notes={s.id: 'Unchanged.' for s in state.situations})
     clients = fake_sdk(monkeypatch, lambda *_: invalid)
@@ -608,8 +608,8 @@ def test_tick_protects_scene_people_but_keeps_other_people(workspace, monkeypatc
             calls.append(request)
             subject = 'Guest'
         return dict(call='offscreen', events=[
-            dict(place='festival_grounds', ops=[dict(op='wants', person=subject, wants=['Changed'])]),
-            dict(place='festival_grounds', ops=[dict(op='wants', person='Other', wants=['Available'])])],
+            dict(place='festival_grounds', about=None, ops=[dict(op='wants', person=subject, wants=['Changed'])]),
+            dict(place='festival_grounds', about=None, ops=[dict(op='wants', person='Other', wants=['Available'])])],
             situation_notes={s.id: 'Unchanged.' for s in state.situations})
     fake_sdk(monkeypatch, respond)
 

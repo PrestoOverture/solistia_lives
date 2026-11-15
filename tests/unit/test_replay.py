@@ -82,7 +82,7 @@ def adjudicate_reply():
 
 
 def offscreen_reply(state):
-    return dict(call="offscreen", events=[dict(place="cropdale", content="The bell rings.",
+    return dict(call="offscreen", events=[dict(place="cropdale", content="The bell rings.", about=None,
         ops=[dict(op="place", slug="cropdale", add_details=["A bell tower"], remove_details=[])])],
         situation_notes={s.id: "Unchanged." for s in state.situations},
         settle={s.id: "dropped" for s in state.situations})  # only the ones due now apply
@@ -247,7 +247,7 @@ def test_replay_reuses_validation_and_retries(setup, monkeypatch, call, recover)
     good = adjudicate_reply() if call == "adjudicate" else offscreen_reply(state)
     invalid = (dict(call="adjudicate", ops=[dict(op="clock", day=2, part="night")]) if call == "adjudicate"
                else dict(call="offscreen", events=[dict(
-                   actor="agnea", place="cropdale", type="world", content="Waits.")]))
+                   actor="agnea", place="cropdale", type="world", content="Waits.", about=None)]))
     clients = fake(monkeypatch, [invalid, good if recover else invalid])
     result = CliRunner().invoke(app, ["eval", "replay", source.name, "--call", call, "--turn", "1"])
     passed = recover or call == 'adjudicate'  # a repeated op rejection drops the event
