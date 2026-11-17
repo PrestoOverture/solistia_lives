@@ -41,9 +41,10 @@ def state():
         "places": [{"slug": "cropdale", "details": ["festival"]}],
         "characters": {slug: {"where": "cropdale", "goals": ["Visit the festival"], "commitments": []}
                        for slug in ("agnea", "throne")},
+        "people": {"Host": {"where": "cropdale", "wants": ["Keep the stage closed"], "commitments": []}},
         "situations": [
             {"id": "festival", "kind": "occasion", "summary": "A festival", "touches": ["agnea"],
-             "people": [], "status": "open", "next": "The dancing begins",
+             "people": ["Host"], "opposed_by": ["Host"], "status": "open", "next": "The dancing begins",
              "due": {"day": 1, "part": "evening"}},
             {"id": "lost_coin", "kind": "trouble", "summary": "A coin is lost", "touches": ["agnea"],
              "people": [], "status": "open", "next": "The coin stays lost",
@@ -165,7 +166,7 @@ def test_invalid_replies_are_traced_and_reported(repo, monkeypatch, last_reply):
 
 
 @pytest.mark.parametrize("failure", ["pydantic", "place", "input_place", "due", "characters",
-                                    "same_kind", "same_due_part"])
+                                    "same_kind", "same_due_part", "opposition_missing", "opposition_person"])
 @pytest.mark.parametrize("recover", [True, False])
 def test_validation_retry(repo, state, monkeypatch, failure, recover):
     bad = copy.deepcopy(state)
@@ -183,6 +184,10 @@ def test_validation_retry(repo, state, monkeypatch, failure, recover):
         bad["situations"][1]["kind"] = bad["situations"][0]["kind"]
     elif failure == "same_due_part":
         bad["situations"][1]["due"]["part"] = bad["situations"][0]["due"]["part"]
+    elif failure == "opposition_missing":
+        del bad["situations"][0]["opposed_by"]
+    elif failure == "opposition_person":
+        bad["situations"][0]["opposed_by"] = ["Stranger"]
     else:
         del bad["characters"]["throne"]
     sessions = fake_sdk(monkeypatch, [bad, state if recover else bad])

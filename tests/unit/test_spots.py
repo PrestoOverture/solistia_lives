@@ -183,6 +183,8 @@ def test_initializer_spots_retry_then_null(workspace, monkeypatch, corrected):
     world, run = workspace
     (run / 'scene_context.md').write_text((world / 'scene_context.md').read_text())
     initial = load_state(world)
+    initial.situations[0].people = ['Host']
+    initial.situations[0].opposed_by = ['Host']
 
     def respond(client, request):
         payload = initial.model_dump(exclude={'clock'})

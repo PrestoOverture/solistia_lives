@@ -72,6 +72,7 @@ class SituationOp(WorldModel):
     next: str | None = None
     due: Clock | None = None
     people: list[str] | None = None
+    opposed_by: list[str] | None = None
 
     @model_serializer(mode='wrap')
     def serialize(self, handler):
@@ -155,6 +156,8 @@ def reduce_ops(state: WorldState, ops: list[Op], *, event_id: int, scene: str | 
             if situation is None:
                 raise ValueError('situation id must name an existing situation')
             situation.update(op.model_dump(exclude={'op', 'id'}, exclude_unset=True))
+            if op.people is not None:
+                situation['opposed_by'] = [name for name in situation['opposed_by'] if name in op.people]
         elif isinstance(op, ClockOp):
             data['clock'] = op.model_dump(exclude={'op'})
         state = WorldState.model_validate(data)

@@ -43,7 +43,9 @@ def test_world_fixed_schema(workspace, monkeypatch):
     empty = state.model_copy(deep=True)
     empty.characters['throne'].where = 'cropdale'
     opening = day_start_reply(situations=[
-        state.situations[0].model_dump() | {'id': 'new-day', 'heard': 'An invitation arrives.'}])
+        state.situations[0].model_dump() | {'id': 'new-day', 'heard': 'An invitation arrives.',
+                                          'people': ['Host'], 'opposed_by': ['Host']}],
+        people={'Host': dict(sex='m', where='cropdale', wants=['Keep the gate closed'], commitments=[])})
     replies = [opening, {'call': 'adjudicate'}, {'call': 'adjudicate'},
                {'call': 'adjudicate'}, {'call': 'scene_round'},
                {'call': 'scene_round', 'resolution': 'none', 'about': None},

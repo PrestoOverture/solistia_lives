@@ -31,7 +31,8 @@ def session_setup(tmp_path, monkeypatch):
     state.people["Gus"] = Person(where="cropdale", wants=["Rest"], commitments=[])
     state.places.append(Place(slug="unused_place", details=[]))
     commit_fixture_changes(world, state)
-    new_situation = state.situations[0].model_dump() | {"id": "delta-new", "heard": "A supper invitation arrives."}
+    new_situation = state.situations[0].model_dump() | {
+        "id": "delta-new", "heard": "A supper invitation arrives.", "people": ["Gus"], "opposed_by": ["Gus"]}
     requests, clients = [], []
     controls = {}
 

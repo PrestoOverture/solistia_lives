@@ -287,7 +287,8 @@ class _WorldSession:
     async def _start_call(self, reply_type: type, *, open_situations: set[str] | None = None,
                           due_situations: list[str] | None = None,
                           empty_attempt_spots: list[tuple[str, str | None]] | None = None,
-                          about_ids: list[str] | None = None) -> None:
+                          about_ids: list[str] | None = None,
+                          contested: list[str] | None = None) -> None:
         if self.client is not None:
             await self.context.__aexit__(None, None, None)
             self.client = None
@@ -301,6 +302,13 @@ class _WorldSession:
             target = schema['$defs']['OffscreenEvent'] if reply_type is OffscreenReply else schema
             target['properties']['about'] = {'enum': [*about_ids, None]}
             target.setdefault('required', []).append('about')
+        if self.session_output is None and contested:
+            output_format['schema'].setdefault('allOf', []).append({
+                'if': {'properties': {'resolution': {'const': 'succeeded'},
+                                      'about': {'enum': contested}},
+                       'required': ['resolution', 'about']},
+                'then': {'properties': {'odds': {'enum': ['likely', 'even', 'unlikely']}}},
+            })
         if self.session_output is None and empty_attempt_spots:
             schema = output_format['schema']
             schema.setdefault('required', []).append('ops')
@@ -427,6 +435,9 @@ class WorldAgent(_WorldSession):
                                                  situation=situation.id, people=unknown)
                             situation.people = list(dict.fromkeys(
                                 keys[name.casefold()] for name in situation.people if name.casefold() in keys))
+                            situation.opposed_by = list(dict.fromkeys(
+                                keys[name.casefold()] for name in situation.opposed_by
+                                if keys.get(name.casefold()) in situation.people))
                             source = situation.heard_from and keys.get(situation.heard_from.casefold())
                             situation.heard_from = source if source in situation.people else None
                 event = Event(id=0, **state.clock.model_dump(), place=state.places[0].slug, actor='world',
@@ -434,6 +445,11 @@ class WorldAgent(_WorldSession):
                 dropped = []
                 updated = self._event_state(state, event, Authority('day_start'), attempt, dropped)
                 if updated is not None:
+                    if (any(isinstance(op, Open) for op in reply.ops)
+                            and not any(s.status == 'open' and s.opposed_by for s in updated.situations)):
+                        if attempt < self.role.retries:
+                            raise ValueError('day_start opening situations must leave an open situation with opposed_by')
+                        self.trace.write('opposition_missing', call='day_start', turn=self.turn)
                     away = set()
                     for op in reply.ops:
                         source = op.situation.heard_from if isinstance(op, Open) else None
@@ -586,17 +602,21 @@ class WorldAgent(_WorldSession):
         self.turn += 1
         self.hooks.turn = self.turn
         new_events = self._new_events(state, events)
+        contested = [s.id for s in state.situations
+                     if s.status == 'open' and any(name in minor_present for name in s.opposed_by)]
         request = json.dumps({**self._state_payload(state.model_dump()), "call": "scene_round",
                               "reply": "JSON with call: 'scene_round'",
                               "place": place, "participants": {"main": main_present, "minor": minor_present},
                               "people": {name: state.people[name].model_dump() for name in minor_present
                                          if name in state.people},
                               "last_winner": last_winner, "closing": closing,
+                              **({'contested': contested} if contested else {}),
                               # Minors who bid to act last round but lost the floor: their moves didn't happen.
                               **({"minor_moves_not_happened": list(lost_minors)} if lost_minors else {}),
                               "events": [event.agent_view() for event in new_events]}, ensure_ascii=False)
         reply_type = WinningRoundReply if last_winner else SceneRoundReply
-        await self._start_call(reply_type, about_ids=[s.id for s in state.situations] if last_winner else None)
+        await self._start_call(reply_type, about_ids=[s.id for s in state.situations] if last_winner else None,
+                               contested=contested if last_winner else None)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
@@ -613,6 +633,11 @@ class WorldAgent(_WorldSession):
                     payload = {key: value for key, value in payload.items()
                                if not (key in {'resolution', 'outcome', 'about', 'odds', 'failure'} and value is None)}
                 reply = RoundResolution.model_validate(reply_type.model_validate(payload).model_dump())
+                if (self.session_output is not None and last_winner and reply.resolution == 'succeeded'
+                        and reply.odds == 'certain' and reply.about in contested):
+                    if attempt < self.role.retries:
+                        raise ValueError('succeeded resolutions about a contested situation cannot have odds certain')
+                    self.trace.write('odds_certain_contested', call='scene_round', turn=self.turn, about=reply.about)
                 if reply.resolution == 'succeeded' and reply.odds != 'certain':
                     if reply.failure is None:
                         if attempt < self.role.retries:

@@ -97,7 +97,9 @@ def test_world_per_call_schema_and_resume(tmp_path, monkeypatch):
     run.mkdir()
     state = load_state(world)
     from story_engine.agents.world import DayStartReply, AdjudicateReply, SceneRoundReply
-    opening = day_start_reply(situations=[state.situations[0].model_dump() | {'id': 'new-day', 'heard': 'A supper invitation arrives.'}])
+    opening = day_start_reply(situations=[state.situations[0].model_dump() | {
+        'id': 'new-day', 'heard': 'A supper invitation arrives.', 'people': ['Host'], 'opposed_by': ['Host']}],
+        people={'Host': dict(sex='m', where='cropdale', wants=['Keep the gate closed'], commitments=[])})
     adjudicate = dict(call='adjudicate', encounters=[])
     scene_round = dict(call='scene_round', minor_moves={})
     offscreen = dict(call='offscreen', events=[], situation_notes={})
@@ -230,8 +232,9 @@ def test_initializer_state_session_output_format_is_json_schema(tmp_path, monkey
         "places": [{"slug": "cropdale", "details": ["festival"]}],
         "characters": {slug: {"where": "cropdale", "goals": ["Visit the festival"], "commitments": []}
                        for slug in ("agnea", "throne")},
+        "people": {"Host": {"where": "cropdale", "sex": "m", "wants": ["Keep the stage closed"], "commitments": []}},
         "situations": [{"id": "festival", "summary": "A festival", "touches": ["agnea"],
-                        "people": [], "status": "open", "next": "The dancing begins",
+                        "people": ["Host"], "opposed_by": ["Host"], "status": "open", "next": "The dancing begins",
                         "due": {"day": 1, "part": "evening"}}],
     }
     sessions = []

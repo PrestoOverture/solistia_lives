@@ -61,6 +61,10 @@ def test_cumulative_cost_and_world_event_delta(tmp_path, monkeypatch, kind):
     valid = adjudicate if kind == 'world' else action
     outputs = [(valid, .10), (valid, .25)]
     if kind == 'initializer':
+        from story_engine.world.models import Person
+        state.people['Host'] = Person(where='cropdale', wants=['Keep the gate closed'], commitments=[])
+        state.situations[0].people = ['Host']
+        state.situations[0].opposed_by = ['Host']
         outputs = [({}, .10), (state.model_dump(exclude={'clock'}), .25)]
         places = [tmp_path / 'cropdale.md', tmp_path / 'festival_grounds.md']
         for place in places:

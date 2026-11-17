@@ -18,7 +18,7 @@ from story_engine.agents.sdk import SessionError
 from story_engine.config import load_configs
 from story_engine.trace import TraceWriter
 from story_engine.world.io import append_event, load_state, read_events
-from story_engine.world.models import Event, WorldState
+from story_engine.world.models import Event, Person, WorldState
 from world_replies import day_start_reply, goals_reply, commit_fixture_changes
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -30,6 +30,17 @@ def workspace(tmp_path):
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     run.mkdir()
     return world, run
+
+
+@pytest.fixture
+def opposition(workspace):
+    world, _ = workspace
+    state = load_state(world)
+    state.people['Rival'] = Person(where='cropdale', wants=['Keep the textiles'], commitments=[])
+    state.situations[0].people = ['Rival']
+    state.situations[0].opposed_by = ['Rival']
+    for name in ('genesis.json', 'state.json'):
+        (world / name).write_text(state.model_dump_json())
 
 
 def fake_sdk(monkeypatch, respond):
@@ -72,11 +83,11 @@ def agent(agent_type, world, run):
 def situation(id='new-promise', kind='promise', part='evening'):
     return dict(id=id, kind=kind, summary='A supper invitation.', heard='A supper invitation arrives.', heard_from=None,
                 touches=['agnea'],
-                people=[], status='open', next='The supper starts.', due=dict(day=2, part=part))
+                people=[], opposed_by=[], status='open', next='The supper starts.', due=dict(day=2, part=part))
 
 
 @pytest.mark.parametrize('touches', [['agnea'], ['agnea', 'throne']])
-def test_day_start_heard_precedes_plans_and_is_perceived(workspace, monkeypatch, touches):
+def test_day_start_heard_precedes_plans_and_is_perceived(workspace, opposition, monkeypatch, touches):
     world, run = workspace
     state = load_state(world)
     state.clock.day = 2
@@ -151,9 +162,9 @@ def failures(run):
 
 
 @pytest.mark.parametrize('day', [1, 2, 3])
-def test_run_day_first_calls_goals_and_visible_history(workspace, monkeypatch, day):
+def test_run_day_first_calls_goals_and_visible_history(workspace, opposition, monkeypatch, day):
     world, run = workspace
-    # Keep the legacy state format (no people, spots, or kind on some situations).
+    # Keep legacy spots and kind defaults while supplying valid opposition.
     raw = json.loads((world / 'state.json').read_text())
     raw['clock']['day'] = day
     (world / 'genesis.json').write_text(json.dumps(raw))
@@ -258,7 +269,7 @@ def test_run_day_afternoon_resume_skips_day_start(workspace, monkeypatch):
     assert len(clients) == 2  # World has no calls, so no SDK client is opened.
 
 
-def test_run_day_first_tick_failure_restores_before_day_start(workspace, monkeypatch):
+def test_run_day_first_tick_failure_restores_before_day_start(workspace, opposition, monkeypatch):
     world, run = workspace
     state = load_state(world)
     state.clock.day = 2
@@ -627,7 +638,7 @@ def test_tick_protects_scene_people_but_keeps_other_people(workspace, monkeypatc
     assert len(drops) == (0 if recover else 1)
 
 
-def test_world_session_restarts_after_day_start(workspace, monkeypatch):
+def test_world_session_restarts_after_day_start(workspace, opposition, monkeypatch):
     world, run = workspace
     state = load_state(world)
     replies = iter([day_start_reply(situations=[situation()]),
@@ -664,7 +675,7 @@ def test_day_start_heard_comes_from_a_situation_person(workspace, monkeypatch):
         world_agent.DayStartReply.model_validate(day_start_reply(situations=[dict(new, people=[])]))
 
 
-def test_day_start_heard_source_elsewhere_is_retried_then_cleared(workspace, monkeypatch):
+def test_day_start_heard_source_elsewhere_is_retried_then_cleared(workspace, opposition, monkeypatch):
     world, run = workspace
     state = load_state(world)
     new = dict(situation(), people=['Courier'], heard_from='Courier', heard='The healer asks to meet you.')

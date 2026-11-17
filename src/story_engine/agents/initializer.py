@@ -145,6 +145,8 @@ async def starting_state(
                     raise ValueError("situation due must not precede the starting clock")
                 if not 1 <= len(state.situations) <= 3 or any(item.status != "open" for item in state.situations):
                     raise ValueError("starting state must contain 1-3 open situations")
+                if not any(item.opposed_by for item in state.situations):
+                    raise ValueError("starting state must contain a situation with opposed_by")
                 if len(state.situations) >= 2:
                     if len({item.kind for item in state.situations}) <= 1:
                         raise ValueError("a starting state with two or more situations must have more than one kind")

@@ -75,9 +75,16 @@ class Situation(WorldModel):
     heard_from: str | None = None  # the person in `people` who told the touched mains; null for public news
     touches: list[str] = Field(min_length=1)
     people: list[str]
+    opposed_by: list[str] = Field(default_factory=list)
     status: Literal["open", "resolved", "dropped"]
     next: str
     due: Clock
+
+    @model_validator(mode="after")
+    def opposition_people(self) -> Self:
+        if any(name not in self.people for name in self.opposed_by):
+            raise ValueError(f"opposed_by must name only this situation's people: {self.people}")
+        return self
 
 
 class WorldState(WorldModel):
