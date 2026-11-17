@@ -225,6 +225,8 @@ def session_options(
         "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS", "CLAUDE_CODE_DISABLE_WORKFLOWS",
     ):
         env[key] = "1"
+    # Inflated relay usage can trigger CLI compaction mid-day; a truly overflowing session should fail with an error instead.
+    env["DISABLE_AUTO_COMPACT"] = "1"
     if role.base_url:
         credentials = session_environment(root, {role.auth_token_env} if role.auth_token_env else set())
         env["ANTHROPIC_BASE_URL"] = role.base_url

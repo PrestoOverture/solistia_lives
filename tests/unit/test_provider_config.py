@@ -40,6 +40,16 @@ def test_session_disables_cli_features(tmp_path, base_url):
     assert "bare" not in options.extra_args
 
 
+@pytest.mark.parametrize("base_url", [None, "https://provider.example"])
+def test_session_disables_auto_compaction(tmp_path, base_url):
+    hooks = sdk.KBHooks(tmp_path, tmp_path, "test", 0)
+    role = Role(model="test", effort=None, thinking=None, base_url=base_url)
+
+    options = sdk.session_options(tmp_path, tmp_path, role, "", 1, hooks)
+
+    assert options.env["DISABLE_AUTO_COMPACT"] == "1"
+
+
 @pytest.mark.parametrize("source", ["dotenv", "environ"])
 def test_provider_environment_and_null_options(tmp_path, monkeypatch, source):
     model_variables = (
@@ -72,6 +82,7 @@ def test_provider_environment_and_null_options(tmp_path, monkeypatch, source):
         assert key not in captured["env"]
     assert captured["env"] == {
         **sdk.session_environment(tmp_path),
+        "DISABLE_AUTO_COMPACT": "1",
         "CLAUDE_CONFIG_DIR": str((tmp_path / ".sdk").resolve()),
         **{f"CLAUDE_CODE_DISABLE_{feature}": "1" for feature in (
             "AUTO_MEMORY", "BUNDLED_SKILLS", "EXPLORE_PLAN_AGENTS",
