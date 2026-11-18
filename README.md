@@ -6,18 +6,17 @@
 
 # Yet Another Story of Solistia
 
-**Yet Another Story of Solistia** is about what happens in *Octopath Traveler II* after the game's story ends. It writes short stories, and it can also keep a world going, one day at a time.
+**Yet Another Story of Solistia** is about what happens in *Octopath Traveler II* after the game's story ends. It keeps a world going, one day at a time, lays out everything that happens and why, and lets you ask: **what if?**
 
-Vide is defeated, and the eight travelers' journeys have come to an end, but their lives go on. Whether it is writing a story or running the world, all the lore comes from one knowledge base built from the game's wiki.
+Vide is defeated, and the eight travelers' journeys have come to an end, but their lives go on. All the lore comes from one knowledge base built from the game's wiki.
 
-## Two tracks
+## What it does
 
-The project has two tracks:
+- **World simulation (the main line):** each traveler is played by an agent that acts on its own goals and memory. A World agent decides whether what they try succeeds, plays everyone else, and keeps time. Nobody plans the plot. Everything that happens goes into an event log, and the world can pick up the next day where it left off.
+- **Crossroads (in progress):** you slip something into the world and watch how it plays out. Everything that happened is laid out as threads, each open from its cause to its end, down to what the characters privately meant.
+- **Story generation (done):** pick 2-3 travelers and a location, give an opening line, and a model writes a 2,000-3,000-word short story, which a validator then checks against the lore.
 
-- **Story generation:** pick 2-3 travelers and a location, give an opening line, and a model writes a 2,000-3,000-word short story. A validator then checks the lore, and anything wrong gets fixed. One click in the local web UI writes a story, and you can read it there too.
-- **World simulation:** each traveler is played by an agent that acts on its own goals and memory. A World agent decides whether what they try succeeds, plays everyone else, and keeps time. Nobody plans the plot. Everything that happens goes into an event log, and the world can pick up the next day where it left off.
-
-The original idea was to run the world first, then pick episodes from it to write up as stories. But in a head-to-head test, the directly written stories won 10-0. So now a writer handles stories, the world develops on its own, and it is measured by its own metrics. The two tracks will meet again later.
+The original idea was to run the world first, then pick episodes from it to write up as stories. But in a head-to-head test, the directly written stories won 10-0. So a writer handles stories, and the world stops competing with it on prose. Instead it does what a writer can't: it keeps a full causal record, shows everyone's private motives, and can be changed and run again.
 
 ## Where the knowledge base comes from
 
@@ -73,28 +72,39 @@ At the end of the day, each traveler writes a memory of the day and carries it i
 
 Every change in the world, such as someone moving, making a promise, or a matter moving forward, is written to the event log as a typed operation. The world's current state is computed from the log step by step, so description alone changes nothing. The log is this world's canon, and that is what lets the world keep going.
 
-A world goes on one day after another. It ends when every matter is settled or it reaches its set number of days. After each day, a judge reads through the day's log and checks it for lore breaks and contradictions. Both test worlds ran their full five days:
+A world goes on one day after another. It ends when every matter is settled or it reaches its set number of days. After each day, a judge reads through the day's log and checks it for lore breaks and contradictions.
 
-- **The Cropdale festival:** a stolen pie recipe, the tailor Garud's failing eyes and his unfinished clothes, and in the end Throné learning to dance from Agnea.
-- **The wilds south of Oresrush:** bandits, herbs for a sick child, Jorgen's feast, and a lizard hunt.
-
-Nobody wrote either plot in advance; both came out of the worlds themselves.
-
-## Theater mode
+## Theater mode (paused)
 
 <p align="center"><img src="assets/scene_player.jpg" alt="The scene player: four beats at the Festival Grounds at night, Agnea and Throné talking in speech bubbles, with a long line paged across two bubbles" width="100%"></p>
 
 <p align="center"><img src="assets/theater_flow.svg" alt="The theater: from the event log to the screen through scenes, staging, facing, and voices, played day by day" width="100%"></p>
 
-The meetings and conversations in the log will one day become scenes you can watch and hear.
+The meetings and conversations in the log can be played scene by scene in the theater.
 
-Shiny afternoon in a small town. A few familiar figures. A line of dialogue. A voice.
+**What it does:** it splits the log into scenes, hangs a backdrop for the place and time of day, and gives everyone a spot to stand. A speaker turns to whoever they are answering, and everyone else looks at the speaker. Lines go into speech bubbles with voices, and scenes play one after another, day by day. The public version uses only original art: twenty characters with four facings each, a dozen-plus day and night backdrops, and voices generated locally with Kokoro. Both worlds are live.
 
-Who, where, and what was said is up to the world.
+**What could come next:** characters walking on and off and gesturing as they speak; a showcase world run start to finish for the theater; more voices for minor characters.
+
+**Why it's paused:** the theater does the same job as the writer: it hands the audience a finished story. On that job the writer already won 10-0, and adding more pictures and motion to the theater wouldn't make it clear whether it got better. What the world has that a writer can't give is a full causal record, everyone's private motives, and the ability to change it and run it again. So the theater stays as it is and becomes part of the threads below: every scene in a thread links straight to the theater.
 
 ### [Online theater](https://solistia-theater.vercel.app)
 - **[The Cropdale festival](https://solistia-theater.vercel.app/world/20261107-180443-2fc52f/theater.html):** Agnea and Throné, 23 scenes
 - **[The Oresrush wilds](https://solistia-theater.vercel.app/world/20261107-200913-754a8c/theater.html):** Hikari and Ochette, 21 scenes
+
+## Crossroads: the unseen hand
+
+<p align="center"><img src="assets/crossroads_flow.svg" alt="The unseen hand: you slip something into the world, the world goes on as usual, and the threads show how it plays out" width="100%"></p>
+
+You slip something into the world from the shadows: a missing object, a stranger, a rumor making the rounds. The next morning, it happens. No one knows whose hand it was. The travelers and the townsfolk just deal with it as their own hearts tell them, and where it goes, no one can say, not even you.
+
+To see how it plays out, the world lays everything that happened out as **threads**:
+
+- **One thread per matter.** Every matter on a deadline (a performance, some trouble, an accusation) is a thread: how it began, who it touches, who stands in the way, whose goal it threatens, when it is due, then every scene and off-screen move it went through, in order, until it was settled or dropped.
+- **Private motives in view.** Open any scene to see what each character did and said, and, when you want it, what they privately meant.
+- **Nothing goes to plan.** A new world opens with someone truly standing in a traveler's way. With that opponent present, nothing is a sure thing: the World only states the odds, and code rolls the dice. A failure doesn't stop the scene; it turns the story, and a conflict can run for days.
+
+**Where it stands:** threads, dice and the opening opponent are built; slipping something in is next. After that, you can go back to a past day, change one thing, and run it again.
 
 ## Status
 
@@ -102,9 +112,9 @@ A personal project, still in progress.
 
 - **Done:** the knowledge base; the writer, lore validation, and the fix loop; the evaluation kit and 10-story test suite; the local web UI (writing and reading). The MVP gate passed with 8 of 10 stories ([gate_v1.md](eval/results/gate_v1.md)).
 - **World engine:** world creation, traveler and World agents, round-by-round scenes, and world state computed from the event log are all built. The single-day world metrics pass ([world_we_v1.md](eval/results/world_we_v1.md)). Both test worlds ran their full five days and ended normally.
-- **Scene player and theater:** done, with voices.
-- **Online theater:** both worlds are live; see [Online theater](#online-theater).
-- **Next:** bring the characters to life, and the world with them.
+- **Scene player and theater:** done, with voices; both worlds are live, see [Online theater](#online-theater). Then paused in favor of Crossroads.
+- **Crossroads (in progress):** the threads page is built; events name the thread they belong to; acts carry odds and can fail; a new world opens with an opponent who truly blocks a traveler.
+- **Next:** you drop something into the world, and see how the world takes it.
 
 ## Quick start
 
@@ -114,7 +124,7 @@ You need Python 3.12+, [uv](https://docs.astral.sh/uv/), and an Anthropic API ke
 uv sync
 uv run story-engine --help
 
-# Local web UI: read stories that passed, or write a new one at /new
+# Local web UI: /worlds lists every world, / reads stories that passed, /new writes a new one
 uv run story-engine web          # http://127.0.0.1:8000
 
 # Write a story from the command line (write → validate → fix)
@@ -125,6 +135,9 @@ uv run story-engine generate --mode baseline --characters osvald,temenos \
 uv run story-engine world new --characters agnea,throne --location cropdale \
   --situation "Agnea has brought Throné to a festival here."
 uv run story-engine world run <world_id> --stop-after day
+
+# Read the world's threads
+#   http://127.0.0.1:8000/world/<world_id>/chronicle
 
 # Voice the lines, then watch from the start in the theater
 uv run story-engine world voice <world_id>
@@ -138,7 +151,7 @@ uv run story-engine world export <world_id> --assets assets/original --out outpu
 uv run pytest tests/unit
 ```
 
-Model calls cost money; one story is about $0.70. Each run's spending cap is `max_cost_usd` in `config/settings.yaml`.
+Model calls cost money; one story is about $0.70, and one simulated day about $5-7 (at list prices). Each run's spending cap is `max_cost_usd` in `config/settings.yaml`.
 
 ## Layout
 

@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 810" width="1200" height="810" role="img" aria-label="岔路口：开场立对手、掷骰定成败、整理成事件线，作者在路口放一件事，世界接着走">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d1330"/><stop offset="1" stop-color="#241f48"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c9a24a"/><stop offset="0.5" stop-color="#f3dc95"/><stop offset="1" stop-color="#c9a24a"/></linearGradient>
+    <linearGradient id="road" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f3dc95" stop-opacity="0.9"/><stop offset="1" stop-color="#f3dc95" stop-opacity="0.25"/></linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ffe9b0" stop-opacity="0.45"/><stop offset="1" stop-color="#ffe9b0" stop-opacity="0"/></radialGradient>
+    <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#e2c376"/></marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif; }
+      .title { font-size: 28px; font-weight: 600; fill: url(#gold); }
+      .sub { font-size: 15px; fill: #b9b0d6; }
+      .h { font-size: 20px; font-weight: 600; fill: #f3e6c4; }
+      .h2 { font-size: 17px; font-weight: 600; fill: #f3e6c4; }
+      .t { font-size: 15px; fill: #ddd4ee; }
+      .dim { font-size: 13.5px; fill: #a59cc4; }
+      .lbl { font-size: 13px; font-weight: 600; fill: #e2c376; }
+      .q { font-size: 15.5px; font-style: italic; fill: #f3e6c4; }
+      .card { fill: #1a1d44; stroke: #c9a24a; stroke-opacity: 0.55; stroke-width: 1.4; }
+      .side { fill: #161a3d; stroke: #7d75c9; stroke-opacity: 0.7; stroke-width: 1.3; }
+      .plan { fill: #161a3d; stroke: #c9a24a; stroke-opacity: 0.7; stroke-width: 1.4; stroke-dasharray: 6 5; }
+      .ico { fill: none; stroke: #f3dc95; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+      .num { font-size: 15px; font-weight: 700; fill: #0d1330; }
+    </style>
+  </defs>
+  <rect width="1200" height="810" fill="url(#bg)"/>
+  <g fill="#f3dc95" opacity="0.5">
+    <circle cx="70" cy="40" r="1.6"/><circle cx="1130" cy="40" r="1.8"/><circle cx="1050" cy="84" r="1.1"/>
+    <circle cx="160" cy="76" r="1.1"/><circle cx="1160" cy="790" r="1.4"/><circle cx="30" cy="560" r="1.2"/>
+  </g>
+  <text x="600" y="50" text-anchor="middle" class="title">岔路口：看不见的手</text>
+  <text x="600" y="78" text-anchor="middle" class="sub">你在暗处放进一件事，没人知道是谁动的手；世界照常运转，事件线把它怎么发酵摆给你看</text>
+
+  <rect x="380" y="100" width="440" height="64" rx="14" class="side"/>
+  <g class="ico" transform="translate(418 132)"><path d="M-12 -16 H10 Q14 -16 14 -12 V16 H-8 Q-12 16 -12 12Z"/><path d="M-6 -8 H8 M-6 -2 H8 M-6 4 H4"/></g>
+  <text x="446" y="128" class="h2">世界档案：事件日志</text>
+  <text x="446" y="152" class="dim">每场戏、每个幕后动作、每次掷骰，都按时间记下</text>
+  <path d="M600 166 V178 H210 V192" fill="none" stroke="#e2c376" stroke-width="2" marker-end="url(#ag)"/>
+
+  <rect x="30" y="196" width="360" height="290" rx="14" class="card"/>
+  <circle cx="58" cy="226" r="14" fill="#e2c376"/><text x="58" y="231" text-anchor="middle" class="num">1</text>
+  <text x="82" y="233" class="h">开场立对手</text>
+  <text x="330" y="232" text-anchor="end" class="lbl">已完成</text>
+  <g class="ico" transform="translate(356 228)"><circle cx="-8" cy="-6" r="5"/><path d="M-16 12 Q-8 0 0 12"/><path d="M6 -14 L16 -4 M16 -14 L6 -4"/><path d="M4 12 Q11 2 18 12"/></g>
+  <text x="52" y="274" class="t" xml:space="preserve">建世界时安排一个人，</text>
+  <text x="52" y="300" class="t" xml:space="preserve">真正挡住主角的目标：</text>
+  <text x="52" y="326" class="t" xml:space="preserve">· 不只是看不顺眼</text>
+  <text x="52" y="352" class="t" xml:space="preserve">· 第一天主角就听说，</text>
+  <text x="52" y="378" class="t" xml:space="preserve">　或者当面撞上</text>
+  <text x="52" y="404" class="t" xml:space="preserve">· 期限至少留到第二天</text>
+  <text x="52" y="440" class="dim" xml:space="preserve">冲突有时间慢慢发酵，</text>
+  <text x="52" y="462" class="dim" xml:space="preserve">不会在幕后草草结案</text>
+  <rect x="420" y="196" width="360" height="290" rx="14" class="card"/>
+  <circle cx="448" cy="226" r="14" fill="#e2c376"/><text x="448" y="231" text-anchor="middle" class="num">2</text>
+  <text x="472" y="233" class="h">掷骰定成败</text>
+  <text x="720" y="232" text-anchor="end" class="lbl">已完成</text>
+  <g class="ico" transform="translate(746 228)"><rect x="-14" y="-14" width="28" height="28" rx="5"/><circle cx="-6" cy="-6" r="2" fill="#f3dc95"/><circle cx="6" cy="6" r="2" fill="#f3dc95"/><circle cx="0" cy="0" r="2" fill="#f3dc95"/></g>
+  <text x="442" y="274" class="t" xml:space="preserve">对手在场时，World</text>
+  <text x="442" y="300" class="t" xml:space="preserve">不能写“必然成功”：</text>
+  <text x="442" y="326" class="t" xml:space="preserve">· 给出几率：大概率、</text>
+  <text x="442" y="352" class="t" xml:space="preserve">　五五开、小概率</text>
+  <text x="442" y="378" class="t" xml:space="preserve">· 代码掷骰，决定是</text>
+  <text x="442" y="404" class="t" xml:space="preserve">　成功还是失败</text>
+  <text x="442" y="440" class="dim" xml:space="preserve">失败不会让戏停下，</text>
+  <text x="442" y="462" class="dim" xml:space="preserve">而是让故事拐个弯</text>
+  <rect x="810" y="196" width="360" height="290" rx="14" class="card"/>
+  <circle cx="838" cy="226" r="14" fill="#e2c376"/><text x="838" y="231" text-anchor="middle" class="num">3</text>
+  <text x="862" y="233" class="h">整理事件线</text>
+  <text x="1110" y="232" text-anchor="end" class="lbl">已完成</text>
+  <g class="ico" transform="translate(1136 228)"><path d="M-16 -10 H16 M-16 0 H16 M-16 10 H16"/><circle cx="-8" cy="-10" r="3" fill="#1a1d44"/><circle cx="6" cy="0" r="3" fill="#1a1d44"/><circle cx="-2" cy="10" r="3" fill="#1a1d44"/></g>
+  <text x="832" y="274" class="t" xml:space="preserve">每件事是一条线：</text>
+  <text x="832" y="300" class="t" xml:space="preserve">· 起因、牵涉谁、</text>
+  <text x="832" y="326" class="t" xml:space="preserve">　谁在阻挠、威胁什么</text>
+  <text x="832" y="352" class="t" xml:space="preserve">· 按时间排出每场戏</text>
+  <text x="832" y="378" class="t" xml:space="preserve">　和每个幕后动作</text>
+  <text x="832" y="404" class="t" xml:space="preserve">· 直到了结或放下</text>
+  <text x="832" y="440" class="dim" xml:space="preserve">点开一场戏，台词旁边</text>
+  <text x="832" y="462" class="dim" xml:space="preserve">就是角色心里的打算</text>
+  <path d="M392 340 H416" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M782 340 H806" stroke="#e2c376" stroke-width="2.2" marker-end="url(#ag)"/>
+  <path d="M990 488 V512" fill="none" stroke="#e2c376" stroke-width="2" marker-end="url(#ag)"/>
+
+  <!-- crossroads -->
+  <rect x="30" y="516" width="1140" height="270" rx="14" class="card"/>
+  <circle cx="190" cy="660" r="90" fill="url(#glow)"/>
+  <path d="M190 770 C190 700 190 680 190 650 C190 620 130 590 90 540" fill="none" stroke="url(#road)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M190 650 C190 620 250 590 290 540" fill="none" stroke="url(#road)" stroke-width="14" stroke-linecap="round" stroke-dasharray="2 0"/>
+  <path d="M190 770 V650" stroke="#0d1330" stroke-width="2" stroke-dasharray="8 8"/>
+  <!-- signpost -->
+  <g stroke="#f3dc95" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M232 700 V630" fill="none"/>
+    <path d="M232 636 H268 L278 645 L268 654 H232Z" fill="#1a1d44"/>
+    <path d="M232 662 H196 L186 671 L196 680 H232Z" fill="#1a1d44"/>
+  </g>
+  <g fill="#f3dc95"><circle cx="160" cy="716" r="6"/><rect x="154" y="723" width="12" height="20" rx="4"/></g>
+  <text x="330" y="556" class="h">看不见的手</text>
+
+  <rect x="330" y="574" width="400" height="186" rx="12" class="plan"/>
+  <circle cx="356" cy="604" r="14" fill="#e2c376"/><text x="356" y="609" text-anchor="middle" class="num">4</text>
+  <text x="380" y="611" class="h2">暗中放一件事</text>
+  <text x="710" y="610" text-anchor="end" class="lbl">下一步</text>
+  <text x="352" y="642" class="q" xml:space="preserve">“如果明天一早，</text>
+  <text x="352" y="666" class="q" xml:space="preserve">　村里丢了一样东西？”</text>
+  <text x="352" y="706" class="t" xml:space="preserve">第二天开场，World 把它放进世界，</text>
+  <text x="352" y="730" class="t" xml:space="preserve">看所有人怎么反应</text>
+
+  <rect x="750" y="574" width="400" height="186" rx="12" class="plan" stroke-opacity="0.4"/>
+  <circle cx="776" cy="604" r="14" fill="#e2c376" opacity="0.75"/><text x="776" y="609" text-anchor="middle" class="num">5</text>
+  <text x="800" y="611" class="h2">从过去分岔</text>
+  <text x="1130" y="610" text-anchor="end" class="lbl">之后</text>
+  <text x="772" y="642" class="t" xml:space="preserve">回到过去的某一天，换一件事，</text>
+  <text x="772" y="666" class="t" xml:space="preserve">重新跑一遍</text>
+  <text x="772" y="706" class="dim" xml:space="preserve">两条路并排摆着，看差在哪里</text>
+
+  <path d="M1170 650 H1186 V140 H826" fill="none" stroke="#e2c376" stroke-width="1.8" stroke-dasharray="5 5" marker-end="url(#ag)"/>
+  <text x="1176" y="122" text-anchor="end" class="dim">新的一天又写进日志</text>
+</svg>
