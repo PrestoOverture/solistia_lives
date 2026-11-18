@@ -6,49 +6,49 @@
 
 # Yet Another Story of Solistia
 
-**Yet Another Story of Solistia** is about what happens in *Octopath Traveler II* after the game's story ends. It keeps a world going, one day at a time, lays out everything that happens and why, and lets you ask: **what if?**
+**Yet Another Story of Solistia** picks up where *Octopath Traveler II* leaves off. It runs the continent as a persistent, day-by-day world simulation—laying bare everything that happens and why, while letting you ask: **what if?**
 
-Vide is defeated, and the eight travelers' journeys have come to an end, but their lives go on. All the lore comes from one knowledge base built from the game's wiki.
+Vide has fallen, and the eight travelers' main journeys have come to a close, yet their lives go on. Every piece of lore in this project is grounded in a single knowledge base curated from the game's Fandom wiki.
 
 ## What it does
 
-- **World simulation (the main line):** each traveler is played by an agent that acts on its own goals and memory. A World agent decides whether what they try succeeds, plays everyone else, and keeps time. Nobody plans the plot. Everything that happens goes into an event log, and the world can pick up the next day where it left off.
-- **Crossroads (in progress):** you slip something into the world and watch how it plays out. Everything that happened is laid out as threads, each open from its cause to its end, down to what the characters privately meant.
-- **Story generation (done):** pick 2-3 travelers and a location, give an opening line, and a model writes a 2,000-3,000-word short story, which a validator then checks against the lore.
+- **World simulation (the main track):** Each traveler is driven by an independent agent acting on its own goals and memories. A World agent arbitrates whether their actions succeed, plays every NPC, and advances the clock. There is no scripted plot—every change is recorded in an append-only event log, so the world can always pick up the next day right where it left off.
+- **Crossroads (in progress):** Slip an unexpected variable into the world from the shadows and watch how it ripples out. Everything that unfolds is organized into **threads**, traceable from root cause to resolution—right down to what each character was privately thinking.
+- **Standalone story generation (done):** Pick 2–3 travelers, a location, and an opening hook. A single model drafts a 2,000–3,000-word short story, which a validator then fact-checks sentence by sentence against the lore.
 
-The original idea was to run the world first, then pick episodes from it to write up as stories. But in a head-to-head test, the directly written stories won 10-0. So a writer handles stories, and the world stops competing with it on prose. Instead it does what a writer can't: it keeps a full causal record, shows everyone's private motives, and can be changed and run again.
+Our original plan was to simulate the world first and then adapt interesting episodes from the logs into prose stories. In a blind head-to-head eval, however, directly written stories beat simulation-derived stories **10–0**. So we let a dedicated writer handle prose, and freed the world simulation from competing on literary style. Instead, the simulation focuses on what a static story cannot do: **maintain a complete causal record, expose every character's private motives, and let you change something and re-run history.**
 
-## Where the knowledge base comes from
+## Building the knowledge base
 
 <p align="center"><img src="assets/kb_build.svg" alt="Building the knowledge base: game wiki, pull, polish, link, 514 Markdown files" width="100%"></p>
 
-The knowledge base comes from the [Octopath Traveler Fandom wiki](https://octopathtraveler.fandom.com/). The wiki has about 4,700 pages and covers the whole series, of which OT2 is only a part. Antigravity built it in three steps, each with one job:
+All lore is sourced from the [Octopath Traveler Fandom wiki](https://octopathtraveler.fandom.com/). The full wiki spans roughly 4,700 pages across the entire franchise, of which *Octopath Traveler II* is only a subset. We used Antigravity to distil it in three strict stages, each doing one thing well:
 
-1. **Pull:** check every page for OT2 content, and save the 646 relevant pages exactly as they are.
-2. **Polish:** cut combat data, gameplay guides, and other games' content, clean up the format, and sort what's left into people, places, world, and stories: 514 Markdown files in the end. This step **may only delete, never add**, and the result is checked against step 1's text.
-3. **Link:** turn wiki links into paths inside the knowledge base. Links to pages outside it become plain text.
+1. **Pull:** Scan every page for OT2 relevance and save the 646 matching pages verbatim.
+2. **Polish:** Strip out combat stats, walkthroughs, and other games' entries; normalize formatting; and organize what remains into characters, locations, world lore, and storylines—yielding 514 clean Markdown files. This stage follows a strict **delete-only, never-add** rule, verified against the raw text from step 1.
+3. **Link:** Rewrite internal wiki links into relative Markdown paths inside the knowledge base, and flatten links pointing outside the KB into plain text.
 
-Every step comes with check scripts, which Claude reruns to look for missing pages, empty pages, misfiled pages, or anything the original text doesn't say. The author went through all eight travelers' files personally.
+Each stage is paired with automated check scripts that Claude re-runs to catch missing pages, empty files, misclassifications, or any hallucinated details not present in the source. All eight protagonists' files were personally reviewed by the author.
 
-The knowledge base is the authority on lore: when a fact is wrong, the fix goes into the knowledge base, not into a prompt. There is no vector store. Agents read files directly by path, name, and link, and every read is logged in the trace. How the travelers are doing after the game isn't in the knowledge base; that lives in the world premise and the character cards.
+The knowledge base is the single source of truth for canon: when a fact is wrong, we fix the KB rather than patching prompts. There is no vector database (no RAG)—agents navigate and read Markdown files directly by path, name, and internal links, with every read recorded in the execution trace. What happens to the travelers *after* the main game isn't on the wiki; that lives in the world premise and character cards.
 
-## How a story gets written
+## How a story is written
 
 <p align="center"><img src="assets/story_flow.svg" alt="Single-agent writing: input, writer, validator, final story, with targeted fixes when there is a contradiction" width="100%"></p>
 
-You start with 2-3 travelers, a location, and an opening line, for example "Osvald and Temenos, New Delsta, Osvald comes to town on scholarly business."
+You start with 2–3 travelers, a location, and a brief premise—for example: *"Osvald and Temenos, New Delsta, Osvald comes to town on scholarly business."*
 
-The **writer** is one strong model. It reads the travelers' character cards for their personality, way of speaking, and what they want now that the game is over. Then it looks up places and people in the knowledge base and writes the whole story in one go, following the style spec: 2-4 acts, 2,000-3,000 words.
+The **Writer** (a frontier model) first reads the travelers' character cards to internalize their personalities, voices, and post-game goals. It then consults the knowledge base for local lore and NPCs, and drafts the complete story in a single pass following a strict style specification: 2–4 acts, 2,000–3,000 words.
 
-Then the **validator** goes through it from the top. It picks out the sentences that touch game lore, breaks them into individual claims (say, "Temenos is an inquisitor"), and looks for quotable evidence in the knowledge base, the world premise, and the character cards. Each claim is judged supported, contradicted, or not in the KB. Newly invented minor characters, jokes, and things a character simply misremembers don't count as errors.
+Next, the **Validator** reviews the draft from top to bottom. It extracts every sentence that touches game lore, decomposes them into atomic claims (e.g., *"Temenos is an inquisitor"*), and searches the knowledge base, world premise, and character cards for verbatim evidence. Each claim is labeled *supported*, *contradicted*, or *unlisted*. Newly invented minor NPCs, obvious jokes, and things a character misremembers in-universe are not flagged as errors.
 
-When there's a contradiction, the writer **edits only the sentences at fault**, and the validator rechecks only the edited paragraphs, for up to three rounds. If it still isn't fixed after three, the story is marked failed, with the draft and full trace kept for debugging; it is never rewritten from scratch. Stories that pass can be read in the local web UI, with "story contract" notes at the end pointing out POV slips, wording that breaks the fiction, loose ends, and stakes too big for a short story. The notes are advisory and don't affect whether a story passes.
+When a contradiction is caught, the Writer **patches only the offending sentences**, and the Validator re-checks only the modified paragraphs, for up to three rounds. If a draft still fails after three rounds, the run is marked failed—preserving the draft and full trace for inspection rather than rewriting from scratch. Passing stories can be read in the local web UI, accompanied by advisory "story contract" notes at the end that flag POV slips, anachronistic phrasing, dangling threads, or stakes too grand for a short story.
 
 ## Sample stories
 
-Four stories the engine wrote, each passing the validator.
+Four sample stories generated by the engine, all passing lore validation:
 
-| Story | Travelers | Where |
+| Story | Travelers | Location |
 |---|---|---|
 | [The Peculiar Librarian](stories/the_peculiar_librarian.md) | Osvald & Temenos | Montwise |
 | [Red Dust Fever](stories/red_dust_fever.md) | Castti & Partitio | Crackridge |
@@ -59,20 +59,20 @@ Four stories the engine wrote, each passing the validator.
 
 <p align="center"><img src="assets/world_flow.svg" alt="World simulation: a day has four parts, and each part runs plan, meet, play, and off-screen" width="100%"></p>
 
-`world new` builds a world from the same inputs: where everyone is, what they want, who they've promised to meet, plus a few small local matters on a deadline, like a performance, some trouble, or a date. After that, each `world run` moves the world forward one day.
+Running `world new` initializes a persistent world from the same basic inputs—setting everyone's starting location, goals, and existing commitments, while seeding a few time-sensitive local matters (a scheduled performance, a brewing dispute, a promised meeting). From then on, each `world run` advances the simulation by one day.
 
-A day has four parts: morning, afternoon, evening, and night. Each part goes through four steps:
+Every day is divided into four time slots—**morning, afternoon, evening, and night**—and each slot steps through four phases:
 
-1. **Plan:** each traveler decides on their own where to go and what to do. They can simply be somewhere, or go and try something that matters. A plan is only an intention, and nobody else sees it.
-2. **Meet:** code moves the travelers according to their plans, and the World says who else is at each spot. When two travelers run into each other, or someone sets out to do something, a scene starts.
-3. **Play:** the scene goes round by round, and in each round only one person speaks or acts. Whoever was just addressed answers first, and someone with something urgent can cut in. The World plays the minor characters present and decides the outcome of each act.
-4. **Off-screen:** in a separate session, the World keeps the rest of the world moving: minor characters go about their business, and matters nobody dealt with lapse when their time runs out. This session can't see the travelers or touch them.
+1. **Plan:** Each traveler privately decides where to go and what to attempt. They might simply linger somewhere or set out to tackle an urgent matter. A plan is purely internal intention; no other character can see it.
+2. **Meet:** The engine moves travelers according to their plans, and the World agent announces who else is present at each spot. Whenever two travelers cross paths—or someone sets out to take action—a **scene** begins.
+3. **Play:** A scene unfolds turn by turn, with only one character speaking or acting per round. Whoever was just addressed gets the floor first, though anyone with urgent business can cut in. The World agent roleplays all minor NPCs present and adjudicates the outcome of every action.
+4. **Off-screen:** In an isolated session, the World agent keeps the rest of the town moving beyond the camera: NPCs go about their routines, and neglected matters expire when their deadlines pass. This off-screen session has no visibility into the travelers and cannot directly touch them.
 
-At the end of the day, each traveler writes a memory of the day and carries it into the next. The next morning, travelers adjust their goals from their memories, and the World adds a few new matters.
+At day's end, each traveler distills the day's events into a personal memory entry to carry forward. The next morning, travelers update their goals based on yesterday's memories, and the World introduces fresh local developments.
 
-Every change in the world, such as someone moving, making a promise, or a matter moving forward, is written to the event log as a typed operation. The world's current state is computed from the log step by step, so description alone changes nothing. The log is this world's canon, and that is what lets the world keep going.
+Every state transition in the world—someone moving, making a promise, or advancing a local matter—is recorded in the event log as a strictly typed operation. The world's live state is derived deterministically by replaying this log step by step; narrative flavor text alone never mutates state. The event log is the world's indisputable canon, which is what allows a simulation to run indefinitely across days.
 
-A world goes on one day after another. It ends when every matter is settled or it reaches its set number of days. After each day, a judge reads through the day's log and checks it for lore breaks and contradictions.
+A world continues day after day until all active matters are resolved or it hits its configured day limit. At the close of each simulated day, a Judge agent audits that day's log for lore violations or internal contradictions.
 
 ## Theater mode (paused)
 
@@ -80,94 +80,94 @@ A world goes on one day after another. It ends when every matter is settled or i
 
 <p align="center"><img src="assets/theater_flow.svg" alt="The theater: from the event log to the screen through scenes, staging, facing, and voices, played day by day" width="100%"></p>
 
-The meetings and conversations in the log can be played scene by scene in the theater.
+Every encounter and conversation captured in the event log can be staged and played back like a visual novel in Theater mode.
 
-**What it does:** it splits the log into scenes, hangs a backdrop for the place and time of day, and gives everyone a spot to stand. A speaker turns to whoever they are answering, and everyone else looks at the speaker. Lines go into speech bubbles with voices, and scenes play one after another, day by day. The public version uses only original art: twenty characters with four facings each, a dozen-plus day and night backdrops, and voices generated locally with Kokoro. Both worlds are live.
+**What's built:** The engine slices the event log into individual scenes, hangs a backdrop matching the location and time of day, and blocks out stage positions for everyone present. Active speakers turn toward whoever they are addressing while onlookers turn toward the speaker. Dialogue plays out in paged speech bubbles with synthesized voice acting, streaming scene after scene, day by day. The public deployment uses 100% original artwork and locally synthesized audio: 20 character sprites with four directional facings each, over a dozen day/night backdrops, and voice lines generated locally via Kokoro. Two full worlds are live now.
 
-**What could come next:** characters walking on and off and gesturing as they speak; a showcase world run start to finish for the theater; more voices for minor characters.
+**What we considered adding next:** Stage entrance/exit animations and speaking gestures; a showcase world simulated end-to-end specifically for theater playback; a wider voice palette for minor NPCs.
 
-**Why it's paused:** the theater does the same job as the writer: it hands the audience a finished story. On that job the writer already won 10-0, and adding more pictures and motion to the theater wouldn't make it clear whether it got better. What the world has that a writer can't give is a full causal record, everyone's private motives, and the ability to change it and run it again. So the theater stays as it is and becomes part of the threads below: every scene in a thread links straight to the theater.
+**Why it's paused:** Fundamentally, Theater mode and the standalone Writer serve the same purpose—delivering a finished story to a passive audience. At that job, the Writer already won 10–0, and layering on more sprites and animations wouldn't fundamentally change the equation. What makes the world simulation special is precisely what linear prose cannot offer: **a transparent causal graph, visibility into hidden character motives, and the freedom to alter events and replay history.** Rather than competing as a standalone medium, Theater mode stays as it is and now serves as an embedded scene player for Crossroads—every scene in a thread links straight to the theater.
 
 ### [Online theater](https://solistia-theater.vercel.app)
-- **[The Cropdale festival](https://solistia-theater.vercel.app/world/20261107-180443-2fc52f/theater.html):** Agnea and Throné, 23 scenes
-- **[The Oresrush wilds](https://solistia-theater.vercel.app/world/20261107-200913-754a8c/theater.html):** Hikari and Ochette, 21 scenes
+- **[The Cropdale Festival](https://solistia-theater.vercel.app/world/20261107-180443-2fc52f/theater.html):** Agnea & Throné, 23 scenes
+- **[The Oresrush Wilds](https://solistia-theater.vercel.app/world/20261107-200913-754a8c/theater.html):** Hikari & Ochette, 21 scenes
 
 ## Crossroads: the unseen hand
 
 <p align="center"><img src="assets/crossroads_flow.svg" alt="The unseen hand: you slip something into the world, the world goes on as usual, and the threads show how it plays out" width="100%"></p>
 
-You slip something into the world from the shadows: a missing object, a stranger, a rumor making the rounds. The next morning, it happens. No one knows whose hand it was. The travelers and the townsfolk just deal with it as their own hearts tell them, and where it goes, no one can say, not even you.
+From the shadows, you slip a small perturbation into the world: a missing heirloom, a stranger arriving in town, a rumor making the rounds. The next morning, it takes effect. No one in the world knows whose hand set it in motion. Travelers and townsfolk alike react according to their own natures—and where the butterfly effect leads, no one can predict, not even you.
 
-To see how it plays out, the world lays everything that happened out as **threads**:
+To make sense of how everything unfolds, Crossroads organizes the world's history into **threads**:
 
-- **One thread per matter.** Every matter on a deadline (a performance, some trouble, an accusation) is a thread: how it began, who it touches, who stands in the way, whose goal it threatens, when it is due, then every scene and off-screen move it went through, in order, until it was settled or dropped.
-- **Private motives in view.** Open any scene to see what each character did and said, and, when you want it, what they privately meant.
-- **Nothing goes to plan.** A new world opens with someone truly standing in a traveler's way. With that opponent present, nothing is a sure thing: the World only states the odds, and code rolls the dice. A failure doesn't stop the scene; it turns the story, and a conflict can run for days.
+- **One thread per matter:** Every time-bound situation (a festival performance, local trouble, a public accusation) forms its own thread—showing how it started, who is involved, who stands in the way, whose goals are at stake, and when the deadline falls, followed by a chronological feed of every scene and off-screen move until the matter is settled or abandoned.
+- **Private motives on display:** Expand any scene to inspect not just what each character said and did aloud, but the private intention behind every single line.
+- **No guaranteed outcomes:** Every new world opens with a genuine antagonist blocking a traveler's path. When an opponent pushes back, nothing is automatic: the World agent estimates the odds, and engine code rolls the dice. A failed roll doesn't halt the scene—it bends the story in a new direction, drawing conflicts out across days.
 
-**Where it stands:** threads, dice and the opening opponent are built; slipping something in is next. After that, you can go back to a past day, change one thing, and run it again.
+**Current progress:** The threads chronicle view, dice-roll resolution, and opening antagonists are all in place. Next up is the player intervention hook (slipping an event into the world), followed by time-travel branching—rewinding to a past day, changing one variable, and running an alternate timeline.
 
-## Status
+## Project status
 
-A personal project, still in progress.
+A personal side project under active development.
 
-- **Done:** the knowledge base; the writer, lore validation, and the fix loop; the evaluation kit and 10-story test suite; the local web UI (writing and reading). The MVP gate passed with 8 of 10 stories ([gate_v1.md](eval/results/gate_v1.md)).
-- **World engine:** world creation, traveler and World agents, round-by-round scenes, and world state computed from the event log are all built. The single-day world metrics pass ([world_we_v1.md](eval/results/world_we_v1.md)). Both test worlds ran their full five days and ended normally.
-- **Scene player and theater:** done, with voices; both worlds are live, see [Online theater](#online-theater). Then paused in favor of Crossroads.
-- **Crossroads (in progress):** the threads page is built; events name the thread they belong to; acts carry odds and can fail; a new world opens with an opponent who truly blocks a traveler.
-- **Next:** you drop something into the world, and see how the world takes it.
+- **Foundation & story generation (done):** Curated knowledge base; Writer, lore Validator, and targeted patch loop; evaluation harness and 10-story benchmark suite; local web UI for generation and reading. Passed the MVP quality gate with 8/10 stories clearing all checks ([gate_v1.md](eval/results/gate_v1.md)).
+- **World engine (done):** World initialization, Traveler and World agents, turn-based scene execution, and deterministic state projection from the event log. Single-day world metrics pass ([world_we_v1.md](eval/results/world_we_v1.md)), and both showcase worlds completed full five-day runs cleanly.
+- **Scene player & theater (paused):** Complete with voice synthesis; two full worlds are deployed live (see [Online theater](#online-theater)). Feature-frozen as focus shifts to Crossroads.
+- **Crossroads (in progress):** Thread chronicle UI is built; log events tag their parent threads; contested actions carry probabilities and can fail on dice rolls; worlds initialize with real opposition blocking the protagonists.
+- **Up next:** Player intervention—drop a new incident into a running world and watch how the cast responds.
 
 ## Quick start
 
-You need Python 3.12+, [uv](https://docs.astral.sh/uv/), and an Anthropic API key in `.env` (`ANTHROPIC_API_KEY=...`).
+Requires Python 3.12+, [uv](https://docs.astral.sh/uv/), and an Anthropic API key configured in `.env` (`ANTHROPIC_API_KEY=...`).
 
 ```bash
 uv sync
 uv run story-engine --help
 
-# Local web UI: /worlds lists every world, / reads stories that passed, /new writes a new one
+# Launch the local web UI: /worlds lists simulations, / reads validated stories, /new generates a story
 uv run story-engine web          # http://127.0.0.1:8000
 
-# Write a story from the command line (write → validate → fix)
+# Generate a standalone story from the CLI (write → validate → patch)
 uv run story-engine generate --mode baseline --characters osvald,temenos \
   --location new_delsta --scenario "Osvald comes to town on scholarly business"
 
-# Build a world and run its first day (world only, no story)
+# Initialize a new world and simulate Day 1 (world simulation only, no prose story)
 uv run story-engine world new --characters agnea,throne --location cropdale \
   --situation "Agnea has brought Throné to a festival here."
 uv run story-engine world run <world_id> --stop-after day
 
-# Read the world's threads
+# Inspect the world's event threads
 #   http://127.0.0.1:8000/world/<world_id>/chronicle
 
-# Voice the lines, then watch from the start in the theater
+# Synthesize voice lines and watch the world play out in Theater mode
 uv run story-engine world voice <world_id>
 #   http://127.0.0.1:8000/world/<world_id>/theater
 
-# Export a static site with the original art and Kokoro voices
+# Export a standalone static site with original art and local Kokoro voices
 uv run story-engine world voice <world_id> --engine kokoro
 uv run story-engine world export <world_id> --assets assets/original --out output/site
 
-# Tests (unit tests make no model calls)
+# Run unit tests (no LLM calls, zero cost)
 uv run pytest tests/unit
 ```
 
-Model calls cost money; one story is about $0.70, and one simulated day about $5-7 (at list prices). Each run's spending cap is `max_cost_usd` in `config/settings.yaml`.
+> **Cost note:** Running live agents consumes API tokens. At standard list prices, generating a standalone story costs roughly $0.70, and simulating one full day in a world costs about $5–7. You can configure the per-run spending circuit breaker via `max_cost_usd` in `config/settings.yaml`.
 
-## Layout
+## Repository layout
 
-| Path | What's there |
+| Path | Description |
 |---|---|
-| `src/story_engine/` | CLI, agents, world model, simulation loop, local web UI, evaluation tools |
-| `stories/` | Sample stories that passed validation |
-| `prompts/`, `cards/` | Agent prompts and the eight travelers' character cards |
-| `kb/` | The knowledge base: Markdown files built from the wiki |
-| `preprocess/` | Prompts and check reports for the three knowledge-base build steps |
-| `assets/original/` | Original characters and backdrops for the public site |
-| `config/` | Which model each role uses, plus settings such as rounds per scene and the cost cap |
-| `eval/` | Fixed judge prompts, the test suite, and evaluation results |
-| `docs/` | Requirements, architecture, tech stack, roadmap, and development log |
-| `tests/` | Unit tests, and end-to-end tests that call real models |
+| `src/story_engine/` | CLI entrypoints, agent implementations, world state model, simulation loop, local web UI, and eval harness |
+| `stories/` | Sample stories that passed lore validation (English originals and Chinese translations) |
+| `prompts/`, `cards/` | Agent system prompts and character cards for the eight travelers |
+| `kb/` | The knowledge base: 514 curated Markdown files distilled from the wiki |
+| `preprocess/` | Prompts and audit reports for the three-stage KB build pipeline |
+| `assets/original/` | Original character sprites and background art used on the public theater site |
+| `config/` | Model assignments per agent role, plus runtime tunables (scene round caps, cost limits, etc.) |
+| `eval/` | Fixed judge prompts, benchmark test suite, and evaluation reports |
+| `docs/` | PRD, architecture specs, Agent SDK patterns, roadmap, and development history |
+| `tests/` | Unit tests (mocked SDK) and live end-to-end (`e2e`) tests |
 
 ## Disclaimer
 
-An unofficial fan project, not affiliated with or endorsed by Square Enix. *Octopath Traveler* and all related names are trademarks of Square Enix. The knowledge base is derived from the [Octopath Traveler Fandom wiki](https://octopathtraveler.fandom.com/), whose text is licensed under [CC BY-SA](https://creativecommons.org/licenses/by-sa/3.0/). The cover illustration is official *Octopath Traveler II* promotional art, © Square Enix, with only the title added; it will be taken down immediately if the rights holder asks.
+This is an unofficial fan project and is neither affiliated with nor endorsed by Square Enix. *Octopath Traveler* and all related names are registered trademarks of Square Enix. The knowledge base is derived from the [Octopath Traveler Fandom wiki](https://octopathtraveler.fandom.com/) under the [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) license. The banner illustration uses official *Octopath Traveler II* promotional artwork (© Square Enix) with only a title overlay added; it will be removed immediately upon request by the rights holder.
