@@ -48,6 +48,7 @@ def test_session_disables_auto_compaction(tmp_path, base_url):
     options = sdk.session_options(tmp_path, tmp_path, role, "", 1, hooks)
 
     assert options.env["DISABLE_AUTO_COMPACT"] == "1"
+    assert options.env["CLAUDE_CODE_BLOCKING_LIMIT_OVERRIDE"] == "100000000"
 
 
 @pytest.mark.parametrize("source", ["dotenv", "environ"])
@@ -83,6 +84,7 @@ def test_provider_environment_and_null_options(tmp_path, monkeypatch, source):
     assert captured["env"] == {
         **sdk.session_environment(tmp_path),
         "DISABLE_AUTO_COMPACT": "1",
+        "CLAUDE_CODE_BLOCKING_LIMIT_OVERRIDE": "100000000",
         "CLAUDE_CONFIG_DIR": str((tmp_path / ".sdk").resolve()),
         **{f"CLAUDE_CODE_DISABLE_{feature}": "1" for feature in (
             "AUTO_MEMORY", "BUNDLED_SKILLS", "EXPLORE_PLAN_AGENTS",

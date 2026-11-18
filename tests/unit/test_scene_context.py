@@ -180,6 +180,7 @@ def test_scene_context_session(
             assert options.env == {
                 **session_environment(repo), "CLAUDE_CONFIG_DIR": options.env["CLAUDE_CONFIG_DIR"],
                 "DISABLE_AUTO_COMPACT": "1",
+                "CLAUDE_CODE_BLOCKING_LIMIT_OVERRIDE": "100000000",
                 **{f"CLAUDE_CODE_DISABLE_{feature}": "1" for feature in (
                     "AUTO_MEMORY", "BUNDLED_SKILLS", "EXPLORE_PLAN_AGENTS",
                     "CLAUDE_MDS", "GIT_INSTRUCTIONS", "WORKFLOWS")},

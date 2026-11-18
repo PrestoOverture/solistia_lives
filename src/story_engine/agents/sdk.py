@@ -225,8 +225,13 @@ def session_options(
         "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS", "CLAUDE_CODE_DISABLE_WORKFLOWS",
     ):
         env[key] = "1"
-    # Inflated relay usage can trigger CLI compaction mid-day; a truly overflowing session should fail with an error instead.
+    # Inflated relay usage can trigger CLI compaction mid-day. With auto-compact off,
+    # the bundled CLI still refuses a turn locally once the last reported usage passes
+    # the window (synthetic "Prompt is too long", no API call). Relay usage is sometimes
+    # inflated; a Claude day died this way on 2026-11-17. A huge blocking limit leaves
+    # the overflow decision to the API.
     env["DISABLE_AUTO_COMPACT"] = "1"
+    env["CLAUDE_CODE_BLOCKING_LIMIT_OVERRIDE"] = "100000000"
     if role.base_url:
         credentials = session_environment(root, {role.auth_token_env} if role.auth_token_env else set())
         env["ANTHROPIC_BASE_URL"] = role.base_url
