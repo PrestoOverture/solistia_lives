@@ -436,6 +436,14 @@ async def run_day(world_dir: Path, run_dir: Path) -> WorldState:
     try:
         async with TickSession(world_dir, run_dir) as session:
             state = load_state(world_dir)
+            if state.clock.day == 1 and not read_events(world_dir):
+                for situation in state.situations:
+                    if situation.heard is not None:
+                        commit_event(world_dir, Event(
+                            id=0, **state.clock.model_dump(),
+                            place=state.characters[situation.touches[0]].where,
+                            actor=situation.heard_from or 'world', type='world', content=situation.heard,
+                            perceived_by=situation.touches, about=situation.id))
             day_started = (state.clock.day >= 2
                            and state.clock.part == session.settings.parts_of_day[0])
             if day_started:

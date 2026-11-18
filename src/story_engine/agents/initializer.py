@@ -147,6 +147,26 @@ async def starting_state(
                     raise ValueError("starting state must contain 1-3 open situations")
                 if not any(item.opposed_by for item in state.situations):
                     raise ValueError("starting state must contain a situation with opposed_by")
+                for item in state.situations:
+                    if item.heard_from is not None:
+                        if item.heard_from not in item.people:
+                            raise ValueError(f"situation {item.id}: heard_from must name one of this situation's people")
+                        if not any(state.people[item.heard_from].where == state.characters[main].where
+                                   for main in item.touches):
+                            raise ValueError(f"situation {item.id}: heard_from must be at a touched main's where")
+                    if not item.opposed_by:
+                        continue
+                    if item.heard is None:
+                        raise ValueError(f"situation {item.id}: opposed_by requires non-null heard")
+                    if not item.at_stake:
+                        raise ValueError(f"situation {item.id}: opposed_by requires non-empty at_stake")
+                    for main, goal in item.at_stake.items():
+                        if main not in state.characters or main not in item.touches:
+                            raise ValueError(f"situation {item.id}: at_stake keys must name touched mains in state.characters")
+                        if goal not in state.characters[main].goals:
+                            raise ValueError(f"situation {item.id}: at_stake for {main} must copy one of that main's goals exactly")
+                    if item.due.day < 2:
+                        raise ValueError(f"situation {item.id}: opposed_by requires due.day >= 2")
                 if len(state.situations) >= 2:
                     if len({item.kind for item in state.situations}) <= 1:
                         raise ValueError("a starting state with two or more situations must have more than one kind")
@@ -164,6 +184,13 @@ async def starting_state(
                                     spot=member.spot, error=str(error))
                         member.spot = None
                     member.spot = fill_spot(catalogs, member.where, member.spot)
+                for item in state.situations:
+                    if item.opposed_by and not any(
+                        (state.people[name].where, state.people[name].spot)
+                        == (state.characters[main].where, state.characters[main].spot)
+                        for name in item.opposed_by for main in item.at_stake
+                    ):
+                        raise ValueError(f"situation {item.id}: an opposed_by person must start at an at_stake main's where and spot")
                 return state
             except ValueError as error:
                 trace.write(

@@ -9,11 +9,13 @@ import jsonschema
 import pytest
 from pydantic import ValidationError
 
-from story_engine.agents import world as world_agent
+from story_engine import simulation
+from story_engine.agents import initializer, world as world_agent
+from story_engine.agents.sdk import SessionError
 from story_engine.config import load_configs
 from story_engine.trace import TraceWriter
-from story_engine.world.io import load_state, read_events
-from story_engine.world.models import Event, Person, WorldState
+from story_engine.world.io import commit_event, load_state, read_events
+from story_engine.world.models import Event, Person, Situation, WorldState
 from story_engine.world.ops import OPS, reduce_ops
 from story_engine.world.permissions import Authority, validate_ops
 from test_day_start import fake_sdk, situation
@@ -30,6 +32,7 @@ def workspace(tmp_path):
     state.people['Host'] = Person(where='festival_grounds', wants=['Keep the gate closed'], commitments=[])
     state.situations[0].people = ['Host']
     state.situations[0].opposed_by = ['Host']
+    state.situations[0].heard = 'The host is keeping the gate closed.'
     (world / 'genesis.json').write_text(state.model_dump_json())
     return world, run, state
 
@@ -37,6 +40,179 @@ def workspace(tmp_path):
 def traces(run, kind):
     return [row for row in map(json.loads, (run / 'trace.jsonl').read_text().splitlines())
             if row['type'] == kind]
+
+
+@pytest.mark.parametrize('case,error', [
+    ('valid', None),
+    ('empty', 'non-empty at_stake'),
+    ('goal', 'copy one of'),
+    ('untouched', 'touched mains'),
+    ('person', 'touched mains'),
+    ('unknown', 'touched mains'),
+    ('place', 'where and spot'),
+    ('spot', 'where and spot'),
+    ('day', 'due.day >= 2'),
+    ('heard_null', 'non-null heard'),
+    ('heard_long', 'at most 200 characters'),
+    ('source_unknown', "heard_from must name one of this situation's people"),
+    ('source_away', "heard_from must be at a touched main's where"),
+    ('source_local', None),
+])
+@pytest.mark.parametrize('corrected', [False, True])
+def test_starting_opposition_validation(workspace, monkeypatch, case, error, corrected):
+    world, run, state = workspace
+    (run / 'scene_context.md').write_text('## Context\nA festival.')
+    for member in [*state.characters.values(), *state.people.values()]:
+        member.where, member.spot = 'cropdale', None
+    state.places[0].slug = 'cropdale'
+    target = state.situations[0]
+    target.touches = ['agnea']
+    target.at_stake = {'agnea': state.characters['agnea'].goals[0]}
+    target.due.day = 2
+    state.people['Courier'] = Person(where='cropdale', wants=['Deliver news'], commitments=[])
+    target.people.append('Courier')
+    valid = state.model_dump(exclude={'clock'})
+    bad = deepcopy(valid)
+    item = bad['situations'][0]
+    if case == 'empty':
+        item['at_stake'] = {}
+    elif case == 'goal':
+        item['at_stake']['agnea'] += ' '
+    elif case in {'untouched', 'person', 'unknown'}:
+        main = {'untouched': 'throne', 'person': 'Host', 'unknown': 'missing'}[case]
+        item['at_stake'] = {main: state.characters['throne'].goals[0]}
+    elif case == 'place':
+        bad['people']['Host']['where'] = 'festival_grounds'
+        bad['places'].append(dict(slug='festival_grounds', details=[]))
+    elif case == 'spot':
+        bad['people']['Host']['spot'] = 'tavern'
+    elif case == 'day':
+        item['due']['day'] = 1
+    elif case == 'heard_null':
+        item['heard'] = None
+    elif case == 'heard_long':
+        item['heard'] = 'x' * 201
+    elif case == 'source_unknown':
+        item['heard_from'] = 'Stranger'
+    elif case == 'source_away':
+        item['heard_from'] = 'Courier'
+        bad['people']['Courier']['where'] = 'festival_grounds'
+        bad['places'].append(dict(slug='festival_grounds', details=[]))
+    elif case == 'source_local':
+        item['heard_from'] = 'Courier'
+        # Only one of the touched mains needs to share the source's place.
+        item['touches'] = ['throne', 'agnea']
+        bad['characters']['throne']['where'] = 'festival_grounds'
+        bad['places'].append(dict(slug='festival_grounds', details=[]))
+
+    def respond(client, request):
+        return deepcopy(valid if corrected and len(client.calls) == 2 else bad)
+
+    clients = fake_sdk(monkeypatch, respond)
+    from story_engine.agents import character
+    monkeypatch.setattr(initializer, 'ClaudeSDKClient', character.ClaudeSDKClient)
+    monkeypatch.setattr(initializer, 'record_api_host', lambda *_: None)
+    models, settings = load_configs()
+    models.initializer.retries = 1
+
+    def exercise():
+        return asyncio.run(initializer.starting_state(
+            ROOT, run, list(state.characters), 'cropdale', 'A festival',
+            models.initializer, settings.agent_max_turns, TraceWriter(run)))
+
+    if error and not corrected:
+        with pytest.raises(SessionError, match=error):
+            exercise()
+    else:
+        result = exercise()
+        assert result.situations[0].at_stake == target.at_stake
+        assert result.people['Host'].spot == result.characters['agnea'].spot == 'village_square'
+    assert len(clients[0].calls) == (2 if error else 1)
+    if error:
+        assert error in clients[0].calls[1]
+        assert all(error in row['error'] for row in traces(run, 'state_validation_failed'))
+
+
+def test_at_stake_requires_opposition(workspace):
+    data = workspace[2].situations[0].model_dump()
+    assert Situation.model_validate(data).at_stake == {}
+    data.update(opposed_by=[], at_stake={'agnea': 'Visit'})
+    with pytest.raises(ValidationError, match='at_stake requires non-empty opposed_by'):
+        Situation.model_validate(data)
+
+
+@pytest.mark.parametrize('source', [None, 'Host'])
+@pytest.mark.parametrize('touches', [['agnea'], ['agnea', 'throne']])
+@pytest.mark.parametrize('history', ['fresh', 'heard', 'unrelated'])
+def test_starting_heard_precedes_and_is_perceived_by_first_plans(
+        workspace, monkeypatch, source, touches, history):
+    world, run, state = workspace
+    target = state.situations[0]
+    target.touches, target.heard_from = touches, source
+    (world / 'genesis.json').write_text(state.model_dump_json())
+    if history != 'fresh':
+        commit_event(world, Event(
+            id=0, **state.clock.model_dump(), place=state.characters[touches[0]].where,
+            actor=source or 'world', type='world',
+            content=target.heard if history == 'heard' else 'The morning bell rings.',
+            perceived_by=touches, about=target.id if history == 'heard' else None))
+    planned = set()
+
+    def respond(client, request):
+        call = request['call']
+        if call == 'part_of_day':
+            slug = ('agnea', 'throne')[clients.index(client)]
+            if slug not in planned:
+                facts = [e for e in request['perceived'] if e['content'] == target.heard]
+                assert len(facts) == int(history != 'unrelated' and slug in touches)
+                planned.add(slug)
+            return dict(call='plan', kind='go', intent='Explore', aim='Stay here.',
+                        where='festival_grounds', spot=None)
+        if call == 'scene_move':
+            return dict(call='action', move='wait', urge=0, intent='Wait', action='', say='')
+        if call in {'adjudicate', 'scene_round'}:
+            return dict(call=call)
+        if call == 'offscreen':
+            return dict(call=call, settle={id: 'dropped' for id in request.get('due_now', [])},
+                        situation_notes={s.id: 'Unchanged.' for s in load_state(world).situations
+                                         if s.status == 'open'})
+        assert call == 'end_of_day'
+        return dict(call=call, summary='The gate stays closed.')
+
+    clients = fake_sdk(monkeypatch, respond)
+    original_session = simulation.TickSession
+    monkeypatch.setattr(simulation, 'TickSession', lambda w, r: original_session(w, r, root=ROOT))
+    asyncio.run(simulation.run_day(world, run))
+
+    assert planned == set(state.characters)
+    events = read_events(world)
+    facts = [e for e in events if e.content == target.heard]
+    assert len(facts) == int(history != 'unrelated')
+    if facts:
+        fact, = facts
+        assert fact.perceived_by == touches and fact.about == target.id
+        assert fact.actor == (source or 'world') and fact.type == 'world'
+        assert fact.place == state.characters[touches[0]].where
+        assert (fact.day, fact.part, fact.scene, fact.round) == (1, 'morning', None, None)
+        assert fact.ops == []
+        assert fact.id < min(e.id for e in events if e.type == 'plan')
+
+
+@pytest.mark.parametrize('fields', [
+    {'at_stake': {'agnea': 'Visit'}},
+    {'opposed_by': ['Host'], 'at_stake': {'agnea': 'Visit'}},
+    {'at_stake': {}},
+])
+def test_at_stake_op_round_trip_and_day_start_permission(workspace, fields):
+    state = workspace[2]
+    ops = OPS.validate_python([dict(op='situation', id=state.situations[0].id, **fields)])
+    ops = OPS.validate_json(OPS.dump_json(ops))
+    updated = reduce_ops(state, ops, event_id=1)
+    assert updated.situations[0].at_stake == fields['at_stake']
+    assert state.situations[0].at_stake == {}
+    event = Event(id=1, **state.clock.model_dump(), place='festival_grounds', actor='world',
+                  type='world', content='', perceived_by=[], ops=ops)
+    assert validate_ops(state, event, Authority('day_start')) == updated
 
 
 def test_opposition_must_name_same_situation_people(workspace):
@@ -51,6 +227,20 @@ def test_opposition_must_name_same_situation_people(workspace):
     with pytest.raises(ValidationError, match='opposed_by'):
         reduce_ops(state, OPS.validate_python([
             dict(op='situation', id=state.situations[0].id, opposed_by=['Stranger'])]), event_id=1)
+
+
+def test_people_update_clears_at_stake_when_all_opposers_removed(workspace):
+    state = workspace[2]
+    target = state.situations[0]
+    target.at_stake = {'agnea': state.characters['agnea'].goals[0]}
+    ops = OPS.validate_python([dict(op='situation', id=target.id, people=[])])
+
+    updated = reduce_ops(state, ops, event_id=1)
+
+    assert updated.situations[0].opposed_by == []
+    assert updated.situations[0].at_stake == {}
+    assert target.opposed_by == ['Host']
+    assert target.at_stake == {'agnea': state.characters['agnea'].goals[0]}
 
 
 def test_people_update_prunes_opposition_and_replays(workspace):

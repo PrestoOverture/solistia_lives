@@ -189,7 +189,7 @@ def test_baseline_session(repo: Path, monkeypatch: pytest.MonkeyPatch, thinking:
     assert (run_dir / "story.md").read_text() == STORY
     meta = RunMeta.model_validate_json((run_dir / "meta.json").read_text())
     assert meta.status == "passed" and meta.error is None
-    assert meta.models.model_dump() == {name: {"schema": "call", **role, "base_url": None, "auth_token_env": None, "retries": 1, "max_turns": None, "timeout_s": None}
+    assert meta.models.model_dump() == {name: {"schema": "call", **role, "base_url": None, "auth_token_env": None, "retries": role.get("retries", 1), "max_turns": None, "timeout_s": None}
                                         for name, role in models.items()}
     assert meta.models_file == (str(model_path) if alternate_models else "config/models.yaml")
     assert meta.scene_context_from is None

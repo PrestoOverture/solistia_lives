@@ -65,6 +65,10 @@ def test_cumulative_cost_and_world_event_delta(tmp_path, monkeypatch, kind):
         state.people['Host'] = Person(where='cropdale', wants=['Keep the gate closed'], commitments=[])
         state.situations[0].people = ['Host']
         state.situations[0].opposed_by = ['Host']
+        state.situations[0].heard = 'The host is keeping the gate closed.'
+        state.situations[0].at_stake = {'agnea': state.characters['agnea'].goals[0]}
+        state.situations[0].due.day = 2
+        state.people['Host'].where = state.characters['agnea'].where
         outputs = [({}, .10), (state.model_dump(exclude={'clock'}), .25)]
         places = [tmp_path / 'cropdale.md', tmp_path / 'festival_grounds.md']
         for place in places:

@@ -74,7 +74,7 @@ def validate_ops(state: WorldState, event: Event, authority: Authority) -> World
             allowed = (call == 'scene_round' and event.scene is not None
                        and event.resolves is not None and event.resolution is not None)
             if call == 'day_start':
-                allowed = op.model_fields_set - {'op', 'id'} == {'opposed_by'}
+                allowed = op.model_fields_set - {'op', 'id'} <= {'opposed_by', 'at_stake'}
             if call in {'offscreen', 'code'}:
                 situation = next((s for s in state.situations if s.id == op.id), None)
                 parts = authority.parts_of_day

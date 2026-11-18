@@ -73,6 +73,7 @@ class SituationOp(WorldModel):
     due: Clock | None = None
     people: list[str] | None = None
     opposed_by: list[str] | None = None
+    at_stake: dict[str, str] | None = None
 
     @model_serializer(mode='wrap')
     def serialize(self, handler):
@@ -158,6 +159,8 @@ def reduce_ops(state: WorldState, ops: list[Op], *, event_id: int, scene: str | 
             situation.update(op.model_dump(exclude={'op', 'id'}, exclude_unset=True))
             if op.people is not None:
                 situation['opposed_by'] = [name for name in situation['opposed_by'] if name in op.people]
+                if not situation['opposed_by']:
+                    situation['at_stake'] = {}
         elif isinstance(op, ClockOp):
             data['clock'] = op.model_dump(exclude={'op'})
         state = WorldState.model_validate(data)

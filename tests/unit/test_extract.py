@@ -144,6 +144,7 @@ def test_adaptive_config_only_changes_validator_thinking():
     original['validator']['thinking'] = 'adaptive'
     for role in ('world', 'character'):
         original[role].pop('schema')
+    original['initializer'].pop('retries')
     assert original == adaptive
 
 

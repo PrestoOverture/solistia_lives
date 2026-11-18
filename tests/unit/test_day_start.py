@@ -83,7 +83,7 @@ def agent(agent_type, world, run):
 def situation(id='new-promise', kind='promise', part='evening'):
     return dict(id=id, kind=kind, summary='A supper invitation.', heard='A supper invitation arrives.', heard_from=None,
                 touches=['agnea'],
-                people=[], opposed_by=[], status='open', next='The supper starts.', due=dict(day=2, part=part))
+                people=[], opposed_by=[], at_stake={}, status='open', next='The supper starts.', due=dict(day=2, part=part))
 
 
 @pytest.mark.parametrize('touches', [['agnea'], ['agnea', 'throne']])

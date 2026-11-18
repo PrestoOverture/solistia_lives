@@ -234,8 +234,10 @@ def test_initializer_state_session_output_format_is_json_schema(tmp_path, monkey
                        for slug in ("agnea", "throne")},
         "people": {"Host": {"where": "cropdale", "sex": "m", "wants": ["Keep the stage closed"], "commitments": []}},
         "situations": [{"id": "festival", "summary": "A festival", "touches": ["agnea"],
-                        "people": ["Host"], "opposed_by": ["Host"], "status": "open", "next": "The dancing begins",
-                        "due": {"day": 1, "part": "evening"}}],
+                        "heard": "The host is keeping the stage closed.",
+                        "people": ["Host"], "opposed_by": ["Host"], "at_stake": {"agnea": "Visit the festival"},
+                        "status": "open", "next": "The dancing begins",
+                        "due": {"day": 2, "part": "evening"}}],
     }
     sessions = []
 

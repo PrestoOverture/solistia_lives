@@ -185,6 +185,9 @@ def test_initializer_spots_retry_then_null(workspace, monkeypatch, corrected):
     initial = load_state(world)
     initial.situations[0].people = ['Host']
     initial.situations[0].opposed_by = ['Host']
+    initial.situations[0].heard = 'The host is keeping the gate closed.'
+    initial.situations[0].at_stake = {'agnea': initial.characters['agnea'].goals[0]}
+    initial.situations[0].due.day = 2
 
     def respond(client, request):
         payload = initial.model_dump(exclude={'clock'})
@@ -198,6 +201,7 @@ def test_initializer_spots_retry_then_null(workspace, monkeypatch, corrected):
     monkeypatch.setattr(initializer, 'record_api_host', lambda *_: None)
     models, settings = load_configs()
     models.world.schema_mode = models.character.schema_mode = "call"
+    models.initializer.retries = 1
     state = asyncio.run(initializer.starting_state(ROOT, run, list(initial.characters),
         'festival_grounds', 'A festival', models.initializer, settings.agent_max_turns, TraceWriter(run)))
     # An invalid spot is cleared, then filled with the catalog default.

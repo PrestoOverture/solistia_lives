@@ -1,4 +1,4 @@
-initializer: {model: claude-sonnet-4-6, effort: high, thinking: "off"}
+initializer: {model: claude-sonnet-4-6, effort: high, thinking: "off", retries: 3}
 character: {model: claude-sonnet-4-6, effort: medium, thinking: "off", schema: session}
 narrator: {model: claude-opus-4-6, effort: high, thinking: "off"}
 baseline: {model: claude-opus-4-6, effort: high, thinking: "off"}

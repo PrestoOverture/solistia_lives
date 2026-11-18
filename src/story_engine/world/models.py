@@ -76,6 +76,7 @@ class Situation(WorldModel):
     touches: list[str] = Field(min_length=1)
     people: list[str]
     opposed_by: list[str] = Field(default_factory=list)
+    at_stake: dict[str, str] = Field(default_factory=dict)
     status: Literal["open", "resolved", "dropped"]
     next: str
     due: Clock
@@ -84,6 +85,8 @@ class Situation(WorldModel):
     def opposition_people(self) -> Self:
         if any(name not in self.people for name in self.opposed_by):
             raise ValueError(f"opposed_by must name only this situation's people: {self.people}")
+        if self.at_stake and not self.opposed_by:
+            raise ValueError("at_stake requires non-empty opposed_by")
         return self
 
 

@@ -44,8 +44,10 @@ def state():
         "people": {"Host": {"where": "cropdale", "wants": ["Keep the stage closed"], "commitments": []}},
         "situations": [
             {"id": "festival", "kind": "occasion", "summary": "A festival", "touches": ["agnea"],
-             "people": ["Host"], "opposed_by": ["Host"], "status": "open", "next": "The dancing begins",
-             "due": {"day": 1, "part": "evening"}},
+             "heard": "The host is keeping the stage closed.",
+             "people": ["Host"], "opposed_by": ["Host"], "at_stake": {"agnea": "Visit the festival"},
+             "status": "open", "next": "The dancing begins",
+             "due": {"day": 2, "part": "evening"}},
             {"id": "lost_coin", "kind": "trouble", "summary": "A coin is lost", "touches": ["agnea"],
              "people": [], "status": "open", "next": "The coin stays lost",
              "due": {"day": 1, "part": "night"}},
@@ -124,6 +126,8 @@ def test_starting_schema_requires_exact_input_characters(repo, state, monkeypatc
         ['hikari', 'ochette'], state['characters'].values())}
     for situation in state['situations']:
         situation['touches'] = ['hikari']
+        if situation.get('at_stake'):
+            situation['at_stake'] = {'hikari': state['characters']['hikari']['goals'][0]}
     sessions = fake_sdk(monkeypatch, [state])
     args = ARGS.copy()
     args[args.index('--characters') + 1] = 'hikari,ochette'
@@ -150,19 +154,19 @@ def test_wrapped_state_validates_first_attempt(repo, state, monkeypatch, wrapper
 
 @pytest.mark.parametrize("last_reply", ["not JSON", "[]", '{"places": broken}', "{}"])
 def test_invalid_replies_are_traced_and_reported(repo, monkeypatch, last_reply):
-    replies = ["First invalid reply", last_reply]
+    replies = ["First invalid reply"] + [last_reply] * 3
     sessions = fake_sdk(monkeypatch, replies)
     result = CliRunner().invoke(app, ARGS)
     assert result.exit_code == 1, result.output
-    assert len(sessions[1].queries) == 2
+    assert len(sessions[1].queries) == 4
     run, = (repo / "runs").iterdir()
     events = [json.loads(row) for row in (run / "trace.jsonl").read_text().splitlines()]
     failures = [event for event in events if event["type"] == "state_validation_failed"]
-    assert [event["attempt"] for event in failures] == [1, 2]
+    assert [event["attempt"] for event in failures] == [1, 2, 3, 4]
     assert [event["raw_reply"] for event in failures] == replies
     assert all(event["error"] for event in failures)
     assert failures[-1]["error"] in result.output
-    assert "Initializer state validation failed after one retry:" in result.output
+    assert "Initializer state validation failed after 3 retries:" in result.output
 
 
 @pytest.mark.parametrize("failure", ["pydantic", "place", "input_place", "due", "characters",
@@ -190,11 +194,11 @@ def test_validation_retry(repo, state, monkeypatch, failure, recover):
         bad["situations"][0]["opposed_by"] = ["Stranger"]
     else:
         del bad["characters"]["throne"]
-    sessions = fake_sdk(monkeypatch, [bad, state if recover else bad])
+    sessions = fake_sdk(monkeypatch, [bad] + ([state] if recover else [bad] * 3))
     result = CliRunner().invoke(app, ARGS)
     assert result.exit_code == (0 if recover else 1), result.output
     assert len(sessions) == 2
-    assert len(sessions[1].queries) == 2
+    assert len(sessions[1].queries) == (2 if recover else 4)
     assert "State validation failed:" in sessions[1].queries[1]
     worlds = list((repo / "worlds").iterdir()) if (repo / "worlds").exists() else []
     assert len(worlds) == (1 if recover else 0)
@@ -202,7 +206,7 @@ def test_validation_retry(repo, state, monkeypatch, failure, recover):
     assert json.loads((run / "meta.json").read_text())["status"] == ("passed" if recover else "failed")
     failures = [event for row in (run / "trace.jsonl").read_text().splitlines()
                 if (event := json.loads(row))["type"] == "state_validation_failed"]
-    assert [event["attempt"] for event in failures] == ([1] if recover else [1, 2])
+    assert [event["attempt"] for event in failures] == ([1] if recover else [1, 2, 3, 4])
     assert all(event["error"] and event["raw_reply"] == json.dumps(bad) for event in failures)
     if not recover:
         assert failures[-1]["error"] in result.output
@@ -240,7 +244,7 @@ def test_path_form_place_slugs_are_normalized():
     assert out["people"]["Gus"]["where"] == "cropdale"
 
 
-@pytest.mark.parametrize('retries', [None, 3])
+@pytest.mark.parametrize('retries', [None, 1, 3])
 @pytest.mark.parametrize('recover', [False, True])
 def test_configured_state_retry_budget(repo, state, monkeypatch, retries, recover):
     import yaml
@@ -249,7 +253,7 @@ def test_configured_state_retry_budget(repo, state, monkeypatch, retries, recove
         config = yaml.safe_load(path.read_text())
         config['initializer']['retries'] = retries
         path.write_text(yaml.safe_dump(config))
-    count = 1 if retries is None else retries
+    count = 3 if retries is None else retries
     sessions = fake_sdk(monkeypatch, ['{}'] * count + [state if recover else '{}'])
     result = CliRunner().invoke(app, ARGS)
     assert result.exit_code == (0 if recover else 1), result.output

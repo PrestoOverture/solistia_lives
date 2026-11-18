@@ -98,7 +98,7 @@ def test_valid_dry_run(config_dir: Path) -> None:
         assert meta.input.scenario.encode("utf-8") == scenario.encode("utf-8")
         assert meta.input.characters == ["osvald", "temenos"]
         assert meta.status == "dry_run"
-        assert meta.models.model_dump() == {name: {"schema": "call", **role, "base_url": None, "auth_token_env": None, "retries": 1, "max_turns": None, "timeout_s": None}
+        assert meta.models.model_dump() == {name: {"schema": "call", **role, "base_url": None, "auth_token_env": None, "retries": role.get("retries", 1), "max_turns": None, "timeout_s": None}
                                         for name, role in expected_models.items()}
         assert meta.models_file == "config/models.yaml"
         assert meta.scene_context_from is None
@@ -264,7 +264,8 @@ def test_location_requires_file_under_locations(config_dir: Path, tree: str) -> 
 def test_role_limits_defaults_and_spark():
     from story_engine.config import load_configs
     models, _ = load_configs()
-    assert all(role.retries == 1 and role.max_turns is None for role in models.__dict__.values())
+    assert all(role.retries == (3 if name == "initializer" else 1) and role.max_turns is None
+               for name, role in models)
     spark, _ = load_configs('config/models_spark.yaml')
     assert all(role.retries == 3 and role.max_turns == 60 for role in spark.__dict__.values())
 
