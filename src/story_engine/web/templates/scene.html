@@ -57,13 +57,15 @@
   #beat-text { margin: .5rem 0; }
   .player-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1rem; }
 </style>
-<a href="{{ index_url if static_site else url_for('worlds') }}" hx-boost="false">← Worlds</a>
+<header class="page-header">
+<a class="back-link" href="{{ index_url if static_site else url_for('worlds') }}" hx-boost="false">← Worlds</a>
 <h1>{% if theater_scenes %}World theater{% else %}Scene {{ scene.id }}{% endif %}</h1>
-<p id="scene-metadata" class="metadata">Day {{ scene.day }} · {{ scene.part }} · {{ scene.rounds }} rounds</p>
+<p id="scene-metadata" class="metadata">Day {{ scene.day }} · {{ scene.part }} · {{ scene.rounds }} round{{ '' if scene.rounds == 1 else 's' }}</p>
+</header>
 {% if theater_scenes %}
-<nav aria-label="Chapters">
+<nav class="chapter-nav" aria-label="Chapters">
 {% for day, scene_id in chapters.items() %}
-  <a data-chapter="{{ scene_id }}" href="#{{ scene_id }}">Day {{ day }}</a>
+  <a class="button small" data-chapter="{{ scene_id }}" href="#{{ scene_id }}">Day {{ day }}</a>
 {% endfor %}
 </nav>
 {% endif %}
@@ -90,11 +92,11 @@
   <div id="narration" class="textbox" aria-live="polite"><p id="beat-text"></p></div>
 </div>
 <div class="player-controls">
-  <button id="previous" type="button">← Back</button>
+  <button class="button" id="previous" type="button">← Back</button>
   <span id="beat-counter" aria-live="polite"></span>
-  <button id="next" type="button">Next →</button>
-  <label><input id="auto" type="checkbox"> Auto</label>
-  <label><input id="show-world" type="checkbox"> Show World events</label>
+  <button class="button primary" id="next" type="button">Next →</button>
+  <label class="button"><input id="auto" type="checkbox"> Auto</label>
+  <label class="metadata"><input id="show-world" type="checkbox"> Show World events</label>
 </div>
 <p class="metadata">Click the stage, Space or → to advance. ← goes back.</p>
 <noscript>Enable JavaScript to play this scene.</noscript>

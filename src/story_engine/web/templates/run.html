@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Generation progress{% endblock %}
 {% block content %}
-<header>
-  <a href="{{ url_for('library') }}">← Story library</a>
+<header class="page-header">
+  <a class="back-link" href="{{ url_for('library') }}">← Story library</a>
   <h1>Generation progress</h1>
 </header>
 {% include "progress.html" %}

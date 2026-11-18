@@ -5,7 +5,7 @@
 <ul class="library">
 {% for world in worlds %}
   <li><h2><a href="world/{{ world.id }}/theater.html">{{ world.characters | join(', ') }}</a></h2>
-    <p>{{ world.place }} · {{ world.days | length }} days ({{ world.days | join(', ') }})</p>
+    <p>{{ world.place }} · {{ world.days | length }} day{{ '' if world.days | length == 1 else 's' }} ({{ world.days | join(', ') }})</p>
   </li>
 {% endfor %}
 </ul>

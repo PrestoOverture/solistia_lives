@@ -7,32 +7,95 @@
   <title>{% block title %}Story library{% endblock %} · Solistia Lives</title>
   {% if not static_site %}<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js" integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous" defer></script>{% endif %}
   <style>
-    :root { color-scheme: light dark; --paper: #faf7f0; --ink: #29251f; --muted: #6d6255; --rule: #d9d0c1; --link: #73502a; }
+    :root {
+      color-scheme: light dark;
+      --paper: #f6f3ec; --surface: #fffdf8; --ink: #292e2c; --muted: #666c67;
+      --rule: #dadfd5; --accent: #356653;
+      --open: #315f9b; --resolved: #357047; --dropped: #6a6d70;
+      --succeeded: #357047; --failed: #ab4141; --partial: #886015;
+    }
     @media (prefers-color-scheme: dark) {
-      :root { --paper: #201f1c; --ink: #e7e0d3; --muted: #b8ad9b; --rule: #494339; --link: #dfba87; }
+      :root {
+        --paper: #1b211f; --surface: #232b27; --ink: #e9ebe3; --muted: #b0b9b0;
+        --rule: #404c43; --accent: #a1cbb2;
+        --open: #9bbfec; --resolved: #9acda3; --dropped: #b3b5b7;
+        --succeeded: #9acda3; --failed: #f1a4a1; --partial: #e1c17e;
+      }
     }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; font-size: 1.125rem; line-height: 1.85; }
-    main { max-width: 65ch; margin: 0 auto; padding: 3rem 1.25rem 6rem; }
-    h1, h2, h3 { line-height: 1.25; font-weight: normal; }
-    h1 { font-size: 2.25rem; }
-    h2 { font-size: 1.5rem; }
-    a { color: var(--link); text-underline-offset: .2em; }
+    html { scroll-padding-top: 6rem; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: system-ui, sans-serif; font-size: 1rem; line-height: 1.65; }
+    main { max-width: 72rem; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; overflow-wrap: anywhere; }
+    h1, h2, h3, h4 { line-height: 1.3; font-weight: 600; }
+    h1 { font-size: clamp(1.6rem, 4vw, 2.25rem); letter-spacing: -.03em; margin: .6rem 0 1rem; }
+    h2 { font-size: 1.35rem; }
+    h3 { font-size: 1.05rem; }
+    a { color: var(--accent); text-underline-offset: .2em; }
     a:hover { text-decoration-thickness: .15em; }
-    header { margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--rule); }
-    .metadata { color: var(--muted); font-family: system-ui, sans-serif; font-size: .875rem; line-height: 1.7; }
-    .library { list-style: none; padding: 0; }
-    .library li { padding: 1.25rem 0; border-bottom: 1px solid var(--rule); }
+    a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+    .topbar { position: sticky; top: 0; z-index: 3000; background: var(--surface); border-bottom: 1px solid var(--rule); }
+    .topbar-inner { max-width: 72rem; margin: auto; padding: .9rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .brand { color: var(--ink); font-weight: 650; text-decoration: none; white-space: nowrap; }
+    .topbar nav { display: flex; gap: 1rem; font-size: .9rem; }
+    .topbar nav a { color: var(--muted); text-decoration: none; padding: .2rem 0; }
+    .topbar nav a[aria-current] { color: var(--accent); border-bottom: 2px solid var(--accent); }
+    .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--rule); }
+    .back-link { font-size: .875rem; text-decoration: none; }
+    .muted, .metadata { color: var(--muted); }
+    .metadata, .small { font-size: .85rem; }
+    .eyebrow { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; font-weight: 650; }
+    .prose { font-family: Georgia, 'Times New Roman', serif; font-size: 1.125rem; line-height: 1.8; white-space: pre-wrap; }
+    .card { background: var(--surface); border: 1px solid var(--rule); border-radius: .8rem; padding: 1.5rem; min-width: 0; }
+    .card h2:first-child { margin-top: 0; }
+    .card-list { display: grid; gap: 1.25rem; }
+    .chip, [class*="pill-"] { display: inline-block; border-radius: 2rem; padding: .15rem .6rem; font-size: .75rem; line-height: 1.6; font-weight: 550; }
+    .chip { background: var(--paper); color: var(--muted); border: 1px solid var(--rule); }
+    .pill-open { --status: var(--open); } .pill-resolved { --status: var(--resolved); }
+    .pill-dropped { --status: var(--dropped); } .pill-succeeded { --status: var(--succeeded); }
+    .pill-failed { --status: var(--failed); } .pill-partial { --status: var(--partial); }
+    [class*="pill-"] { color: var(--status, var(--muted)); background: color-mix(in srgb, var(--status, var(--muted)) 10%, var(--surface)); }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; padding: .5rem .9rem; border: 1px solid var(--rule); border-radius: .45rem; background: var(--surface); color: var(--accent); font: 550 .875rem/1.5 system-ui, sans-serif; text-decoration: none; cursor: pointer; }
+    .button.primary { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+    .button:hover { border-color: var(--accent); }
+    .button:disabled { opacity: .45; cursor: default; }
+    .button.small { padding: .2rem .6rem; font-size: .75rem; }
+    .actions, .stats, .chapter-nav { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
+    .stats { gap: 1.5rem; font-size: .875rem; color: var(--muted); margin: 1.25rem 0; }
+    .stats strong { color: var(--ink); }
+    details { margin: 1rem 0; }
+    summary { cursor: pointer; }
+    details > summary { color: var(--ink); }
+    .compact-list { padding-left: 1.25rem; font-size: .85rem; }
+    .compact-list li { padding: .5rem 0; }
+    .library { list-style: none; padding: 0; display: grid; gap: 1rem; }
+    .library li { background: var(--surface); padding: 1.5rem; border: 1px solid var(--rule); border-radius: .8rem; }
     .library h2 { margin: 0 0 .5rem; }
+    .story-page { max-width: 65ch; margin: auto; }
+    .story-prose { font-family: Georgia, 'Times New Roman', serif; font-size: 1.125rem; line-height: 1.85; }
     article p { margin: 1.25em 0; }
     article img { max-width: 100%; }
     article pre { overflow-x: auto; }
     article blockquote { margin-left: 1rem; padding-left: 1rem; border-left: 2px solid var(--rule); }
+    .form-card { max-width: 42rem; }
+    fieldset { padding: 1rem; border: 1px solid var(--rule); border-radius: .5rem; }
+    legend, form label { font-size: .9rem; }
+    select, textarea { max-width: 100%; width: 100%; background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: .4rem; padding: .6rem; font: inherit; }
+    input { accent-color: var(--accent); }
+    [role="alert"] { color: var(--failed); }
+    .chapter-nav { margin: 0 0 1.25rem; }
     hr { border: 0; border-top: 1px solid var(--rule); margin: 2.5rem 0; }
+    @media (max-width: 600px) { main { padding: 1.5rem 1rem 4rem; } .card { padding: 1rem; } .topbar-inner { padding: .8rem 1rem; } }
   </style>
 </head>
 <body hx-boost="true" hx-target="main" hx-select="main" hx-swap="outerHTML show:window:top">
-  {% if static_site %}<nav aria-label="Main"><a href="{{ index_url }}">Worlds</a></nav>{% else %}<nav aria-label="Main"><a href="{{ url_for('library') }}">Stories</a> · <a href="{{ url_for('worlds') }}" hx-boost="false">Worlds</a></nav>{% endif %}
+  {% set worlds_current = static_site or request.url.path.startswith('/world') %}
+  <div class="topbar"><div class="topbar-inner">
+    <a class="brand" hx-boost="false" href="{{ index_url if static_site else url_for('worlds') }}">Solistia Lives</a>
+    <nav aria-label="Main">
+      <a hx-boost="false" href="{{ index_url if static_site else url_for('worlds') }}"{% if worlds_current %} aria-current="page"{% endif %}>Worlds</a>
+      {% if not static_site %}<a hx-boost="false" href="{{ url_for('library') }}"{% if not worlds_current %} aria-current="page"{% endif %}>Stories</a>{% endif %}
+    </nav>
+  </div></div>
   <main>{% block content %}{% endblock %}</main>
 </body>
 </html>

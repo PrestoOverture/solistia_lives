@@ -127,7 +127,7 @@ def test_worlds_lists_we_fixture_and_scenes(tmp_path):
         for sid, part, rounds in [('1', 'morning', 3), ('2', 'night', 1)]:
             assert f'/world/player/scene/{sid}' in html
             assert f'Day 1 · {part} · Cropdale' in html
-            assert f'{rounds} rounds' in html
+            assert f'{rounds} round{"" if rounds == 1 else "s"}' in html
         assert 'Agnea Bristarni, Throné Anguis, Mabel' in html
         # The existing fixture has genesis but no recorded scenes.
         assert 'agnea_throne' not in html

@@ -42,7 +42,7 @@ def test_export_index_theater_assets_audio_and_links(exported):
     index = (out / 'index.html').read_text()
     assert NOTICE in index
     assert 'Agnea Bristarni' in index and 'Throné Anguis' in index
-    assert 'Cropdale' in index and '1 days' in index
+    assert 'Cropdale' in index and '1 day' in index and '1 days' not in index
     assert 'world/player/theater.html' in index
     html = (out / 'world/player/theater.html').read_text()
     assert 'id="title-card"' in html and 'cdn.jsdelivr' not in html

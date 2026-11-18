@@ -7,9 +7,10 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from story_engine.config import load_settings
+from story_engine.stages import load_catalog, load_catalogs
 from story_engine.web.player import display_name, valid_id
 from story_engine.world.io import read_events, read_scenes
-from story_engine.world.models import Clock, Event, SceneRecord, Situation, WorldState
+from story_engine.world.models import Clock, Event, SceneRecord, Situation, WorldInfo, WorldState
 from story_engine.world.ops import Open, SituationOp
 
 
@@ -150,7 +151,40 @@ def chronicle_data(worlds_dir: Path, world_id: str, names: dict, locations: dict
         unthreaded=[entries[s.id] for s in scenes if s.id not in used], elsewhere=elsewhere)
 
 
-def register_chronicle_routes(app, templates, worlds_dir: Path, travelers: dict, locations: dict):
+def thread_timelines(chronicle: Chronicle, scenes: list[SceneRecord], parts: list[str]) -> dict:
+    """HTML-only ordering; leave the chronicle's serialized contract untouched.
+
+    Combine facts from the same event so a closing or update linked off-scene
+    appears once. A scene occupies the position of its first logged event.
+    """
+    first_ids = {scene.id: scene.first_event_id for scene in scenes}
+    timelines = {}
+    for thread in chronicle.threads:
+        events = {}
+
+        def entry(item, event_id):
+            return events.setdefault(event_id, dict(
+                kind='event', day=item.day, part=item.part, event_id=event_id,
+                opened=None, event=None, updates=[], change=None, closed=None))
+
+        entry(thread.opened, thread.opened.event_id or 0)['opened'] = thread.opened
+        for event in thread.off_scene:
+            entry(event, event.id)['event'] = event
+        for update in thread.updates:
+            entry(update, update.event_id)['updates'].append(update)
+        for change in thread.status_history:
+            entry(change, change.event_id)['change'] = change
+        if thread.closed:
+            entry(thread.closed, thread.closed.event_id)['closed'] = thread.closed
+        rows = [*events.values(), *(dict(kind='scene', day=scene.day, part=scene.part,
+                event_id=first_ids[scene.id], scene=scene) for scene in thread.scenes)]
+        timelines[thread.id] = sorted(rows, key=lambda row: (
+            row['day'], parts.index(row['part']), row['event_id'], row['kind'] != 'scene'))
+    return timelines
+
+
+def register_chronicle_routes(app, templates, worlds_dir: Path, player_assets_dir: Path,
+                              travelers: dict, locations: dict):
     def field_text(field, value):
         """Format structured values only; never interpret event prose."""
         if isinstance(value, dict):
@@ -159,7 +193,7 @@ def register_chronicle_routes(app, templates, worlds_dir: Path, travelers: dict,
             return ' · '.join(f'{key} → {field_text(key, item)}' for key, item in value.items())
         if isinstance(value, list):
             return ', '.join(field_text(field, item) for item in value) or '—'
-        if field in {'people', 'touches', 'who', 'person', 'main', 'name', 'heard_from'}:
+        if field in {'people', 'touches', 'opposed_by', 'who', 'person', 'main', 'name', 'heard_from'}:
             return display_name(value, travelers) if value is not None else '—'
         if field in {'place', 'where', 'slug'}:
             return locations.get(value, value)
@@ -182,8 +216,30 @@ def register_chronicle_routes(app, templates, worlds_dir: Path, travelers: dict,
     @app.get('/world/{world_id}/chronicle', response_class=HTMLResponse)
     def chronicle(request: Request, world_id: str):
         item = data(world_id)
+        directory = worlds_dir / world_id
+        try:
+            if (directory / 'world.json').is_symlink():
+                raise ValueError('World not found')
+            info = WorldInfo.model_validate_json((directory / 'world.json').read_bytes())
+        except (OSError, ValueError):
+            raise HTTPException(status_code=404, detail='World not found') from None
+        scenes = read_scenes(directory)
+        parts = load_settings().parts_of_day
+        # load_catalogs takes a project root; custom --assets directories use
+        # the same catalog loader directly, as the player does.
+        if player_assets_dir == player_assets_dir.parent.parent / 'assets/player':
+            catalogs = load_catalogs(player_assets_dir.parent.parent)
+        else:
+            catalogs = {path.stem: catalog for path in (player_assets_dir / 'stages').glob('*.yaml')
+                        if (catalog := load_catalog(player_assets_dir, path.stem)) is not None}
+        spot_names = {(place, spot.id): spot.name or spot.id
+                      for place, catalog in catalogs.items() for spot in catalog.spots}
         scene_ids = {scene.id for thread in item.threads for scene in thread.scenes}
         scene_ids.update(scene.id for scene in item.unthreaded)
         return templates.TemplateResponse(request=request, name='chronicle.html', context=dict(
             chronicle=item, scene_count=len(scene_ids), field_text=field_text, op_text=op_text,
-            parts_of_day=load_settings().parts_of_day))
+            parts_of_day=parts, timelines=thread_timelines(item, scenes, parts),
+            world_title=', '.join(display_name(name, travelers) for name in info.characters)
+                        + ' · ' + locations.get(info.location, info.location),
+            day_count=max([1, *(scene.day for scene in scenes),
+                           *(event.day for event in read_events(directory))]), spot_names=spot_names))

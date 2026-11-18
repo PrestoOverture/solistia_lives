@@ -347,3 +347,63 @@ def test_progress_rejects_external_symlinks_and_unknown_runs(tmp_path):
     with TestClient(create_app(runs)) as client:
         for name in ("unknown", "linked", "trace-link"):
             assert client.get(f"/run/{name}").status_code == 404
+
+
+def test_worlds_newest_first_with_read_and_play_links(tmp_path):
+    import re
+    import shutil
+
+    worlds = tmp_path / 'worlds'
+    # Names sort opposite to creation dates. Offset timestamps must compare as instants.
+    for world_id, created_at in [('a-newest', '2026-10-30T08:00:00+00:00'),
+                                 ('z-oldest', '2026-10-30T09:00:00+02:00')]:
+        directory = worlds / world_id
+        shutil.copytree(Path(__file__).parents[1] / 'fixtures/worlds/player', directory)
+        path = directory / 'world.json'
+        info = json.loads(path.read_text())
+        info['created_at'] = created_at
+        path.write_text(json.dumps(info))
+    with TestClient(create_app(runs_dir=tmp_path / 'runs', worlds_dir=worlds)) as client:
+        response = client.get('/worlds')
+    assert response.status_code == 200
+    cards = re.findall(r'<section class="card world-card">(.*?)</section>', response.text, re.S)
+    assert len(cards) == 2
+    for card, world_id in zip(cards, ['a-newest', 'z-oldest']):
+        assert world_id in card
+        assert re.search(fr'class="button primary" href="[^"]*/world/{world_id}/chronicle">Read chronicle</a>', card)
+        assert re.search(fr'hx-boost="false" href="[^"]*/world/{world_id}/theater">Play theater</a>', card)
+        assert '<h2>Agnea Bristarni, Throné Anguis</h2>' in card
+        assert 'Cropdale · 2 scenes · Day 1 · created' in card
+        assert 'Day 1–1' not in card
+        assert '<details><summary class="metadata">2 scenes</summary>' in card
+        assert '<details open' not in card
+
+
+@pytest.mark.parametrize('scene_count,day', [(1, 1), (2, 2)])
+def test_world_card_compact_metadata_and_count_labels(tmp_path, scene_count, day):
+    import re
+    import shutil
+
+    world_id = '20261118-034645-fixture'
+    directory = tmp_path / 'worlds' / world_id
+    shutil.copytree(Path(__file__).parents[1] / 'fixtures/worlds/player', directory)
+    path = directory / 'scenes.jsonl'
+    scenes = [json.loads(line) for line in path.read_text().splitlines()][:scene_count]
+    for scene in scenes:
+        scene.update(rounds=scene_count, day=day)
+    path.write_text(''.join(json.dumps(scene) + '\n' for scene in scenes))
+    with TestClient(create_app(runs_dir=tmp_path / 'runs', worlds_dir=directory.parent)) as client:
+        html = client.get('/worlds').text
+        single_scene = client.get(f'/world/{world_id}/scene/1').text
+    metadata = re.search(r'<div class="world-card-info">.*?<p class="metadata">(.*?)</p>', html, re.S)[1]
+    metadata = ' '.join(metadata.split())
+    scenes_label = f'{scene_count} scene{"" if scene_count == 1 else "s"}'
+    rounds_label = f'{scene_count} round{"" if scene_count == 1 else "s"}'
+    days_label = 'Day 1' if day == 1 else f'Day 1–{day}'
+    assert f'Cropdale · {scenes_label} · {days_label} · created Nov 18 03:46' in metadata
+    assert f'<span class="world-id muted">{world_id}</span>' in metadata
+    assert f'<summary class="metadata">{scenes_label}</summary>' in html
+    assert rounds_label in html and rounds_label in single_scene
+    assert '1 rounds' not in html and '1 rounds' not in single_scene
+    assert 'Day 1–1' not in html
+    assert html.index('class="world-card-row"') < html.index('Read chronicle') < html.index('<details>')

@@ -1,106 +1,199 @@
 {% extends "base.html" %}
-{% block title %}World chronicle · {{ chronicle.world_id }}{% endblock %}
+{% block title %}{{ world_title }} · Chronicle{% endblock %}
 {% macro scene_entry(scene) %}
-<details>
-  <summary>Scene {{ scene.id }} · Day {{ scene.day }} {{ scene.part }} · {{ scene.place_name }}{% if scene.spot %} / {{ scene.spot }}{% endif %}</summary>
-  <p>{{ scene.participants | join(', ') }} · End: {{ scene.end }}</p>
-  <p><a hx-boost="false" href="{{ scene.theater_link }}">Play this scene in theater</a></p>
+<details class="scene-entry">
+  <summary><span class="scene-summary-text"><span class="scene-title">Scene {{ scene.id }} · Day {{ scene.day }} {{ scene.part }} · {{ scene.place_name }}{% if scene.spot %} — {{ spot_names.get((scene.place, scene.spot), scene.spot) }}{% endif %}</span><span class="scene-cast metadata">{{ scene.participants | join(', ') }}</span></span>
+    <a class="button small" hx-boost="false" href="{{ scene.theater_link }}">Play ▶</a></summary>
+  <div class="transcript">
   {% for round in scene.rounds %}
   {% set visible_world = round.world | selectattr("content") | list %}
   {% set world_ops = round.world | selectattr("ops") | list %}
   {% if round.moves or visible_world or world_ops %}
-  <h4>Round {{ round.round }}</h4>
-  {% if round.moves %}<table><thead><tr><th scope="col">Did / said</th><th scope="col">Private intent</th></tr></thead>
-    <tbody>{% for move in round.moves %}<tr><td><strong>{{ person(move.actor) }}</strong>
-      {% if move.action %}<p>{{ move.action }}</p>{% endif %}
-      {% if move.say %}<p>“{{ move.say }}”</p>{% endif %}
-      {% if not move.action and not move.say %}<p>{{ move.content }}</p>{% endif %}</td>
-      <td>{{ move.intent or '—' }}</td></tr>{% endfor %}</tbody>
-  </table>{% endif %}
+  <h4 class="round-divider">Round {{ round.round }}</h4>
+  {% for move in round.moves %}
+  <div class="move">
+    <strong>{{ person(move.actor) }}</strong>
+    {% if move.action %}<p class="move-action muted">{{ move.action }}</p>{% endif %}
+    {% if move.say %}<p class="prose">“{{ move.say }}”</p>{% endif %}
+    {% if not move.action and not move.say %}<p class="prose">{{ move.content }}</p>{% endif %}
+    {% if move.intent %}<p class="private-intent metadata">Private intent: {{ move.intent }}</p>{% endif %}
+  </div>
+  {% endfor %}
   {% for world in round.world %}
-  {% if world.content or world.ops %}<p><strong>World · Event {{ world.id }}{% if world.resolution %} · {{ world.resolution }}{% if world.odds %} · {{ world.odds }}{% endif %}{% endif %}</strong> {{ world.content }}</p>
-  {% for op in world.ops %}<p>{{ op_text(op) }}</p>{% endfor %}{% endif %}
+  {% if world.content or world.ops %}
+  <div class="world-outcome">
+    <div class="outcome-header"><div class="actions">
+      {% if world.resolution %}<span class="pill-{{ world.resolution }}">{{ world.resolution }}</span>{% endif %}
+      {% if world.odds %}<span class="chip">{{ world.odds }}</span>{% endif %}</div>
+      <span class="metadata outcome-event">Event {{ world.id }}</span></div>
+    {% if world.content %}<p class="prose">{{ world.content }}</p>{% endif %}
+    {% for op in world.ops %}<p class="metadata">{{ op_text(op) }}</p>{% endfor %}
+  </div>
+  {% endif %}
   {% endfor %}
   {% endif %}
   {% endfor %}
+  <p class="metadata">End: {{ scene.end }}</p>
+  </div>
 </details>
 {% endmacro %}
-{% macro status_sequence(thread) -%}
-{% for change in thread.status_history %}{{ change.status }} · Day {{ change.day }} {{ change.part }}{% if change.by_clock %} · by the clock{% endif %}{% if not loop.last %} → {% endif %}{% else %}open{% endfor %}
-{%- endmacro %}
+{% macro status_sequence(thread) %}
+<div class="status-history">
+{% for change in thread.status_history %}
+  {% if not loop.first %}<span class="muted" aria-hidden="true">→</span>{% endif %}
+  <span><span class="pill-{{ change.status }}">{{ change.status }}</span><span class="metadata"> · Day {{ change.day }} {{ change.part }}{% if change.by_clock %} · by the clock{% endif %}</span></span>
+{% else %}<span class="pill-{{ thread.status }}">{{ thread.status }}</span>{% endfor %}
+</div>
+{% endmacro %}
 {% block content %}
 <style>
-  details { margin: 1rem 0; padding: .5rem; border: 1px solid var(--rule); }
-  table { width: 100%; table-layout: fixed; border-collapse: collapse; }
-  .overview-scroll { overflow-x: auto; }
-  #thread-overview { min-width: 1100px; font-size: 1rem; line-height: 1.5; }
-  #thread-overview th, #thread-overview td { overflow-wrap: normal; word-break: normal; hyphens: none; }
-  th, td { text-align: left; vertical-align: top; padding: .5rem; border: 1px solid var(--rule); overflow-wrap: anywhere; }
+  .chronicle-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+  .chronicle-body { min-width: 0; }
+  .chronicle-toc { display: none; }
+  .thread-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1rem; }
+  .thread-preview { display: block; padding: 1.25rem; color: var(--ink); text-decoration: none; transition: border-color .15s; }
+  .thread-preview:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--rule)); }
+  .thread-preview h3 { margin: .8rem 0; font-weight: normal; font-size: 1rem; line-height: 1.5; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
+  .thread-preview .metadata { margin-bottom: 0; }
+  .thread-card { margin: 1.5rem 0; scroll-margin-top: 6rem; }
+  .thread-card > h2 { margin: 1rem 0 .5rem; }
+  .thread-summary { font-family: Georgia, 'Times New Roman', serif; font-weight: normal; }
+  .thread-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: .65rem; }
+  .status-history { display: flex; flex: 1; min-width: 0; flex-wrap: wrap; align-items: baseline; gap: .4rem; }
+  .facts { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: .5rem 1rem; font-size: .875rem; padding: 1.25rem 0; border-block: 1px solid var(--rule); }
+  .facts dt { color: var(--muted); }
+  .facts dd { margin: 0; }
+  .facts .prose { font-size: 1rem; }
+  .timeline { list-style: none; padding: 0 0 0 1.1rem; margin: 1.5rem 0 0 .25rem; border-left: 1px solid var(--rule); }
+  .timeline > li { position: relative; padding: 0 0 1.5rem .25rem; }
+  .timeline > li::before { content: ''; position: absolute; width: .5rem; height: .5rem; border-radius: 50%; background: var(--rule); left: -1.4rem; top: .6rem; }
+  .timeline > li:last-child { padding-bottom: 0; }
+  .timeline p { margin: .5rem 0; }
+  .timeline-label { display: block; font-size: .75rem; color: var(--muted); margin-bottom: .35rem; }
+  .scene-entry { border: 1px solid var(--rule); border-radius: .5rem; margin: .5rem 0; }
+  .scene-entry > summary { display: flex; align-items: center; gap: .65rem; padding: .75rem; font-size: .85rem; }
+  .scene-entry > summary::before { content: '▸'; flex-shrink: 0; color: var(--muted); }
+  .scene-entry[open] > summary::before { content: '▾'; }
+  .scene-entry > summary::-webkit-details-marker { display: none; }
+  .scene-summary-text { flex: 1; min-width: 0; }
+  .scene-title, .scene-cast { display: block; }
+  .scene-entry > summary .button { flex-shrink: 0; margin: 0; }
+  .transcript { padding: 0 1rem 1rem; }
+  .round-divider { display: flex; align-items: center; gap: .75rem; color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; }
+  .round-divider::after { content: ''; flex: 1; border-top: 1px solid var(--rule); }
+  .move { margin: 1.25rem 0; }
+  .move > strong { font-size: .875rem; }
+  .move p { margin: .25rem 0; }
+  .move-action { font-style: italic; font-size: .9rem; }
+  .world-outcome { background: color-mix(in srgb, var(--accent) 7%, var(--surface)); border-left: 2px solid var(--rule); padding: .75rem 1rem; margin: 1rem 0; border-radius: 0 .4rem .4rem 0; }
+  .world-outcome p { margin: .4rem 0; }
+  .outcome-header { display: flex; align-items: center; gap: .5rem; }
+  .outcome-event { margin-left: auto; flex-shrink: 0; font-size: .7rem; }
+  .chronicle-page:not(:has(#show-intents:checked)) .private-intent { display: none; }
+  .day-group { border-top: 1px solid var(--rule); padding-top: .75rem; }
+  .day-group > summary { font-size: .9rem; font-weight: 550; }
+  .bottom-section { margin-top: 2.5rem; }
+  @media (width >= 1100px) {
+    .chronicle-layout { grid-template-columns: 12rem minmax(0, 1fr); }
+    .chronicle-toc { display: block; position: sticky; top: 6rem; align-self: start; max-height: calc(100vh - 7rem); overflow-y: auto; }
+    .chronicle-toc a { display: flex; align-items: center; gap: .5rem; padding: .45rem 0; font-size: .8rem; text-decoration: none; }
+    .toc-summary { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .status-dot { width: .45rem; height: .45rem; border-radius: 50%; flex-shrink: 0; background: var(--status); padding: 0; }
+  }
+  @media (max-width: 600px) { .facts { grid-template-columns: 5rem minmax(0, 1fr); gap: .5rem; } .transcript { padding: 0 .75rem .75rem; } }
 </style>
-<h1>World chronicle</h1>
-<p>{{ chronicle.world_id }}</p>
-<div class="overview-scroll">
-<table id="thread-overview">
-  <caption>Thread overview</caption>
-  <colgroup>
-    <col style="width: 8%">
-    <col style="width: 50%">
-    <col style="width: 12%">
-    <col style="width: 10%">
-    <col style="width: 14%">
-    <col style="width: 6%">
-  </colgroup>
-  <thead><tr><th scope="col">Kind</th><th scope="col">Summary</th><th scope="col">Touched mains</th><th scope="col">Opened</th><th scope="col">Outcome</th><th scope="col">Linked scenes</th></tr></thead>
-  <tbody>{% for thread in chronicle.threads %}
-    <tr><td>{{ thread.kind }}</td><td><a href="#thread-{{ thread.id }}">{{ thread.summary }}</a></td>
-      <td>{% for key in thread.touches %}{{ person(key) }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
-      <td>{% if thread.opened.at_start %}Start{% else %}Day {{ thread.opened.day }} {{ thread.opened.part }}{% endif %}</td>
-      <td>{{ status_sequence(thread) }}</td>
-      <td>{{ thread.scenes | length }}</td></tr>
-  {% endfor %}</tbody>
-</table>
-</div>
-<p>{{ chronicle.unthreaded | length }} of {{ scene_count }} scenes are in no thread</p>
+<div class="chronicle-page">
+<header class="page-header">
+  <a class="back-link" href="{{ url_for('worlds') }}">← Worlds</a>
+  <p class="eyebrow">World chronicle</p>
+  <h1>{{ world_title }}</h1>
+  <p class="metadata">{{ chronicle.world_id }}</p>
+  <div class="stats"><span><strong>{{ chronicle.threads | length }}</strong> thread{{ '' if chronicle.threads | length == 1 else 's' }}</span><span><strong>{{ scene_count }}</strong> scene{{ '' if scene_count == 1 else 's' }}</span><span><strong>{{ day_count }}</strong> day{{ '' if day_count == 1 else 's' }}</span></div>
+  <label class="metadata"><input id="show-intents" type="checkbox"> Show private intents</label>
+</header>
+<div class="chronicle-layout">
+<aside class="chronicle-toc" aria-label="Chronicle contents">
+  <p class="eyebrow">In this world</p>
+  {% for thread in chronicle.threads %}
+  <a href="#thread-{{ thread.id }}" title="{{ thread.summary }}"><span class="status-dot pill-{{ thread.status }}" aria-label="{{ thread.status }}"></span><span class="toc-summary">{{ thread.summary }}</span></a>
+  {% endfor %}
+  <a href="#elsewhere">Elsewhere</a><a href="#unthreaded">Unthreaded</a>
+</aside>
+<div class="chronicle-body">
+<section aria-labelledby="overview-heading">
+  <h2 id="overview-heading">Thread overview</h2>
+  <div id="thread-overview" class="thread-grid">
+  {% for thread in chronicle.threads %}
+    <a class="card thread-preview" href="#thread-{{ thread.id }}" title="{{ thread.summary }}">
+      <div class="actions"><span class="chip">{{ thread.kind }}</span><span class="pill-{{ thread.status }}">{{ thread.status }}</span></div>
+      <h3 class="prose">{{ thread.summary }}</h3>
+      <p class="metadata">{{ field_text('touches', thread.touches) }} · {% if thread.opened.at_start %}Start{% else %}Day {{ thread.opened.day }} {{ thread.opened.part }}{% endif %} · {{ thread.scenes | length }} scene{{ '' if thread.scenes | length == 1 else 's' }}</p>
+    </a>
+  {% else %}<p class="muted">No threads yet.</p>{% endfor %}
+  </div>
+  <p class="metadata">{{ chronicle.unthreaded | length }} of {{ scene_count }} scene{{ '' if scene_count == 1 else 's' }} {{ 'is' if scene_count == 1 else 'are' }} in no thread</p>
+</section>
 {% for thread in chronicle.threads %}
-<section id="thread-{{ thread.id }}">
-  <h2>{{ thread.id }} · {{ thread.kind }}</h2>
-  <p>{{ thread.summary }}</p>
-  <p>{{ status_sequence(thread) }}</p>
-  <p>Opened day {{ thread.opened.day }} {{ thread.opened.part }}{% if thread.opened.at_start %} · At start{% else %} · Event {{ thread.opened.event_id }}{% endif %}</p>
-  <p>Touches: {% for key in thread.touches %}{{ person(key) }}{% if not loop.last %}, {% endif %}{% endfor %}<br>
-    People: {% for key in thread.people %}{{ person(key) }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
-  {% if thread.heard %}<p>Heard: {{ thread.heard }}{% if thread.heard_from %} · From {{ person(thread.heard_from) }}{% endif %}</p>{% endif %}
-  <p>Next: {{ thread.next }} · Due day {{ thread.due.day }} {{ thread.due.part }}</p>
-  <h3>Updates</h3>
-  {% for update in thread.updates %}
-  <p>Day {{ update.day }} {{ update.part }}{% if update.scene %} · Scene {{ update.scene }}{% endif %} · {{ field_text("", update.changed_fields) }} · Event {{ update.event_id }}</p>
-  {% else %}<p>No updates.</p>{% endfor %}
-  <h3>Scenes</h3>
-  {% for scene in thread.scenes %}{{ scene_entry(scene) }}{% else %}<p>No linked scenes.</p>{% endfor %}
-  <h3>Off-scene events</h3>
-  {% for event in thread.off_scene %}<p>Event {{ event.id }} · Day {{ event.day }} {{ event.part }} · {{ person(event.actor) }}: {{ event.content }}</p>{% else %}<p>None.</p>{% endfor %}
-  {% if thread.closed %}
-  <h3>Closed · {{ thread.closed.status }}</h3>
-  <p>Event {{ thread.closed.event_id }} · Day {{ thread.closed.day }} {{ thread.closed.part }}{% if thread.closed.scene %} · Scene {{ thread.closed.scene }}{% endif %}{% if thread.closed.round is not none %} · Round {{ thread.closed.round }}{% endif %}{% if thread.closed.by_clock %} · By clock{% endif %}</p>
-  <p>{{ thread.closed.content }}</p>
-  {% else %}<p>Still open.</p>{% endif %}
+<section id="thread-{{ thread.id }}" class="card thread-card">
+  <div class="thread-heading"><span class="chip">{{ thread.kind }}</span>
+  {{ status_sequence(thread) }}</div>
+  <h2 class="thread-summary">{{ thread.summary }}</h2>
+  <p class="metadata">{{ thread.id }}</p>
+  <dl class="facts">
+    <dt>Touches</dt><dd>{{ field_text('touches', thread.touches) }}</dd>
+    <dt>People</dt><dd>{{ field_text('people', thread.people) }}</dd>
+    {% if thread.opposed_by %}<dt>Opposed by</dt><dd>{{ field_text('opposed_by', thread.opposed_by) }}</dd>{% endif %}
+    {% if thread.at_stake %}<dt>At stake</dt><dd>{% for name, stake in thread.at_stake.items() %}<div><strong>{{ person(name) }}</strong>: <span class="prose">{{ stake }}</span></div>{% endfor %}</dd>{% endif %}
+    {% if thread.heard %}<dt>Heard</dt><dd><span class="prose">{{ thread.heard }}</span>{% if thread.heard_from %}<span class="muted"> · From {{ person(thread.heard_from) }}</span>{% endif %}</dd>{% endif %}
+    <dt>Next</dt><dd class="prose">{{ thread.next }}</dd>
+    <dt>Due</dt><dd>Day {{ thread.due.day }} {{ thread.due.part }}</dd>
+  </dl>
+  <h3>Timeline</h3>
+  <ol class="timeline" aria-label="Thread timeline">
+  {% for row in timelines[thread.id] %}
+    <li data-kind="{{ 'scene' if row.kind == 'scene' else 'closing' if row.closed else 'opened' if row.opened else 'off-scene' if row.event else 'update' }}" data-event-id="{{ row.event_id }}">
+    {% if row.kind == 'scene' %}
+      {{ scene_entry(row.scene) }}
+    {% else %}
+      <span class="timeline-label">{% if row.closed %}Closed{% elif row.opened %}Opened{% elif row.event %}Off-scene{% else %}Updated{% endif %} · {% if row.opened and row.opened.at_start %}Start{% else %}Day {{ row.day }} {{ row.part }} · Event {{ row.event_id }}{% endif %}</span>
+      {% if row.closed %}
+        <span class="pill-{{ row.closed.status }}">{{ row.closed.status }}</span>{% if row.closed.by_clock %}<span class="metadata"> · by the clock</span>{% endif %}
+        <p class="metadata">{% if row.closed.scene %}Scene {{ row.closed.scene }}{% endif %}{% if row.closed.round is not none %} · Round {{ row.closed.round }}{% endif %}</p>
+        {% if row.closed.content %}<p class="prose">{{ row.closed.content }}</p>{% endif %}
+      {% elif row.event %}
+        {% if row.event.actor != 'world' %}<strong class="small">{{ person(row.event.actor) }}</strong>{% endif %}<p class="prose">{{ row.event.content }}</p>
+      {% elif row.change %}
+        <span class="pill-{{ row.change.status }}">{{ row.change.status }}</span>{% if row.change.by_clock %}<span class="metadata"> · by the clock</span>{% endif %}
+        {% if row.change.content %}<p class="prose">{{ row.change.content }}</p>{% endif %}
+      {% endif %}
+      {% for update in row.updates %}<p class="metadata">Day {{ update.day }} {{ update.part }}{% if update.scene %} · Scene {{ update.scene }}{% endif %} · {{ field_text('', update.changed_fields) }}</p>{% endfor %}
+    {% endif %}
+    </li>
+  {% endfor %}
+  </ol>
+  {% if not thread.closed %}<p class="metadata">Still open.</p>{% endif %}
 </section>
 {% endfor %}
-<section id="elsewhere"><h2>Elsewhere</h2>
+<section id="elsewhere" class="bottom-section"><h2>Elsewhere</h2>
 {% for day, events in chronicle.elsewhere | groupby("day") %}
-<h3>Day {{ day }}</h3>
+<details class="day-group"><summary>Day {{ day }}</summary>
 {% for part in parts_of_day %}
 {% set entries = events | selectattr("part", "equalto", part) | list %}
-{% if entries %}<details><summary>{{ part }}</summary>
-{% for event in entries %}<p>Event {{ event.id }} · {{ person(event.actor) }}: {{ event.content }}</p>{% endfor %}
-</details>{% endif %}
+{% if entries %}<h3 class="eyebrow">{{ part }}</h3>
+{% for event in entries | sort(attribute='id') %}<p class="metadata">Event {{ event.id }} · {{ person(event.actor) }}</p><p class="prose">{{ event.content }}</p>{% endfor %}
+{% endif %}
 {% endfor %}
-{% else %}<p>None.</p>{% endfor %}
+</details>
+{% else %}<p class="muted">None.</p>{% endfor %}
 </section>
-<section id="unthreaded"><h2>Unthreaded scenes</h2>
+<section id="unthreaded" class="bottom-section"><h2>Unthreaded scenes</h2>
 {% for day, scenes in chronicle.unthreaded | groupby("day") %}
-<h3>Day {{ day }}</h3>
-{% for scene in scenes %}{{ scene_entry(scene) }}{% endfor %}
-{% else %}<p>None.</p>{% endfor %}
+<details class="day-group"><summary>Day {{ day }}</summary>
+{% for part in parts_of_day %}{% for scene in scenes | selectattr('part', 'equalto', part) %}{{ scene_entry(scene) }}{% endfor %}{% endfor %}
+</details>
+{% else %}<p class="muted">None.</p>{% endfor %}
 </section>
+</div>
+</div>
+</div>
 {% endblock %}

@@ -112,7 +112,7 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
     templates.env.globals["person"] = lambda slug: display_name(slug, travelers)
 
     register_theater_routes(app, templates, worlds_dir, player_assets_dir, travelers, locations)
-    register_chronicle_routes(app, templates, worlds_dir, travelers, locations)
+    register_chronicle_routes(app, templates, worlds_dir, player_assets_dir, travelers, locations)
 
     @app.get("/", response_class=HTMLResponse)
     def library(request: Request):
@@ -127,7 +127,13 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
         for path in sorted(worlds_dir.glob("*")):
             if (world := read_world(worlds_dir, path.name)) is not None:
                 info, scenes = world
-                items.append(dict(id=path.name, info=info, scenes=scenes))
+                items.append(dict(id=path.name, info=info, scenes=scenes,
+                                  days=max(scene.day for scene in scenes)))
+        def created(item):
+            timestamp = datetime.fromisoformat(item['info'].created_at)
+            return timestamp.replace(tzinfo=timestamp.tzinfo or timezone.utc), item['id']
+
+        items.sort(key=created, reverse=True)
         return templates.TemplateResponse(request=request, name="worlds.html", context={
             "worlds": items, "travelers": travelers, "locations": locations,
         })

@@ -1,23 +1,45 @@
 {% extends "base.html" %}
 {% block title %}Worlds{% endblock %}
 {% block content %}
-<h1>Worlds</h1>
+<style>
+  .world-card { padding: 1rem 1.25rem; }
+  .world-card-row { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; }
+  .world-card-info { flex: 1; min-width: 0; }
+  .world-card-info h2 { margin: 0 0 .3rem; font-size: 1.1rem; }
+  .world-card-info .metadata { margin: 0; font-size: .8rem; }
+  .world-id { font: .7rem ui-monospace, monospace; margin-left: .4rem; }
+  .world-card-row .actions { flex-shrink: 0; }
+  .world-card details { margin: .65rem 0 0; }
+  @media (max-width: 900px) { .world-card-row { flex-direction: column; align-items: stretch; gap: .75rem; } }
+</style>
+{% set months = {'01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug', '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec'} %}
+<header class="page-header"><p class="eyebrow">Solistia Lives</p><h1>Worlds</h1></header>
+<div class="card-list">
 {% for world in worlds %}
-<section>
+<section class="card world-card">
+  <div class="world-card-row">
+  <div class="world-card-info">
   <h2>{% for name in world.info.characters %}{{ person(name) }}{% if not loop.last %}, {% endif %}{% endfor %}</h2>
-  <p>{{ locations.get(world.info.location, world.info.location) }} · {{ world.id }}</p>
-  <p><a hx-boost="false" href="{{ url_for('theater', world_id=world.id) }}">Play world theater</a></p>
-  <p><a href="{{ url_for('chronicle', world_id=world.id) }}">Read world chronicle</a></p>
-  <ul>
-  {% for scene in world.scenes %}
-    <li><a hx-boost="false" href="{{ url_for('scene', world_id=world.id, scene_id=scene.id) }}">Scene {{ scene.id }}</a>
-      · Day {{ scene.day }} · {{ scene.part }} · {{ locations.get(scene.place, scene.place) }}
-      · {% for name in scene.participants %}{{ person(name) }}{% if not loop.last %}, {% endif %}{% endfor %}
-      · {{ scene.rounds }} rounds</li>
-  {% endfor %}
-  </ul>
+  <p class="metadata">{{ locations.get(world.info.location, world.info.location) }} · {{ world.scenes | length }} scene{{ '' if world.scenes | length == 1 else 's' }} · Day 1{% if world.days > 1 %}–{{ world.days }}{% endif %} · created
+    {% if world.id[:8].isdigit() and world.id[8:9] == '-' and world.id[9:15].isdigit() %}{{ months.get(world.id[4:6], world.id[4:6]) }} {{ world.id[6:8] | int }} {{ world.id[9:11] }}:{{ world.id[11:13] }}{% else %}{{ world.info.created_at[:16] | replace('T', ' ') }}{% endif %}
+    <span class="world-id muted">{{ world.id }}</span></p>
+  </div>
+  <div class="actions">
+    <a class="button primary" href="{{ url_for('chronicle', world_id=world.id) }}">Read chronicle</a>
+    <a class="button" hx-boost="false" href="{{ url_for('theater', world_id=world.id) }}">Play theater</a>
+  </div>
+  </div>
+  <details><summary class="metadata">{{ world.scenes | length }} scene{{ '' if world.scenes | length == 1 else 's' }}</summary>
+    <ul class="compact-list">
+    {% for scene in world.scenes %}
+      <li><a hx-boost="false" href="{{ url_for('scene', world_id=world.id, scene_id=scene.id) }}">Scene {{ scene.id }}</a>
+        · Day {{ scene.day }} · {{ scene.part }} · {{ locations.get(scene.place, scene.place) }}
+        · {% for name in scene.participants %}{{ person(name) }}{% if not loop.last %}, {% endif %}{% endfor %}
+        · {{ scene.rounds }} round{{ '' if scene.rounds == 1 else 's' }}</li>
+    {% endfor %}
+    </ul>
+  </details>
 </section>
-{% else %}
-<p>No simulated worlds yet.</p>
-{% endfor %}
+{% else %}<p class="muted">No simulated worlds yet.</p>{% endfor %}
+</div>
 {% endblock %}
