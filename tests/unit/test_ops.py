@@ -223,3 +223,21 @@ def test_place_op_removes_details_no_longer_true(world):
     with pytest.raises(ValueError, match='remove_details must copy existing details'):
         reduce_ops(state, OPS.validate_python([dict(op='place', slug=place.slug, add_details=[],
                                                     remove_details=['Never written'])]), event_id=1)
+
+
+@pytest.mark.parametrize('unknown', [False, True], ids=['dropped', 'unknown'])
+def test_scene_round_rejects_non_open_situation(world, unknown):
+    situation_id = load_state(world).situations[0].id
+    act = commit_event(world, event(world, [], scene='1', round=1).model_copy(update={'type': 'action'}))
+    commit_event(world, event(world, [dict(op='situation', id=situation_id, status='dropped')],
+                              scene='1', round=1, resolves=act.id, resolution='succeeded'))
+    next_act = commit_event(world, event(world, [], scene='1', round=2).model_copy(update={'type': 'action'}))
+    before, events = load_state(world), read_events(world)
+
+    with pytest.raises(ValueError, match='scene_round may not commit situation'):
+        commit_event(world, event(world, [dict(op='situation', id='unknown' if unknown else situation_id,
+                                              status='resolved')],
+                                  scene='1', round=2, resolves=next_act.id, resolution='succeeded'))
+
+    assert load_state(world) == before
+    assert read_events(world) == events

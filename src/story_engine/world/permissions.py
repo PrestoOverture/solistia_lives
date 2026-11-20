@@ -72,7 +72,8 @@ def validate_ops(state: WorldState, event: Event, authority: Authority) -> World
             allowed = call == 'day_start'
         elif isinstance(op, SituationOp):
             allowed = (call == 'scene_round' and event.scene is not None
-                       and event.resolves is not None and event.resolution is not None)
+                       and event.resolves is not None and event.resolution is not None
+                       and any(s.id == op.id and s.status == 'open' for s in state.situations))
             if call == 'day_start':
                 allowed = op.model_fields_set - {'op', 'id'} <= {'opposed_by', 'at_stake'}
             if call in {'offscreen', 'code'}:

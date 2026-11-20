@@ -153,10 +153,30 @@ class SceneRoundReply(BaseModel):
     minor_moves: dict[str, MinorMove] = Field(default_factory=dict)
 
 
-class WinningRoundReply(SceneRoundReply):
-    model_config = ConfigDict(extra="forbid", json_schema_extra={
-        'if': {'properties': {'resolution': {'enum': ['succeeded', 'failed']}},
-               'required': ['resolution']},
+_RESOLVED_OUTCOME_SCHEMA = {
+    'if': {'properties': {'resolution': {'enum': ['succeeded', 'failed']}},
+           'required': ['resolution']},
+    'then': {'required': ['outcome'], 'properties': {
+        'outcome': {'type': 'string', 'minLength': 1, 'maxLength': 280}}},
+}
+
+
+class MinorWinningRoundReply(SceneRoundReply):
+    model_config = ConfigDict(json_schema_extra=_RESOLVED_OUTCOME_SCHEMA)
+    about: str | None = None
+    resolution: Literal['succeeded', 'failed', 'pending', 'none']
+    outcome: str | None = Field(default=None, max_length=280)
+
+    @model_validator(mode="after")
+    def resolved_outcome(self) -> Self:
+        if self.resolution in {'succeeded', 'failed'} and not self.outcome:
+            raise ValueError('succeeded and failed resolutions require a non-empty outcome')
+        return self
+
+
+class WinningRoundReply(MinorWinningRoundReply):
+    model_config = ConfigDict(json_schema_extra={
+        **_RESOLVED_OUTCOME_SCHEMA,
         'allOf': [
             {'if': {'properties': {'resolution': {'const': 'succeeded'}}, 'required': ['resolution']},
              'then': {'required': ['odds'], 'properties': {'odds': {'enum': ['certain', 'likely', 'even', 'unlikely']}}}},
@@ -165,19 +185,12 @@ class WinningRoundReply(SceneRoundReply):
                     'required': ['resolution', 'odds']},
              'then': {'required': ['failure'], 'properties': {'failure': {'type': 'object'}}}},
         ],
-        'then': {'required': ['outcome'], 'properties': {
-            'outcome': {'type': 'string', 'minLength': 1, 'maxLength': 280}}},
     })
-    about: str | None = None
     odds: Odds | None = None
     failure: FailureBranch | None = None
-    resolution: Literal['succeeded', 'failed', 'pending', 'none']
-    outcome: str | None = Field(default=None, max_length=280)
 
     @model_validator(mode="after")
-    def resolved_outcome(self) -> Self:
-        if self.resolution in {'succeeded', 'failed'} and not self.outcome:
-            raise ValueError('succeeded and failed resolutions require a non-empty outcome')
+    def succeeded_odds(self) -> Self:
         if self.resolution == 'succeeded' and self.odds is None:
             raise ValueError('succeeded resolutions require odds')
         return self
@@ -614,9 +627,12 @@ class WorldAgent(_WorldSession):
                               # Minors who bid to act last round but lost the floor: their moves didn't happen.
                               **({"minor_moves_not_happened": list(lost_minors)} if lost_minors else {}),
                               "events": [event.agent_view() for event in new_events]}, ensure_ascii=False)
-        reply_type = WinningRoundReply if last_winner else SceneRoundReply
+        main_winner = last_winner['actor'] if last_winner and last_winner['actor'] in state.characters else None
+        reply_type = SceneRoundReply
+        if last_winner:
+            reply_type = WinningRoundReply if main_winner else MinorWinningRoundReply
         await self._start_call(reply_type, about_ids=[s.id for s in state.situations] if last_winner else None,
-                               contested=contested if last_winner else None)
+                               contested=contested if main_winner else None)
         for attempt in range(self.role.retries + 1):
             result, structured_output, usage_fields = await self._send(request)
             if usage_fields is not None:
@@ -628,17 +644,22 @@ class WorldAgent(_WorldSession):
                     if attempt < self.role.retries:
                         raise ValueError('scene_round resolution requires an about key (situation id or null)')
                     self.trace.write('about_missing', call='scene_round', turn=self.turn)
+                if self.session_output is not None and reply_type is MinorWinningRoundReply:
+                    if any(payload.get(key) is not None for key in ('odds', 'failure')):
+                        self.trace.write('odds_minor_ignored', call='scene_round', turn=self.turn,
+                                         actor=last_winner['actor'])
+                    payload = {key: value for key, value in payload.items() if key not in {'odds', 'failure'}}
                 if not last_winner and isinstance(payload, dict):
                     # The session-wide schema offers these fields as nullable; null means absent here.
                     payload = {key: value for key, value in payload.items()
                                if not (key in {'resolution', 'outcome', 'about', 'odds', 'failure'} and value is None)}
                 reply = RoundResolution.model_validate(reply_type.model_validate(payload).model_dump())
-                if (self.session_output is not None and last_winner and reply.resolution == 'succeeded'
+                if (self.session_output is not None and main_winner and reply.resolution == 'succeeded'
                         and reply.odds == 'certain' and reply.about in contested):
                     if attempt < self.role.retries:
                         raise ValueError('succeeded resolutions about a contested situation cannot have odds certain')
                     self.trace.write('odds_certain_contested', call='scene_round', turn=self.turn, about=reply.about)
-                if reply.resolution == 'succeeded' and reply.odds != 'certain':
+                if main_winner and reply.resolution == 'succeeded' and reply.odds != 'certain':
                     if reply.failure is None:
                         if attempt < self.role.retries:
                             raise ValueError('succeeded resolutions with non-certain odds require failure')
@@ -668,7 +689,7 @@ class WorldAgent(_WorldSession):
                     reply = reply.model_copy(update={
                         'resolution': 'none', 'ops': []})
                 event = Event(id=0, **state.clock.model_dump(), place=place, actor='world',
-                              of=(last_winner['actor'] if last_winner and last_winner['actor'] in state.characters else None),
+                              of=main_winner,
                               type='world' if reply.outcome else 'state_change', content=reply.outcome or '',
                               perceived_by=list(main_present), scene=scene,
                               round=(round_number if closing else max(1, round_number - 1)),

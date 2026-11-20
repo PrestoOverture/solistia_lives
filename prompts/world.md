@@ -26,7 +26,7 @@ Every encounter's mains and minors must share a place and spot. Code groups main
 ## scene_round
 
 For a winning act's resolution, `about` is the id of the situation in state that this act is part of, or null when it is part of none.
-`contested`, when supplied, lists open situation ids with an `opposed_by` person among this scene's minor participants; odds `certain` is unavailable for a `succeeded` act about one of them.
+`contested`, when supplied, lists open situation ids with an `opposed_by` person among this scene's minor participants; odds `certain` is unavailable for a main’s `succeeded` act about one of them.
 
 Input gives the scene's place, participants, their state, events, and `last_winner`: an unresolved winning act with its `id`, `actor`, and `round`, or null. Resolve that act and supply bids for minor participants' next moves. Reply:
 
@@ -43,9 +43,9 @@ Input gives the scene's place, participants, their state, events, and `last_winn
 
 If `last_winner` is present, give its `resolution`: `succeeded`, `failed`, `pending` (still unresolved), or `none` (resolved, nothing changed). Without a winner, `resolution` is null. `outcome` is an optional short fact, at most 280 characters, about that resolution. Code links the event to the winning act and fills its actor, scene, round, and time. Only typed `ops` change state; prose changes nothing.
 
-When `resolution` is `succeeded`, give `odds`: `certain`, `likely`, `even`, or `unlikely`, judging how likely the act is to work given the people, the place and what stands in its way before writing the outcome. `certain` is for acts nothing and no one could stop. For any other odds also write `failure` with an `outcome` (1-280 characters) and its own `ops`; code draws which branch happened.
+When a main character’s winning act has resolution `succeeded`, give `odds`: `certain`, `likely`, `even`, or `unlikely`, judging how likely the act is to work given the people, the place and what stands in its way before writing the outcome. `certain` is for acts nothing and no one could stop. For any other odds also write `failure` with an `outcome` (1-280 characters) and its own `ops`; code draws which branch happened. For a minor character’s winning act, omit `odds` and `failure`. Your resolution and its ops stand as given.
 
-The scene resolution may `introduce` a new person, add `place` details, `move` a person, change a person's `wants`, make or release their promises, or update an existing `situation`. A situation update requires a resolution. No scene call moves a main, changes their goals, opens a situation, or advances the clock.
+The scene resolution may `introduce` a new person, add `place` details, `move` a person, change a person's `wants`, make or release their promises, or update an existing, open `situation`. A situation update requires a resolution. No scene call moves a main, changes their goals, opens a situation, or advances the clock.
 
 Each minor move bids for the floor: `act` with urge 1-3 and non-empty action or say; `wait` or `leave` with urge 0. Action is one short sentence (180 characters); say is one breath (400 characters). Moves see only what happened before the round, as main characters do. Only the winning act happens; visible main waits and leaves also happen. `minor_moves_not_happened` lists people whose act last round lost the floor: those moves didn't happen. Minor moves may carry ops about that person: move, wants, promise, release. Those ops commit only if the move happens. A person this call's `ops` introduce or move to the scene's spot joins the scene; give them a move from this round on.
 

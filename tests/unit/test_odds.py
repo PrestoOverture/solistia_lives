@@ -14,7 +14,8 @@ from story_engine.agents.character import Action
 from story_engine.config import load_configs
 from story_engine.simulation import run_scene
 from story_engine.trace import TraceWriter
-from story_engine.world.io import load_state, read_events
+from story_engine.world.io import commit_event, load_state, read_events
+from story_engine.world.permissions import Authority
 from story_engine.world.models import Event
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -267,3 +268,64 @@ def test_live_odds_required_and_failure_shape():
     for outcome in ('', 'x' * 281):
         with pytest.raises(ValidationError):
             world_agent.WinningRoundReply.model_validate(dict(reply, odds='even', failure=dict(outcome=outcome, ops=[])))
+
+
+@pytest.mark.parametrize('mode,actor', [('session', 'Host'), ('call', 'Host'), ('call', 'agnea')])
+def test_winner_odds_by_actor(tmp_path, monkeypatch, mode, actor):
+    world, run = tmp_path / 'world', tmp_path / 'run'
+    shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
+    run.mkdir()
+    before = load_state(world)
+    act = commit_event(world, Event(id=0, **before.clock.model_dump(), place='festival_grounds',
+                                   actor=actor, type='action', content='Opens the gate.',
+                                   perceived_by=['agnea'], scene='1', round=1))
+    main_winner = actor == 'agnea'
+    reply = dict(call='scene_round', resolution='succeeded', about=None, outcome='The gate opens.',
+                 ops=[dict(op='place', slug='festival_grounds', add_details=['An open gate'])])
+    if mode == 'session':
+        reply.update(odds='unlikely', failure=dict(outcome='The gate stays shut.', ops=[]))
+    elif main_winner:
+        reply['odds'] = 'certain'
+    schemas, draws = [], []
+
+    class Client:
+        def __init__(self, *, options):
+            schemas.append(options.output_format['schema'])
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *args):
+            pass
+        async def query(self, request):
+            pass
+        async def receive_response(self):
+            yield ResultMessage('success', 1, 1, False, 1, 'fake', structured_output=reply)
+
+    def draw():
+        draws.append(.99)
+        return .99
+
+    monkeypatch.setattr(world_agent, 'ClaudeSDKClient', Client)
+    models, settings = load_configs()
+    models.world.schema_mode = mode
+
+    async def exercise():
+        async with world_agent.WorldAgent(ROOT, run, world, models.world, settings.agent_max_turns,
+                                          TraceWriter(run), random_source=draw) as agent:
+            return await agent.round(before, [act], place='festival_grounds', main_present=['agnea'],
+                                     minor_present=['Host'] if not main_winner else [],
+                                     last_winner=dict(id=act.id, actor=actor), scene='1', round_number=2)
+
+    resolution, _, updated = asyncio.run(exercise())
+    event = commit_event(world, resolution, authority=Authority('scene_round'))
+    assert event.odds == ('certain' if main_winner else None)
+    assert (event.resolution, event.content) == ('succeeded', 'The gate opens.')
+    assert event.ops[0].add_details == ['An open gate']
+    assert 'An open gate' in next(p.details for p in load_state(world).places if p.slug == event.place)
+    assert load_state(world) == updated
+    trace = [json.loads(line)['type'] for line in (run / 'trace.jsonl').read_text().splitlines()]
+    assert not draws and 'odds_roll' not in trace
+    if mode == 'session':
+        assert trace.count('odds_minor_ignored') == 1
+    else:
+        assert {'odds', 'failure'} & schemas[0]['properties'].keys() == (
+            {'odds', 'failure'} if main_winner else set())
