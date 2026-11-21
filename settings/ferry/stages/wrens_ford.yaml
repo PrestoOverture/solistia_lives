@@ -1,0 +1,23 @@
+name: Wren's Ford
+default: landing
+spots:
+- id: landing
+  name: The Landing
+  about: Stone ramp down to the brown river, the cable posts, the ferry bell, the flat ferry tied up below.
+  stand: [{x: 0.5, y: 0.65, h: 0.12}, {x: 0.4, y: 0.7, h: 0.12}, {x: 0.6, y: 0.7, h: 0.12}]
+- id: heron_inn
+  name: The Heron Inn
+  about: Low smoky common room with long tables, travellers waiting on the weather, the kitchen door at the back.
+  stand: [{x: 0.5, y: 0.65, h: 0.12}, {x: 0.4, y: 0.7, h: 0.12}, {x: 0.6, y: 0.7, h: 0.12}]
+- id: boatyard
+  name: The Boatyard
+  about: Corwen's sheds and slipway upstream, a hull on trestles, pitch pots and shavings.
+  stand: [{x: 0.5, y: 0.65, h: 0.12}, {x: 0.4, y: 0.7, h: 0.12}, {x: 0.6, y: 0.7, h: 0.12}]
+- id: ferry_house
+  name: The Ferry House
+  about: Bram's cottage above the landing, a bench by the door that looks over the crossing.
+  stand: [{x: 0.5, y: 0.65, h: 0.12}, {x: 0.4, y: 0.7, h: 0.12}, {x: 0.6, y: 0.7, h: 0.12}]
+- id: reed_bank
+  name: The Reed Bank
+  about: A quiet path through tall reeds downstream, out of sight of the village.
+  stand: [{x: 0.5, y: 0.65, h: 0.12}, {x: 0.4, y: 0.7, h: 0.12}, {x: 0.6, y: 0.7, h: 0.12}]

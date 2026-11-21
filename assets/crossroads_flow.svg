@@ -97,7 +97,7 @@
   <rect x="330" y="574" width="400" height="186" rx="12" class="plan"/>
   <circle cx="356" cy="604" r="14" fill="#e2c376"/><text x="356" y="609" text-anchor="middle" class="num">4</text>
   <text x="380" y="611" class="h2">Slip something in</text>
-  <text x="710" y="610" text-anchor="end" class="lbl">next</text>
+  <text x="710" y="610" text-anchor="end" class="lbl">done</text>
   <text x="352" y="642" class="q" xml:space="preserve">"What if something goes missing</text>
   <text x="352" y="666" class="q" xml:space="preserve">  in the village tomorrow?"</text>
   <text x="352" y="706" class="t" xml:space="preserve">The World opens it next morning;</text>
@@ -106,7 +106,7 @@
   <rect x="750" y="574" width="400" height="186" rx="12" class="plan" stroke-opacity="0.4"/>
   <circle cx="776" cy="604" r="14" fill="#e2c376" opacity="0.75"/><text x="776" y="609" text-anchor="middle" class="num">5</text>
   <text x="800" y="611" class="h2">Branch from the past</text>
-  <text x="1130" y="610" text-anchor="end" class="lbl">later</text>
+  <text x="1130" y="610" text-anchor="end" class="lbl">not built</text>
   <text x="772" y="642" class="t" xml:space="preserve">Go back to a past day, change</text>
   <text x="772" y="666" class="t" xml:space="preserve">one thing, and run it again</text>
   <text x="772" y="706" class="dim" xml:space="preserve">Lay the two paths side by side</text>

@@ -12,6 +12,7 @@ from story_engine.agents import baseline, initializer
 from story_engine.agents.sdk import KBHooks, session_environment
 from story_engine.cli import app
 from story_engine.runs import RunMeta
+from story_engine.setting import render_prompt
 
 ARGS = [
     "generate", "--mode", "baseline", "--stop-after", "scene_context",
@@ -29,7 +30,8 @@ def rows(path: Path) -> list[dict]:
 @pytest.fixture
 def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     source = Path(__file__).resolve().parents[2]
-    for name in ("config/models.yaml", "config/settings.yaml", "prompts/initializer_scene_context.md"):
+    for name in ("config/models.yaml", "config/settings.yaml", "prompts/default_premise.yaml",
+                 "prompts/initializer_scene_context.md"):
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes((source / name).read_bytes())
@@ -169,7 +171,7 @@ def test_scene_context_session(
             calls.append("init")
             role = yaml.safe_load((repo / "config/models.yaml").read_text())["initializer"]
             assert options.cwd == repo
-            assert options.system_prompt == (repo / "prompts/initializer_scene_context.md").read_text()
+            assert options.system_prompt == render_prompt(repo, "initializer_scene_context.md")
             assert options.model == role["model"] and options.effort == role["effort"]
             assert options.thinking == {"type": "disabled"}
             assert options.max_turns == 20

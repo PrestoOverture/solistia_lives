@@ -11,14 +11,13 @@ from story_engine.agents.character import CharacterAgent, crosses_region
 from story_engine.agents.subjects import fold
 from story_engine.agents.world import OffscreenAgent, WorldAgent
 from story_engine.config import load_configs
-from story_engine.kb import location_regions, normalize_slug
+from story_engine.kb import normalize_slug
 from story_engine.runs import record_api_host
-from story_engine.stages import load_catalogs
 from story_engine.trace import TraceWriter
 from story_engine.world.io import (
     append_event, append_scene, commit_event, load_state, read_events, read_scenes, write_memory,
 )
-from story_engine.world.models import Clock, Event, SceneRecord, WorldState
+from story_engine.world.models import Clock, Event, SceneRecord, WorldInfo, WorldState
 from story_engine.world.ops import ClockOp, Move, PlaceOp, Release, SituationOp
 from story_engine.world.permissions import Authority, scene_people
 
@@ -55,16 +54,18 @@ class TickSession:
         models_file = (json.loads(meta_path.read_text()).get('models_file', 'config/models.yaml')
                        if meta_path.exists() else 'config/models.yaml')
         models, self.settings = load_configs(self.root / models_file)
+        info = WorldInfo.model_validate_json((self.world_dir / "world.json").read_bytes())
+        state = load_state(self.world_dir)
         billed_by_agent = {name: role.base_url is None
                            for name, role in models}
         billed_by_agent.update({slug: models.character.base_url is None
-                                for slug in load_state(self.world_dir).characters})
+                                for slug in state.characters})
         billed_by_agent["world_offscreen"] = models.world.base_url is None
 
         def billed(row):
             return row.get("billed", billed_by_agent.get(row.get("agent"), True))
 
-        self.day = load_state(self.world_dir).clock.day
+        self.day = state.clock.day
         self.spend_usd = 0.0
         trace_path = self.run_dir / "trace.jsonl"
         if trace_path.exists():
@@ -81,16 +82,16 @@ class TickSession:
         try:
             self.scene_notes = {}
             self.characters = {}
-            for slug in load_state(self.world_dir).characters:
+            for slug in state.characters:
                 self.characters[slug] = await self.stack.enter_async_context(CharacterAgent(
                     self.root, self.run_dir, self.world_dir, slug, models.character,
-                    self.settings.agent_max_turns, self.trace))
+                    self.settings.agent_max_turns, self.trace, setting=info.setting))
             self.world = await self.stack.enter_async_context(WorldAgent(
                 self.root, self.run_dir, self.world_dir, models.world,
-                self.settings.agent_max_turns, self.trace))
+                self.settings.agent_max_turns, self.trace, setting=info.setting))
             self.offscreen = await self.stack.enter_async_context(OffscreenAgent(
                 self.root, self.run_dir, self.world_dir, models.world,
-                self.settings.agent_max_turns, self.trace))
+                self.settings.agent_max_turns, self.trace, setting=info.setting))
             if (self.run_dir / 'meta.json').exists():  # unit tests open sessions without a run record
                 record_api_host(self.run_dir, self.world.options.env.get('ANTHROPIC_BASE_URL'))
         except BaseException:
@@ -170,17 +171,16 @@ async def run_tick(world_dir: Path, run_dir: Path, *, session: TickSession) -> W
             id=0, **state.clock.model_dump(), place=place, actor=slug,
             type='plan', content=plan.aim, intent=plan.intent, perceived_by=[slug]))
     positions = _plan_positions(state, plans, session.trace, world_dir)
-    regions = location_regions(session.root)
     # Crossing into another region takes the whole part of the day: no scene on the road.
     travelling = {slug for slug, (place, _) in positions.items()
-                  if crosses_region(regions, state.characters[slug].where, place)}
+                  if crosses_region(session.characters[slug].regions, state.characters[slug].where, place)}
     places = {p.slug for p in state.places}
     for slug, plan in plans.items():
         if plan.where is not None or plan.seek is not None:
             place, spot = positions[slug]
             ops = []
             if place not in places:
-                if place not in load_catalogs(session.root):
+                if place not in session.world.catalogs:
                     raise ValueError('destination must name a place in state or a stage catalog')
                 ops.append(PlaceOp(slug=place, add_details=[]))
             ops.append(Move(who=slug, place=place, spot=spot))
@@ -436,7 +436,7 @@ async def run_day(world_dir: Path, run_dir: Path) -> WorldState:
     try:
         async with TickSession(world_dir, run_dir) as session:
             state = load_state(world_dir)
-            if state.clock.day == 1 and not read_events(world_dir):
+            if state.clock.day == 1 and all(event.by == 'author' for event in read_events(world_dir)):
                 for situation in state.situations:
                     if situation.heard is not None:
                         commit_event(world_dir, Event(

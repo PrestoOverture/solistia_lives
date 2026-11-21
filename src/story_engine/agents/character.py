@@ -5,8 +5,6 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Annotated, Literal, Self, Union
 
-import frontmatter
-
 from claude_agent_sdk import ClaudeSDKClient, ResultMessage
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -16,7 +14,8 @@ from story_engine.agents.sdk import (
 )
 from story_engine.stages import load_catalogs, catalog_schema, fill_spot, spot_context, validate_spot
 from story_engine.config import Role
-from story_engine.kb import location_regions
+from story_engine.setting import render_prompt
+from story_engine.kb import kb_display_name, location_regions
 from story_engine.trace import TraceWriter
 from story_engine.world.io import load_state, read_events
 from story_engine.world.models import Event, PartOfDay
@@ -104,20 +103,20 @@ class CharacterAgent:
 
     def __init__(
         self, root: Path, run_dir: Path, world_dir: Path, slug: str,
-        role: Role, max_turns: int, trace: TraceWriter,
+        role: Role, max_turns: int, trace: TraceWriter, *, setting: Path | None = None,
     ) -> None:
         self.root, self.run_dir, self.world_dir = root, run_dir, world_dir
         self.slug, self.role, self.max_turns, self.trace = slug, role, max_turns, trace
-        self.catalogs = load_catalogs(root)
-        self.regions = location_regions(root)
+        self.setting = setting
+        self.content = setting or root
+        self.catalogs = load_catalogs(root, directory=setting)
+        self.regions = location_regions(self.content)
         self.session_output = (catalog_schema(json_schema_output(CharacterReply), self.catalogs)
                                if role.schema_mode == "session" else None)
         self.names = {}
         for slug in load_state(world_dir).characters:
-            path = root / 'kb/characters' / slug / f'{slug}.md'
-            metadata = frontmatter.load(path).metadata
-            name = metadata.get('name', slug)
-            self.names[slug] = (metadata.get('aliases') or [name])[0] if name == slug else name
+            path = self.content / 'kb/characters' / slug / f'{slug}.md'
+            self.names[slug] = kb_display_name(path)
         self.client = None
         self.active = False
         self.session_id = None
@@ -142,10 +141,10 @@ class CharacterAgent:
         memory = self.world_dir / "memory" / f"{self.slug}.md"
         if memory.exists():
             self.opening["memory"] = memory.read_text(encoding="utf-8")
-        sources = [self.root / "prompts/character.md", self.root / "cards" / f"{self.slug}.md",
-                   self.world_dir / "scene_context.md"]
-        prompt = "\n\n".join(path.read_text(encoding="utf-8") for path in sources)
-        self.hooks = KBHooks(self.root, self.run_dir, agent=self.slug, turn=1)
+        prompt = "\n\n".join((render_prompt(self.root, "character.md", self.setting),
+                              (self.content / "cards" / f"{self.slug}.md").read_text(encoding="utf-8"),
+                              (self.world_dir / "scene_context.md").read_text(encoding="utf-8")))
+        self.hooks = KBHooks(self.content, self.run_dir, agent=self.slug, turn=1)
         self.options = session_options(self.root, self.run_dir, self.role, prompt,
                                        self.max_turns, self.hooks)
         self.options.extra_args.pop("no-session-persistence", None)

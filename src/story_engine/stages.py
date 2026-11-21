@@ -40,8 +40,8 @@ def load_catalog(directory: Path, place: str) -> StageCatalog | None:
         return None
 
 
-def load_catalogs(root: Path) -> dict[str, StageCatalog]:
-    directory = root / 'assets/player'
+def load_catalogs(root: Path = Path("."), *, directory: Path | None = None) -> dict[str, StageCatalog]:
+    directory = directory or root / 'assets/player'
     return {path.stem: catalog for path in sorted((directory / 'stages').glob('*.yaml'))
             if (catalog := load_catalog(directory, path.stem)) is not None}
 

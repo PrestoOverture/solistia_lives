@@ -13,7 +13,7 @@ Vide has fallen, and the eight travelers' main journeys have come to a close, ye
 ## What it does
 
 - **World simulation (the main track):** Each traveler is driven by an independent agent acting on its own goals and memories. A World agent arbitrates whether their actions succeed, plays every NPC, and advances the clock. There is no scripted plot—every change is recorded in an append-only event log, so the world can always pick up the next day right where it left off.
-- **Crossroads (in progress):** Slip an unexpected variable into the world from the shadows and watch how it ripples out. Everything that unfolds is organized into **threads**, traceable from root cause to resolution—right down to what each character was privately thinking.
+- **Crossroads (done):** Slip an unexpected variable into the world from the shadows and watch how it ripples out. Everything that unfolds is organized into **threads**, traceable from root cause to resolution—right down to what each character was privately thinking.
 - **Standalone story generation (done):** Pick 2–3 travelers, a location, and an opening hook. A single model drafts a 2,000–3,000-word short story, which a validator then fact-checks sentence by sentence against the lore.
 
 Our original plan was to simulate the world first and then adapt interesting episodes from the logs into prose stories. In a blind head-to-head eval, however, directly written stories beat simulation-derived stories **10–0**. So we let a dedicated writer handle prose, and freed the world simulation from competing on literary style. Instead, the simulation focuses on what a static story cannot do: **maintain a complete causal record, expose every character's private motives, and let you change something and re-run history.**
@@ -104,17 +104,16 @@ To make sense of how everything unfolds, Crossroads organizes the world's histor
 - **Private motives on display:** Expand any scene to inspect not just what each character said and did aloud, but the private intention behind every single line.
 - **No guaranteed outcomes:** Every new world opens with a genuine antagonist blocking a traveler's path. When an opponent pushes back, nothing is automatic: the World agent estimates the odds, and engine code rolls the dice. A failed roll doesn't halt the scene—it bends the story in a new direction, drawing conflicts out across days.
 
-**Current progress:** The threads chronicle view, dice-roll resolution, and opening antagonists are all in place. Next up is the player intervention hook (slipping an event into the world), followed by time-travel branching—rewinding to a past day, changing one variable, and running an alternate timeline.
-
 ## Project status
 
-A personal side project under active development.
+A personal side project, concluded in November 2026 with the Crossroads experiment. It is no longer under active development.
+
+**Why it stops here:** The engine does what it was built to do: the world runs day after day, and every outcome can be traced to its causes. Turning the unseen hand into something people play needs a quick loop, slip something in and see the world react, and a full multi-agent simulation takes tens of minutes per day. That takes a different design, not more tuning, so the project ends here.
 
 - **Foundation & story generation (done):** Curated knowledge base; Writer, lore Validator, and targeted patch loop; evaluation harness and 10-story benchmark suite; local web UI for generation and reading. Passed the MVP quality gate with 8/10 stories clearing all checks ([gate_v1.md](eval/results/gate_v1.md)).
 - **World engine (done):** World initialization, Traveler and World agents, turn-based scene execution, and deterministic state projection from the event log. Single-day world metrics pass ([world_we_v1.md](eval/results/world_we_v1.md)), and both showcase worlds completed full five-day runs cleanly.
-- **Scene player & theater (paused):** Complete with voice synthesis; two full worlds are deployed live (see [Online theater](#online-theater)). Feature-frozen as focus shifts to Crossroads.
-- **Crossroads (in progress):** Thread chronicle UI is built; log events tag their parent threads; contested actions carry probabilities and can fail on dice rolls; worlds initialize with real opposition blocking the protagonists.
-- **Up next:** Player intervention—drop a new incident into a running world and watch how the cast responds.
+- **Scene player & theater (paused):** Complete with voice synthesis; two full worlds are deployed live (see [Online theater](#online-theater)). Feature-frozen.
+- **Crossroads (done):** Thread chronicle UI; log events tag their parent threads; contested actions carry probabilities and can fail on dice rolls; worlds initialize with real opposition blocking the protagonists; author notes (`world inject`) and original settings (`world new --setting`), tested in a three-branch experiment ([crossroads_v1.md](eval/results/crossroads_v1.md)).
 
 ## Quick start
 
@@ -135,6 +134,13 @@ uv run story-engine generate --mode baseline --characters osvald,temenos \
 uv run story-engine world new --characters agnea,throne --location cropdale \
   --situation "Agnea has brought Throné to a festival here."
 uv run story-engine world run <world_id> --stop-after day
+
+# Build a world from an original setting instead of OT2
+uv run story-engine world new --setting settings/ferry --characters ilse,corwen,maren \
+  --location wrens_ford --situation "Old Bram Holt will name who takes the ferry at the spring tide."
+
+# Slip a note to one main before the next day, then run it
+uv run story-engine world inject <world_id> --to ilse "A folded note under your door: ..."
 
 # Inspect the world's event threads
 #   http://127.0.0.1:8000/world/<world_id>/chronicle

@@ -10,6 +10,8 @@ from story_engine.agents.sdk import (
     run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, session_error, session_options,
     structured_reply, require_person_sex,
 )
+from story_engine.setting import load_premise, render_prompt
+from story_engine.kb import location_slugs
 from story_engine.kb.entities import CharacterNames
 from story_engine.stages import load_catalogs, catalog_schema, fill_spot, spot_context, validate_spot
 from story_engine.config import Role
@@ -20,15 +22,16 @@ from story_engine.world.models import WorldState
 
 async def scene_context(
     root: Path, run_dir: Path, characters: list[str], location: str, scenario: str,
-    role: Role, max_turns: int, trace: TraceWriter,
+    role: Role, max_turns: int, trace: TraceWriter, *, setting: Path | None = None,
 ) -> None:
-    hooks = KBHooks(root, run_dir, agent="initializer", turn=0)
-    prompt = (root / "prompts/initializer_scene_context.md").read_text(encoding="utf-8")
+    content = setting or root
+    hooks = KBHooks(content, run_dir, agent="initializer", turn=0)
+    prompt = render_prompt(root, "initializer_scene_context.md", setting)
     options = session_options(root, run_dir, role, prompt, max_turns, hooks)
     record_api_host(run_dir, options.env.get("ANTHROPIC_BASE_URL"))
     request = json.dumps({
         "characters": characters, "location": location, "scenario": scenario,
-        "kb_path": str((root / "kb").resolve()),
+        "kb_path": str((content / "kb").resolve()),
     }, ensure_ascii=False)
     thinking = ThinkingUsage()
     cost = SessionCost()
@@ -69,16 +72,19 @@ async def scene_context(
 
 async def starting_state(
     root: Path, run_dir: Path, characters: list[str], location: str, situation: str,
-    role: Role, max_turns: int, trace: TraceWriter,
+    role: Role, max_turns: int, trace: TraceWriter, *, setting: Path | None = None,
 ) -> WorldState:
-    hooks = KBHooks(root, run_dir, agent="initializer", turn=0)
-    sources = [root / "prompts/initializer_state.md",
-               *(root / "cards" / f"{slug}.md" for slug in characters),
-               run_dir / "scene_context.md"]
-    prompt = "\n\n".join(path.read_text(encoding="utf-8") for path in sources)
-    catalogs = load_catalogs(root)
-    kb_names = CharacterNames(root / "kb")
-    places = {path.stem for path in (root / "kb/locations").rglob("*.md") if path.is_file()}
+    content = setting or root
+    hooks = KBHooks(content, run_dir, agent="initializer", turn=0)
+    parts = [(root / "prompts/initializer_state.md").read_text(encoding="utf-8")]
+    if setting is not None:
+        parts.append(load_premise(root, setting)["initializer_scene_context"])
+    parts.extend((content / "cards" / f"{slug}.md").read_text(encoding="utf-8") for slug in characters)
+    parts.append((run_dir / "scene_context.md").read_text(encoding="utf-8"))
+    prompt = "\n\n".join(parts)
+    catalogs = load_catalogs(root, directory=setting)
+    kb_names = CharacterNames(content / "kb")
+    places = location_slugs(content)
     schema = WorldState.model_json_schema()
     for model, field in [("Place", "slug"), ("CharacterState", "where"),
                          ("Person", "where"), ("Commitment", "where")]:
@@ -100,7 +106,7 @@ async def starting_state(
     record_api_host(run_dir, options.env.get("ANTHROPIC_BASE_URL"))
     request = json.dumps({"characters": characters, "location": location,
                           "situation": situation, "spots": spot_context(catalogs, catalogs),
-                          "kb_path": str((root / "kb").resolve())}, ensure_ascii=False)
+                          "kb_path": str((content / "kb").resolve())}, ensure_ascii=False)
     cost = SessionCost()
     async with ClaudeSDKClient(options=options) as client:
         for attempt in range(role.retries + 1):

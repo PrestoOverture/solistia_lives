@@ -1,5 +1,6 @@
 """D29 day renewal and off-screen isolation, using only fake SDK clients."""
 
+from story_engine.setting import render_prompt
 from sdk_sessions import resumable_fake
 
 import asyncio
@@ -502,7 +503,7 @@ def test_offscreen_isolated_persistent_client_and_scene_state(workspace, monkeyp
     assert [r['call'] for r in clients[0].calls] == ['adjudicate', 'scene_round'] * 2
     assert clients[1].calls == offscreen_requests and len(offscreen_requests) == 2
     assert clients[0] is not clients[1]
-    assert clients[1].options.system_prompt == (ROOT / 'prompts/world_offscreen.md').read_text()
+    assert clients[1].options.system_prompt == render_prompt(ROOT, 'world_offscreen.md')
 
 
 @pytest.mark.parametrize('new_id', [True, False])

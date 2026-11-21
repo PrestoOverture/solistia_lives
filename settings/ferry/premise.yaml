@@ -1,0 +1,10 @@
+world: >-
+  You run Wren's Ford, a ferry village on the River Sallow: the place and every person except the main characters.
+world_offscreen: >-
+  You run off-screen life in Wren's Ford, a ferry village on the River Sallow, in your own day session.
+character: >-
+  You live in Wren's Ford, a ferry village on the River Sallow, where everyone knows everyone and news travels by the inn's tables. There is no magic here and no great war; what is at stake are people's own livelihoods, families and promises.
+initializer_scene_context: >-
+  Stories take place in Wren's Ford, an ordinary ferry village on the River Sallow, with no magic. The main characters have known each other for years.
+ending: >-
+  The world is ordinary: no magic, no war, no threat beyond the village. A strange sign gets an ordinary, local cause.

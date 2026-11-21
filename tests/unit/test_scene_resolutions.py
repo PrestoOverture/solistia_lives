@@ -6,6 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from story_engine.kb import location_regions
 from story_engine.agents.character import Action
 from story_engine.simulation import run_scene
 from story_engine.trace import TraceWriter
@@ -69,6 +70,8 @@ def test_go_is_code_movement_and_every_attempt_is_a_scene(tmp_path):
     shutil.copytree(ROOT / 'tests/fixtures/worlds/agnea_throne', world)
     run.mkdir()
     class Character:
+        regions = location_regions(ROOT)
+
         def __init__(self, slug): self.slug = slug
         async def choose(self, part, before):
             return Plan(call='plan', kind='attempt', intent='Search', aim='Search this spot') if self.slug == 'agnea' else Plan(
@@ -88,7 +91,7 @@ def test_go_is_code_movement_and_every_attempt_is_a_scene(tmp_path):
                      resolves=target['id'] if target else None, resolution='none' if target else None), {}, state
     async def offscreen(state, open_situations):
         return [], state, {}
-    session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1, root=ROOT,
+    session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1,
                               characters={s: Character(s) for s in ['agnea', 'throne']}, scene_notes={},
                               settings=load_configs()[1], trace=TraceWriter(run),
                               world=SimpleNamespace(adjudicate=encounters, round=round_),

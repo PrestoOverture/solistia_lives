@@ -188,10 +188,10 @@ async def evaluate_world(world_id: str, day: int | None = None,
                 'day': day, 'end_state': end.model_dump(),
                 'event_sourced': (world_dir / 'genesis.json').exists(),
                 'stale_candidates': stale_candidates(end, settings.parts_of_day),
-                'events': [e.model_dump() for e in today],
-                'outcomes': [e.model_dump() for e in today if e.scene is None and e.of is not None],
+                'events': [e.model_dump(exclude={'by'}) for e in today],
+                'outcomes': [e.model_dump(exclude={'by'}) for e in today if e.scene is None and e.of is not None],
                 'scenes': [s.model_dump() for s in scenes],
-                'previous_events': [e.model_dump() for e in previous],
+                'previous_events': [e.model_dump(exclude={'by'}) for e in previous],
             }, models.world_judge, settings.agent_max_turns, trace, cost)
             report.judge_status = 'passed'
     except Exception as error:

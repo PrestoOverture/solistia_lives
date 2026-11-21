@@ -4,7 +4,6 @@ import json
 import random
 from collections.abc import Callable
 
-import frontmatter
 from dataclasses import replace
 from pathlib import Path
 from typing import Annotated, Literal, Self, Union
@@ -16,6 +15,8 @@ from story_engine.agents.sdk import (
     run_call, KBHooks, SessionCost, SessionError, ThinkingUsage, json_schema_output, session_error,
     session_options, structured_reply, require_person_sex,
 )
+from story_engine.setting import render_prompt
+from story_engine.kb import kb_display_name
 from story_engine.kb.entities import CharacterNames
 from story_engine.stages import (
     load_catalogs, catalog_schema, fill_spot_ops, spot_context, validate_spot, validate_spot_ops,
@@ -28,14 +29,14 @@ from story_engine.world.ops import (
     Op, Open, Move, Introduce, PlaceOp, Promise, Release, Wants, Goals, SituationOp, ClockOp,
 )
 from story_engine.world.permissions import Authority, scene_people, validate_ops
-from story_engine.world.models import Clock, Event, Odds, Person, Place, Situation, WorldState
+from story_engine.world.models import WORLD_CONTENT_LIMIT, Clock, Event, Odds, Person, Place, Situation, WorldState
 
 
 class OffscreenEvent(BaseModel):
     """Code fills actor, time, scene, and perception; ops carry every state change."""
     model_config = ConfigDict(extra="forbid")
     place: str
-    content: str = Field(default='', max_length=280)
+    content: str = Field(default='', max_length=WORLD_CONTENT_LIMIT)
     spot: str | None = None
     about: str | None = None
     ops: list[Op] = Field(default_factory=list)
@@ -208,11 +209,14 @@ class _WorldSession:
 
     def __init__(self, root: Path, run_dir: Path, world_dir: Path,
                  role: Role, max_turns: int, trace: TraceWriter, *,
+                 setting: Path | None = None,
                  random_source: Callable[[], float] = random.random) -> None:
         self.root, self.run_dir, self.world_dir = root, run_dir, world_dir
         self.role, self.max_turns, self.trace = role, max_turns, trace
-        self.catalogs = load_catalogs(root)
-        self.kb_names = CharacterNames(root / "kb")
+        self.setting = setting
+        self.content = setting or root
+        self.catalogs = load_catalogs(root, directory=setting)
+        self.kb_names = CharacterNames(self.content / "kb")
         self.session_output = (catalog_schema(
             require_person_sex(json_schema_output(self.reply_type)), self.catalogs)
             if role.schema_mode == "session" else None)
@@ -269,11 +273,10 @@ class _WorldSession:
         if self.opened:
             raise SessionError("WorldAgent context can only be opened once")
         self.opened = True
-        sources = [self.root / "prompts" / self.prompt_file]
+        prompt = render_prompt(self.root, self.prompt_file, self.setting)
         if self.include_scene_context:
-            sources.append(self.world_dir / "scene_context.md")
-        prompt = "\n\n".join(path.read_text(encoding="utf-8") for path in sources)
-        self.hooks = KBHooks(self.root, self.run_dir, agent=self.agent_name, turn=1)
+            prompt += "\n\n" + (self.world_dir / "scene_context.md").read_text(encoding="utf-8")
+        self.hooks = KBHooks(self.content, self.run_dir, agent=self.agent_name, turn=1)
         self.options = session_options(self.root, self.run_dir, self.role, prompt,
                                        self.max_turns, self.hooks)
         self.options.extra_args.pop("no-session-persistence", None)
@@ -775,9 +778,7 @@ class OffscreenAgent(_WorldSession):
                                 if name not in protected}
         mains = []
         for slug, character in state.characters.items():
-            metadata = frontmatter.load(self.root / 'kb/characters' / slug / f'{slug}.md').metadata
-            name = metadata.get('name', slug)
-            display = (metadata.get('aliases') or [name])[0] if name == slug else name
+            display = kb_display_name(self.content / 'kb/characters' / slug / f'{slug}.md')
             mains.append(dict(name=display, where=character.where))
         if max_event_id is None:
             max_event_id = max((event.id for event in read_events(self.world_dir)), default=0)

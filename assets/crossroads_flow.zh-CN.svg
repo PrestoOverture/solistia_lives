@@ -97,7 +97,7 @@
   <rect x="330" y="574" width="400" height="186" rx="12" class="plan"/>
   <circle cx="356" cy="604" r="14" fill="#e2c376"/><text x="356" y="609" text-anchor="middle" class="num">4</text>
   <text x="380" y="611" class="h2">暗中放一件事</text>
-  <text x="710" y="610" text-anchor="end" class="lbl">下一步</text>
+  <text x="710" y="610" text-anchor="end" class="lbl">已完成</text>
   <text x="352" y="642" class="q" xml:space="preserve">“如果明天一早，</text>
   <text x="352" y="666" class="q" xml:space="preserve">　村里丢了一样东西？”</text>
   <text x="352" y="706" class="t" xml:space="preserve">第二天开场，World 把它放进世界，</text>
@@ -106,7 +106,7 @@
   <rect x="750" y="574" width="400" height="186" rx="12" class="plan" stroke-opacity="0.4"/>
   <circle cx="776" cy="604" r="14" fill="#e2c376" opacity="0.75"/><text x="776" y="609" text-anchor="middle" class="num">5</text>
   <text x="800" y="611" class="h2">从过去分岔</text>
-  <text x="1130" y="610" text-anchor="end" class="lbl">之后</text>
+  <text x="1130" y="610" text-anchor="end" class="lbl">未做</text>
   <text x="772" y="642" class="t" xml:space="preserve">回到过去的某一天，换一件事，</text>
   <text x="772" y="666" class="t" xml:space="preserve">重新跑一遍</text>
   <text x="772" y="706" class="dim" xml:space="preserve">两条路并排摆着，看差在哪里</text>

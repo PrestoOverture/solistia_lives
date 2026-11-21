@@ -5,6 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from story_engine.kb import location_regions
 from story_engine.agents.character import Action, Plan
 from story_engine.config import load_configs
 from story_engine.simulation import run_tick
@@ -29,6 +30,8 @@ def test_attempt_destination(tmp_path, destination):
     expected = 'the_well' if destination == 'stay' else 'library_exterior'
 
     class Character:
+        regions = location_regions(Path(__file__).resolve().parents[2])
+
         async def choose(self, *_):
             return Plan(call='plan', kind='attempt', intent='Study', aim='Ask about books', **fields)
         async def act(self, *_, **kwargs):
@@ -47,7 +50,7 @@ def test_attempt_destination(tmp_path, destination):
     async def offscreen(current, *_):
         return [], current, {}
 
-    session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1, root=Path(__file__).resolve().parents[2],
+    session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1,
         characters={'osvald': Character()}, scene_notes={}, settings=load_configs()[1],
         trace=TraceWriter(run), world=SimpleNamespace(adjudicate=adjudicate, round=round_),
         offscreen=SimpleNamespace(offscreen=offscreen))

@@ -254,7 +254,7 @@ def session_options(
     # Keep SDK bookkeeping inside this run; callers may enable conversation persistence.
     env["CLAUDE_CONFIG_DIR"] = str((run_dir / ".sdk").resolve())
     return ClaudeAgentOptions(
-        cwd=root, system_prompt=system_prompt, model=role.model, **optional,
+        cwd=hooks.root, system_prompt=system_prompt, model=role.model, **optional,
         max_turns=role.max_turns if role.max_turns is not None else max_turns, tools=KB_TOOLS.copy() if tools is None else tools,
         allowed_tools=KB_TOOLS.copy() if tools is None else tools,
         setting_sources=[], strict_mcp_config=True, env=env,

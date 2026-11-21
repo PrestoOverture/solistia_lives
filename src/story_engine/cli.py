@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from story_engine.config import ConfigError, load_configs
 from story_engine.eval.pack import pack_runs
 from story_engine.eval.suite import run_suite
-from story_engine.kb import validate_input
+from story_engine.kb import TRAVELERS, validate_input
 from story_engine.agents.baseline import baseline_writer
 from story_engine.agents.initializer import scene_context, starting_state
 from story_engine.world.io import create_world
@@ -53,7 +53,7 @@ def generate(
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1)
     try:
-        character_slugs, location_slug = validate_input(characters, location)
+        character_slugs, location_slug = validate_input(characters, location, mains=TRAVELERS)
     except ValueError as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1)
@@ -236,17 +236,21 @@ def world_new(
     situation: str = typer.Option(...),
     dry_run: bool = typer.Option(False),
     models_file: Path = typer.Option(Path("config/models.yaml"), "--models", help="Models YAML file"),
+    setting: Path | None = typer.Option(None, "--setting", exists=True, file_okay=False, resolve_path=True,
+                                        help="Directory containing the world’s KB, cards, stages and premise."),
 ) -> None:
     """Initialize a persistent world."""
+    if setting == Path.cwd():
+        setting = None
     try:
         models, settings = load_configs(models_file)
-        slugs, place = validate_input(characters, location)
-    except (ConfigError, ValueError) as error:
+        slugs, place = validate_input(characters, location, setting or Path.cwd())
+        run_dir = create_run(slugs, place, situation, "initializer",
+                             None, models, status="dry_run" if dry_run else "running",
+                             models_file=str(models_file), setting=setting)
+    except (OSError, ConfigError, ValueError) as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1) from None
-    run_dir = create_run(slugs, place, situation, "initializer",
-                         None, models, status="dry_run" if dry_run else "running",
-                         models_file=str(models_file))
     trace = TraceWriter(run_dir)
     trace.write("run_started", run_id=run_dir.name, mode="initializer")
     (run_dir / "retrieval.jsonl").touch()
@@ -259,14 +263,14 @@ def world_new(
     try:
         trace.write("stage_started", stage=stage, agent="initializer")
         asyncio.run(scene_context(Path.cwd(), run_dir, slugs, place, situation,
-                                  models.initializer, settings.scene_context_max_turns, trace))
+                                  models.initializer, settings.scene_context_max_turns, trace, setting=setting))
         trace.write("stage_finished", stage=stage)
         stage = "initializer_state"
         trace.write("stage_started", stage=stage, agent="initializer")
         state = asyncio.run(starting_state(Path.cwd(), run_dir, slugs, place, situation,
-                                          models.initializer, settings.scene_context_max_turns, trace))
+                                          models.initializer, settings.scene_context_max_turns, trace, setting=setting))
         trace.write("stage_finished", stage=stage)
-        world_dir = create_world(slugs, place, situation, state, init_run_id=run_dir.name)
+        world_dir = create_world(slugs, place, situation, state, init_run_id=run_dir.name, setting=setting)
         (world_dir / "scene_context.md").write_bytes((run_dir / "scene_context.md").read_bytes())
         finish_run(run_dir, "passed")
     except Exception as error:
@@ -339,6 +343,32 @@ def world_voice(
         typer.echo(f'{kind}: Rendered {rendered}, skipped {skipped}')
 
 
+@world_app.command("inject")
+def world_inject(world_id: str, news: str, to: str = typer.Option(..., "--to", help="Recipient main character")) -> None:
+    """Slip a piece of news to one main character at the world's current clock."""
+    from story_engine.world.io import commit_event, load_state, world_end
+    from story_engine.world.models import WORLD_CONTENT_LIMIT, Event
+
+    try:
+        if Path(world_id).name != world_id or world_id in ("", ".", ".."):
+            raise ValueError("world_id must be a world ID")
+        world_dir = Path("worlds") / world_id
+        if (ended := world_end(world_dir)) is not None:
+            raise ValueError(f"World ended on day {ended['day']} ({ended['reason']}); create a new world")
+        state = load_state(world_dir)
+        if to not in state.characters:
+            raise ValueError(f"Unknown main character: {to}")
+        if not news.strip() or len(news) > WORLD_CONTENT_LIMIT:
+            raise ValueError(f"News must be non-empty and at most {WORLD_CONTENT_LIMIT} characters")
+        event = commit_event(world_dir, Event(
+            id=0, **state.clock.model_dump(), place=state.characters[to].where,
+            actor="world", by="author", type="world", content=news, perceived_by=[to]))
+    except (OSError, ValueError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from None
+    typer.echo(f"Event {event.id} committed for {to}")
+
+
 @world_app.command("run")
 def world_run(
     world_id: str = typer.Argument(...),
@@ -363,12 +393,12 @@ def world_run(
         read_events(world_dir)
         context = (world_dir / "scene_context.md").read_bytes()
         models, settings = load_configs(models_file)
+        run_dir = create_run(info.characters, info.location, info.situation, "simulation",
+                             stop_after, models, status="dry_run" if dry_run else "running",
+                             world_id=world_id, day=state.clock.day, models_file=str(models_file), setting=info.setting)
     except (OSError, ValueError, ConfigError) as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1) from None
-    run_dir = create_run(info.characters, info.location, info.situation, "simulation",
-                         stop_after, models, status="dry_run" if dry_run else "running",
-                         world_id=world_id, day=state.clock.day, models_file=str(models_file))
     trace = TraceWriter(run_dir)
     trace.write("run_started", run_id=run_dir.name, mode="simulation",
                 world_id=world_id, day=state.clock.day)
@@ -801,7 +831,7 @@ def eval_validate(
                 raise ValueError(f'Unknown scene: {scene_id} in world {world_id}')
             events = read_events(world_dir)
             log_input = dict(scene=scene_id, beats=act_beats(act_scene_events(events, scene_id), pov=''),
-                             transition_events=[event.model_dump(exclude={'intent'}) for event in
+                             transition_events=[event.model_dump(exclude={'intent', 'by'}) for event in
                                                 act_transition_events(events, scenes, scene)])
         story = story_path.read_bytes()
         text = story.decode('utf-8')

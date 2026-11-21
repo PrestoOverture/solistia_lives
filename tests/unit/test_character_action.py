@@ -8,6 +8,7 @@ from claude_agent_sdk import ResultMessage
 from pydantic import ValidationError
 
 from story_engine.agents import character
+from story_engine.setting import render_prompt
 from story_engine.agents.character import Action, CharacterAgent
 from story_engine.agents.sdk import SessionError
 from story_engine.config import load_configs
@@ -80,8 +81,8 @@ def test_valid_action(tmp_path, monkeypatch, fenced):
                        "memory": "Yesterday I arrived.", "perceived": [],
                        "present": {"agnea": "Agnea Bristarni", "throne": "Throné Anguis"},
                        "call": "scene_move", "reply": "JSON with call: 'action'"}
-    expected_prompt = "\n\n".join(path.read_text() for path in [
-        ROOT / "prompts/character.md", ROOT / "cards/throne.md", agent.world_dir / "scene_context.md"])
+    expected_prompt = "\n\n".join([render_prompt(ROOT, "character.md"), (ROOT / "cards/throne.md").read_text(),
+                                   (agent.world_dir / "scene_context.md").read_text()])
     assert instances[0].options.system_prompt == expected_prompt
     assert instances[0].options.model == agent.role.model
     usage = json.loads((run / "trace.jsonl").read_text())

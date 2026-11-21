@@ -17,7 +17,8 @@ ARGS = ["world", "new", "--characters", "agnea,throne", "--location", "cropdale"
 @pytest.fixture
 def repo(tmp_path, monkeypatch):
     source = Path(__file__).resolve().parents[2]
-    for name in ("config/models.yaml", "config/settings.yaml", "prompts/initializer_scene_context.md",
+    for name in ("config/models.yaml", "config/settings.yaml", "prompts/default_premise.yaml",
+                 "prompts/initializer_scene_context.md",
                  "prompts/initializer_state.md", "cards/agnea.md", "cards/throne.md"):
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)

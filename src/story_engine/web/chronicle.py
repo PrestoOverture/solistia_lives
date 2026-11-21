@@ -7,7 +7,8 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from story_engine.config import load_settings
-from story_engine.stages import load_catalog, load_catalogs
+from story_engine.kb import kb_names
+from story_engine.stages import load_catalogs
 from story_engine.web.player import display_name, valid_id
 from story_engine.world.io import read_events, read_scenes
 from story_engine.world.models import Clock, Event, SceneRecord, Situation, WorldInfo, WorldState
@@ -185,59 +186,56 @@ def thread_timelines(chronicle: Chronicle, scenes: list[SceneRecord], parts: lis
 
 def register_chronicle_routes(app, templates, worlds_dir: Path, player_assets_dir: Path,
                               travelers: dict, locations: dict):
-    def field_text(field, value):
-        """Format structured values only; never interpret event prose."""
-        if isinstance(value, dict):
-            if set(value) == {'day', 'part'}:
-                return f"Day {value['day']} {value['part']}"
-            return ' · '.join(f'{key} → {field_text(key, item)}' for key, item in value.items())
-        if isinstance(value, list):
-            return ', '.join(field_text(field, item) for item in value) or '—'
-        if field in {'people', 'touches', 'opposed_by', 'who', 'person', 'main', 'name', 'heard_from'}:
-            return display_name(value, travelers) if value is not None else '—'
-        if field in {'place', 'where', 'slug'}:
-            return locations.get(value, value)
-        return str(value) if value is not None else '—'
-
-    def op_text(op):
-        fields = op.model_dump(mode='json', exclude_unset=True, exclude={'op'})
-        return op.op + ' · ' + field_text('', fields)
-
     def data(world_id):
+        directory = worlds_dir / world_id
         try:
-            return chronicle_data(worlds_dir, world_id, travelers, locations)
+            if not valid_id(world_id) or directory.is_symlink() or (directory / 'world.json').is_symlink():
+                raise ValueError('World not found')
+            info = WorldInfo.model_validate_json((directory / 'world.json').read_bytes())
+            names, places = (kb_names(info.setting, info.characters) if info.setting is not None
+                             else (travelers, locations))
+            return chronicle_data(worlds_dir, world_id, names, places), info, names, places
         except (OSError, ValueError, KeyError):
             raise HTTPException(status_code=404, detail='World not found') from None
 
     @app.get('/world/{world_id}/chronicle.json')
     def chronicle_json(world_id: str):
-        return data(world_id)
+        item, *_ = data(world_id)
+        return item
 
     @app.get('/world/{world_id}/chronicle', response_class=HTMLResponse)
     def chronicle(request: Request, world_id: str):
-        item = data(world_id)
+        item, info, travelers, locations = data(world_id)
         directory = worlds_dir / world_id
-        try:
-            if (directory / 'world.json').is_symlink():
-                raise ValueError('World not found')
-            info = WorldInfo.model_validate_json((directory / 'world.json').read_bytes())
-        except (OSError, ValueError):
-            raise HTTPException(status_code=404, detail='World not found') from None
+
+        def field_text(field, value):
+            """Format structured values only; never interpret event prose."""
+            if isinstance(value, dict):
+                if set(value) == {'day', 'part'}:
+                    return f"Day {value['day']} {value['part']}"
+                return ' · '.join(f'{key} → {field_text(key, item)}' for key, item in value.items())
+            if isinstance(value, list):
+                return ', '.join(field_text(field, item) for item in value) or '—'
+            if field in {'people', 'touches', 'opposed_by', 'who', 'person', 'main', 'name', 'heard_from'}:
+                return display_name(value, travelers) if value is not None else '—'
+            if field in {'place', 'where', 'slug'}:
+                return locations.get(value, value)
+            return str(value) if value is not None else '—'
+
+        def op_text(op):
+            fields = op.model_dump(mode='json', exclude_unset=True, exclude={'op'})
+            return op.op + ' · ' + field_text('', fields)
+
         scenes = read_scenes(directory)
         parts = load_settings().parts_of_day
-        # load_catalogs takes a project root; custom --assets directories use
-        # the same catalog loader directly, as the player does.
-        if player_assets_dir == player_assets_dir.parent.parent / 'assets/player':
-            catalogs = load_catalogs(player_assets_dir.parent.parent)
-        else:
-            catalogs = {path.stem: catalog for path in (player_assets_dir / 'stages').glob('*.yaml')
-                        if (catalog := load_catalog(player_assets_dir, path.stem)) is not None}
+        catalogs = load_catalogs(directory=info.setting or player_assets_dir)
         spot_names = {(place, spot.id): spot.name or spot.id
                       for place, catalog in catalogs.items() for spot in catalog.spots}
         scene_ids = {scene.id for thread in item.threads for scene in thread.scenes}
         scene_ids.update(scene.id for scene in item.unthreaded)
         return templates.TemplateResponse(request=request, name='chronicle.html', context=dict(
-            chronicle=item, scene_count=len(scene_ids), field_text=field_text, op_text=op_text,
+            chronicle=item, scene_count=len(scene_ids), person=lambda slug: display_name(slug, travelers),
+            field_text=field_text, op_text=op_text,
             parts_of_day=parts, timelines=thread_timelines(item, scenes, parts),
             world_title=', '.join(display_name(name, travelers) for name in info.characters)
                         + ' · ' + locations.get(info.location, info.location),

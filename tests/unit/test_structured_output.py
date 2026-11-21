@@ -218,7 +218,8 @@ def test_curator_output_format_is_json_schema(tmp_path, monkeypatch):
 
 
 def test_initializer_state_session_output_format_is_json_schema(tmp_path, monkeypatch):
-    for name in ("config/models.yaml", "config/settings.yaml", "prompts/initializer_scene_context.md",
+    for name in ("config/models.yaml", "config/settings.yaml", "prompts/default_premise.yaml",
+                 "prompts/initializer_scene_context.md",
                  "prompts/initializer_state.md", "cards/agnea.md", "cards/throne.md"):
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)

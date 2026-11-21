@@ -7,8 +7,10 @@ from types import SimpleNamespace
 
 import pytest
 
+from story_engine.kb import location_regions
 from story_engine.agents.character import Action, Plan
 from story_engine.config import load_configs
+from story_engine.stages import load_catalogs
 from story_engine.simulation import run_tick
 from story_engine.trace import TraceWriter
 from story_engine.world.io import load_state, read_events, read_scenes
@@ -43,10 +45,10 @@ def test_tick_adds_catalog_destination_before_move(tmp_path, monkeypatch):
 
     async def exercise():
         async with agent:
-            session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1, root=ROOT,
-                characters={'agnea': SimpleNamespace(choose=stay), 'throne': agent},
+            session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1,
+                characters={'agnea': SimpleNamespace(choose=stay, regions=agent.regions), 'throne': agent},
                 settings=load_configs()[1], trace=TraceWriter(run),
-                world=SimpleNamespace(adjudicate=adjudicate),
+                world=SimpleNamespace(adjudicate=adjudicate, catalogs=agent.catalogs),
                 offscreen=SimpleNamespace(offscreen=offscreen))
             return await run_tick(world, run, session=session)
 
@@ -113,6 +115,8 @@ def test_seek_tick(tmp_path, case, reverse):
     (world / 'genesis.json').write_text(state.model_dump_json())
 
     class Character:
+        regions = location_regions(ROOT)
+
         def __init__(self, slug):
             self.slug = slug
         async def choose(self, *_):
@@ -131,9 +135,9 @@ def test_seek_tick(tmp_path, case, reverse):
         return [], current, {}
 
     order = list(reversed(plans)) if reverse else list(plans)
-    session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1, root=ROOT,
+    session = SimpleNamespace(active=True, world_dir=world, run_dir=run, day=1,
         characters={s: Character(s) for s in order}, scene_notes={}, settings=load_configs()[1],
-        trace=TraceWriter(run), world=SimpleNamespace(adjudicate=adjudicate, round=round_),
+        trace=TraceWriter(run), world=SimpleNamespace(adjudicate=adjudicate, round=round_, catalogs=load_catalogs(ROOT)),
         offscreen=SimpleNamespace(offscreen=offscreen))
     result = asyncio.run(run_tick(world, run, session=session))
     assert (result.characters['agnea'].where, result.characters['agnea'].spot) == expected

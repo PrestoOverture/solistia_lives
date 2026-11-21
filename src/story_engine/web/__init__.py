@@ -5,8 +5,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qs
 
-import frontmatter
-
 import markdown
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
@@ -15,7 +13,7 @@ from pydantic import BaseModel
 
 from story_engine.agents.validation import Validation
 from story_engine.config import ConfigError, load_configs, load_settings
-from story_engine.kb import TRAVELERS, validate_input
+from story_engine.kb import TRAVELERS, kb_display_name as _display_name, kb_names, validate_input
 from story_engine.runs import RunInput, create_run
 from story_engine.web.chronicle import register_chronicle_routes
 from story_engine.web.jobs import generate_story
@@ -43,12 +41,6 @@ class Story:
     word_count: int
     created_at: datetime
     text: str
-
-
-def _display_name(path: Path) -> str:
-    metadata = frontmatter.load(path)
-    name = metadata.get("name", path.stem)
-    return (metadata.get("aliases") or [name])[0] if name == path.stem else name
 
 
 def _run_dir(runs_dir: Path, run_id: str) -> Path | None:
@@ -98,9 +90,7 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
     worlds_dir = worlds_dir.resolve()
     player_assets_dir = player_assets_dir.resolve()
     app = FastAPI(openapi_url=None, docs_url=None, redoc_url=None)
-    travelers = {slug: _display_name(Path("kb/characters") / slug / f"{slug}.md")
-                 for slug in sorted(TRAVELERS)}
-    locations = {path.stem: _display_name(path) for path in Path("kb/locations").rglob("*.md")}
+    travelers, locations = kb_names(Path("."), sorted(TRAVELERS))
     locations = dict(sorted(locations.items(), key=lambda item: item[1]))
 
     def display_story(item):
@@ -207,7 +197,7 @@ def create_app(runs_dir: Path = Path("runs"), worlds_dir: Path = Path("worlds"),
         location = fields.get("location", [""])[0]
         situation = fields.get("situation", [""])[0]
         try:
-            characters, place = validate_input(",".join(selected), location)
+            characters, place = validate_input(",".join(selected), location, mains=TRAVELERS)
             models, settings = load_configs()
         except (ValueError, ConfigError) as error:
             return form(request, selected=selected, location=location, situation=situation,

@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 from pydantic import BaseModel
 
 from story_engine.config import Models, Role
+from story_engine.setting import DEFAULT_PREMISE
 
 
 class RunInput(BaseModel):
@@ -35,13 +36,19 @@ class RunMeta(BaseModel):
     error: str | None = None
 
 
-def _prompt_hashes() -> dict[str, str]:
+def _prompt_hashes(setting: Path | None = None) -> dict[str, str]:
     hashes = {}
-    for directory in (Path("prompts"), Path("cards")):
+    for base, folder in ((Path("."), "prompts"), (setting or Path("."), "cards")):
+        directory = base / folder
         for path in directory.rglob("*"):
-            if any(part.startswith(".") for part in path.parts) or not path.is_file():
+            key = path.relative_to(base)
+            if setting is not None and key == DEFAULT_PREMISE:
                 continue
-            hashes[path.as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+            if any(part.startswith(".") for part in key.parts) or not path.is_file():
+                continue
+            hashes[key.as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    if setting is not None:
+        hashes["premise.yaml"] = hashlib.sha256((setting / "premise.yaml").read_bytes()).hexdigest()
     return dict(sorted(hashes.items()))
 
 
@@ -58,6 +65,7 @@ def create_run(
     world_id: str | None = None,
     day: int | None = None,
     runs_dir: Path = Path("runs"),
+    setting: Path | None = None,
 ) -> Path:
     now = datetime.now(timezone.utc)
     run_id = f"{now:%Y%m%d-%H%M%S}-{secrets.token_hex(3)}"
@@ -72,7 +80,7 @@ def create_run(
         models=models,
         scene_context_from=scene_context_from,
         models_file=models_file,
-        prompt_hashes=_prompt_hashes(),
+        prompt_hashes=_prompt_hashes(setting),
         status=status,
     )
     run_dir = runs_dir / run_id

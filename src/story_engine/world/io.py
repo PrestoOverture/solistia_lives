@@ -54,11 +54,12 @@ def create_world(
     *,
     worlds_dir: Path = Path("worlds"),
     init_run_id: str | None = None,
+    setting: Path | None = None,
 ) -> Path:
     """Create a world with an already initialized state and return its directory."""
     now = datetime.now(timezone.utc)
     info = WorldInfo(characters=characters, location=location, situation=situation,
-                     created_at=now.isoformat(), init_run_id=init_run_id)
+                     created_at=now.isoformat(), init_run_id=init_run_id, setting=setting)
     state = _validate_state(info, state)
     world_id = f"{now:%Y%m%d-%H%M%S}-{secrets.token_hex(3)}"
     world_dir = worlds_dir / world_id

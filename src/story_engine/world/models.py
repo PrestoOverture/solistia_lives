@@ -1,5 +1,6 @@
 """Persistent world artifact schemas (architecture §5)."""
 
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -10,6 +11,7 @@ if TYPE_CHECKING:
     from .ops import Op
 
 PartOfDay = Literal["morning", "afternoon", "evening", "night"]
+WORLD_CONTENT_LIMIT = 280
 Odds = Literal["certain", "likely", "even", "unlikely"]
 SituationKind = Literal["trouble", "occasion", "promise", "wish", "reunion"]
 
@@ -24,6 +26,7 @@ class WorldInfo(WorldModel):
     situation: str
     created_at: str
     init_run_id: str | None = None
+    setting: Path | None = None
 
     @model_validator(mode="after")
     def unique_characters(self) -> Self:
@@ -137,6 +140,7 @@ class Event(WorldModel):
     part: PartOfDay
     place: str
     actor: str
+    by: Literal["author"] | None = Field(default=None, exclude_if=lambda value: value is None)
     of: str | None = None
     type: Literal["speech", "action", "world", "state_change", "plan"]
     content: str
@@ -159,7 +163,7 @@ class Event(WorldModel):
 
     def agent_view(self, exclude: set[str] = frozenset()) -> dict:
         """An event as agents read it: action and say repeat content, and empty fields are left out."""
-        view = self.model_dump(exclude={'action', 'say', 'about', 'odds', *exclude}, exclude_none=True)
+        view = self.model_dump(exclude={'action', 'say', 'about', 'odds', 'by', *exclude}, exclude_none=True)
         if not view.get('ops', True):
             del view['ops']
         return view
