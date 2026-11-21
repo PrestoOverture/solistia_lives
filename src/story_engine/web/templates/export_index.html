@@ -1,13 +1,31 @@
 {% extends "base.html" %}
-{% block title %}World theaters{% endblock %}
+{% block title %}Worlds{% endblock %}
 {% block content %}
-<h1>World theaters</h1>
-<ul class="library">
+<style>
+  .world-card { padding: 1rem 1.25rem; }
+  .world-card-row { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; }
+  .world-card-info { flex: 1; min-width: 0; }
+  .world-card-info h2 { margin: 0 0 .3rem; font-size: 1.1rem; }
+  .world-card-info .metadata { margin: 0; font-size: .8rem; }
+  .world-card-row .actions { flex-shrink: 0; }
+  @media (max-width: 900px) { .world-card-row { flex-direction: column; align-items: stretch; gap: .75rem; } }
+</style>
+<header class="page-header"><p class="eyebrow">Solistia Lives</p><h1>Worlds</h1></header>
+<div class="card-list">
 {% for world in worlds %}
-  <li><h2><a href="world/{{ world.id }}/theater.html">{{ world.characters | join(', ') }}</a></h2>
-    <p>{{ world.place }} · {{ world.days | length }} day{{ '' if world.days | length == 1 else 's' }} ({{ world.days | join(', ') }})</p>
-  </li>
+<section class="card world-card">
+  <div class="world-card-row">
+  <div class="world-card-info">
+  <h2>{{ world.characters | join(', ') }}</h2>
+  <p class="metadata">{{ world.place }} · {{ world.days | length }} day{{ '' if world.days | length == 1 else 's' }} ({{ world.days | join(', ') }}) · {{ world.scenes }} scene{{ '' if world.scenes == 1 else 's' }} · {{ world.threads }} thread{{ '' if world.threads == 1 else 's' }}</p>
+  </div>
+  <div class="actions">
+    <a class="button primary" href="world/{{ world.id }}/chronicle.html">Read chronicle</a>
+    <a class="button" href="world/{{ world.id }}/theater.html">Play theater</a>
+  </div>
+  </div>
+</section>
 {% endfor %}
-</ul>
+</div>
 <p class="metadata">{{ notice }}</p>
 {% endblock %}

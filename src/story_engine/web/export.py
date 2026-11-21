@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from story_engine.kb import TRAVELERS
 from story_engine.web import _display_name
+from story_engine.web.chronicle import chronicle_page
 from story_engine.web.player import asset_file, display_name, read_world, theater_context, theater_data, valid_id
 
 
@@ -61,7 +62,9 @@ def export_site(world_ids: list[str], *, assets: Path, audio: str, out: Path,
                     source = audio_dir / beat['audio_url'].removeprefix('audio/')
                     if not source.resolve().is_relative_to(audio_dir.resolve()):
                         raise ValueError(f'Audio file escapes directory: {source}')
-        worlds.append((world_id, world[0], scenes, audio_dir))
+        chronicle = chronicle_page(worlds_dir, world_id, assets, travelers, locations,
+                                   theater_url='theater.html')
+        worlds.append((world_id, world[0], scenes, audio_dir, chronicle))
     out.mkdir(parents=True, exist_ok=True)
     for filename in sorted(referenced):
         target = out / 'assets' / filename
@@ -73,7 +76,7 @@ def export_site(world_ids: list[str], *, assets: Path, audio: str, out: Path,
         '<text x="16" y="24" text-anchor="middle" fill="#faf7f0" font-size="24">S</text></svg>',
         encoding='utf-8')
     cards = []
-    for world_id, info, scenes, audio_dir in worlds:
+    for world_id, info, scenes, audio_dir, chronicle in worlds:
         directory = out / 'world' / world_id
         directory.mkdir(parents=True)
         # Encode filenames as URLs after collecting source paths.
@@ -95,9 +98,13 @@ def export_site(world_ids: list[str], *, assets: Path, audio: str, out: Path,
         context.update(static_site=True, index_url='../../index.html')
         (directory / 'theater.html').write_text(
             templates.get_template('theater.html').render(context), encoding='utf-8')
+        chronicle.update(static_site=True, index_url='../../index.html')
+        (directory / 'chronicle.html').write_text(
+            templates.get_template('chronicle.html').render(chronicle), encoding='utf-8')
         (directory / 'theater.json').write_text(json.dumps(dict(scenes=scenes), ensure_ascii=False), encoding='utf-8')
         cards.append(dict(id=world_id, characters=[display_name(name, travelers) for name in info.characters],
-                          place=locations.get(info.location, info.location), days=sorted({s['day'] for s in scenes})))
+                          place=locations.get(info.location, info.location), days=sorted({s['day'] for s in scenes}),
+                          scenes=len(scenes), threads=len(chronicle['chronicle'].threads)))
     (out / 'index.html').write_text(templates.get_template('export_index.html').render(
         static_site=True, index_url='index.html', worlds=cards, notice=NOTICE), encoding='utf-8')
     (out / 'export-manifest.json').write_text(ExportManifest(

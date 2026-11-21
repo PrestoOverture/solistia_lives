@@ -44,6 +44,11 @@ def test_export_index_theater_assets_audio_and_links(exported):
     assert 'Agnea Bristarni' in index and 'Throné Anguis' in index
     assert 'Cropdale' in index and '1 day' in index and '1 days' not in index
     assert 'world/player/theater.html' in index
+    assert 'world/player/chronicle.html' in index
+    chronicle = (out / 'world/player/chronicle.html').read_text()
+    assert 'href="../../index.html"' in chronicle and 'cdn.jsdelivr' not in chronicle
+    assert 'href="/world/' not in chronicle
+    assert 'href="theater.html#' in chronicle
     html = (out / 'world/player/theater.html').read_text()
     assert 'id="title-card"' in html and 'cdn.jsdelivr' not in html
     data = json.loads((out / 'world/player/theater.json').read_text())

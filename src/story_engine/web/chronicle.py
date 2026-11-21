@@ -70,7 +70,8 @@ class Chronicle(BaseModel):
     elsewhere: list[Event]
 
 
-def scene_entry(world_id: str, scene: SceneRecord, events: list[Event], names: dict, locations: dict) -> SceneEntry:
+def scene_entry(world_id: str, scene: SceneRecord, events: list[Event], names: dict, locations: dict,
+                theater_url: str | None = None) -> SceneEntry:
     rows = [e for e in events if e.scene == scene.id and e.type != 'plan']
     rounds = []
     numbers = sorted(set(range(1, scene.rounds + 1)) | {e.round for e in rows if e.round is not None})
@@ -81,10 +82,11 @@ def scene_entry(world_id: str, scene: SceneRecord, events: list[Event], names: d
     return SceneEntry(**scene.model_dump(exclude={'rounds', 'participants', 'first_event_id', 'last_event_id'}),
                       place_name=locations.get(scene.place, scene.place),
                       participants=[display_name(p, names) for p in scene.participants], rounds=rounds,
-                      theater_link=f'/world/{world_id}/theater#{scene.id}')
+                      theater_link=f'{theater_url or f"/world/{world_id}/theater"}#{scene.id}')
 
 
-def chronicle_data(worlds_dir: Path, world_id: str, names: dict, locations: dict) -> Chronicle:
+def chronicle_data(worlds_dir: Path, world_id: str, names: dict, locations: dict,
+                   theater_url: str | None = None) -> Chronicle:
     directory = worlds_dir / world_id
     if (not valid_id(world_id) or directory.is_symlink()
             or directory.resolve().parent != worlds_dir.resolve()
@@ -135,7 +137,7 @@ def chronicle_data(worlds_dir: Path, world_id: str, names: dict, locations: dict
     def inside(thread, item):
         return when(thread.opened) <= when(item) and (thread.closed is None or when(item) <= when(thread.closed))
 
-    entries = {s.id: scene_entry(world_id, s, events, names, locations) for s in scenes}
+    entries = {s.id: scene_entry(world_id, s, events, names, locations, theater_url) for s in scenes}
     used = set()
     for thread in threads.values():
         thread.scenes = [entries[s.id] for s in scenes if s.id in linked[thread.id]
@@ -184,6 +186,52 @@ def thread_timelines(chronicle: Chronicle, scenes: list[SceneRecord], parts: lis
     return timelines
 
 
+def chronicle_page(worlds_dir: Path, world_id: str, player_assets_dir: Path, travelers: dict, locations: dict,
+                   theater_url: str | None = None) -> dict:
+    """The chronicle template's context; raises ValueError (or OSError, KeyError) for a missing world."""
+    directory = worlds_dir / world_id
+    if not valid_id(world_id) or directory.is_symlink() or (directory / 'world.json').is_symlink():
+        raise ValueError('World not found')
+    info = WorldInfo.model_validate_json((directory / 'world.json').read_bytes())
+    if info.setting is not None:
+        travelers, locations = kb_names(info.setting, info.characters)
+    item = chronicle_data(worlds_dir, world_id, travelers, locations, theater_url)
+
+    def field_text(field, value):
+        """Format structured values only; never interpret event prose."""
+        if isinstance(value, dict):
+            if set(value) == {'day', 'part'}:
+                return f"Day {value['day']} {value['part']}"
+            return ' · '.join(f'{key} → {field_text(key, item)}' for key, item in value.items())
+        if isinstance(value, list):
+            return ', '.join(field_text(field, item) for item in value) or '—'
+        if field in {'people', 'touches', 'opposed_by', 'who', 'person', 'main', 'name', 'heard_from'}:
+            return display_name(value, travelers) if value is not None else '—'
+        if field in {'place', 'where', 'slug'}:
+            return locations.get(value, value)
+        return str(value) if value is not None else '—'
+
+    def op_text(op):
+        fields = op.model_dump(mode='json', exclude_unset=True, exclude={'op'})
+        return op.op + ' · ' + field_text('', fields)
+
+    scenes = read_scenes(directory)
+    parts = load_settings().parts_of_day
+    catalogs = load_catalogs(directory=info.setting or player_assets_dir)
+    spot_names = {(place, spot.id): spot.name or spot.id
+                  for place, catalog in catalogs.items() for spot in catalog.spots}
+    scene_ids = {scene.id for thread in item.threads for scene in thread.scenes}
+    scene_ids.update(scene.id for scene in item.unthreaded)
+    return dict(
+        chronicle=item, scene_count=len(scene_ids), person=lambda slug: display_name(slug, travelers),
+        field_text=field_text, op_text=op_text,
+        parts_of_day=parts, timelines=thread_timelines(item, scenes, parts),
+        world_title=', '.join(display_name(name, travelers) for name in info.characters)
+                    + ' · ' + locations.get(info.location, info.location),
+        day_count=max([1, *(scene.day for scene in scenes),
+                       *(event.day for event in read_events(directory))]), spot_names=spot_names)
+
+
 def register_chronicle_routes(app, templates, worlds_dir: Path, player_assets_dir: Path,
                               travelers: dict, locations: dict):
     def data(world_id):
@@ -194,50 +242,18 @@ def register_chronicle_routes(app, templates, worlds_dir: Path, player_assets_di
             info = WorldInfo.model_validate_json((directory / 'world.json').read_bytes())
             names, places = (kb_names(info.setting, info.characters) if info.setting is not None
                              else (travelers, locations))
-            return chronicle_data(worlds_dir, world_id, names, places), info, names, places
+            return chronicle_data(worlds_dir, world_id, names, places)
         except (OSError, ValueError, KeyError):
             raise HTTPException(status_code=404, detail='World not found') from None
 
     @app.get('/world/{world_id}/chronicle.json')
     def chronicle_json(world_id: str):
-        item, *_ = data(world_id)
-        return item
+        return data(world_id)
 
     @app.get('/world/{world_id}/chronicle', response_class=HTMLResponse)
     def chronicle(request: Request, world_id: str):
-        item, info, travelers, locations = data(world_id)
-        directory = worlds_dir / world_id
-
-        def field_text(field, value):
-            """Format structured values only; never interpret event prose."""
-            if isinstance(value, dict):
-                if set(value) == {'day', 'part'}:
-                    return f"Day {value['day']} {value['part']}"
-                return ' · '.join(f'{key} → {field_text(key, item)}' for key, item in value.items())
-            if isinstance(value, list):
-                return ', '.join(field_text(field, item) for item in value) or '—'
-            if field in {'people', 'touches', 'opposed_by', 'who', 'person', 'main', 'name', 'heard_from'}:
-                return display_name(value, travelers) if value is not None else '—'
-            if field in {'place', 'where', 'slug'}:
-                return locations.get(value, value)
-            return str(value) if value is not None else '—'
-
-        def op_text(op):
-            fields = op.model_dump(mode='json', exclude_unset=True, exclude={'op'})
-            return op.op + ' · ' + field_text('', fields)
-
-        scenes = read_scenes(directory)
-        parts = load_settings().parts_of_day
-        catalogs = load_catalogs(directory=info.setting or player_assets_dir)
-        spot_names = {(place, spot.id): spot.name or spot.id
-                      for place, catalog in catalogs.items() for spot in catalog.spots}
-        scene_ids = {scene.id for thread in item.threads for scene in thread.scenes}
-        scene_ids.update(scene.id for scene in item.unthreaded)
-        return templates.TemplateResponse(request=request, name='chronicle.html', context=dict(
-            chronicle=item, scene_count=len(scene_ids), person=lambda slug: display_name(slug, travelers),
-            field_text=field_text, op_text=op_text,
-            parts_of_day=parts, timelines=thread_timelines(item, scenes, parts),
-            world_title=', '.join(display_name(name, travelers) for name in info.characters)
-                        + ' · ' + locations.get(info.location, info.location),
-            day_count=max([1, *(scene.day for scene in scenes),
-                           *(event.day for event in read_events(directory))]), spot_names=spot_names))
+        try:
+            context = chronicle_page(worlds_dir, world_id, player_assets_dir, travelers, locations)
+        except (OSError, ValueError, KeyError):
+            raise HTTPException(status_code=404, detail='World not found') from None
+        return templates.TemplateResponse(request=request, name='chronicle.html', context=context)
